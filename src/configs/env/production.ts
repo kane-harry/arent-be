@@ -1,0 +1,17 @@
+import { COMMON_ENV, Environments } from './common'
+
+export const PRODUCTION_ENV: Environments = {
+  PORT: Number(COMMON_ENV.PORT || 80),
+  IS_PRODUCTION: COMMON_ENV.IS_PRODUCTION,
+  NODE_ENV: 'production',
+  SERVER_TIMEOUT: Number(COMMON_ENV.SERVER_TIMEOUT || 70000),
+  JWT_SECRET: String(process.env.JWT_SECRET || 'abcdefgh123456789'),
+  SECURITY_JWT_TOKEN_EXPIRES_IN: String(process.env.SECURITY_JWT_TOKEN_EXPIRES_IN || '3605s'),
+  MONGO_URL: String(COMMON_ENV.MONGO_URL || 'mongodb://localhost:27017'),
+  MONGO_DB_NAME: String(COMMON_ENV.MONGO_DB_NAME || 'translucia-stage'),
+
+  REDIS_ENABLED: Boolean(COMMON_ENV.REDIS_ENABLED),
+  REDIS_URL: String(COMMON_ENV.REDIS_URL || '127.0.0.1'),
+  CACHE_PREFIX: String(COMMON_ENV.CACHE_PREFIX || 'translucia'),
+  CACHE_DEFAULT_EXPIRE_MINUTES: Number(COMMON_ENV.CACHE_DEFAULT_EXPIRE_MINUTES || 5)
+}
