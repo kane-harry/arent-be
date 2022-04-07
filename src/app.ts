@@ -13,13 +13,14 @@ class App {
         this.app = express();
 
         this.connectToDb();
-        this.initMiddlewares();
-        this.initErrorHandling();
+        this.initMiddlewares();   
         this.initControllers(controllers);
+        this.initErrorHandling();
 
     }
     public listen() {
         this.app.listen(process.env.PORT, () => {
+            // this.app.use(errorMiddleware);
             console.log(`Server is listening on the port ${process.env.PORT}`);
         });
     }

@@ -1,19 +1,19 @@
-import { IsOptional, IsString, IsInt, ValidateNested } from 'class-validator';
+import { IsOptional, IsString, IsEmail, IsInt, ValidateNested } from 'class-validator';
 
 class CreateUserDto {
-    @IsString()
+    @IsString({ message: 'Firstname is required.' })
     public firstName: string;
 
-    @IsString()
+    @IsString({ message: 'Lastname is required.' })
     public lastName: string;
 
-    @IsString()
+    @IsEmail({ message: 'Email address is invalid.' })
     public email: string;
 
     @IsString()
     public password: string;
 
-    @IsInt()
+    @IsOptional()
     public role: number;
 }
 
