@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
-import HttpException from '../exceptions/HttpException';
+import BaseError from '../exceptions/BaseError';
 
-function errorMiddleware(error: HttpException, req: Request, res: Response, next: NextFunction) {
-    const status = error.status || 500;
+function errorMiddleware(error: BaseError, req: Request, res: Response, next: NextFunction) {
+    const statusCode = error.statusCode || 500;
     const message = error.message || 'Something went wrong';
-    res.status(status).send({
-        message, status,
+    return res.status(statusCode).json({
+        message, statusCode,
     });
 }
 

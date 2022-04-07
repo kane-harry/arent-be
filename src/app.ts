@@ -4,6 +4,8 @@ import mongoose from 'mongoose';
 
 import Controller from './interfaces/controller.interface';
 import errorMiddleware from './middlewares/error.middleware';
+import loggerMiddleware from './middlewares/logger.middleware';
+import asyncHandler from "express-async-handler"
 
 class App {
     public app: express.Application;
@@ -12,8 +14,8 @@ class App {
 
         this.connectToDb();
         this.initMiddlewares();
-        this.initControllers(controllers);
         this.initErrorHandling();
+        this.initControllers(controllers);
 
     }
     public listen() {
@@ -35,7 +37,7 @@ class App {
 
     private initErrorHandling() {
         this.app.use(errorMiddleware);
-      }
+    }
 
     private initControllers(controllers: Controller[]) {
         controllers.forEach((controller) => {

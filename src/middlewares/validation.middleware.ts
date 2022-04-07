@@ -1,7 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
 import { RequestHandler } from 'express';
-import HttpException from '../exceptions/HttpException';
+import BaseError from '../exceptions/BaseError';
 
 function validationMiddleware<T>(type: any, skipMissingProperties = false): RequestHandler {
     return (req, res, next) => {
@@ -9,7 +9,7 @@ function validationMiddleware<T>(type: any, skipMissingProperties = false): Requ
             .then((errors: ValidationError[]) => {
                 if (errors.length > 0) {
                     const message = errors.map((error: ValidationError) => Object.values(error.value)).join(', ');
-                    next(new HttpException(400, message));
+                    next(new BaseError(400, message));
                 } else {
                     next();
                 }
