@@ -1,58 +1,42 @@
-import { NextFunction, Request, Response } from 'express'
-import { loggingError } from '../../logging'
-import { BaseController } from '../base/base.controller'
-import { UserService } from './user.service'
+import HttpException from '../../exceptions/HttpException';
+import { Router, Request, Response, NextFunction } from 'express';
+import Controller from "../../interfaces/controller.interface";
+import validationMiddleware from '../../middlewares/validation.middleware';
+import CreateUserDto from './user.dto';
+import IUser from './user.interface';
+import UserService from './user.service';
 
-const userService = new UserService()
+class UserController implements Controller {
+    public path = '/users';
+    public router = Router();
 
-export class UserController extends BaseController {
-  public async connectByWallet(req: Request, res: Response, next: NextFunction) {
-    const walletAddress = req.body.wallet_address
-    try {
-      const client = super.getClientInfo(req)
-      const data = await userService.connectByWallet({ wallet_address: walletAddress }, client)
-      return res.json(data)
-    } catch (err) {
-      loggingError({
-        data: { walletAddress },
-        error_detail: String(err),
-        functionName: 'connectByWallet',
-        message: ''
-      })
-      next(err)
+    // private userService: UserService = new UserService();
+
+    constructor() {
+        this.initRoutes();
     }
-  }
 
-  public async loginByWallet(req: Request, res: Response, next: NextFunction) {
-    const walletAddress = req.body.wallet_address
-    const signature = req.body.signature
-    try {
-      const data = await userService.loginByWallet({ wallet_address: walletAddress, signature })
-      return res.json(data)
-    } catch (err) {
-      loggingError({
-        data: { walletAddress, signature },
-        error_detail: String(err),
-        functionName: 'loginByWallet',
-        message: ''
-      })
-      next(err)
+    private initRoutes() {
+        this.router.post(`${this.path}`, validationMiddleware(CreateUserDto), this.createUser);
+        this.router.get(`${this.path}/:id`, this.getUserById);
+        // this.router.get(`${this.path}/:id/posts`, authMiddleware, this.getAllPostsOfUser);
     }
-  }
 
-  public async logoutByWallet(req: Request, res: Response, next: NextFunction) {
-    const walletAddress = req.body.wallet_address
-    try {
-      const data = await userService.logoutByWallet({ wallet_address: walletAddress })
-      return res.json(data)
-    } catch (err) {
-      loggingError({
-        data: { walletAddress },
-        error_detail: String(err),
-        functionName: 'logoutByWallet',
-        message: ''
-      })
-      next(err)
+    private createUser = async (req: Request, res: Response, next: NextFunction) => {
+        const postData: IUser = req.body;
+        const data = await UserService.createUser(postData)
+
+        res.send(data);
     }
-  }
+
+    private getUserById = async (req: Request, res: Response, next: NextFunction) => {
+        const id = req.params.id;
+        const data = await UserService.getUserById(id)
+        if (!data) {
+            next(new HttpException(404, 'User Not Found'))
+        }
+        res.send(data);
+    }
 }
+
+export default UserController;

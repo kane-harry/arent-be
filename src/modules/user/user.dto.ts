@@ -1,0 +1,20 @@
+import { IsOptional, IsString, IsInt, ValidateNested } from 'class-validator';
+
+class CreateUserDto {
+    @IsString()
+    public firstName: string;
+
+    @IsString()
+    public lastName: string;
+
+    @IsString()
+    public email: string;
+
+    @IsString()
+    public password: string;
+
+    @IsInt()
+    public role: number;
+}
+
+export default CreateUserDto;
