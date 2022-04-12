@@ -12,54 +12,54 @@ import passport from 'passport'
 import authz from './middlewares/authz.middleware'
 
 class App {
-  public app: express.Application
-  constructor(controllers: IController[]) {
-    this.app = express()
+    public app: express.Application
+    constructor(controllers: IController[]) {
+        this.app = express()
 
-    this.connectToDb()
-    this.initMiddlewares()
-    this.initControllers(controllers)
-    this.initErrorHandling()
-  }
+        this.connectToDb()
+        this.initMiddlewares()
+        this.initControllers(controllers)
+        this.initErrorHandling()
+    }
 
-  public listen() {
-    this.app.listen(process.env.PORT, () => {
-      // this.app.use(errorMiddleware);
-      console.log(`Server is listening on the port ${process.env.PORT}`)
-    })
-  }
+    public listen() {
+        this.app.listen(process.env.PORT, () => {
+            // this.app.use(errorMiddleware);
+            console.log(`Server is listening on the port ${process.env.PORT}`)
+        })
+    }
 
-  public getServer() {
-    return this.app
-  }
+    public getServer() {
+        return this.app
+    }
 
-  private initMiddlewares(): void {
-    // support application/json type post data
-    this.app.use(bodyParser.json())
-    // support application/x-www-form-urlencoded post data
-    this.app.use(bodyParser.urlencoded({ extended: false }))
+    private initMiddlewares(): void {
+        // support application/json type post data
+        this.app.use(bodyParser.json())
+        // support application/x-www-form-urlencoded post data
+        this.app.use(bodyParser.urlencoded({ extended: false }))
 
-    this.app.use(cors())
-    this.app.use(helmet())
-    this.app.use(requestMiddleware)
-    this.app.use(passport.initialize())
-    authz(passport)
-  }
+        this.app.use(cors())
+        this.app.use(helmet())
+        this.app.use(requestMiddleware)
+        this.app.use(passport.initialize())
+        authz(passport)
+    }
 
-  private initErrorHandling() {
-    this.app.use(errorMiddleware)
-  }
+    private initErrorHandling() {
+        this.app.use(errorMiddleware)
+    }
 
-  private initControllers(controllers: IController[]) {
-    controllers.forEach(controller => {
-      this.app.use('/', controller.router)
-    })
-  }
+    private initControllers(controllers: IController[]) {
+        controllers.forEach(controller => {
+            this.app.use('/', controller.router)
+        })
+    }
 
-  private connectToDb() {
-    const { MONGO_URL } = process.env
-    mongoose.connect(String(MONGO_URL))
-  }
+    private connectToDb() {
+        const { MONGO_URL } = process.env
+        mongoose.connect(String(MONGO_URL))
+    }
 }
 
 export default App
