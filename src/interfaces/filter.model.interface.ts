@@ -1,6 +1,6 @@
 interface IFilterModel {
-  pageindex: number
-  pagesize: number
+    pageindex: number
+    pagesize: number
 }
 
 export default IFilterModel
