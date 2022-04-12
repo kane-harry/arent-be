@@ -1,5 +1,5 @@
 interface ITokenModel {
-    token: string;
-    expiresIn: number;
+  token: string
+  expiresIn: number
 }
-export default ITokenModel;
+export default ITokenModel
