@@ -1,29 +1,25 @@
 import { plainToInstance } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
 import { RequestHandler } from 'express';
-import BaseError from '../exceptions/BaseError';
+import RequestException from '../exceptions/request.exception';
+import { CommmonErrors } from '../exceptions/custom.error';
+import IErrorModel from '../interfaces/error.model.interface';
 
 function validationMiddleware<T>(type: any, skipMissingProperties = false): RequestHandler {
     return (req, res, next) => {
         validate(plainToInstance(type, req.body), { skipMissingProperties })
             .then((errors: ValidationError[]) => {
                 if (errors.length > 0) {
-                    const constraints = errors.map((error: ValidationError) => error.constraints);
-
-                    let message = ''
-
-                    constraints.forEach(ele => {
-                        for (const [key, value] of Object.entries(ele as object)) {
-                            // console.log(`${key}: ${value}`);
-                            message += `${value}|`
-                        }
+                    let validationErrors: any[] = [];
+                    errors.forEach(error => {
+                        let property = error.property
+                        let errorMsg = Object.values(error.constraints as object)[0]
+                        validationErrors.push({ field: property, message: errorMsg })
                     })
-                    // for (const [key, value] of Object.entries(constraints)) {
-                    //     console.log(`${key}: ${value}`);
-                    // }
-                    //  message = constraints.map((error: ValidationError) => Object.values(error)).join(', ');
-
-                    next(new BaseError(400, message));
+                    //  message = constraints.map((error: ValidationError) => Object.values(error.constraints)).join(', ');
+                    let error = CommmonErrors.request_validation_error as IErrorModel
+                    error.metaData = validationErrors
+                    next(new RequestException(error));
                 } else {
                     next();
                 }

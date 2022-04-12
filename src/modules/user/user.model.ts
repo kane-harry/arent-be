@@ -1,15 +1,36 @@
-import * as mongoose from 'mongoose';
-import User from './user.interface';
+import { Schema, Model, Types, model } from 'mongoose';
+import { IUser } from './user.interface';
 
-const userSchema = new mongoose.Schema(
+const userSchema = new Schema<IUser>(
     {
-        email: String,
         firstName: String,
         lastName: String,
+        nickName: String,
+        email: {
+            type: String,
+            unique: true,
+            trim: true,
+            lowercase: true,
+            required: true,
+            index: true
+        },
         password: {
             type: String,
             get: (): undefined => undefined,
         },
+        roleId: { type: Number, default: 0, },
+        pin: {
+            type: String,
+            get: (): undefined => undefined,
+        },
+        phone: String,
+        country: String,
+        avatar: String,
+        playerId: String,
+        status: String,
+        removed: { type: Boolean, default: false, get: (): undefined => undefined, },
+        created: { type: Date, default: Date.now },
+        modified: { type: Date, default: Date.now }
     },
     {
         toJSON: {
@@ -19,6 +40,10 @@ const userSchema = new mongoose.Schema(
     },
 );
 
-const UserModel = mongoose.model<User & mongoose.Document>('users', userSchema);
+userSchema.virtual('fullName').get(function (this: { firstName: string, lastName: string }) {
+    return `${this.firstName} ${this.lastName}`;
+});
+
+const UserModel = model<IUser>('users', userSchema);
 
 export default UserModel;

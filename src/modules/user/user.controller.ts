@@ -1,50 +1,46 @@
-// import asyncHandler from "express-async-handler"
-import BaseError from '../../exceptions/BaseError';
+import asyncHandler from "../../common/asyncHandler"
 import { Router, Request, Response, NextFunction } from 'express';
-import Controller from "../../interfaces/controller.interface";
+import IController from "../../interfaces/controller.interface";
 import validationMiddleware from '../../middlewares/validation.middleware';
-import CreateUserDto from './user.dto';
-import IUser from './user.interface';
+import { CreateUserDto } from './user.dto';
+import { IUser, IUserFilter } from './user.interface';
 import UserService from './user.service';
+import { CustomRequest } from '../../middlewares/request.middleware';
 
-const asyncHandler = (fn: any) => (req: Request, res: Response, next: NextFunction) => Promise.resolve(fn(req, res, next)).catch(next);
 
-class UserController implements Controller {
+class UserController implements IController {
     public path = '/users';
     public router = Router();
-
-    // private userService: UserService = new UserService();
 
     constructor() {
         this.initRoutes();
     }
 
     private initRoutes() {
-        this.router.post(`${this.path}`, validationMiddleware(CreateUserDto), asyncHandler(this.createUser));
-        this.router.get(`${this.path}/:id`, asyncHandler(this.getUserById));
-        this.router.get(`${this.path}`, asyncHandler(this.queryUsers));
+        // this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), asyncHandler(this.createAccount));
+        // this.router.get(`${this.path}/:address`, asyncHandler(this.getAccount));
+        // this.router.get(`${this.path}`, asyncHandler(this.queryAccounts));
     }
 
-    private createUser = async (req: Request, res: Response, next: NextFunction) => {
-        const postData: IUser = req.body;
-        const data = await UserService.createUser(postData)
+    // private createAccount = async (req: Request, res: Response, next: NextFunction) => {
+    //     const postData: IUser = req.body;
+    //     const data = await UserService.createAccount(postData)
 
-        return res.send(data);
-    }
+    //     return res.send(data);
+    // }
 
-    private getUserById = async (req: Request, res: Response, next: NextFunction) => {
-        const id = req.params.id;
-        const data = await UserService.getUserById(id)
-        if (!data) {
-            next(new BaseError(404, 'User Not Found'));
-        } else {
-            res.send(data);
-        }
+    // private getAccount = async (req: Request, res: Response, next: NextFunction) => {
+    //     const address = req.params.address;
+    //     const data = await UserService.getAccount(address)
+    //     return res.send(data);
 
-    }
-    private queryUsers = async (req: Request, res: Response, next: NextFunction) => {
-        throw new BaseError(400, 'Users Not Found');
-    }
+    // }
+    // private queryAccounts = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    //     const filter = req.query as IUserFilter
+    //     const data = await UserService.queryAccounts(filter)
+    //     return res.send(data);
+    // }
+
 }
 
 export default UserController;

@@ -1,20 +1,35 @@
-import { IsOptional, IsString, IsEmail, IsInt, ValidateNested } from 'class-validator';
+import { IsOptional, IsString, Length, IsInt, ValidateNested } from 'class-validator';
 
-class CreateUserDto {
-    @IsString({ message: 'Firstname is required.' })
+export class CreateUserDto {
+    @IsString()
+    @Length(2, 8)
     public firstName: string;
 
-    @IsString({ message: 'Lastname is required.' })
+    @IsString()
+    @Length(2, 8)
     public lastName: string;
 
-    @IsEmail({ message: 'Email address is invalid.' })
+    @IsString()
+    @Length(2, 8)
+    public nickName: string;
+
+    @IsString()
     public email: string;
 
     @IsString()
     public password: string;
 
-    @IsOptional()
-    public role: number;
-}
+    @IsString()
+    @Length(4, 4)
+    public pin: string;
 
-export default CreateUserDto;
+    @IsOptional()
+    public phone: string;
+
+    @IsOptional()
+    public country: string;
+
+    @IsOptional()
+    public playerId: string;
+
+}

@@ -1,19 +1,24 @@
 import express from "express";
 import * as bodyParser from "body-parser";
+import cors from 'cors';
+import helmet from 'helmet';
 import mongoose from 'mongoose';
 
-import Controller from './interfaces/controller.interface';
+import IController from './interfaces/controller.interface';
 import errorMiddleware from './middlewares/error.middleware';
+import requestMiddleware from './middlewares/request.middleware';
 import loggerMiddleware from './middlewares/logger.middleware';
-import asyncHandler from "express-async-handler"
+import passport from "passport";
+import authz from './middlewares/authz.middleware';
+
 
 class App {
     public app: express.Application;
-    constructor(controllers: Controller[]) {
+    constructor(controllers: IController[]) {
         this.app = express();
 
         this.connectToDb();
-        this.initMiddlewares();   
+        this.initMiddlewares();
         this.initControllers(controllers);
         this.initErrorHandling();
 
@@ -31,16 +36,21 @@ class App {
     private initMiddlewares(): void {
         // support application/json type post data
         this.app.use(bodyParser.json());
-
         // support application/x-www-form-urlencoded post data
         this.app.use(bodyParser.urlencoded({ extended: false }));
+
+        this.app.use(cors());
+        this.app.use(helmet());
+        this.app.use(requestMiddleware);
+        this.app.use(passport.initialize())
+        authz(passport)
     }
 
     private initErrorHandling() {
         this.app.use(errorMiddleware);
     }
 
-    private initControllers(controllers: Controller[]) {
+    private initControllers(controllers: IController[]) {
         controllers.forEach((controller) => {
             this.app.use('/', controller.router);
         });
@@ -56,3 +66,4 @@ class App {
 }
 
 export default App;
+// export default new App().app;
