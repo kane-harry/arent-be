@@ -1,6 +1,12 @@
-import { IsOptional, IsString, IsEmail, IsInt, ValidateNested } from 'class-validator';
+import {
+  IsString
+  //   IsOptional,
+  //   IsEmail,
+  //   IsInt,
+  //   ValidateNested
+} from 'class-validator'
 
 export class CreateAccountDto {
-    @IsString({ message: 'Wallet Symbol is required.' })
-    public symbol: string;
+  @IsString({ message: 'Wallet Symbol is required.' })
+  public symbol: string
 }
