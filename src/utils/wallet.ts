@@ -1,9 +1,9 @@
-import { ethers } from "ethers";
+import { ethers } from 'ethers'
 
 export const createWallet = () => {
-    const wallet = ethers.Wallet.createRandom();
-    return {
-        public: wallet.address,
-        private: wallet.privateKey
-    }
+  const wallet = ethers.Wallet.createRandom()
+  return {
+    public: wallet.address,
+    private: wallet.privateKey
+  }
 }

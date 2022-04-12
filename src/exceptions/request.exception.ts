@@ -1,10 +1,10 @@
-import ApplicationException from './application.exception';
-import IErrorModel from '../interfaces/error.model.interface';
+import ApplicationException from './application.exception'
+import IErrorModel from '../interfaces/error.model.interface'
 
 class RequestException extends ApplicationException {
   constructor(error?: IErrorModel) {
-    super(error);
+    super(error)
   }
 }
 
-export default RequestException;
+export default RequestException
