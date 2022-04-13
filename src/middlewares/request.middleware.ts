@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import { config } from '../config'
 
 export interface CustomRequest extends Request {
     agent?: any
@@ -9,7 +10,7 @@ export interface CustomRequest extends Request {
 
 const requestMiddleware = (req: CustomRequest, res: Response, next: NextFunction) => {
     req.query.pageindex = Number(req.query.pageindex || 1)
-    req.query.pagesize = Number(req.query.pageindex || process.env.DEFAULT_QUERY_PAGE_SIZE)
+    req.query.pagesize = Number(req.query.pageindex || config.system.defaultQueryPagesize)
     req.agent = req.headers['user-agent']
     next()
 }

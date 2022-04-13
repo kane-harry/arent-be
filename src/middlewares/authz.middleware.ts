@@ -1,33 +1,23 @@
 import passportJWT from 'passport-jwt'
 import { PassportStatic } from 'passport'
 import UserModel from '../modules/user/user.model'
+import { config } from '../config'
 const JwtStrategy = passportJWT.Strategy
 const ExtractJwt = passportJWT.ExtractJwt
 
 const opts = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: process.env.JWT_SECRET
+    secretOrKey: config.JWT.secret
 }
 
 export default (passport: PassportStatic) => {
     passport.use(
         new JwtStrategy(opts, function (payload, done) {
-            UserModel.findById(payload.id)
-                .then(user => {
-                    if (!user) {
-                        return done(null, false)
-                    }
-                    // if (user.locked === true) {
-                    //     return done(null, false);
-                    // }
-                    // if (user.token_version > jwt_payload.token_version) {
-                    //     return done(null, false);
-                    // }
-                    return done(null, user)
-                })
-                .catch(error => {
-                    return done(error)
-                })
+            const user = UserModel.findById(payload.id).exec()
+            if (!user) {
+                return done(null, false)
+            }
+            return done(null, user)
         })
     )
 }

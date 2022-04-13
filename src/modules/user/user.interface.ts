@@ -17,8 +17,9 @@ export interface IUser extends IBaseModel {
     phone: string
     country: string
     avatar: string
-    playerId: string
+    playerId?: string
     status: string
+    emailVerified: boolean
 }
 
 export interface IUserFilter extends IFilterModel {

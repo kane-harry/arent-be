@@ -10,6 +10,7 @@ import requestMiddleware from './middlewares/request.middleware'
 // import loggerMiddleware from './middlewares/logger.middleware';
 import passport from 'passport'
 import authz from './middlewares/authz.middleware'
+import { config } from './config'
 
 class App {
     public app: express.Application
@@ -23,9 +24,9 @@ class App {
     }
 
     public listen() {
-        this.app.listen(process.env.PORT, () => {
+        this.app.listen(config.port, () => {
             // this.app.use(errorMiddleware);
-            console.log(`Server is listening on the port ${process.env.PORT}`)
+            console.log(`Server is listening on the port ${config.port}`)
         })
     }
 
@@ -57,8 +58,7 @@ class App {
     }
 
     private connectToDb() {
-        const { MONGO_URL } = process.env
-        mongoose.connect(String(MONGO_URL))
+        mongoose.connect(config.system.mongoUrl)
     }
 }
 

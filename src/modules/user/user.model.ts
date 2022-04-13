@@ -28,14 +28,19 @@ const userSchema = new Schema<IUser>(
         avatar: String,
         playerId: String,
         status: String,
-        removed: { type: Boolean, default: false, get: (): undefined => undefined },
-        created: { type: Date, default: Date.now },
-        modified: { type: Date, default: Date.now }
+        emailVerified: { type: Boolean, default: false },
+        removed: { type: Boolean, default: false, get: (): undefined => undefined }
+        // created: { type: Date, default: Date.now },
+        // modified: { type: Date, default: Date.now }
     },
     {
         toJSON: {
             virtuals: true,
             getters: true
+        },
+        timestamps: {
+            createdAt: 'created',
+            updatedAt: 'modified'
         }
     }
 )
