@@ -2,95 +2,17 @@ import * as bcrypt from 'bcrypt'
 import BizException from '../../exceptions/biz.exception'
 import ErrorContext from '../../exceptions/error.context'
 import { CreateUserDto } from '../user/user.dto'
-import { CreateCodeDto, LogInDto, VerifyCodeDto } from './auth.dto'
+import { LogInDto } from './auth.dto'
 import { toLower, capitalize, escapeRegExp, trim } from 'lodash'
 import { IUser, UserStatus } from '../user/user.interface'
 import UserModel from '../user/user.model'
-import CodeModel from './code.model'
-import { CodeType } from './code.interface'
+import { VerificationCode } from '../verification_code/code.model'
+import { CodeType } from '../verification_code/code.interface'
 import { AuthErrors } from '../../exceptions/custom.error'
 import * as jwt from 'jsonwebtoken'
 import { config } from '../../config'
-import randomstring from 'randomstring'
-import moment from 'moment'
 
 export default class AuthService {
-    static async generateCode(params: CreateCodeDto) {
-        const email = toLower(trim(params.email))
-        const user = await UserModel.findOne({ email: params.email }).exec()
-        if (user) {
-            if (params.codeType === CodeType.EmailRegistration) {
-                throw new BizException(AuthErrors.registration_email_exists_error, new ErrorContext('auth.service', 'generateCode', { email: email }))
-            }
-            if (user.emailVerified && params.codeType === CodeType.EmailUpdating) {
-                throw new BizException(
-                    AuthErrors.registration_email_already_verified_error,
-                    new ErrorContext('auth.service', 'generateCode', { email: email })
-                )
-            }
-        }
-        const code = randomstring.generate({ length: 6, charset: 'numeric' })
-        const codeData = await CodeModel.findOne({ owner: email, type: params.codeType }).exec()
-        const currentTs = moment().unix()
-        if (codeData) {
-            if (codeData.sentAttempts <= 5 && codeData.sentTimestamp > currentTs - 60) {
-                throw new BizException(
-                    AuthErrors.verification_code_duplicate_request_in_minute_error,
-                    new ErrorContext('auth.service', 'generateCode', { email: email })
-                )
-            } else if (codeData.sentAttempts > 5 && codeData.sentTimestamp > currentTs - 3600) {
-                throw new BizException(
-                    AuthErrors.verification_code_duplicate_request_in_hour_error,
-                    new ErrorContext('auth.service', 'generateCode', { email: email })
-                )
-            }
-            const newExpireTimestamp = currentTs + 900
-            await CodeModel.findByIdAndUpdate(codeData._id, {
-                code: code,
-                expiryTimestamp: newExpireTimestamp,
-                sentAttempts: codeData.sentAttempts++
-            }).exec()
-        } else {
-            const mode = new CodeModel({
-                owner: email,
-                type: params.codeType,
-                code: code
-            })
-            await mode.save()
-        }
-        // TODO: send email
-
-        return { success: true }
-    }
-
-    static async verifyCode(params: VerifyCodeDto) {
-        const codeData = await CodeModel.findOne({ owner: params.email, type: params.codeType, code: params.code }).exec()
-
-        if (!codeData) {
-            throw new BizException(
-                AuthErrors.verification_code_invalid_error,
-                new ErrorContext('auth.service', 'generateCode', { code: params.code })
-            )
-        }
-        const currentTs = moment().unix()
-        if (!codeData.enabled || codeData.expiryTimestamp < currentTs) {
-            throw new BizException(
-                AuthErrors.verification_code_invalid_error,
-                new ErrorContext('auth.service', 'generateCode', { code: params.code })
-            )
-        }
-        const valid = codeData.code === params.code
-        if (valid) {
-            await CodeModel.findByIdAndUpdate(codeData._id, { enabled: false }).exec()
-        } else {
-            const retryAttempts = codeData.retryAttempts + 1
-            const codeEnabled = retryAttempts > 5
-            await CodeModel.findByIdAndUpdate(codeData._id, { retryAttempts: retryAttempts, enabled: codeEnabled }).exec()
-        }
-
-        return { success: valid }
-    }
-
     static async register(userData: CreateUserDto) {
         userData = AuthService.formatCreateUserDto(userData)
         const user = await UserModel.findOne({ email: userData.email }).exec()
@@ -101,7 +23,7 @@ export default class AuthService {
             )
         }
         if (config.system.registrationRequireEmailVerified) {
-            const codeData = await CodeModel.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
+            const codeData = await VerificationCode.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
             if (!codeData || codeData.enabled) {
                 throw new BizException(
                     AuthErrors.registration_email_not_verified_error,

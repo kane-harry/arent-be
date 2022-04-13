@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose'
 import { IVerificationCode } from './code.interface'
 import moment from 'moment'
+import { generate, GenerateOptions } from 'randomstring'
 
 const codeSchema = new Schema<IVerificationCode>(
     {
@@ -18,8 +19,6 @@ const codeSchema = new Schema<IVerificationCode>(
         retryAttempts: { type: Number, default: 0 },
         sentAttempts: { type: Number, default: 1 },
         enabled: { type: Boolean, default: true }
-        // created: { type: Date, default: Date.now },
-        // modified: { type: Date, default: Date.now }
     },
     {
         timestamps: {
@@ -31,4 +30,8 @@ const codeSchema = new Schema<IVerificationCode>(
 
 const VerificationCodeModel = model<IVerificationCode>('verification_codes', codeSchema)
 
-export default VerificationCodeModel
+export class VerificationCode extends VerificationCodeModel {
+    public static generate(options: GenerateOptions | number = { length: 6, charset: 'numeric' }) {
+        return generate(options)
+    }
+}
