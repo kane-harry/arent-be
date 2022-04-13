@@ -9,14 +9,7 @@ export class CreateCodeDto {
     public email: string
 }
 
-export class VerifyCodeDto {
-    @IsString()
-    public codeType: string
-
-    @IsString()
-    @IsEmail()
-    public email: string
-
+export class VerifyCodeDto extends CreateCodeDto {
     @IsString()
     public code: string
 }

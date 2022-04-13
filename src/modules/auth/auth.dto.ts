@@ -7,3 +7,14 @@ export class LogInDto {
     @IsString()
     public password: string
 }
+
+export class PasswordResetDto {
+    @IsString()
+    public oldPassword: string
+
+    @IsString()
+    public newPassword: string
+
+    @IsString()
+    public newPasswordConfirmation: string
+}

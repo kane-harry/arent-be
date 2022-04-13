@@ -4,7 +4,7 @@ import IController from '../../interfaces/controller.interface'
 import validationMiddleware from '../../middlewares/validation.middleware'
 import AuthService from './auth.service'
 import { CreateUserDto } from '../user/user.dto'
-import { LogInDto } from './auth.dto'
+import { LogInDto, PasswordResetDto } from './auth.dto'
 import { requireAuth } from '../../common/authCheck'
 
 export default class AuthController implements IController {
@@ -18,6 +18,7 @@ export default class AuthController implements IController {
     private initializeRoutes() {
         this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), asyncHandler(this.register))
         this.router.post(`${this.path}/login`, validationMiddleware(LogInDto), asyncHandler(this.logIn))
+        this.router.post(`${this.path}/password/reset`, requireAuth, validationMiddleware(PasswordResetDto), asyncHandler(this.resetPassword))
         this.router.post(`${this.path}/logout`, requireAuth, asyncHandler(this.logOut))
     }
 
@@ -31,6 +32,13 @@ export default class AuthController implements IController {
     private logIn = async (req: Request, res: Response) => {
         const logInData: LogInDto = req.body
         const data = await AuthService.logIn(logInData)
+
+        return res.send(data)
+    }
+
+    private resetPassword = async (req: Request, res: Response) => {
+        const passwordData: PasswordResetDto = req.body
+        const data = await AuthService.resetPassword(passwordData, req.user)
 
         return res.send(data)
     }

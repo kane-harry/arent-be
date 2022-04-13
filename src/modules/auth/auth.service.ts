@@ -1,8 +1,8 @@
 import * as bcrypt from 'bcrypt'
 import BizException from '../../exceptions/biz.exception'
 import ErrorContext from '../../exceptions/error.context'
-import { CreateUserDto } from '../user/user.dto'
-import { LogInDto } from './auth.dto'
+import { CreateUserDto, UserDto } from '../user/user.dto'
+import { LogInDto, PasswordResetDto } from './auth.dto'
 import { toLower, capitalize, escapeRegExp, trim } from 'lodash'
 import { IUser, UserStatus } from '../user/user.interface'
 import UserModel from '../user/user.model'
@@ -79,6 +79,29 @@ export default class AuthService {
             id: user._id
         }
         return jwt.sign(payload, secret, { expiresIn })
+    }
+
+    static async resetPassword(passwordData: PasswordResetDto, _user: UserDto | undefined) {
+        if (passwordData.newPasswordConfirmation !== passwordData.newPassword) {
+            throw new BizException(
+                { message: 'Password confirmation mismatch.', status: 422, code: 422 },
+                new ErrorContext('auth.service', 'resetPassword', {})
+            )
+        }
+
+        const user = await UserModel.findOne({ email: _user?.email }).exec()
+
+        const isPasswordMatching = await bcrypt.compare(passwordData.oldPassword, String(user?.get('password', null, { getters: false })))
+        if (!isPasswordMatching) {
+            throw new BizException(
+                { message: 'Wrong credentials provided.', status: 400, code: 400 },
+                new ErrorContext('auth.service', 'resetPassword', {})
+            )
+        }
+        user?.set('password', await bcrypt.hash(passwordData.newPassword, 10), String)
+        user?.save()
+
+        return { success: true }
     }
 
     static async logOut(id: string) {

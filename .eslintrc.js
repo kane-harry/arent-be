@@ -10,9 +10,6 @@ module.exports = {
         sourceType: 'module'
     },
     plugins: ['@typescript-eslint'],
-    globals: {
-        COMMON_APP: true
-    },
     rules: {
         '@typescript-eslint/no-explicit-any': 0,
         'no-console': 1,
