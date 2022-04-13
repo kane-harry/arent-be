@@ -6,8 +6,8 @@ export class QueryRO<T> {
     currentPage: number
     hasNextPage: boolean
     // items: any;
-    items: [T]
-    constructor(totalCount: number, pageIndex: number, pageSize: number, items: [T]) {
+    items: Array<T>
+    constructor(totalCount: number, pageIndex: number, pageSize: number, items: Array<T>) {
         this.totalCount = totalCount
         this.pageIndex = pageIndex
         this.pageSize = pageSize

@@ -12,8 +12,8 @@ const opts = {
 
 export default (passport: PassportStatic) => {
     passport.use(
-        new JwtStrategy(opts, function (payload, done) {
-            const user = UserModel.findById(payload.id).exec()
+        new JwtStrategy(opts, async (payload, done) => {
+            const user = await UserModel.findById(payload.id).exec()
             if (!user) {
                 return done(null, false)
             }

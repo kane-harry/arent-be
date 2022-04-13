@@ -17,8 +17,7 @@ export default class AccountService {
     }
 
     static getAccount = async (address: string) => {
-        const data = await AccountModel.findOne({ publicKey: address })
-        return data
+        return await AccountModel.findOne({ publicKey: address }).exec()
     }
 
     static queryAccounts = async (params: IAccountFilter) => {
@@ -33,8 +32,8 @@ export default class AccountService {
         if (params.symbol) {
             filter.symbol = params.symbol
         }
-        const totalCount = await AccountModel.countDocuments(filter)
-        const items = await AccountModel.find<IAccount>(filter).sort({ symbol: -1 }).skip(offset).limit(params.pagesize)
-        return new QueryRO<IAccount>(totalCount, params.pageindex, params.pagesize, items as [IAccount])
+        const totalCount = await AccountModel.countDocuments(filter).exec()
+        const items = await AccountModel.find<IAccount>(filter).sort({ symbol: -1 }).skip(offset).limit(params.pagesize).exec()
+        return new QueryRO<IAccount>(totalCount, params.pageindex, params.pagesize, items)
     }
 }

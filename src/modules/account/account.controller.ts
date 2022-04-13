@@ -1,5 +1,5 @@
 import asyncHandler from '../../common/asyncHandler'
-import { Router, Request, Response, NextFunction } from 'express'
+import { Router, Request, Response } from 'express'
 import IController from '../../interfaces/controller.interface'
 import validationMiddleware from '../../middlewares/validation.middleware'
 import { CreateAccountDto } from './account.dto'
@@ -21,20 +21,20 @@ class AccountController implements IController {
         this.router.get(`${this.path}`, asyncHandler(this.queryAccounts))
     }
 
-    private createAccount = async (req: Request, res: Response, next: NextFunction) => {
+    private createAccount = async (req: Request, res: Response) => {
         const postData: IAccount = req.body
         const data = await AccountService.createAccount(postData)
 
         return res.send(data)
     }
 
-    private getAccount = async (req: Request, res: Response, next: NextFunction) => {
+    private getAccount = async (req: Request, res: Response) => {
         const address = req.params.address
         const data = await AccountService.getAccount(address)
         return res.send(data)
     }
 
-    private queryAccounts = async (req: CustomRequest, res: Response, next: NextFunction) => {
+    private queryAccounts = async (req: CustomRequest, res: Response) => {
         const filter = req.query as IAccountFilter
         const data = await AccountService.queryAccounts(filter)
         return res.send(data)

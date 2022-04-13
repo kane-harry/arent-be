@@ -17,12 +17,12 @@ import moment from 'moment'
 export default class AuthService {
     static async generateCode(params: CreateCodeDto) {
         const email = toLower(trim(params.email))
-        const user = await UserModel.findOne({ email: params.email })
+        const user = await UserModel.findOne({ email: params.email }).exec()
         if (user) {
             if (params.codeType === CodeType.EmailRegistration) {
                 throw new BizException(AuthErrors.registration_email_exists_error, new ErrorContext('auth.service', 'generateCode', { email: email }))
             }
-            if (user.emailVerified && params.codeType === CodeType.EmailUpdation) {
+            if (user.emailVerified && params.codeType === CodeType.EmailUpdating) {
                 throw new BizException(
                     AuthErrors.registration_email_already_verified_error,
                     new ErrorContext('auth.service', 'generateCode', { email: email })
@@ -101,7 +101,7 @@ export default class AuthService {
             )
         }
         if (config.system.registrationRequireEmailVerified) {
-            const codeData = await CodeModel.findOne({ owner: userData.email, type: CodeType.EmailRegistration })
+            const codeData = await CodeModel.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
             if (!codeData || codeData.enabled) {
                 throw new BizException(
                     AuthErrors.registration_email_not_verified_error,
@@ -119,7 +119,7 @@ export default class AuthService {
             status: UserStatus.Normal
         })
         const savedData = await mode.save()
-        const token = await AuthService.createToken(savedData)
+        const token = AuthService.createToken(savedData)
 
         return { user: savedData, token: token }
     }

@@ -8,7 +8,7 @@ export interface CustomRequest extends Request {
     query: any
 }
 
-const requestMiddleware = (req: CustomRequest, res: Response, next: NextFunction) => {
+const requestMiddleware = (req: CustomRequest, _: Response, next: NextFunction) => {
     req.query.pageindex = Number(req.query.pageindex || 1)
     req.query.pagesize = Number(req.query.pageindex || config.system.defaultQueryPagesize)
     req.agent = req.headers['user-agent']
