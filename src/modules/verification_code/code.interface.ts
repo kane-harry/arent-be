@@ -3,7 +3,8 @@ import IBaseModel from '../../interfaces/base.model.interface'
 export enum CodeType {
     EmailRegistration = 'EmailRegistration',
     EmailUpdating = 'EmailUpdating',
-    ForgotPassword = 'ForgotPassword'
+    ForgotPassword = 'ForgotPassword',
+    ForgotPin = 'ForgotPin'
 }
 
 export interface IVerificationCode extends IBaseModel {

@@ -10,5 +10,8 @@ export const AuthErrors = {
 
     verification_code_duplicate_request_in_minute_error: { code: 1004, status: 400, message: 'Please request verification code 1 minute later.' },
     verification_code_duplicate_request_in_hour_error: { code: 1005, status: 400, message: 'Please request verification code 1 hour later.' },
-    verification_code_invalid_error: { code: 1006, status: 400, message: 'Invalid verification code.' }
+    verification_code_invalid_error: { code: 1006, status: 400, message: 'Invalid verification code.' },
+
+    credentials_invalid_error: { message: 'Wrong credentials provided.', status: 400, code: 1007 },
+    data_confirmation_mismatch_error: { message: 'Data confirmation mismatch.', status: 422, code: 1008 }
 }
