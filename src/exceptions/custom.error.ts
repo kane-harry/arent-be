@@ -12,3 +12,8 @@ export const AuthErrors = {
     verification_code_duplicate_request_in_hour_error: { code: 1005, status: 400, message: 'Please request verification code 1 hour later.' },
     verification_code_invalid_error: { code: 1006, status: 400, message: 'Invalid verification code.' }
 }
+
+export const AccountErrors = {
+    account_not_exists_error: { code: 2001, status: 400, message: 'Account not found.' },
+    account_withdraw_not_permit_error: { code: 2001, status: 400, message: 'This account does not permit withdrawal.' }
+}

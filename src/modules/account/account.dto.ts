@@ -1,7 +1,10 @@
-import { IsString, Length } from 'class-validator'
+import { IsString, IsNumber, Min } from 'class-validator'
 
-export class CreateAccountDto {
-    @IsString({ message: 'Wallet Symbol is required.' })
-    @Length(3, 5, { message: 'Symbol must be 3-5 characters' })
-    public symbol: string
+export class WithdrawDto {
+    @IsString({ message: 'Destination address is required.' })
+    public address: string
+
+    @IsNumber({ allowNaN: false, maxDecimalPlaces: 8 }, { message: 'amount should be a decimal with max 8 decimal places.' })
+    @Min(0.001)
+    public amount: string
 }

@@ -3,23 +3,38 @@ import { IAccount } from './account.interface'
 
 const accountSchema = new Schema<IAccount>(
     {
-        symbol: { type: String, uppercase: true },
-        address: String,
-        publicKey: String,
-        amount: Types.Decimal128,
-        nonce: { type: Number, default: 0 },
+        userId: String,
+        name: String,
+        symbol: { type: String, uppercase: true, index: true },
+        platform: String,
         type: { type: String, uppercase: true, default: 'PRIME' },
-        raw: { type: Boolean, default: false },
-        removed: { type: Boolean, default: false },
-        created: { type: Date, default: Date.now },
-        modified: { type: Date, default: Date.now }
+        address: String,
+        amount: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        amountLocked: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        salt: { type: String, get: (): undefined => undefined },
+        keyStore: { type: Object, get: (): undefined => undefined },
+        metaData: Object,
+        syncTimestamp: { type: Number, default: 0, index: true },
+        deposited: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        withdrawed: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        committed: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        removed: { type: Boolean, default: false }
     },
     {
         toJSON: {
             transform: (doc, ret) => {
                 ret.amount = Number(ret.amount)
+                ret.amountLocked = Number(ret.amountLocked)
+                ret.deposited = Number(ret.deposited)
+                ret.withdrawed = Number(ret.withdrawed)
+                ret.committed = Number(ret.committed)
                 return ret
             }
+            // getters: true
+        },
+        timestamps: {
+            createdAt: 'created',
+            updatedAt: 'modified'
         }
     }
 )
