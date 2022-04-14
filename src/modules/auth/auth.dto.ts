@@ -8,7 +8,7 @@ export class LogInDto {
     public password: string
 }
 
-export class PasswordResetDto {
+export class ResetPasswordDto {
     @IsString()
     public oldPassword: string
 
@@ -17,4 +17,16 @@ export class PasswordResetDto {
 
     @IsString()
     public newPasswordConfirmation: string
+}
+
+export class ForgotPasswordDto {
+    @IsString()
+    @IsEmail()
+    public email: string
+
+    @IsString()
+    public code: string
+
+    @IsString()
+    public newPassword: string
 }
