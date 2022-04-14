@@ -2,12 +2,14 @@ import IBaseModel from '../../interfaces/base.model.interface'
 
 export enum CodeType {
     EmailRegistration = 'EmailRegistration',
-    EmailUpdating = 'EmailUpdating'
+    EmailUpdating = 'EmailUpdating',
+    ForgotPassword = 'ForgotPassword',
+    ForgotPin = 'ForgotPin'
 }
 
 export interface IVerificationCode extends IBaseModel {
     owner: string
-    type: string
+    type: CodeType
     code: string
     expiryTimestamp: number
     sentTimestamp: number

@@ -42,7 +42,8 @@ export default class VerificationCodeService {
             await VerificationCode.findByIdAndUpdate(codeData._id, {
                 code: code,
                 expiryTimestamp: newExpireTimestamp,
-                sentAttempts: codeData.sentAttempts++
+                sentAttempts: codeData.sentAttempts++,
+                enabled: true
             }).exec()
         } else {
             const mode = new VerificationCode({

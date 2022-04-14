@@ -2,7 +2,7 @@ import * as bcrypt from 'bcrypt'
 import BizException from '../../exceptions/biz.exception'
 import ErrorContext from '../../exceptions/error.context'
 import { CreateUserDto, UserDto } from '../user/user.dto'
-import { LogInDto, PasswordResetDto } from './auth.dto'
+import { ForgotPasswordDto, ForgotPinDto, LogInDto, ResetPasswordDto, ResetPinDto } from './auth.dto'
 import { toLower, capitalize, escapeRegExp, trim } from 'lodash'
 import { IUser, UserStatus } from '../user/user.interface'
 import UserModel from '../user/user.model'
@@ -11,6 +11,7 @@ import { CodeType } from '../verification_code/code.interface'
 import { AuthErrors } from '../../exceptions/custom.error'
 import * as jwt from 'jsonwebtoken'
 import { config } from '../../config'
+import VerificationCodeService from '../verification_code/code.service'
 
 export default class AuthService {
     static async register(userData: CreateUserDto) {
@@ -32,12 +33,11 @@ export default class AuthService {
             }
         }
 
-        // const salt = await bcrypt.genSalt(10)
         const mode = new UserModel({
             ...userData,
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
-            avatar: 'avatars/avatar.jpg', // default avatar
+            avatar: '',
             status: UserStatus.Normal
         })
         const savedData = await mode.save()
@@ -66,9 +66,9 @@ export default class AuthService {
 
                 return { user: user, token: token }
             }
-            throw new BizException({ message: 'Wrong credentials provided.', status: 400, code: 400 }, new ErrorContext('auth.service', 'logIn', {}))
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
         } else {
-            throw new BizException({ message: 'Wrong credentials provided.', status: 400, code: 400 }, new ErrorContext('auth.service', 'logIn', {}))
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
         }
     }
 
@@ -81,25 +81,92 @@ export default class AuthService {
         return jwt.sign(payload, secret, { expiresIn })
     }
 
-    static async resetPassword(passwordData: PasswordResetDto, _user: UserDto | undefined) {
+    static async resetPassword(passwordData: ResetPasswordDto, _user: UserDto | undefined) {
         if (passwordData.newPasswordConfirmation !== passwordData.newPassword) {
-            throw new BizException(
-                { message: 'Password confirmation mismatch.', status: 422, code: 422 },
-                new ErrorContext('auth.service', 'resetPassword', {})
-            )
+            throw new BizException(AuthErrors.data_confirmation_mismatch_error, new ErrorContext('auth.service', 'resetPassword', {}))
         }
 
         const user = await UserModel.findOne({ email: _user?.email }).exec()
 
         const isPasswordMatching = await bcrypt.compare(passwordData.oldPassword, String(user?.get('password', null, { getters: false })))
         if (!isPasswordMatching) {
-            throw new BizException(
-                { message: 'Wrong credentials provided.', status: 400, code: 400 },
-                new ErrorContext('auth.service', 'resetPassword', {})
-            )
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'resetPassword', {}))
         }
         user?.set('password', await bcrypt.hash(passwordData.newPassword, 10), String)
         user?.save()
+
+        // TODO: add user events log
+
+        return { success: true }
+    }
+
+    static async forgotPassword(passwordData: ForgotPasswordDto) {
+        const { success } = await VerificationCodeService.verifyCode({
+            ...passwordData,
+            codeType: CodeType.ForgotPassword
+        })
+        if (!success) {
+            throw new BizException(
+                AuthErrors.verification_code_invalid_error,
+                new ErrorContext('auth.service', 'forgotPassword', { email: passwordData.email })
+            )
+        }
+
+        const user = await UserModel.findOne({ email: passwordData?.email }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'forgotPassword', {}))
+        }
+
+        user?.set('password', await bcrypt.hash(passwordData.newPassword, 10), String)
+        user?.save()
+
+        // TODO: add user events log
+
+        return { success: true }
+    }
+
+    static async resetPin(pinData: ResetPinDto, _user: UserDto | undefined) {
+        if (pinData.newPinConfirmation !== pinData.newPin) {
+            throw new BizException(AuthErrors.data_confirmation_mismatch_error, new ErrorContext('auth.service', 'resetPin', {}))
+        }
+
+        const user = await UserModel.findOne({ email: _user?.email }).exec()
+
+        const isPinMatching = await bcrypt.compare(pinData.oldPin, String(user?.get('pin', null, { getters: false })))
+        if (!isPinMatching) {
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'resetPin', {}))
+        }
+        user?.set('pin', await bcrypt.hash(pinData.newPin, 10), String)
+        user?.save()
+
+        // TODO: add user events log
+
+        return { success: true }
+    }
+
+    static async forgotPin(pinData: ForgotPinDto) {
+        const { success } = await VerificationCodeService.verifyCode({
+            ...pinData,
+            codeType: CodeType.ForgotPin
+        })
+        if (!success) {
+            throw new BizException(
+                AuthErrors.verification_code_invalid_error,
+                new ErrorContext('auth.service', 'forgotPin', { email: pinData?.email })
+            )
+        }
+
+        const user = await UserModel.findOne({ email: pinData?.email }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'forgotPin', {}))
+        }
+
+        user?.set('pin', await bcrypt.hash(pinData.newPin, 10), String)
+        user?.save()
+
+        // TODO: add user events log
 
         return { success: true }
     }

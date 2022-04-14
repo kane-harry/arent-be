@@ -1,8 +1,13 @@
-import { IsString, IsEmail } from 'class-validator'
+import { IsString, IsEmail, IsEnum } from 'class-validator'
+import { map } from 'lodash'
+import { CodeType } from './code.interface'
 
 export class CreateCodeDto {
     @IsString()
-    public codeType: string
+    @IsEnum(CodeType, {
+        message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
+    })
+    public codeType: CodeType
 
     @IsString()
     @IsEmail()

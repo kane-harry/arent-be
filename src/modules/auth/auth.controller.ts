@@ -4,7 +4,7 @@ import IController from '../../interfaces/controller.interface'
 import validationMiddleware from '../../middlewares/validation.middleware'
 import AuthService from './auth.service'
 import { CreateUserDto } from '../user/user.dto'
-import { LogInDto, PasswordResetDto } from './auth.dto'
+import { ForgotPasswordDto, ForgotPinDto, LogInDto, ResetPasswordDto, ResetPinDto } from './auth.dto'
 import { requireAuth } from '../../common/authCheck'
 
 export default class AuthController implements IController {
@@ -18,8 +18,13 @@ export default class AuthController implements IController {
     private initializeRoutes() {
         this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), asyncHandler(this.register))
         this.router.post(`${this.path}/login`, validationMiddleware(LogInDto), asyncHandler(this.logIn))
-        this.router.post(`${this.path}/password/reset`, requireAuth, validationMiddleware(PasswordResetDto), asyncHandler(this.resetPassword))
         this.router.post(`${this.path}/logout`, requireAuth, asyncHandler(this.logOut))
+
+        this.router.post(`${this.path}/password/reset`, requireAuth, validationMiddleware(ResetPasswordDto), asyncHandler(this.resetPassword))
+        this.router.post(`${this.path}/password/forgot`, validationMiddleware(ForgotPasswordDto), asyncHandler(this.forgotPassword))
+
+        this.router.post(`${this.path}/pin/reset`, requireAuth, validationMiddleware(ResetPinDto), asyncHandler(this.resetPin))
+        this.router.post(`${this.path}/pin/forgot`, validationMiddleware(ForgotPinDto), asyncHandler(this.forgotPin))
     }
 
     private register = async (req: Request, res: Response) => {
@@ -37,8 +42,29 @@ export default class AuthController implements IController {
     }
 
     private resetPassword = async (req: Request, res: Response) => {
-        const passwordData: PasswordResetDto = req.body
+        const passwordData: ResetPasswordDto = req.body
         const data = await AuthService.resetPassword(passwordData, req.user)
+
+        return res.send(data)
+    }
+
+    private forgotPassword = async (req: Request, res: Response) => {
+        const authData: ForgotPasswordDto = req.body
+        const data = await AuthService.forgotPassword(authData)
+
+        return res.send(data)
+    }
+
+    private resetPin = async (req: Request, res: Response) => {
+        const passwordData: ResetPinDto = req.body
+        const data = await AuthService.resetPin(passwordData, req.user)
+
+        return res.send(data)
+    }
+
+    private forgotPin = async (req: Request, res: Response) => {
+        const authData: ForgotPinDto = req.body
+        const data = await AuthService.forgotPin(authData)
 
         return res.send(data)
     }
