@@ -3,7 +3,7 @@ import { ethers } from 'ethers'
 
 import { config } from '../config'
 
-async function createWallet() {
+async function createEtherWallet() {
     const wallet = ethers.Wallet.createRandom()
     const salt = crypto.randomBytes(16).toString('hex')
     // const wallet = new ethers.Wallet(ethers.utils.randomBytes(32))
@@ -16,4 +16,4 @@ async function createWallet() {
     }
 }
 
-export { createWallet }
+export { createEtherWallet }

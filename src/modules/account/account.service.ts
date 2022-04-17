@@ -1,6 +1,6 @@
-import { IAccount, IAccountFilter, AccountType } from './account.interface'
+import { IAccount, IAccountFilter, AccountType, AccountExtType } from './account.interface'
 import AccountModel from './account.model'
-import { createWallet } from '../../utils/wallet'
+import { createEtherWallet } from '../../utils/wallet'
 import { QueryRO } from '../../interfaces/qurey.model'
 import { config } from '../../config'
 import { toUpper, trim } from 'lodash'
@@ -8,57 +8,73 @@ import { WithdrawDto } from './account.dto'
 import { AccountErrors } from '../../exceptions/custom.error'
 import BizException from '../../exceptions/biz.exception'
 import ErrorContext from '../../exceptions/error.context'
+import { createCoinWallet } from '../../providers/coin.provider'
 
 export default class AccountService {
     static async initUserAccounts(userId: string) {
         const accounts: any[] = []
-        const primeTokens = config.system.primeTokens.split(',')
-        for (const token of primeTokens) {
-            const wallet = await createWallet()
-            const accountName = userId === 'MASTER' ? `${token} MASTER` : `${token} Account`
+        // const primeTokens = config.system.primeTokens.split(',')
+        const primeTokens = config.system.primeTokens
+        const etherWallet = await createEtherWallet()
+        const coinWallets = await createCoinWallet(primeTokens, etherWallet.address)
+        if (coinWallets.length !== config.system.primeTokens.split(',').length) {
+            throw new BizException(
+                AccountErrors.account_init_prime_accounts_error,
+                new ErrorContext('account.service', 'initUserAccounts', { primeTokens })
+            )
+        }
+        for (const coinWallet of coinWallets) {
+            const accountName = userId === 'MASTER' ? `${coinWallet.symbol} MASTER` : `${coinWallet.symbol} Account`
             const account = new AccountModel({
                 userId: userId,
                 name: accountName,
-                symbol: token,
+                symbol: coinWallet.symbol,
                 type: AccountType.Prime,
-                address: wallet.address,
+                extType: AccountExtType.Prime,
+                address: etherWallet.address,
                 platform: 'system',
-                salt: wallet.salt,
-                keyStore: wallet.keyStore
+                salt: etherWallet.salt,
+                keyStore: etherWallet.keyStore,
+                extKey: coinWallet.key
             })
             accounts.push(account)
         }
 
         const extTokens = config.system.extTokens
         for (const token of extTokens) {
-            const wallet = await createWallet()
             const accountName = userId === 'MASTER' ? `${token.symbol} MASTER` : `${token.symbol} Account`
-            const account = new AccountModel({
-                userId: userId,
-                name: accountName,
-                symbol: token.symbol,
-                type: AccountType.Ext,
-                address: wallet.address,
-                platform: token.platform,
-                salt: wallet.salt,
-                keyStore: wallet.keyStore
-            })
-            accounts.push(account)
+            if (token.symbol === 'ETH') {
+                const account = new AccountModel({
+                    userId: userId,
+                    name: accountName,
+                    symbol: token.symbol,
+                    type: AccountType.Ext,
+                    extType: AccountExtType.Ext,
+                    address: etherWallet.address,
+                    platform: token.platform,
+                    salt: etherWallet.salt,
+                    keyStore: etherWallet.keyStore
+                })
+                accounts.push(account)
+            } else {
+                // BTC
+                // const btcWallet = await createBtcWallet()
+            }
         }
         const erc20Tokens = config.erc20Tokens
         for (const token of erc20Tokens) {
             if (token.symbol) {
-                const wallet = await createWallet()
                 const accountName = userId === 'MASTER' ? `${token.symbol} MASTER` : `${token.symbol} Account`
                 const account = new AccountModel({
                     userId: userId,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Ext,
-                    address: wallet.address,
+                    extType: AccountExtType.Ext,
+                    address: etherWallet.address,
                     platform: 'ethereum',
-                    salt: wallet.salt,
-                    keyStore: wallet.keyStore,
+                    salt: etherWallet.salt,
+                    keyStore: etherWallet.keyStore,
                     metaData: {
                         contract: token.contract,
                         decimals: token.decimals
@@ -113,7 +129,7 @@ export default class AccountService {
 
     static async withdraw(id: string, params: WithdrawDto) {
         const account = await AccountService.getAccountWithKeyStore(id)
-        if (account.type === AccountType.Prime) {
+        if (account.type === AccountExtType.Prime) {
             throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { id }))
         }
 

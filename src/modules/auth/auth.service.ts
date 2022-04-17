@@ -15,6 +15,7 @@ import VerificationCodeService from '../verification_code/code.service'
 import UserLogModel from '../user_logs/user_log.model'
 import { UserActions } from '../user_logs/user_log.interface'
 import { CustomRequest } from '../../middlewares/request.middleware'
+import AccountService from '../account/account.service'
 
 export default class AuthService {
     static async register(userData: CreateUserDto) {
@@ -44,6 +45,7 @@ export default class AuthService {
             status: UserStatus.Normal
         })
         const savedData = await mode.save()
+        await AccountService.initUserAccounts(savedData._id)
         const token = AuthService.createToken(savedData)
 
         return { user: savedData, token: token }

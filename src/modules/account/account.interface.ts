@@ -3,6 +3,12 @@ import IFilterModel from '../../interfaces/filter.model.interface'
 import { Types } from 'mongoose'
 
 export enum AccountType {
+    Master = 'MASTER',
+    Prime = 'PRIME',
+    Ext = 'EXT'
+}
+
+export enum AccountExtType {
     Prime = 'PRIME',
     Ext = 'EXT'
 }
@@ -12,21 +18,33 @@ export interface IAccount extends IBaseModel {
     name: string
     symbol: string
     type: string
+    extType: string
     address: string
     platform: string
-    amount: Types.Decimal128
-    amountLocked: Types.Decimal128
+    amount: number | Types.Decimal128
+    amountLocked: number | Types.Decimal128
     salt: string
     keyStore: object
     metaData: object
+    extKey: string
     syncTimestamp?: number
-    deposited: Types.Decimal128
-    withdrawed: Types.Decimal128
-    committed: Types.Decimal128
+    deposited: number | Types.Decimal128
+    withdrawed: number | Types.Decimal128
+    committed: number | Types.Decimal128
 }
 
 export interface IAccountFilter extends IFilterModel {
     symbol?: string
     addresses?: string
     userid?: string
+}
+
+export interface IMintToCoinDto {
+    key: string
+
+    amount: string
+
+    notes?: string
+
+    type?: string
 }

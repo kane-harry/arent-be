@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/pellartech/pellar-federation-ts#readme",
   "dependencies": {
+    "axios": "^0.26.1",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.20.0",
     "class-transformer": "^0.5.1",
@@ -43,6 +44,7 @@
     "randomstring": "^1.2.2"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
     "@types/bcrypt": "^5.0.0",
     "@types/cors": "^2.8.12",
     "@types/debug": "^4.1.7",

@@ -11,7 +11,7 @@ export interface CustomRequest extends Request {
 
 const requestMiddleware = (req: CustomRequest, _: Response, next: NextFunction) => {
     req.query.pageindex = Number(req.query.pageindex || 1)
-    req.query.pagesize = Number(req.query.pageindex || config.system.defaultQueryPagesize)
+    req.query.pagesize = Number(req.query.pagesize || config.system.defaultQueryPagesize)
     req.agent = req.headers['user-agent']
     req.ip_address =
         String(req.headers['x-forwarded-for'] || '')
