@@ -14,6 +14,7 @@ export enum AccountExtType {
 }
 
 export interface IAccount extends IBaseModel {
+    key: string
     userId: string
     name: string
     symbol: string
@@ -31,6 +32,7 @@ export interface IAccount extends IBaseModel {
     deposited: number | Types.Decimal128
     withdrawed: number | Types.Decimal128
     committed: number | Types.Decimal128
+    nonce?: number
 }
 
 export interface IAccountFilter extends IFilterModel {

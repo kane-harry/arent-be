@@ -23,3 +23,12 @@ export const AccountErrors = {
     account_init_prime_accounts_error: { code: 3004, status: 400, message: 'Create Prime Accounts error.' },
     account_withdraw_not_permit_error: { code: 3005, status: 400, message: 'This account does not permit withdrawal.' }
 }
+
+export const TransactionErrors = {
+    sender_account_not_exists_error: { code: 4001, status: 400, message: 'Sender Account does not found.' },
+    recipient_account_not_exists_error: { code: 4002, status: 400, message: 'Recipient Account does not found.' },
+    sender_insufficient_balance_error: { message: 'Insufficient funds to complete transaction.', code: 4003, status: 400 },
+    account_mint_type_error: { code: 3003, status: 400, message: 'Account does not support mint amount.' },
+    account_init_prime_accounts_error: { code: 3004, status: 400, message: 'Create Prime Accounts error.' },
+    account_withdraw_not_permit_error: { code: 3005, status: 400, message: 'This account does not permit withdrawal.' }
+}

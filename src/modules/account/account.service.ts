@@ -8,7 +8,8 @@ import { WithdrawDto } from './account.dto'
 import { AccountErrors } from '../../exceptions/custom.error'
 import BizException from '../../exceptions/biz.exception'
 import ErrorContext from '../../exceptions/error.context'
-import { createCoinWallet } from '../../providers/coin.provider'
+import { createCoinWallet, getWalletByKey } from '../../providers/coin.provider'
+import crypto from 'crypto'
 
 export default class AccountService {
     static async initUserAccounts(userId: string) {
@@ -26,6 +27,7 @@ export default class AccountService {
         for (const coinWallet of coinWallets) {
             const accountName = userId === 'MASTER' ? `${coinWallet.symbol} MASTER` : `${coinWallet.symbol} Account`
             const account = new AccountModel({
+                key: crypto.randomBytes(16).toString('hex'),
                 userId: userId,
                 name: accountName,
                 symbol: coinWallet.symbol,
@@ -45,6 +47,7 @@ export default class AccountService {
             const accountName = userId === 'MASTER' ? `${token.symbol} MASTER` : `${token.symbol} Account`
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
+                    key: crypto.randomBytes(16).toString('hex'),
                     userId: userId,
                     name: accountName,
                     symbol: token.symbol,
@@ -66,6 +69,7 @@ export default class AccountService {
             if (token.symbol) {
                 const accountName = userId === 'MASTER' ? `${token.symbol} MASTER` : `${token.symbol} Account`
                 const account = new AccountModel({
+                    key: crypto.randomBytes(16).toString('hex'),
                     userId: userId,
                     name: accountName,
                     symbol: token.symbol,
@@ -88,14 +92,31 @@ export default class AccountService {
         return data
     }
 
-    static async getAccount(id: string) {
-        return await AccountModel.findById(id).select('-keyStore -salt').exec()
+    static async getAccountByKey(key: string) {
+        const account = await AccountModel.findOne({ key }).select('-keyStore -salt').exec()
+        if (account?.extType === AccountExtType.Prime) {
+            const wallet = await getWalletByKey(account.extKey)
+            account.amount = wallet.amount
+            account.nonce = wallet.nonce
+        }
+
+        return account
     }
 
-    private static async getAccountWithKeyStore(id: string) {
-        const account = await AccountModel.findById(id).exec()
+    static async getAccountBySymbolAndAddress(symbol: string, address: string) {
+        const account = await AccountModel.findOne({ symbol: symbol, address: address }).select('-keyStore -salt').exec()
+        if (account?.extType === AccountExtType.Prime) {
+            const wallet = await getWalletByKey(account.extKey)
+            account.amount = wallet.amount
+            account.nonce = wallet.nonce
+        }
+        return account
+    }
+
+    static async getAccountKeyStore(key: string) {
+        const account = await AccountModel.findOne({ key }, { _id: 1, keyStore: 1, salt: 1 }).exec()
         if (!account) {
-            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.service', 'getAccountWithKeyStore', { id }))
+            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.service', 'getAccountKeyStore', { key }))
         }
         return account
     }
@@ -127,10 +148,10 @@ export default class AccountService {
         return items
     }
 
-    static async withdraw(id: string, params: WithdrawDto) {
-        const account = await AccountService.getAccountWithKeyStore(id)
+    static async withdraw(key: string, params: WithdrawDto) {
+        const account = await AccountService.getAccountKeyStore(key)
         if (account.type === AccountExtType.Prime) {
-            throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { id }))
+            throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { key }))
         }
 
         throw new Error('Method not implemented.')

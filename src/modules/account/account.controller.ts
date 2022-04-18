@@ -18,15 +18,14 @@ class AccountController implements IController {
 
     private initRoutes() {
         this.router.get(`${this.path}`, asyncHandler(this.queryAccounts))
-        this.router.get(`${this.path}/:id`, asyncHandler(this.getAccount))
-        // this.router.get(`${this.path}/:id/txns`, asyncHandler(this.getAccountTxns))
+        this.router.get(`${this.path}/:key`, asyncHandler(this.getAccountByKey))
         this.router.get(`${this.path}/user/:id`, asyncHandler(this.getUserAccounts))
-        this.router.post(`${this.path}/:id/withdraw`, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
+        this.router.post(`${this.path}/:key/withdraw`, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
     }
 
-    private async getAccount(req: Request, res: Response) {
-        const id = req.params.id
-        const data = await AccountService.getAccount(id)
+    private async getAccountByKey(req: Request, res: Response) {
+        const key = req.params.key
+        const data = await AccountService.getAccountByKey(key)
         return res.json(data)
     }
 
@@ -43,9 +42,9 @@ class AccountController implements IController {
     }
 
     private async withdraw(req: CustomRequest, res: Response) {
-        const id = req.params.id
+        const key = req.params.key
         const params: WithdrawDto = req.body
-        const data = await AccountService.withdraw(id, params)
+        const data = await AccountService.withdraw(key, params)
         return res.json(data)
     }
 }

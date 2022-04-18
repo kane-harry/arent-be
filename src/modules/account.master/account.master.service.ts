@@ -5,8 +5,9 @@ import { config } from '../../config'
 import { AccountErrors } from '../../exceptions/custom.error'
 import BizException from '../../exceptions/biz.exception'
 import ErrorContext from '../../exceptions/error.context'
-import { createCoinWallet, mintPrimeCoins } from '../../providers/coin.provider'
+import { createCoinWallet, mintPrimeCoins, getWalletByKey } from '../../providers/coin.provider'
 import { MintDto } from 'modules/account/account.dto'
+import crypto from 'crypto'
 
 export default class AccountMasterService {
     static async initMasterAccounts() {
@@ -26,6 +27,7 @@ export default class AccountMasterService {
         for (const coinWallet of coinWallets) {
             const accountName = `${coinWallet.symbol} MASTER`
             const account = new AccountModel({
+                key: crypto.randomBytes(16).toString('hex'),
                 userId: userId,
                 name: accountName,
                 symbol: coinWallet.symbol,
@@ -45,6 +47,7 @@ export default class AccountMasterService {
             const accountName = `${token.symbol} MASTER`
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
+                    key: crypto.randomBytes(16).toString('hex'),
                     userId: userId,
                     name: accountName,
                     symbol: token.symbol,
@@ -66,6 +69,7 @@ export default class AccountMasterService {
             if (token.symbol) {
                 const accountName = `${token.symbol} MASTER`
                 const account = new AccountModel({
+                    key: crypto.randomBytes(16).toString('hex'),
                     userId: userId,
                     name: accountName,
                     symbol: token.symbol,
@@ -94,16 +98,24 @@ export default class AccountMasterService {
             removed: false
         }
         const items = await AccountModel.find<IAccount>(filter).select('-keyStore -salt').exec()
+        for (const account of items) {
+            if (account.extType === AccountExtType.Prime) {
+                const wallet = await getWalletByKey(account.extKey)
+                account.amount = wallet.amount
+                account.nonce = wallet.nonce
+            }
+        }
+
         return items
     }
 
-    static async mintMasterAccount(id: string, params: MintDto) {
-        const account = await AccountModel.findById(id).select('-keyStore -salt').exec()
+    static async mintMasterAccount(key: string, params: MintDto) {
+        const account = await AccountModel.findOne({ key }).select('-keyStore -salt').exec()
         if (!account) {
-            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.master.service', 'mintMasterAccount', { id }))
+            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
         }
         if (account.type !== AccountType.Master || account.extType !== AccountExtType.Prime) {
-            throw new BizException(AccountErrors.account_mint_type_error, new ErrorContext('account.master.service', 'mintMasterAccount', { id }))
+            throw new BizException(AccountErrors.account_mint_type_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
         }
         const data = await mintPrimeCoins({ key: account.extKey, amount: params.amount, notes: params.notes, type: params.type || 'MINT' })
         // todo : mint log

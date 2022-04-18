@@ -3,6 +3,7 @@ import { IAccount } from './account.interface'
 
 const accountSchema = new Schema<IAccount>(
     {
+        key: { type: String, required: true, index: true, unique: true },
         userId: String,
         name: String,
         symbol: { type: String, uppercase: true, index: true },
@@ -12,8 +13,8 @@ const accountSchema = new Schema<IAccount>(
         address: String,
         amount: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         amountLocked: { type: Types.Decimal128, default: new Types.Decimal128('0') },
-        salt: { type: String, get: (): undefined => undefined },
-        keyStore: { type: Object, get: (): undefined => undefined },
+        salt: { type: String, select: false },
+        keyStore: { type: Object },
         metaData: Object,
         extKey: String,
         syncTimestamp: { type: Number, default: 0, index: true },

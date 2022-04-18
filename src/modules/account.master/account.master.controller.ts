@@ -17,7 +17,7 @@ class AccountController implements IController {
     private initRoutes() {
         this.router.post(`${this.path}`, asyncHandler(this.initMasterAccounts))
         this.router.get(`${this.path}`, asyncHandler(this.getMasterAccounts))
-        this.router.post(`${this.path}/:id/mint`, validationMiddleware(MintDto), asyncHandler(this.mintMasterAccount))
+        this.router.post(`${this.path}/:key/mint`, validationMiddleware(MintDto), asyncHandler(this.mintMasterAccount))
     }
 
     private async initMasterAccounts(req: Request, res: Response) {
@@ -31,9 +31,9 @@ class AccountController implements IController {
     }
 
     private async mintMasterAccount(req: Request, res: Response) {
-        const id = req.params.id
+        const key = req.params.key
         const params: MintDto = req.body
-        const data = await AccountMasterService.mintMasterAccount(id, params)
+        const data = await AccountMasterService.mintMasterAccount(key, params)
         return res.json(data)
     }
 }

@@ -1,5 +1,6 @@
 import axios from 'axios'
-import { IMintToCoinDto } from 'modules/account/account.interface'
+import { IMintToCoinDto } from '../modules/account/account.interface'
+import { ISendCoinDto, ISendRawDto, ITransactionFilter } from '../modules/transaction/transaction.interface'
 
 // set global ?
 const instance = axios.create({
@@ -26,10 +27,11 @@ const instance = axios.create({
     ]
 })
 
-export async function createCoinWallet(symbol: string, address: string) {
+export async function createCoinWallet(symbol: string, address: string, raw: boolean = false) {
     const payload = {
         symbol,
-        address
+        address,
+        raw
     }
     try {
         const resp = await instance.post('/accounts', payload)
@@ -39,7 +41,7 @@ export async function createCoinWallet(symbol: string, address: string) {
     }
 }
 
-export async function getAccountByKey(key: string) {
+export async function getWalletByKey(key: string) {
     try {
         const resp = await instance.get(`/accounts/${key}`)
         // log
@@ -48,7 +50,18 @@ export async function getAccountByKey(key: string) {
         // log
     }
 }
-export async function getAccountsByAddress(address: string) {
+
+export async function getWalletBySymbolAndAddress(symbol: string, address: string) {
+    try {
+        const resp = await instance.get(`/accounts/${symbol}/address/${address}`)
+        // log
+        return resp.data.data
+    } catch (error) {
+        // log
+    }
+}
+
+export async function getWalletsByAddress(address: string) {
     try {
         const resp = await instance.get(`/accounts/address/${address}`)
         // log
@@ -57,7 +70,7 @@ export async function getAccountsByAddress(address: string) {
         // log
     }
 }
-export async function queryAccounts(filter: any) {
+export async function queryWallets(filter: any) {
     try {
         const resp = await instance.get('/accounts', { params: filter })
         // log
@@ -77,17 +90,29 @@ export async function mintPrimeCoins(params: IMintToCoinDto) {
     }
 }
 
-export async function send(params: any) {
+export async function sendPrimeCoins(sendData: ISendCoinDto) {
     try {
-        const resp = await instance.post('/transactions', params)
+        const resp = await instance.post('/transactions', sendData)
         // log
         return resp.data.data
     } catch (error) {
+        console.log(error)
         // log
     }
 }
 
-export async function queryTxns(filter: any) {
+export async function sendRaw(sendData: ISendRawDto) {
+    try {
+        const resp = await instance.post('/transactions/sendraw', sendData)
+        // log
+        return resp.data.data
+    } catch (error) {
+        console.log(error)
+        // log
+    }
+}
+
+export async function queryPrimeTxns(filter: ITransactionFilter) {
     try {
         const resp = await instance.get('/transactions', { params: filter })
         // log
@@ -96,7 +121,7 @@ export async function queryTxns(filter: any) {
         // log
     }
 }
-export async function getTxnByKey(key: string) {
+export async function getPrimeTxnByKey(key: string) {
     try {
         const resp = await instance.get(`/transactions/${key}`)
         // log
