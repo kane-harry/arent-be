@@ -1,7 +1,9 @@
-import axios from 'axios'
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { generate } from 'hmac-auth-express'
 import { IMintToCoinDto } from '../modules/account/account.interface'
 import { ISendCoinDto, ISendRawDto, ITransactionFilter } from '../modules/transaction/transaction.interface'
 
+// const coinApiAuthCredental = { key: 'abc', secret: 'secret' }
 // global ?
 const instance = axios.create({
     baseURL: 'http://localhost:3001',
@@ -26,6 +28,37 @@ const instance = axios.create({
         }
     ]
 })
+instance.interceptors.request.use(
+    (config: AxiosRequestConfig) => {
+        const time = Date.now().toString()
+        const httpMethod = config.method!.toUpperCase()
+        const requestPath = config.url!
+
+        let digest = generate('secret', 'sha256', time, httpMethod, requestPath, config.data).digest('hex')
+        if (httpMethod === 'GET') {
+            digest = generate('secret', 'sha256', time, httpMethod, requestPath).digest('hex')
+        }
+        const hmac = `HMAC ${time}:${digest}`
+
+        config.headers!.Authorization = `${hmac}`
+        return config
+    },
+    err => {
+        return Promise.reject(err)
+    }
+)
+instance.interceptors.response.use(
+    (response: AxiosResponse) => {
+        const status = response.status
+        if (status !== 200) {
+            // TODO:
+        }
+        return response
+    },
+    function (error) {
+        return Promise.reject(error)
+    }
+)
 // TODO  catch coin errors using interceptors ?
 
 export async function createCoinWallet(symbol: string, address: string, raw: boolean = false) {
@@ -38,6 +71,7 @@ export async function createCoinWallet(symbol: string, address: string, raw: boo
         const resp = await instance.post('/accounts', payload)
         return resp.data.data
     } catch (error) {
+        console.log(error)
         // log
     }
 }
@@ -47,6 +81,7 @@ export async function getWalletByKey(key: string) {
         const resp = await instance.get(`/accounts/${key}`)
         return resp.data.data
     } catch (error) {
+        console.log(error)
         // log
     }
 }
@@ -112,6 +147,7 @@ export async function queryPrimeTxns(filter: ITransactionFilter) {
         // log
         return resp.data.data
     } catch (error) {
+        console.log(error)
         // log
     }
 }
@@ -121,6 +157,7 @@ export async function getPrimeTxnByKey(key: string) {
         // log
         return resp.data.data
     } catch (error) {
+        console.log(error)
         // log
     }
 }
