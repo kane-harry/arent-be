@@ -2,6 +2,11 @@ import IBaseModel from '../../interfaces/base.model.interface'
 import IFilterModel from '../../interfaces/filter.model.interface'
 import { Types } from 'mongoose'
 
+export enum FeeMode {
+    Inclusive = 'inclusive',
+    Exclusive = 'exclusive'
+}
+
 export interface ITransaction extends IBaseModel {
     key?: string
     owner: string
@@ -30,10 +35,10 @@ export interface ISendCoinDto {
     recipient: string
     amount: string
     nonce: string
-    type: string
     signature: string
+    type?: string
     notes?: string
-    details?: object
+    details?: object // addtional info
 }
 
 export interface ISendRawDto {
@@ -43,5 +48,9 @@ export interface ISendRawDto {
     amount: string
     nonce: string
     signature: string
+    type: string
     notes: string
+    fee: string
+    feeAddress: string
+    mode: string
 }

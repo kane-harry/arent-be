@@ -18,7 +18,8 @@ export const config = {
         primeTokens: String(process.env.PRIME_TOKENS || 'LLA,LLB'),
         extTokens: [{ symbol: 'ETH', platform: 'ethereum' }],
         secret: String(process.env.SYSTEM_SECRET_KEY || '12jsdfij342jdfdsfd'),
-        registrationRequireEmailVerified: process.env.REGISTRATION_REQUIRE_EMAIL_VERIFIED === 'true'
+        registrationRequireEmailVerified: process.env.REGISTRATION_REQUIRE_EMAIL_VERIFIED === 'true',
+        primeTransferFee: process.env.PRIME_TOKEN_TRANSFER_FEE || 0.1 // FOR TESTING
     },
 
     erc20Tokens: [

@@ -49,4 +49,7 @@ export class SendRawDto {
 
     @IsOptional()
     public notes: string
+
+    @IsOptional()
+    public mode: string
 }

@@ -21,14 +21,14 @@ export const AccountErrors = {
     account_not_exists_error: { code: 3002, status: 400, message: 'Account not found.' },
     account_mint_type_error: { code: 3003, status: 400, message: 'Account does not support mint amount.' },
     account_init_prime_accounts_error: { code: 3004, status: 400, message: 'Create Prime Accounts error.' },
-    account_withdraw_not_permit_error: { code: 3005, status: 400, message: 'This account does not permit withdrawal.' }
+    account_withdraw_not_permit_error: { code: 3005, status: 400, message: 'This account does not permit withdrawal.' },
+    master_account_not_exists_error: { code: 3006, status: 400, message: 'Master Account does not found.' }
 }
 
 export const TransactionErrors = {
     sender_account_not_exists_error: { code: 4001, status: 400, message: 'Sender Account does not found.' },
     recipient_account_not_exists_error: { code: 4002, status: 400, message: 'Recipient Account does not found.' },
     sender_insufficient_balance_error: { message: 'Insufficient funds to complete transaction.', code: 4003, status: 400 },
-    account_mint_type_error: { code: 3003, status: 400, message: 'Account does not support mint amount.' },
-    account_init_prime_accounts_error: { code: 3004, status: 400, message: 'Create Prime Accounts error.' },
-    account_withdraw_not_permit_error: { code: 3005, status: 400, message: 'This account does not permit withdrawal.' }
+    account_mint_type_error: { code: 4004, status: 400, message: 'Account does not support mint amount.' },
+    send_amount_less_than_fee_error: { message: 'Send amount must greater than transfer fee.', code: 4005, status: 400 }
 }

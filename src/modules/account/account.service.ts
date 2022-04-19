@@ -121,6 +121,11 @@ export default class AccountService {
         return account
     }
 
+    static async getMasterAccountBriefBySymbol(symbol: string) {
+        const account = await AccountModel.findOne({ symbol: symbol, type: AccountType.Master }).select('-keyStore -salt').exec()
+        return account
+    }
+
     static async queryAccounts(params: IAccountFilter) {
         const offset = (params.pageindex - 1) * params.pagesize
         const filter: any = {
