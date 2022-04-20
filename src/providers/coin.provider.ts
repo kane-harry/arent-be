@@ -1,12 +1,12 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { config } from '../config'
 import { generate } from 'hmac-auth-express'
 import { IMintToCoinDto } from '../modules/account/account.interface'
 import { ISendCoinDto, ISendRawDto, ITransactionFilter } from '../modules/transaction/transaction.interface'
 
-// const coinApiAuthCredental = { key: 'abc', secret: 'secret' }
 // global ?
 const instance = axios.create({
-    baseURL: 'http://localhost:3001',
+    baseURL: config.system.coinServerBaseUrl,
     headers: {
         'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json'
@@ -29,19 +29,20 @@ const instance = axios.create({
     ]
 })
 instance.interceptors.request.use(
-    (config: AxiosRequestConfig) => {
+    (axiosConfig: AxiosRequestConfig) => {
         const time = Date.now().toString()
-        const httpMethod = config.method!.toUpperCase()
-        const requestPath = config.url!
+        const httpMethod = axiosConfig.method!.toUpperCase()
+        const requestPath = axiosConfig.url!
+        const secret = config.system.coinServerSecrectKey
 
-        let digest = generate('secret', 'sha256', time, httpMethod, requestPath, config.data).digest('hex')
+        let digest = generate(secret, 'sha256', time, httpMethod, requestPath, axiosConfig.data).digest('hex')
         if (httpMethod === 'GET') {
-            digest = generate('secret', 'sha256', time, httpMethod, requestPath).digest('hex')
+            digest = generate(secret, 'sha256', time, httpMethod, requestPath, {}).digest('hex')
         }
         const hmac = `HMAC ${time}:${digest}`
 
-        config.headers!.Authorization = `${hmac}`
-        return config
+        axiosConfig.headers!.Authorization = `${hmac}`
+        return axiosConfig
     },
     err => {
         return Promise.reject(err)
@@ -142,8 +143,15 @@ export async function sendRaw(sendData: ISendRawDto) {
 }
 
 export async function queryPrimeTxns(filter: ITransactionFilter) {
+    let path = '/transactions'
+    // ?symbol=${filter!.symbol}&keys=${filter!.keys}&owner=${filter!.owner}&pageindex=${filter.pageindex}&pagesize=${filter.pagesize}
+    const params = []
+    for (const [key, value] of Object.entries(filter)) {
+        params.push(`${key}=${value}`)
+    }
+    path = path + '?' + params.join('&')
     try {
-        const resp = await instance.get('/transactions', { params: filter })
+        const resp = await instance.get(path)
         // log
         return resp.data.data
     } catch (error) {
