@@ -8,7 +8,7 @@ import { WithdrawDto } from './account.dto'
 import { AccountErrors } from '@exceptions/custom.error'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
-import { createCoinWallet, getWalletByKey } from '@providers/coin.provider'
+import { PrimeCoinProvider } from '@providers/coin.provider'
 import crypto from 'crypto'
 
 export default class AccountService {
@@ -17,7 +17,7 @@ export default class AccountService {
         // const primeTokens = config.system.primeTokens.split(',')
         const primeTokens = config.system.primeTokens
         const etherWallet = await createEtherWallet()
-        const coinWallets = await createCoinWallet(primeTokens, etherWallet.address)
+        const coinWallets = await PrimeCoinProvider.createCoinWallet(primeTokens, etherWallet.address)
         if (coinWallets.length !== config.system.primeTokens.split(',').length) {
             throw new BizException(
                 AccountErrors.account_init_prime_accounts_error,
@@ -95,7 +95,7 @@ export default class AccountService {
     static async getAccountByKey(key: string) {
         const account = await AccountModel.findOne({ key }).select('-keyStore -salt').exec()
         if (account?.extType === AccountExtType.Prime) {
-            const wallet = await getWalletByKey(account.extKey)
+            const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
             account.amount = wallet.amount
             account.nonce = wallet.nonce
         }
@@ -106,7 +106,7 @@ export default class AccountService {
     static async getAccountBySymbolAndAddress(symbol: string, address: string) {
         const account = await AccountModel.findOne({ symbol: symbol, address: address }).select('-keyStore -salt').exec()
         if (account?.extType === AccountExtType.Prime) {
-            const wallet = await getWalletByKey(account.extKey)
+            const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
             account.amount = wallet.amount
             account.nonce = wallet.nonce
         }

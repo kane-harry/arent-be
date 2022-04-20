@@ -47,7 +47,10 @@ class TransactionController implements IController {
     private async queryPrimeTxns(req: CustomRequest, res: Response) {
         const symbol: string = req.params.symbol
         const filter = req.query as ITransactionFilter
-        const data = await CoinService.queryPrimeTxns(symbol, filter)
+        const data = await CoinService.queryPrimeTxns({
+            symbol,
+            filter
+        })
         return res.json(data)
     }
 }

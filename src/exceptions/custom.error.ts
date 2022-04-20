@@ -1,7 +1,8 @@
 export const CommonErrors = {
     // common errors - start from 1000
     not_implemented: { code: 1002, status: 501, message: 'Not Implemented.' },
-    request_validation_error: { code: 1002, status: 422, message: 'The request failed due to a validation error.' }
+    request_validation_error: { code: 1002, status: 422, message: 'The request failed due to a validation error.' },
+    internal_server_error: { code: 1003, status: 500, message: 'Internal Server Error' }
 }
 export const AuthErrors = {
     registration_email_exists_error: { code: 2001, status: 400, message: 'This email is already exists.' },

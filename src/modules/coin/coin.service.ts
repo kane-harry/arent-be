@@ -4,7 +4,7 @@ import { CreateRawWalletDto, CreateSignatureDto, SendRawDto } from './coin.dto'
 import { trim, toUpper } from 'lodash'
 import { AccountErrors, TransactionErrors } from '@exceptions/custom.error'
 import { createEtherWallet, signMessage } from '@utils/wallet'
-import { createCoinWallet, getWalletBySymbolAndAddress, sendRaw, queryPrimeTxns } from '@providers/coin.provider'
+import { PrimeCoinProvider } from '@providers/coin.provider'
 import { FeeMode, ISendRawDto, ITransactionFilter } from '@modules/transaction/transaction.interface'
 import { config } from '@config'
 import AccountService from '@modules/account/account.service'
@@ -13,7 +13,7 @@ export default class CoinService {
     static async createRawWallet(params: CreateRawWalletDto) {
         const etherWallet = await createEtherWallet()
         // TODO : check symbols - should be prime tokens
-        const coinWallets = await createCoinWallet(params.symbol, etherWallet.address, true)
+        const coinWallets = await PrimeCoinProvider.createCoinWallet(params.symbol, etherWallet.address, true)
         const wallets: any[] = []
         for (const wallet of coinWallets) {
             wallets.push({
@@ -34,8 +34,8 @@ export default class CoinService {
 
     static async sendRaw(params: SendRawDto) {
         const symbol = toUpper(trim(params.symbol))
-        const senderWallet = await getWalletBySymbolAndAddress(symbol, params.sender)
-        const recipientWallet = await getWalletBySymbolAndAddress(symbol, params.recipient)
+        const senderWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(symbol, params.sender)
+        const recipientWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(symbol, params.recipient)
         if (!senderWallet) {
             throw new BizException(
                 TransactionErrors.sender_account_not_exists_error,
@@ -92,13 +92,13 @@ export default class CoinService {
             mode: mode
         }
 
-        const data = await sendRaw(sendData)
-        return data
+        return await PrimeCoinProvider.sendRaw(sendData)
     }
 
-    static queryPrimeTxns(symbol: string, filter: ITransactionFilter) {
-        filter.symbol = symbol
-        const data = queryPrimeTxns(filter)
-        return data
+    static async queryPrimeTxns(params: { symbol: string; filter: ITransactionFilter }) {
+        return await PrimeCoinProvider.queryPrimeTxns({
+            ...params.filter,
+            symbol: params.symbol
+        })
     }
 }

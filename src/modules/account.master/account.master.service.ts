@@ -6,7 +6,7 @@ import { config } from '@config'
 import { AccountErrors } from '@exceptions/custom.error'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
-import { createCoinWallet, mintPrimeCoins, getWalletByKey } from '@providers/coin.provider'
+import { PrimeCoinProvider } from '@providers/coin.provider'
 import { MintDto } from '@modules/account/account.dto'
 
 export default class AccountMasterService {
@@ -23,7 +23,7 @@ export default class AccountMasterService {
         const userId = 'MASTER'
         const primeTokens = config.system.primeTokens
         const etherWallet = await createEtherWallet()
-        const coinWallets = await createCoinWallet(primeTokens, etherWallet.address)
+        const coinWallets = await PrimeCoinProvider.createCoinWallet(primeTokens, etherWallet.address)
         for (const coinWallet of coinWallets) {
             const accountName = `${coinWallet.symbol} MASTER`
             const account = new AccountModel({
@@ -100,7 +100,7 @@ export default class AccountMasterService {
         const items = await AccountModel.find<IAccount>(filter).select('-keyStore -salt').exec()
         for (const account of items) {
             if (account.extType === AccountExtType.Prime) {
-                const wallet = await getWalletByKey(account.extKey)
+                const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
                 account.amount = wallet.amount
                 account.nonce = wallet.nonce
             }
@@ -117,7 +117,12 @@ export default class AccountMasterService {
         if (account.type !== AccountType.Master || account.extType !== AccountExtType.Prime) {
             throw new BizException(AccountErrors.account_mint_type_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
         }
-        const data = await mintPrimeCoins({ key: account.extKey, amount: params.amount, notes: params.notes, type: params.type || 'MINT' })
+        const data = await PrimeCoinProvider.mintPrimeCoins({
+            key: account.extKey,
+            amount: params.amount,
+            notes: params.notes,
+            type: params.type || 'MINT'
+        })
         // todo : mint log
         return data
     }

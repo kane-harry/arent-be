@@ -5,7 +5,7 @@ import { SendPrimeCoinsDto } from './transaction.dto'
 import { trim, toUpper } from 'lodash'
 import { AccountErrors, TransactionErrors } from '@exceptions/custom.error'
 import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
-import { sendPrimeCoins, queryPrimeTxns, getPrimeTxnByKey, getWalletBySymbolAndAddress } from '@providers/coin.provider'
+import { PrimeCoinProvider } from '@providers/coin.provider'
 import { ISendCoinDto, ITransactionFilter } from './transaction.interface'
 import { AccountExtType } from '@modules/account/account.interface'
 import { config } from '@config'
@@ -18,7 +18,7 @@ export default class TransactionService {
         const amount = Number(params.amount)
         const senderAccount = await AccountService.getAccountBySymbolAndAddress(symbol, params.sender)
         // recipient can be raw wallet
-        const recipientWallet = await getWalletBySymbolAndAddress(params.symbol, params.recipient)
+        const recipientWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(params.symbol, params.recipient)
         if (!senderAccount) {
             throw new BizException(
                 TransactionErrors.sender_account_not_exists_error,
@@ -58,7 +58,7 @@ export default class TransactionService {
             notes: params.notes,
             details: {} // addtional info
         }
-        const data = await sendPrimeCoins(sendData)
+        const data = await PrimeCoinProvider.sendPrimeCoins(sendData)
         if (transferFee > 0) {
             const masterAccount = await AccountService.getMasterAccountBriefBySymbol(symbol)
             if (!masterAccount) {
@@ -81,7 +81,7 @@ export default class TransactionService {
                 signature: feeSignature,
                 notes: feeNotes
             }
-            await sendPrimeCoins(sendFeeData)
+            await PrimeCoinProvider.sendPrimeCoins(sendFeeData)
         }
 
         return data
@@ -96,7 +96,7 @@ export default class TransactionService {
         // TODO: Check role/owner - admin and owner can view txns
         if (account.extType === AccountExtType.Prime) {
             filter.owner = account.extKey
-            const txns = await queryPrimeTxns(filter)
+            const txns = await PrimeCoinProvider.queryPrimeTxns(filter)
             return { account, txns }
         }
         // get txns from federation db
@@ -111,7 +111,7 @@ export default class TransactionService {
             throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('transaction.service', 'getTxnsByAccount', { key }))
         }
         if (account.extType === AccountExtType.Prime) {
-            const txn = await getPrimeTxnByKey(id)
+            const txn = await PrimeCoinProvider.getPrimeTxnByKey(id)
             return txn
         }
         const txn = await TransactionService.getExtTrxByKey(id)
