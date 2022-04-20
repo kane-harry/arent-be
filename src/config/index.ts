@@ -21,7 +21,8 @@ export const config = {
         extTokens: [{ symbol: 'ETH', platform: 'ethereum' }],
         secret: String(process.env.SYSTEM_SECRET_KEY || 'PELLAR-7258EE75D288CFD621E9332255186'),
         registrationRequireEmailVerified: process.env.REGISTRATION_REQUIRE_EMAIL_VERIFIED === 'true',
-        primeTransferFee: process.env.PRIME_TOKEN_TRANSFER_FEE || 0.1 // FOR TESTING
+        primeTransferFee: process.env.PRIME_TOKEN_TRANSFER_FEE || 0.1, // FOR TESTING
+        primeDecimals: 8
     },
 
     erc20Tokens: [
