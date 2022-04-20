@@ -6,7 +6,7 @@ import AuthService from './auth.service'
 import { CreateUserDto } from '../user/user.dto'
 import { ForgotPasswordDto, ForgotPinDto, LogInDto, ResetPasswordDto, ResetPinDto } from './auth.dto'
 import { requireAuth } from '../../common/authCheck'
-import { CustomRequest } from 'middlewares/request.middleware'
+import { AuthenticationRequest, CustomRequest } from 'middlewares/request.middleware'
 
 export default class AuthController implements IController {
     public path = '/auth'
@@ -42,28 +42,28 @@ export default class AuthController implements IController {
         return res.send(data)
     }
 
-    private resetPassword = async (req: CustomRequest, res: Response) => {
+    private resetPassword = async (req: AuthenticationRequest, res: Response) => {
         const passwordData: ResetPasswordDto = req.body
         const data = await AuthService.resetPassword(passwordData, req.user, { req })
 
         return res.send(data)
     }
 
-    private forgotPassword = async (req: CustomRequest, res: Response) => {
+    private forgotPassword = async (req: AuthenticationRequest, res: Response) => {
         const authData: ForgotPasswordDto = req.body
         const data = await AuthService.forgotPassword(authData, { req })
 
         return res.send(data)
     }
 
-    private resetPin = async (req: CustomRequest, res: Response) => {
+    private resetPin = async (req: AuthenticationRequest, res: Response) => {
         const passwordData: ResetPinDto = req.body
         const data = await AuthService.resetPin(passwordData, req.user, { req })
 
         return res.send(data)
     }
 
-    private forgotPin = async (req: CustomRequest, res: Response) => {
+    private forgotPin = async (req: AuthenticationRequest, res: Response) => {
         const authData: ForgotPinDto = req.body
         const data = await AuthService.forgotPin(authData, { req })
 

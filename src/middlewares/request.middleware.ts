@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import { UserDto } from '../modules/user/user.dto'
 import { config } from '../config'
 
 export interface CustomRequest extends Request {
@@ -7,6 +8,10 @@ export interface CustomRequest extends Request {
     body: any
     params: any
     query: any
+}
+
+export interface AuthenticationRequest extends CustomRequest {
+    user: UserDto
 }
 
 const requestMiddleware = (req: CustomRequest, _: Response, next: NextFunction) => {
