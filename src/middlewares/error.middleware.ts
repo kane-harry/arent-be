@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import ApplicationException from '../exceptions/application.exception'
+import ApplicationException from '@exceptions/application.exception'
 
 function errorMiddleware(error: ApplicationException, req: Request, res: Response, next: NextFunction) {
     const status = error.status || 500

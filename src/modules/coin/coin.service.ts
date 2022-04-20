@@ -1,13 +1,13 @@
-import BizException from '../../exceptions/biz.exception'
-import ErrorContext from '../../exceptions/error.context'
+import BizException from '@exceptions/biz.exception'
+import ErrorContext from '@exceptions/error.context'
 import { CreateRawWalletDto, CreateSignatureDto, SendRawDto } from './coin.dto'
 import { trim, toUpper } from 'lodash'
-import { AccountErrors, TransactionErrors } from '../../exceptions/custom.error'
-import { createEtherWallet, signMessage } from '../../utils/wallet'
-import { createCoinWallet, getWalletBySymbolAndAddress, sendRaw, queryPrimeTxns } from '../../providers/coin.provider'
-import { FeeMode, ISendRawDto, ITransactionFilter } from '../transaction/transaction.interface'
-import { config } from '../../config'
-import AccountService from '../account/account.service'
+import { AccountErrors, TransactionErrors } from '@exceptions/custom.error'
+import { createEtherWallet, signMessage } from '@utils/wallet'
+import { createCoinWallet, getWalletBySymbolAndAddress, sendRaw, queryPrimeTxns } from '@providers/coin.provider'
+import { FeeMode, ISendRawDto, ITransactionFilter } from '@modules/transaction/transaction.interface'
+import { config } from '@config'
+import AccountService from '@modules/account/account.service'
 
 export default class CoinService {
     static async createRawWallet(params: CreateRawWalletDto) {

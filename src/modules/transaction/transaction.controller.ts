@@ -1,11 +1,11 @@
-import asyncHandler from '../../common/asyncHandler'
+import asyncHandler from '@common/asyncHandler'
 import { Router, Request, Response } from 'express'
-import IController from '../../interfaces/controller.interface'
-import validationMiddleware from '../../middlewares/validation.middleware'
+import IController from '@interfaces/controller.interface'
+import validationMiddleware from '@middlewares/validation.middleware'
+import { CustomRequest } from '@middlewares/request.middleware'
 import TransactionService from './transaction.service'
 import { SendPrimeCoinsDto } from './transaction.dto'
 import { ITransactionFilter } from './transaction.interface'
-import { CustomRequest } from '../../middlewares/request.middleware'
 
 class TransactionController implements IController {
     public path = '/transactions'

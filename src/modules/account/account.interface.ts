@@ -1,5 +1,5 @@
-import IBaseModel from '../../interfaces/base.model.interface'
-import IFilterModel from '../../interfaces/filter.model.interface'
+import IBaseModel from '@interfaces/base.model.interface'
+import IFilterModel from '@interfaces/filter.model.interface'
 import { Types } from 'mongoose'
 
 export enum AccountType {

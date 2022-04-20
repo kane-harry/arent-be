@@ -1,11 +1,11 @@
-import asyncHandler from '../../common/asyncHandler'
+import asyncHandler from '@common/asyncHandler'
 import { Router, Request, Response } from 'express'
-import IController from '../../interfaces/controller.interface'
-import validationMiddleware from '../../middlewares/validation.middleware'
+import IController from '@interfaces/controller.interface'
+import validationMiddleware from '@middlewares/validation.middleware'
 import CoinService from './coin.service'
 import { CreateRawWalletDto, CreateSignatureDto, SendRawDto } from './coin.dto'
-import { CustomRequest } from '../../middlewares/request.middleware'
-import { ITransactionFilter } from '../transaction/transaction.interface'
+import { CustomRequest } from '@middlewares/request.middleware'
+import { ITransactionFilter } from '@modules/transaction/transaction.interface'
 
 class TransactionController implements IController {
     public path = '/coin'

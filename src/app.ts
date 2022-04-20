@@ -4,13 +4,13 @@ import cors from 'cors'
 import helmet from 'helmet'
 import mongoose from 'mongoose'
 
-import IController from './interfaces/controller.interface'
-import errorMiddleware from './middlewares/error.middleware'
-import requestMiddleware from './middlewares/request.middleware'
-// import loggerMiddleware from './middlewares/logger.middleware';
+import IController from '@interfaces/controller.interface'
+import errorMiddleware from '@middlewares/error.middleware'
+import requestMiddleware from '@middlewares/request.middleware'
+// import loggerMiddleware from '@middlewares/logger.middleware';
 import passport from 'passport'
-import authz from './middlewares/authz.middleware'
-import { config } from './config'
+import authz from '@middlewares/authz.middleware'
+import { config } from '@config'
 
 class App {
     public app: express.Application

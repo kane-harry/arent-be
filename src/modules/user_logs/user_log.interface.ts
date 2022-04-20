@@ -1,4 +1,4 @@
-import IBaseModel from '../../interfaces/base.model.interface'
+import IBaseModel from '@interfaces/base.model.interface'
 
 export enum UserActions {
     ResetPassword = 'ResetPassword',

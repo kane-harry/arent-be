@@ -1,13 +1,13 @@
-import { IAccount, AccountType, AccountExtType } from '../account/account.interface'
-import AccountModel from '../account/account.model'
-import { createEtherWallet } from '../../utils/wallet'
-import { config } from '../../config'
-import { AccountErrors } from '../../exceptions/custom.error'
-import BizException from '../../exceptions/biz.exception'
-import ErrorContext from '../../exceptions/error.context'
-import { createCoinWallet, mintPrimeCoins, getWalletByKey } from '../../providers/coin.provider'
-import { MintDto } from 'modules/account/account.dto'
 import crypto from 'crypto'
+import { IAccount, AccountType, AccountExtType } from '@modules/account/account.interface'
+import AccountModel from '@modules/account/account.model'
+import { createEtherWallet } from '@utils/wallet'
+import { config } from '@config'
+import { AccountErrors } from '@exceptions/custom.error'
+import BizException from '@exceptions/biz.exception'
+import ErrorContext from '@exceptions/error.context'
+import { createCoinWallet, mintPrimeCoins, getWalletByKey } from '@providers/coin.provider'
+import { MintDto } from '@modules/account/account.dto'
 
 export default class AccountMasterService {
     static async initMasterAccounts() {

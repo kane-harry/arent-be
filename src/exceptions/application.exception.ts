@@ -1,6 +1,6 @@
 import ErrorContext from './error.context'
-import IErrorModel from '../interfaces/error.model.interface'
-const httpStatus = require('./status.code')
+import { STATUS_CODES } from './status.code'
+import IErrorModel from '@interfaces/error.model.interface'
 
 class ApplicationException extends Error {
     status: number
@@ -16,7 +16,7 @@ class ApplicationException extends Error {
         this.name = this.constructor.name
         this.status = error?.status || 500
         this.code = error?.code || 0
-        this.message = error?.message || httpStatus.STATUS_CODES[500]
+        this.message = error?.message || STATUS_CODES[500]
         this.metaData = error?.metaData
         this.errorContext = errorContext
     }

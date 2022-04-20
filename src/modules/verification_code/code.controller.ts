@@ -1,7 +1,7 @@
-import asyncHandler from '../../common/asyncHandler'
+import asyncHandler from '@common/asyncHandler'
 import { Request, Response, Router } from 'express'
-import validationMiddleware from '../../middlewares/validation.middleware'
-import IController from '../../interfaces/controller.interface'
+import validationMiddleware from '@middlewares/validation.middleware'
+import IController from '@interfaces/controller.interface'
 import { CreateCodeDto, VerifyCodeDto } from './code.dto'
 import VerificationCodeService from './code.service'
 

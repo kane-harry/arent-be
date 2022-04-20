@@ -5,10 +5,10 @@
   "main": "./dist/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node ./src/server.ts",
+    "dev": "nodemon src/server.ts",
     "start": "npm run build && node ./dist/server.js",
-    "start:nodemon": "node ./node_modules/nodemon/bin/nodemon.js",
-    "build": "npx tsc",
+    "start:nodemon": "nodemon src/server.ts",
+    "build": "tsc -p . && tsc-alias",
     "prepare": "husky install",
     "lint": "eslint ./src --ext .js,.ts --fix"
   },
@@ -76,6 +76,8 @@
     "prettier": "^2.6.2",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.7.0",
+    "tsc-alias": "^1.6.6",
+    "tsconfig-paths": "^3.14.1",
     "typescript": "^4.6.3"
   },
   "lint-staged": {
@@ -83,5 +85,20 @@
       "prettier --write",
       "npm run lint"
     ]
+  },
+  "nodemonConfig": {
+    "watch": [
+      "src",
+      ".env"
+    ],
+    "ext": "js,ts,json,yaml",
+    "ignore": [
+      ".git",
+      "node_modules",
+      "dist",
+      "src/logs/*",
+      "src/**/*.{spec,test}.ts"
+    ],
+    "exec": "ts-node -r tsconfig-paths/register --transpile-only src/server.ts"
   }
 }

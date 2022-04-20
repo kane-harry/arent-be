@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { ethers } from 'ethers'
 
-import { config } from '../config'
+import { config } from '@config'
 
 async function createEtherWallet() {
     const wallet = ethers.Wallet.createRandom()

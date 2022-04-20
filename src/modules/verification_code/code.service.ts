@@ -1,11 +1,11 @@
-import BizException from '../../exceptions/biz.exception'
-import ErrorContext from '../../exceptions/error.context'
-import { AuthErrors } from '../../exceptions/custom.error'
+import BizException from '@exceptions/biz.exception'
+import ErrorContext from '@exceptions/error.context'
+import { AuthErrors } from '@exceptions/custom.error'
 import { toLower, trim } from 'lodash'
 import moment from 'moment'
 import { CreateCodeDto, VerifyCodeDto } from './code.dto'
 import { VerificationCode } from './code.model'
-import UserModel from '../../modules/user/user.model'
+import UserModel from '@modules/user/user.model'
 import { CodeType } from './code.interface'
 
 export default class VerificationCodeService {

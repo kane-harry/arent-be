@@ -1,9 +1,9 @@
 import { plainToInstance } from 'class-transformer'
 import { validate, ValidationError } from 'class-validator'
 import { RequestHandler } from 'express'
-import RequestException from '../exceptions/request.exception'
-import { CommonErrors } from '../exceptions/custom.error'
-import IErrorModel from '../interfaces/error.model.interface'
+import RequestException from '@exceptions/request.exception'
+import { CommonErrors } from '@exceptions/custom.error'
+import IErrorModel from '@interfaces/error.model.interface'
 
 function validationMiddleware(type: any, skipMissingProperties = false): RequestHandler {
     return (req, _, next) => {

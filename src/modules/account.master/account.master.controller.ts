@@ -1,10 +1,10 @@
-import asyncHandler from '../../common/asyncHandler'
 import { Router, Request, Response } from 'express'
-import IController from '../../interfaces/controller.interface'
+import asyncHandler from '@common/asyncHandler'
+import IController from '@interfaces/controller.interface'
+import { MintDto } from '@modules/account/account.dto'
+import validationMiddleware from '@middlewares/validation.middleware'
 import AccountMasterService from './account.master.service'
-import { MintDto } from '../account/account.dto'
-import validationMiddleware from '../../middlewares/validation.middleware'
-// import { requireAuth } from '../../common/authCheck'
+// import { requireAuth } from '@common/authCheck'
 
 class AccountController implements IController {
     public path = '/master/accounts'

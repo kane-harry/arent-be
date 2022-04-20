@@ -1,8 +1,8 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { config } from '../config'
+import { config } from '@config'
 import { generate } from 'hmac-auth-express'
-import { IMintToCoinDto } from '../modules/account/account.interface'
-import { ISendCoinDto, ISendRawDto, ITransactionFilter } from '../modules/transaction/transaction.interface'
+import { IMintToCoinDto } from '@modules/account/account.interface'
+import { ISendCoinDto, ISendRawDto, ITransactionFilter } from '@modules/transaction/transaction.interface'
 
 // global ?
 const instance = axios.create({

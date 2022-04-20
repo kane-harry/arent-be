@@ -5,7 +5,7 @@ import {
     //   Response,
     //   NextFunction
 } from 'express'
-import IController from '../../interfaces/controller.interface'
+import IController from '@interfaces/controller.interface'
 // import validationMiddleware from '../../middlewares/validation.middleware'
 // import { CreateUserDto } from './user.dto'
 // import { IUser, IUserFilter } from './user.interface'

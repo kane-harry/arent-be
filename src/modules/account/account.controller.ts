@@ -1,12 +1,12 @@
-import asyncHandler from '../../common/asyncHandler'
+import asyncHandler from '@common/asyncHandler'
 import { Router, Request, Response } from 'express'
-import IController from '../../interfaces/controller.interface'
-import validationMiddleware from '../../middlewares/validation.middleware'
+import IController from '@interfaces/controller.interface'
+import validationMiddleware from '@middlewares/validation.middleware'
+import { CustomRequest } from '@middlewares/request.middleware'
 import { WithdrawDto } from './account.dto'
 import { IAccountFilter } from './account.interface'
 import AccountService from './account.service'
-import { CustomRequest } from '../../middlewares/request.middleware'
-// import { requireAuth } from '../../common/authCheck'
+// import { requireAuth } from '@common/authCheck'
 
 class AccountController implements IController {
     public path = '/accounts'

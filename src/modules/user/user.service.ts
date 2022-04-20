@@ -3,8 +3,8 @@
 // import { createWallet } from '../../utils/wallet'
 // import { QueryRO } from '../../interfaces/qurey.model';
 
-import BizException from '../../exceptions/biz.exception'
-import ErrorContext from '../../exceptions/error.context'
+import BizException from '@exceptions/biz.exception'
+import ErrorContext from '@exceptions/error.context'
 
 export default class UserService {
     static createCreateTransaction = async (transactionParams: any) => {

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import { UserDto } from '../modules/user/user.dto'
-import { config } from '../config'
+import { UserDto } from '@modules/user/user.dto'
+import { config } from '@config'
 
 export interface CustomRequest extends Request {
     agent?: any

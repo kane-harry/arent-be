@@ -1,14 +1,14 @@
-import AccountService from '../account/account.service'
-import BizException from '../../exceptions/biz.exception'
-import ErrorContext from '../../exceptions/error.context'
+import AccountService from '@modules/account/account.service'
+import BizException from '@exceptions/biz.exception'
+import ErrorContext from '@exceptions/error.context'
 import { SendPrimeCoinsDto } from './transaction.dto'
 import { trim, toUpper } from 'lodash'
-import { AccountErrors, TransactionErrors } from '../../exceptions/custom.error'
-import { decryptKeyWithSalt, signMessage } from '../../utils/wallet'
-import { sendPrimeCoins, queryPrimeTxns, getPrimeTxnByKey, getWalletBySymbolAndAddress } from '../../providers/coin.provider'
+import { AccountErrors, TransactionErrors } from '@exceptions/custom.error'
+import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
+import { sendPrimeCoins, queryPrimeTxns, getPrimeTxnByKey, getWalletBySymbolAndAddress } from '@providers/coin.provider'
 import { ISendCoinDto, ITransactionFilter } from './transaction.interface'
-import { AccountExtType } from '../account/account.interface'
-import { config } from '../../config'
+import { AccountExtType } from '@modules/account/account.interface'
+import { config } from '@config'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: Express.User | undefined) {
