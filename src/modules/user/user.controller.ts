@@ -42,7 +42,7 @@ class UserController implements IController {
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {
         const filesUploaded = res.locals.files_uploaded
-        const data = UserService.uploadAvatar(filesUploaded, req.user, { req })
+        const data = await UserService.uploadAvatar(filesUploaded, req.user, { req })
         return res.send(data)
     }
 

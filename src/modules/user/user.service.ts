@@ -11,7 +11,9 @@ import UserModel from './user.model'
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], _user: UserDto | undefined, options?: { req: AuthenticationRequest }) => {
         const user = await UserModel.findOne({ email: _user?.email }).exec()
-        // TODO: store files uploaded
+
+        const oldAvatar = user?.avatar
+
         let avatars: { [key: string]: string } = {}
         forEach(filesUploaded, file => {
             avatars = {
@@ -28,13 +30,13 @@ export default class UserService {
             agent: options?.req.agent,
             ip_address: options?.req.ip_address,
             old_data: {
-                avatar: user?.avatar
+                avatar: oldAvatar
             },
             new_data: {
                 avatar: avatars
             }
         }).save()
-        return user
+        return avatars
     }
 
     static createCreateTransaction = async (transactionParams: any) => {

@@ -41,7 +41,7 @@ export default class AuthService {
             ...userData,
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
-            avatar: '',
+            avatar: null,
             status: UserStatus.Normal
         })
         const savedData = await mode.save()

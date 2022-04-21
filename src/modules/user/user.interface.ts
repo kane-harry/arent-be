@@ -16,7 +16,7 @@ export interface IUser extends IBaseModel {
     pin: string
     phone: string
     country: string
-    avatar: string
+    avatar: Object | null
     playerId?: string
     status: string
     emailVerified: boolean

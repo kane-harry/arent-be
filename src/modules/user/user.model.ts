@@ -25,7 +25,7 @@ const userSchema = new Schema<IUser>(
         },
         phone: String,
         country: String,
-        avatar: String,
+        avatar: Object,
         playerId: String,
         status: String,
         emailVerified: { type: Boolean, default: false },

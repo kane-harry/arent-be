@@ -126,8 +126,8 @@ export const uploadFiles = (folder?: string) => async (req: Request, res: Respon
 
         const s3 = new S3({
             credentials: {
-                accessKeyId: config.amazonS3.secret,
-                secretAccessKey: config.amazonS3.key
+                accessKeyId: config.amazonS3.key,
+                secretAccessKey: config.amazonS3.secret
             },
             region: config.amazonS3.region
         })
