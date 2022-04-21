@@ -5,7 +5,8 @@ export enum UserActions {
     ForgotPassword = 'ForgotPassword',
     ResetPin = 'ResetPin',
     ForgotPin = 'ForgotPin',
-    Login = 'Login'
+    Login = 'Login',
+    UpdateAvatar = 'UpdateAvatar'
 }
 
 export interface IUserLog extends IBaseModel {

@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/pellartech/pellar-federation-ts#readme",
   "dependencies": {
+    "aws-sdk": "^2.1118.0",
     "axios": "^0.26.1",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.20.0",
@@ -41,9 +42,12 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.2",
     "mongoose": "^6.2.10",
+    "multer": "^1.4.4",
     "passport": "^0.5.2",
     "passport-jwt": "^4.0.0",
-    "randomstring": "^1.2.2"
+    "randomstring": "^1.2.2",
+    "sharp": "^0.30.4",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/axios": "^0.14.0",
@@ -59,10 +63,13 @@
     "@types/lodash": "^4.14.181",
     "@types/moment": "^2.13.0",
     "@types/mongoose": "^5.11.97",
+    "@types/multer": "^1.4.7",
     "@types/node": "^17.0.23",
     "@types/passport": "^1.0.7",
     "@types/passport-jwt": "^3.0.6",
     "@types/randomstring": "^1.1.8",
+    "@types/sharp": "^0.30.2",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.5.0",
     "@typescript-eslint/parser": "^5.5.0",
     "eslint": "^7.32.0",
