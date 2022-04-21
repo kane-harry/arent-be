@@ -122,6 +122,8 @@ export const resizeImages =
 
 export const uploadFiles = (folder?: string) => async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const files: any = req.files
+
         const s3 = new S3({
             credentials: {
                 accessKeyId: config.amazonS3.secret,
@@ -135,7 +137,7 @@ export const uploadFiles = (folder?: string) => async (req: Request, res: Respon
             ACL: 'public-read'
         }
 
-        const uploader = map(req.files, (file: any) => {
+        const uploader = map(files, (file: any) => {
             const suffix = last(split(file?.originalname, '.'))
             const filename = `${uuidV4()}.${suffix}`
 
@@ -150,20 +152,16 @@ export const uploadFiles = (folder?: string) => async (req: Request, res: Respon
                     }
                 })
                 .promise()
-                .then(data => {
-                    return Promise.resolve({
-                        fieldname: file.fieldname,
-                        type: file.type,
-                        location: data.Location,
-                        key: data.Key
-                    })
-                })
-                .catch(err => {
-                    return Promise.reject(err)
-                })
         })
 
-        const filesUploaded = await Promise.all(uploader)
+        const filesUploaded = map(await Promise.all(uploader), (el, idx) => {
+            return {
+                fieldname: files[idx]?.fieldname,
+                type: files[idx]?.type,
+                location: el.Location,
+                key: el.Key
+            }
+        })
 
         res.locals.files_uploaded = filesUploaded
         next()
@@ -171,7 +169,7 @@ export const uploadFiles = (folder?: string) => async (req: Request, res: Respon
         console.log(err)
         throw new ApplicationException(CommonErrors.internal_server_error, {
             className: 'FileValidation',
-            method: 'resizeImages',
+            method: 'uploadFiles',
             details: String(err)
         })
     }
