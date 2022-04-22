@@ -5,7 +5,7 @@ import { QueryRO } from '@interfaces/qurey.model'
 import { config } from '@config'
 import { toUpper, trim } from 'lodash'
 import { WithdrawDto } from './account.dto'
-import { AccountErrors } from '@exceptions/custom.error'
+import { AccountErrors, AuthErrors } from '@exceptions/custom.error'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { PrimeCoinProvider } from '@providers/coin.provider'
@@ -13,6 +13,9 @@ import crypto from 'crypto'
 
 export default class AccountService {
     static async initUserAccounts(userId: string) {
+        if (userId === 'MASTER') {
+            throw new BizException(AuthErrors.invalid_user_id, new ErrorContext('account.service', 'initUserAccounts', {}))
+        }
         const accounts: any[] = []
         // const primeTokens = config.system.primeTokens.split(',')
         const primeTokens = config.system.primeTokens
@@ -25,7 +28,7 @@ export default class AccountService {
             )
         }
         for (const coinWallet of coinWallets) {
-            const accountName = userId === 'MASTER' ? `${coinWallet.symbol} MASTER` : `${coinWallet.symbol} Account`
+            const accountName = `${coinWallet.symbol} Account`
             const account = new AccountModel({
                 key: crypto.randomBytes(16).toString('hex'),
                 userId: userId,
@@ -44,7 +47,7 @@ export default class AccountService {
 
         const extTokens = config.system.extTokens
         for (const token of extTokens) {
-            const accountName = userId === 'MASTER' ? `${token.symbol} MASTER` : `${token.symbol} Account`
+            const accountName = `${token.symbol} Account`
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
                     key: crypto.randomBytes(16).toString('hex'),
@@ -67,7 +70,7 @@ export default class AccountService {
         const erc20Tokens = config.erc20Tokens
         for (const token of erc20Tokens) {
             if (token.symbol) {
-                const accountName = userId === 'MASTER' ? `${token.symbol} MASTER` : `${token.symbol} Account`
+                const accountName = `${token.symbol} Account`
                 const account = new AccountModel({
                     key: crypto.randomBytes(16).toString('hex'),
                     userId: userId,
