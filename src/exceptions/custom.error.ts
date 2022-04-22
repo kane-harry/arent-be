@@ -14,7 +14,8 @@ export const AuthErrors = {
     verification_code_invalid_error: { code: 2006, status: 400, message: 'Invalid verification code.' },
 
     credentials_invalid_error: { message: 'Wrong credentials provided.', status: 400, code: 2007 },
-    data_confirmation_mismatch_error: { message: 'Data confirmation mismatch.', status: 422, code: 2008 }
+    data_confirmation_mismatch_error: { message: 'Data confirmation mismatch.', status: 422, code: 2008 },
+    user_not_exists_error: { message: 'User does not exists.', status: 422, code: 2009 }
 }
 
 export const AccountErrors = {

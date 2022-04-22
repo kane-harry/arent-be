@@ -5,9 +5,9 @@ import RequestException from '@exceptions/request.exception'
 import { CommonErrors } from '@exceptions/custom.error'
 import IErrorModel from '@interfaces/error.model.interface'
 
-function validationMiddleware(type: any, skipMissingProperties = false): RequestHandler {
+function validationMiddleware(type: any, skipMissingProperties = false, position: 'body' | 'params' | 'query' = 'body'): RequestHandler {
     return (req, _, next) => {
-        validate(plainToInstance(type, req.body), { skipMissingProperties }).then((errors: ValidationError[]) => {
+        validate(plainToInstance(type, req[position]), { skipMissingProperties }).then((errors: ValidationError[]) => {
             if (errors.length > 0) {
                 const validationErrors: any[] = []
                 errors.forEach(_error => {
