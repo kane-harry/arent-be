@@ -1,8 +1,5 @@
 export default [
     {
-        _id: {
-            oid: '6256e0203aeb0b9670130a2b'
-        },
         firstName: 'First Name 3',
         lastName: 'Last Name 3',
         nickName: 'Phone',
