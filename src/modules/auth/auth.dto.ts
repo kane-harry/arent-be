@@ -53,3 +53,8 @@ export class ForgotPinDto {
     @IsString()
     public newPin: string
 }
+
+export class RefreshTokenDto {
+    @IsString()
+    public refreshToken: string
+}

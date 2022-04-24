@@ -37,9 +37,14 @@ export const config = {
         // ....
     ],
 
-    JWT: {
-        secret: String(process.env.JWT_SECRET),
-        tokenExpiresIn: String(process.env.JWT_TOKEN_EXPIRES_IN || '7d')
+    JWT_Access: {
+        secret: String(process.env.JWT_ACCESS_SECRET),
+        tokenExpiresIn: String(process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '30m') // 30 mins
+    },
+
+    JWT_Refresh: {
+        secret: String(process.env.JWT_REFRESH_SECRET),
+        tokenExpiresIn: String(process.env.JWT_REFRESH_TOKEN_EXPIRES_IN || '7d') // 7 days
     },
 
     emailNotification: {

@@ -2,23 +2,24 @@ import * as bcrypt from 'bcrypt'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { CreateUserDto } from '@modules/user/user.dto'
-import { ForgotPasswordDto, ForgotPinDto, LogInDto, ResetPasswordDto, ResetPinDto } from './auth.dto'
+import { ForgotPasswordDto, ForgotPinDto, LogInDto, RefreshTokenDto, ResetPasswordDto, ResetPinDto } from './auth.dto'
 import { toLower, capitalize, escapeRegExp, trim } from 'lodash'
-import { IUser, UserStatus } from '@modules/user/user.interface'
+import { IUser } from '@modules/user/user.interface'
 import UserModel from '@modules/user/user.model'
 import { VerificationCode } from '@modules/verification_code/code.model'
 import { CodeType } from '@modules/verification_code/code.interface'
 import { AuthErrors } from '@exceptions/custom.error'
-import * as jwt from 'jsonwebtoken'
 import { config } from '@config'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import UserLogModel from '@modules/user_logs/user_log.model'
 import { UserActions } from '@modules/user_logs/user_log.interface'
 import { CustomRequest } from '@middlewares/request.middleware'
 import AccountService from '@modules/account/account.service'
+import { AuthModel } from './auth.model'
+import { AuthTokenType } from './auth.interface'
 
 export default class AuthService {
-    static async register(userData: CreateUserDto) {
+    static async register(userData: CreateUserDto, options?: { req: CustomRequest }) {
         userData = AuthService.formatCreateUserDto(userData)
         const user = await UserModel.findOne({ email: userData.email }).exec()
         if (user) {
@@ -41,14 +42,11 @@ export default class AuthService {
             ...userData,
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
-            avatar: null,
-            status: UserStatus.Normal
+            avatar: null
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData._id)
-        const token = AuthService.createToken(savedData)
-
-        return { user: savedData, token: token }
+        return this.logIn({ email: userData.email, password: userData.password }, options)
     }
 
     private static formatCreateUserDto(userData: CreateUserDto) {
@@ -73,11 +71,16 @@ export default class AuthService {
         }
 
         // create token
-        const token = AuthService.createToken(user)
+        const accessToken = AuthModel.createAccessToken(user._id)
+        const refreshToken = AuthModel.createRefreshToken(user._id)
 
+        // TODO: check device login
         // send mail warning login
         // run job to delete expired tokens
-        // TODO: store token to database
+        new AuthModel({
+            token: refreshToken,
+            userId: user._id
+        }).save()
 
         new UserLogModel({
             userId: user._id,
@@ -86,17 +89,31 @@ export default class AuthService {
             ipAddress: options?.req.ip_address
         }).save()
 
-        return { user: user, token: token }
+        return { user: user, token: accessToken, refreshToken }
     }
 
-    private static createToken(user: IUser) {
-        const expiresIn = config.JWT.tokenExpiresIn
-        const secret = String(config.JWT.secret)
-        // TODO: add client id ? not allow multiple device ?
-        const payload = {
-            id: user._id
+    static async refreshToken(refreshTokenData: RefreshTokenDto) {
+        const authData = await AuthModel.findOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
+        if (!authData) {
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
         }
-        return jwt.sign(payload, secret, { expiresIn })
+        try {
+            const payload = AuthModel.verifyRefreshToken(refreshTokenData.refreshToken) as any
+            const token = AuthModel.createAccessToken(payload.id)
+            return { token }
+        } catch (err) {
+            const error = err as any
+            switch (error?.name) {
+            case 'TokenExpiredError':
+                AuthModel.deleteOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
+                throw new BizException(AuthErrors.session_expired, new ErrorContext('auth.service', 'refreshToken', {}))
+            case 'JsonWebTokenError':
+                throw new BizException(AuthErrors.invalid_refresh_token, new ErrorContext('auth.service', 'refreshToken', {}))
+
+            default:
+                throw new BizException(AuthErrors.invalid_refresh_token, new ErrorContext('auth.service', 'refreshToken', {}))
+            }
+        }
     }
 
     static async resetPassword(passwordData: ResetPasswordDto, _user: IUser, options?: { req: CustomRequest }) {
@@ -244,10 +261,12 @@ export default class AuthService {
         return { success: true }
     }
 
-    static async logOut(id: string) {
-        throw new BizException(
-            { message: 'Not implemented.', status: 400, code: 400 },
-            new ErrorContext('transaction.service', 'getTransactionById', {})
-        )
+    static async logOut(refreshTokenData: RefreshTokenDto) {
+        const authData = await AuthModel.findOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
+        if (!authData) {
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
+        }
+        await AuthModel.deleteOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
+        return { success: true }
     }
 }

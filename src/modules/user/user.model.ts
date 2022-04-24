@@ -1,5 +1,5 @@
 import { Schema, model } from 'mongoose'
-import { IUser, Permission } from './user.interface'
+import { IUser, Permission, UserStatus } from './user.interface'
 
 const permissionSchema = new Schema<Permission>(
     {
@@ -53,7 +53,11 @@ const userSchema = new Schema<IUser>(
         country: String,
         avatar: Object,
         playerId: String,
-        status: String,
+        status: {
+            type: String,
+            enum: UserStatus,
+            default: UserStatus.Normal
+        },
         emailVerified: { type: Boolean, default: false },
         removed: { type: Boolean, default: false, get: (): undefined => undefined }
     },

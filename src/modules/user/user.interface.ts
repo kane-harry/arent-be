@@ -23,7 +23,7 @@ export interface IUser extends IBaseModel {
     country: string
     avatar: Object | null
     playerId?: string
-    status: string
+    status: UserStatus
     emailVerified: boolean
 }
 
