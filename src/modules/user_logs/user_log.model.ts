@@ -3,7 +3,11 @@ import { IUserLog } from './user_log.interface'
 
 const userLogSchema = new Schema<IUserLog>(
     {
-        ip_address: {
+        userId: {
+            type: String,
+            required: true
+        },
+        ipAddress: {
             type: String,
             required: true
         },
@@ -15,8 +19,8 @@ const userLogSchema = new Schema<IUserLog>(
             type: String,
             required: true
         },
-        old_data: Object,
-        new_data: Object
+        oldData: Object,
+        newData: Object
     },
     {
         timestamps: {

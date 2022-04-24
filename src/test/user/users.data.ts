@@ -5,7 +5,7 @@ export default [
         nickName: 'Phone',
         email: 'hoang.pellar@gmail.com',
         password: '$2b$10$EfAOWWenv2S.t8qXtJqYtOKoZf90.swQLlXi8Mois1m3TthamIDyS',
-        roleId: 0,
+        permissions: [],
         pin: '$2b$10$GkmR7EoFHAoswRv5IZ/J/OsKbwcdhWUVeArPaq4ZFBbfsnJXB4aAu',
         avatar: {
             original: 'avatar/340f0f9b-24d2-45f7-b5c0-5197618c272d.jpeg',

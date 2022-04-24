@@ -6,7 +6,6 @@ import { requireAuth } from '@common/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { UpdateUserDto } from './user.dto'
-// import validationMiddleware from '../../middlewares/validation.middleware'
 
 class UserController implements IController {
     public path = '/users'
@@ -36,8 +35,7 @@ class UserController implements IController {
 
         this.router.post(`${this.path}/info`, requireAuth, asyncHandler(this.updateUser))
 
-        this.router.get(`${this.path}/info/@:nickName`, asyncHandler(this.getUserByKey))
-        // this.router.get(`${this.path}`, asyncHandler(this.queryAccounts));
+        this.router.get(`${this.path}/info/@:nickName`, asyncHandler(this.getUserByNickName))
     }
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {
@@ -52,7 +50,7 @@ class UserController implements IController {
         return res.send(data)
     }
 
-    private getUserByKey = async (req: Request, res: Response) => {
+    private getUserByNickName = async (req: Request, res: Response) => {
         const nickName: string = req.params.nickName
         const data = await UserService.getUserByNickname(nickName)
         return res.send(data)

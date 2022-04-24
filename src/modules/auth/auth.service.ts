@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
-import { CreateUserDto, UserDto } from '@modules/user/user.dto'
+import { CreateUserDto } from '@modules/user/user.dto'
 import { ForgotPasswordDto, ForgotPinDto, LogInDto, ResetPasswordDto, ResetPinDto } from './auth.dto'
 import { toLower, capitalize, escapeRegExp, trim } from 'lodash'
 import { IUser, UserStatus } from '@modules/user/user.interface'
@@ -63,36 +63,43 @@ export default class AuthService {
 
     static async logIn(logInData: LogInDto, options?: { req: CustomRequest }) {
         const user = await UserModel.findOne({ email: logInData.email }).exec()
-        if (user) {
-            const isPasswordMatching = await bcrypt.compare(logInData.password, user.get('password', null, { getters: false }))
-            if (isPasswordMatching) {
-                // create token
-                const token = AuthService.createToken(user)
-
-                new UserLogModel({
-                    action: UserActions.Login,
-                    agent: options?.req.agent,
-                    ip_address: options?.req.ip_address
-                }).save()
-
-                return { user: user, token: token }
-            }
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
-        } else {
+        if (!user) {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
         }
+
+        const isPasswordMatching = await bcrypt.compare(logInData.password, user.get('password', null, { getters: false }))
+        if (!isPasswordMatching) {
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
+        }
+
+        // create token
+        const token = AuthService.createToken(user)
+
+        // send mail warning login
+        // run job to delete expired tokens
+        // TODO: store token to database
+
+        new UserLogModel({
+            userId: user._id,
+            action: UserActions.Login,
+            agent: options?.req.agent,
+            ipAddress: options?.req.ip_address
+        }).save()
+
+        return { user: user, token: token }
     }
 
     private static createToken(user: IUser) {
         const expiresIn = config.JWT.tokenExpiresIn
         const secret = String(config.JWT.secret)
+        // TODO: add client id ? not allow multiple device ?
         const payload = {
             id: user._id
         }
         return jwt.sign(payload, secret, { expiresIn })
     }
 
-    static async resetPassword(passwordData: ResetPasswordDto, _user: UserDto | undefined, options?: { req: CustomRequest }) {
+    static async resetPassword(passwordData: ResetPasswordDto, _user: IUser, options?: { req: CustomRequest }) {
         if (passwordData.newPasswordConfirmation !== passwordData.newPassword) {
             throw new BizException(AuthErrors.data_confirmation_mismatch_error, new ErrorContext('auth.service', 'resetPassword', {}))
         }
@@ -110,13 +117,14 @@ export default class AuthService {
         user?.save()
 
         new UserLogModel({
+            userId: user?._id,
             action: UserActions.ResetPassword,
             agent: options?.req.agent,
-            ip_address: options?.req.ip_address,
-            old_data: {
+            ipAddress: options?.req.ip_address,
+            oldData: {
                 password: oldPassHashed
             },
-            new_data: {
+            newData: {
                 password: newPassHashed
             }
         }).save()
@@ -149,13 +157,14 @@ export default class AuthService {
         user?.save()
 
         new UserLogModel({
+            userId: user?._id,
             action: UserActions.ForgotPassword,
             agent: options?.req.agent,
-            ip_address: options?.req.ip_address,
-            old_data: {
+            ipAddress: options?.req.ip_address,
+            oldData: {
                 password: oldPassHashed
             },
-            new_data: {
+            newData: {
                 password: newPassHashed
             }
         }).save()
@@ -163,7 +172,7 @@ export default class AuthService {
         return { success: true }
     }
 
-    static async resetPin(pinData: ResetPinDto, _user: UserDto | undefined, options?: { req: CustomRequest }) {
+    static async resetPin(pinData: ResetPinDto, _user: IUser, options?: { req: CustomRequest }) {
         if (pinData.newPinConfirmation !== pinData.newPin) {
             throw new BizException(AuthErrors.data_confirmation_mismatch_error, new ErrorContext('auth.service', 'resetPin', {}))
         }
@@ -180,13 +189,14 @@ export default class AuthService {
         user?.save()
 
         new UserLogModel({
+            userId: user?._id,
             action: UserActions.ResetPin,
             agent: options?.req.agent,
-            ip_address: options?.req.ip_address,
-            old_data: {
+            ipAddress: options?.req.ip_address,
+            oldData: {
                 pin: oldPinHashed
             },
-            new_data: {
+            newData: {
                 pin: newPinHashed
             }
         }).save()
@@ -219,13 +229,14 @@ export default class AuthService {
         user?.save()
 
         new UserLogModel({
+            userId: user?._id,
             action: UserActions.ForgotPin,
             agent: options?.req.agent,
-            ip_address: options?.req.ip_address,
-            old_data: {
+            ipAddress: options?.req.ip_address,
+            oldData: {
                 pin: oldPinHashed
             },
-            new_data: {
+            newData: {
                 pin: newPinHashed
             }
         }).save()

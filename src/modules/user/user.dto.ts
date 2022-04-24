@@ -62,5 +62,3 @@ export class UpdateUserDto {
     @IsOptional()
     public playerId: string
 }
-
-export class UserDto extends CreateUserDto {}

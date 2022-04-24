@@ -1,11 +1,37 @@
 import { Schema, model } from 'mongoose'
-import { IUser } from './user.interface'
+import { IUser, Permission } from './user.interface'
+
+const permissionSchema = new Schema<Permission>(
+    {
+        action: {
+            type: String,
+            unique: true,
+            trim: true,
+            lowercase: true,
+            required: true
+        },
+        resource: {
+            type: String,
+            unique: true,
+            trim: true,
+            required: true
+        }
+    },
+    { _id: false }
+)
 
 const userSchema = new Schema<IUser>(
     {
         firstName: String,
         lastName: String,
-        nickName: String,
+        nickName: {
+            type: String,
+            unique: true,
+            trim: true,
+            lowercase: true,
+            required: true,
+            index: true
+        },
         email: {
             type: String,
             unique: true,
@@ -18,7 +44,7 @@ const userSchema = new Schema<IUser>(
             type: String,
             get: (): undefined => undefined
         },
-        roleId: { type: Number, default: 0 },
+        permissions: { type: [permissionSchema], default: [] },
         pin: {
             type: String,
             get: (): undefined => undefined
@@ -30,8 +56,6 @@ const userSchema = new Schema<IUser>(
         status: String,
         emailVerified: { type: Boolean, default: false },
         removed: { type: Boolean, default: false, get: (): undefined => undefined }
-        // created: { type: Date, default: Date.now },
-        // modified: { type: Date, default: Date.now }
     },
     {
         toJSON: {

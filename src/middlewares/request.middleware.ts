@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import { UserDto } from '@modules/user/user.dto'
 import { config } from '@config'
+import { IUser } from '@modules/user/user.interface'
 
 export interface CustomRequest extends Request {
     agent?: any
@@ -11,7 +11,7 @@ export interface CustomRequest extends Request {
 }
 
 export interface AuthenticationRequest extends CustomRequest {
-    user: UserDto
+    user: IUser
 }
 
 const requestMiddleware = (req: CustomRequest, _: Response, next: NextFunction) => {
