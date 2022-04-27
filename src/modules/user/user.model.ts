@@ -22,6 +22,7 @@ const permissionSchema = new Schema<Permission>(
 
 const userSchema = new Schema<IUser>(
     {
+        key: { type: String, required: true, index: true, unique: true },
         firstName: String,
         lastName: String,
         nickName: {

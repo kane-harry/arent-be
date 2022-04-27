@@ -7,6 +7,7 @@ import { CreateCodeDto, VerifyCodeDto } from './code.dto'
 import { VerificationCode } from './code.model'
 import UserModel from '@modules/user/user.model'
 import { CodeType } from './code.interface'
+import crypto from 'crypto'
 
 export default class VerificationCodeService {
     static async generateCode(params: CreateCodeDto) {
@@ -47,6 +48,7 @@ export default class VerificationCodeService {
             }).exec()
         } else {
             const mode = new VerificationCode({
+                key: crypto.randomBytes(16).toString('hex'),
                 owner: email,
                 type: params.codeType,
                 code: code

@@ -12,6 +12,7 @@ export type Permission = {
 }
 
 export interface IUser extends IBaseModel {
+    key: string
     firstName: string
     lastName: string
     nickName: string

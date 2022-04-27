@@ -5,6 +5,7 @@ import * as jwt from 'jsonwebtoken'
 
 const authSchema = new Schema<IAuthToken>(
     {
+        key: { type: String, required: true, index: true, unique: true },
         userId: {
             type: String,
             required: true

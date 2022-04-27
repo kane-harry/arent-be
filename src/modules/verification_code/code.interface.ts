@@ -8,6 +8,7 @@ export enum CodeType {
 }
 
 export interface IVerificationCode extends IBaseModel {
+    key: string
     owner: string
     type: CodeType
     code: string

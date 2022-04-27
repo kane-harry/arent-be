@@ -5,6 +5,7 @@ import { generate, GenerateOptions } from 'randomstring'
 
 const codeSchema = new Schema<IVerificationCode>(
     {
+        key: { type: String, required: true, index: true, unique: true },
         owner: {
             type: String,
             trim: true,

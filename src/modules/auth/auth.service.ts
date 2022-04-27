@@ -17,6 +17,7 @@ import { CustomRequest } from '@middlewares/request.middleware'
 import AccountService from '@modules/account/account.service'
 import { AuthModel } from './auth.model'
 import { AuthTokenType } from './auth.interface'
+import crypto from 'crypto'
 
 export default class AuthService {
     static async register(userData: CreateUserDto, options?: { req: CustomRequest }) {
@@ -40,6 +41,7 @@ export default class AuthService {
 
         const mode = new UserModel({
             ...userData,
+            key: crypto.randomBytes(16).toString('hex'),
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
             avatar: null
@@ -78,11 +80,13 @@ export default class AuthService {
         // send mail warning login
         // run job to delete expired tokens
         new AuthModel({
+            key: crypto.randomBytes(16).toString('hex'),
             token: refreshToken,
             userId: user._id
         }).save()
 
         new UserLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
             userId: user._id,
             action: UserActions.Login,
             agent: options?.req.agent,
@@ -134,6 +138,7 @@ export default class AuthService {
         user?.save()
 
         new UserLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
             userId: user?._id,
             action: UserActions.ResetPassword,
             agent: options?.req.agent,
@@ -174,6 +179,7 @@ export default class AuthService {
         user?.save()
 
         new UserLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
             userId: user?._id,
             action: UserActions.ForgotPassword,
             agent: options?.req.agent,
@@ -206,6 +212,7 @@ export default class AuthService {
         user?.save()
 
         new UserLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
             userId: user?._id,
             action: UserActions.ResetPin,
             agent: options?.req.agent,
@@ -246,6 +253,7 @@ export default class AuthService {
         user?.save()
 
         new UserLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
             userId: user?._id,
             action: UserActions.ForgotPin,
             agent: options?.req.agent,

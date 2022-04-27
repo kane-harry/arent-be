@@ -11,6 +11,7 @@ export enum UserActions {
 }
 
 export interface IUserLog extends IBaseModel {
+    key: string
     userId: string
     ipAddress: string
     agent: string

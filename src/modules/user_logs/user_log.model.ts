@@ -3,6 +3,7 @@ import { IUserLog } from './user_log.interface'
 
 const userLogSchema = new Schema<IUserLog>(
     {
+        key: { type: String, required: true, index: true, unique: true },
         userId: {
             type: String,
             required: true
