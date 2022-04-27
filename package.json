@@ -47,9 +47,7 @@
     "passport-jwt": "^4.0.0",
     "randomstring": "^1.2.2",
     "sharp": "^0.30.4",
-    "uuid": "^8.3.2"
-  },
-  "devDependencies": {
+    "uuid": "^8.3.2",
     "@types/axios": "^0.14.0",
     "@types/bcrypt": "^5.0.0",
     "@types/chai": "^4.3.1",
@@ -75,6 +73,13 @@
     "@types/sinon": "^10.0.11",
     "@types/supertest": "^2.0.12",
     "@types/uuid": "^8.3.4",
+    "source-map-support": "^0.5.21",
+    "ts-node": "^10.7.0",
+    "tsc-alias": "^1.6.6",
+    "tsconfig-paths": "^3.14.1",
+    "typescript": "^4.6.3"
+  },
+  "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.5.0",
     "@typescript-eslint/parser": "^5.5.0",
     "chai": "^4.3.6",
@@ -91,12 +96,7 @@
     "nodemon": "^2.0.15",
     "prettier": "^2.6.2",
     "sinon": "^13.0.2",
-    "source-map-support": "^0.5.21",
-    "supertest": "^6.2.3",
-    "ts-node": "^10.7.0",
-    "tsc-alias": "^1.6.6",
-    "tsconfig-paths": "^3.14.1",
-    "typescript": "^4.6.3"
+    "supertest": "^6.2.3"
   },
   "lint-staged": {
     "*.+(js|jsx|ts|tsx)": [
