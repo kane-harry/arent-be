@@ -17,7 +17,7 @@ const permissionSchema = new Schema<Permission>(
             required: true
         }
     },
-    { _id: false }
+    { _id: false, versionKey: 'version' }
 )
 
 const userSchema = new Schema<IUser>(
@@ -69,7 +69,8 @@ const userSchema = new Schema<IUser>(
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'
-        }
+        },
+        versionKey: 'version'
     }
 )
 

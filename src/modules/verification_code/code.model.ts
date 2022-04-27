@@ -28,7 +28,8 @@ const codeSchema = new Schema<IVerificationCode>(
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'
-        }
+        },
+        versionKey: 'version'
     }
 )
 

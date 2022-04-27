@@ -29,7 +29,8 @@ const authSchema = new Schema<IAuthToken>(
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'
-        }
+        },
+        versionKey: 'version'
     }
 )
 

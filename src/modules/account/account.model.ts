@@ -38,7 +38,8 @@ const accountSchema = new Schema<IAccount>(
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'
-        }
+        },
+        versionKey: 'version'
     }
 )
 

@@ -26,7 +26,8 @@ const userLogSchema = new Schema<IUserLog>(
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'
-        }
+        },
+        versionKey: 'version'
     }
 )
 
