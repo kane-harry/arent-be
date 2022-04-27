@@ -75,6 +75,15 @@ export class PrimeCoinProvider {
         })
     }
 
+    public static async coinServerHeartBeat() {
+        try {
+            const resp = await this.instance.get('/sites/hello')
+            return resp.data.data
+        } catch (error) {
+            return this.requestErrorHandler('coinServerHeartBeat', error)
+        }
+    }
+
     public static async createCoinWallet(symbol: string, address: string, raw: boolean = false) {
         const payload = {
             symbol,
