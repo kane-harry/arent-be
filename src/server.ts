@@ -8,6 +8,7 @@ import AccountMasterController from '@modules/account.master/account.master.cont
 import TransactionController from '@modules/transaction/transaction.controller'
 import CoinController from '@modules/coin/coin.controller'
 import VerificationCodeController from '@modules/verification_code/code.controller'
+import SiteController from '@modules/site/site.controller'
 
 // validateEnv()
 const app = new App([
@@ -17,7 +18,8 @@ const app = new App([
     new AccountController(),
     new AccountMasterController(),
     new TransactionController(),
-    new CoinController()
+    new CoinController(),
+    new SiteController()
 ])
 
 app.listen()
