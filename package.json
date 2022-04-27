@@ -8,7 +8,7 @@
     "dev": "nodemon src/server.ts",
     "start": "npm run build && node ./dist/server.js",
     "start:nodemon": "nodemon src/server.ts",
-    "build": "tsc -p . && tsc-alias",
+    "build": "npx tsc -p . && tsc-alias",
     "prepare": "husky install",
     "lint": "eslint ./src --ext .js,.ts --fix"
   },
