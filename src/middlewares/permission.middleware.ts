@@ -11,16 +11,18 @@ export default (): RequestHandler => {
         }
 
         const user = req.user as IUser
-
-        if (
-            !find(user?.permissions, el => {
-                return (
-                    String(el.resource).toLowerCase() === String(req.route.path).toLowerCase() &&
-                    String(el.action).toLowerCase() === String(req.method).toLowerCase()
-                )
-            })
-        ) {
-            return next(new RequestException(CommonErrors.request_forbidden_error))
+        const permissions = user?.permissions
+        if (permissions && permissions.length) {
+            if (
+                !find(permissions, el => {
+                    return (
+                        String(el.resource).toLowerCase() === String(req.route.path).toLowerCase() &&
+                        String(el.action).toLowerCase() === String(req.method).toLowerCase()
+                    )
+                })
+            ) {
+                return next(new RequestException(CommonErrors.request_forbidden_error))
+            }
         }
         return next()
     }
