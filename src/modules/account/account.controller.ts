@@ -36,8 +36,8 @@ class AccountController implements IController {
     }
 
     private async getUserAccounts(req: CustomRequest, res: Response) {
-        const id = req.params.id
-        const data = await AccountService.getUserAccounts(id)
+        const userId = req.params.userId
+        const data = await AccountService.getUserAccounts(userId)
         return res.json(data)
     }
 

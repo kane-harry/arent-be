@@ -151,8 +151,8 @@ export default class AccountService {
         return new QueryRO<IAccount>(totalCount, params.pageindex, params.pagesize, items)
     }
 
-    static async getUserAccounts(id: any) {
-        const items = await AccountModel.find({ userId: id }).select('-keyStore -salt').exec()
+    static async getUserAccounts(userId: any) {
+        const items = await AccountModel.find({ userId: userId }).select('-keyStore -salt').exec()
         return items
     }
 

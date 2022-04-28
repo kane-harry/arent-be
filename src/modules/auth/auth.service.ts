@@ -47,7 +47,7 @@ export default class AuthService {
             avatar: null
         })
         const savedData = await mode.save()
-        await AccountService.initUserAccounts(savedData._id)
+        await AccountService.initUserAccounts(savedData.key)
         return this.logIn({ email: userData.email, password: userData.password }, options)
     }
 
