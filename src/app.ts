@@ -59,6 +59,20 @@ class App {
 
     private connectToDb() {
         mongoose.connect(config.system.mongoUrl)
+        this.overwriteToJson()
+    }
+
+    private overwriteToJson() {
+        mongoose.set('toJSON', {
+            virtuals: true,
+            transform: (doc, converted) => {
+                if (converted._id) {
+                    converted.id = converted._id
+                    delete converted._id
+                }
+                return converted
+            }
+        })
     }
 }
 
