@@ -51,7 +51,8 @@ export default class VerificationCodeService {
                 key: crypto.randomBytes(16).toString('hex'),
                 owner: email,
                 type: params.codeType,
-                code: code
+                code: code,
+                expiryTimestamp: moment().add(15, 'minutes').unix()
             })
             await mode.save()
         }
