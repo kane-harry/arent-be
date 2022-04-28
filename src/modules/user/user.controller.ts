@@ -35,7 +35,7 @@ class UserController implements IController {
 
         this.router.post(`${this.path}/info`, requireAuth, asyncHandler(this.updateUser))
 
-        this.router.get(`${this.path}/info/@:nickName`, asyncHandler(this.getUserByNickName))
+        this.router.get(`${this.path}/info/:nickName`, asyncHandler(this.getUserByNickName))
     }
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {
