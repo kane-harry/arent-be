@@ -8,7 +8,7 @@ import { CustomRequest } from '@middlewares/request.middleware'
 import { ITransactionFilter } from '@modules/transaction/transaction.interface'
 
 class TransactionController implements IController {
-    public path = '/coin'
+    public path = '/blockchain'
     public router = Router()
 
     constructor() {
