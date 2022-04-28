@@ -19,7 +19,7 @@ class AccountController implements IController {
     private initRoutes() {
         this.router.get(`${this.path}`, asyncHandler(this.queryAccounts))
         this.router.get(`${this.path}/:key`, asyncHandler(this.getAccountByKey))
-        this.router.get(`${this.path}/user/:id`, asyncHandler(this.getUserAccounts))
+        this.router.get(`${this.path}/user/:userId`, asyncHandler(this.getUserAccounts))
         this.router.post(`${this.path}/:key/withdraw`, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
     }
 
