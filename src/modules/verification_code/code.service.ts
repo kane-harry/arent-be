@@ -8,6 +8,7 @@ import { VerificationCode } from './code.model'
 import UserModel from '@modules/user/user.model'
 import { CodeType } from './code.interface'
 import crypto from 'crypto'
+import sendEmail from "@common/email";
 
 export default class VerificationCodeService {
     static async generateCode(params: CreateCodeDto) {
@@ -56,7 +57,10 @@ export default class VerificationCodeService {
             })
             await mode.save()
         }
-        // TODO: send email
+        const subject = `Welcome to Pellar`
+        const text = ``
+        const html = `This is verification code for ${params.codeType}: <b>${code}</b>`
+        sendEmail(subject, text, html, email)
 
         return { success: true }
     }

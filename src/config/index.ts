@@ -49,7 +49,8 @@ export const config = {
 
     emailNotification: {
         fromAddress: String(process.env.EMAIL_NOTIFICATION_FROM_ADDRESS || 'tech@pellartech.com'),
-        toAddress: String(process.env.EMAIL_NOTIFICATION_TO_ADDRESS || 'tech@pellartech.com')
+        toAddress: String(process.env.EMAIL_NOTIFICATION_TO_ADDRESS || 'tech@pellartech.com'),
+        emailSendgridApiKey: String(process.env.EMAIL_SENDGRID_API_KEY || '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')
     },
 
     redis: {
