@@ -1,6 +1,6 @@
 import {config} from '@config'
 
-function sendEmail(subject: string, text: string, html: string, address: string) {
+async function sendEmail(subject: string, text: string, html: string, address: string) {
     if (process.env.NODE_ENV != 'production') {
         console.log('sending email ..');
         console.log('from => ' + config.emailNotification.fromAddress);
@@ -20,17 +20,12 @@ function sendEmail(subject: string, text: string, html: string, address: string)
         text: text,
         html: html,
     };
-    sgMail.send(msg).then(() => {
-        //Celebrate
-    })
-        .catch(function (error: any) {
-            //Log friendly error
-            console.error(error.toString());
-            //Extract error msg
-            const {message, code, response} = error;
-            //Extract response msg
-            const {headers, body} = response;
-        })
+    try {
+        await sgMail.send(msg)
+    } catch (error) {
+        //Log friendly error
+        console.error(error);
+    }
 }
 
 export default sendEmail

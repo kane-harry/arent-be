@@ -60,7 +60,7 @@ export default class VerificationCodeService {
         const subject = `Welcome to Pellar`
         const text = ``
         const html = `This is verification code for ${params.codeType}: <b>${code}</b>`
-        sendEmail(subject, text, html, email)
+        await sendEmail(subject, text, html, email)
 
         return { success: true }
     }
