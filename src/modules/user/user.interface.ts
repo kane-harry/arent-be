@@ -26,6 +26,8 @@ export interface IUser extends IBaseModel {
     playerId?: string
     status: UserStatus
     emailVerified: boolean
+    twoFactorSecret: string
+    twoFactorEnable: string
 }
 
 export interface IUserFilter extends IFilterModel {

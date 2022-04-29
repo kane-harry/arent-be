@@ -62,3 +62,11 @@ export class UpdateUserDto {
     @IsOptional()
     public playerId: string
 }
+
+export class Update2FAUserDto {
+    @IsString()
+    public twoFactorEnable: string
+
+    @IsString()
+    public token: string
+}

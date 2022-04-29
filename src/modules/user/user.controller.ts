@@ -5,7 +5,7 @@ import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middl
 import { requireAuth } from '@common/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
-import { UpdateUserDto } from './user.dto'
+import {Update2FAUserDto, UpdateUserDto} from './user.dto'
 
 class UserController implements IController {
     public path = '/users'
@@ -36,6 +36,9 @@ class UserController implements IController {
         this.router.post(`${this.path}/info`, requireAuth, asyncHandler(this.updateUser))
 
         this.router.get(`${this.path}/info/:nickName`, asyncHandler(this.getUserByNickName))
+
+        this.router.post(`${this.path}/2fa/generate`, requireAuth, asyncHandler(this.generateTwoFactorUser))
+        this.router.post(`${this.path}/2fa/update`, requireAuth, asyncHandler(this.updateTwoFa))
     }
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {
@@ -53,6 +56,17 @@ class UserController implements IController {
     private getUserByNickName = async (req: Request, res: Response) => {
         const nickName: string = req.params.nickName
         const data = await UserService.getUserByNickname(nickName)
+        return res.send(data)
+    }
+
+    private generateTwoFactorUser = async (req: AuthenticationRequest, res: Response) => {
+        const data = await UserService.generateTwoFactorUser({ req })
+        return res.send(data)
+    }
+
+    private updateTwoFa = async (req: AuthenticationRequest, res: Response) => {
+        const userData: Update2FAUserDto = req.body
+        const data = await UserService.updateTwoFactorUser(userData, { req })
         return res.send(data)
     }
 }

@@ -18,6 +18,7 @@ import AccountService from '@modules/account/account.service'
 import { AuthModel } from './auth.model'
 import { AuthTokenType } from './auth.interface'
 import crypto from 'crypto'
+import {verifyToken} from "@common/twoFactor";
 
 export default class AuthService {
     static async register(userData: CreateUserDto, options?: { req: CustomRequest }) {
@@ -48,7 +49,7 @@ export default class AuthService {
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)
-        return this.logIn({ email: userData.email, password: userData.password }, options)
+        return this.logIn({ email: userData.email, password: userData.password, token: null }, options)
     }
 
     private static formatCreateUserDto(userData: CreateUserDto) {
@@ -72,6 +73,11 @@ export default class AuthService {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
         }
 
+        if (user.twoFactorEnable && user.twoFactorEnable.length) {
+            if (!verifyToken(user.twoFactorSecret, logInData.token)) {
+                throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
+            }
+        }
         // create token
         const accessToken = AuthModel.createAccessToken(user._id)
         const refreshToken = AuthModel.createRefreshToken(user._id)

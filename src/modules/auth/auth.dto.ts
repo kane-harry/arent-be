@@ -1,4 +1,4 @@
-import { IsString, IsEmail } from 'class-validator'
+import { IsString, IsEmail, IsOptional } from 'class-validator'
 
 export class LogInDto {
     @IsEmail()
@@ -6,6 +6,10 @@ export class LogInDto {
 
     @IsString()
     public password: string
+
+    @IsOptional()
+    @IsString()
+    public token: string|null
 }
 
 export class ResetPasswordDto {

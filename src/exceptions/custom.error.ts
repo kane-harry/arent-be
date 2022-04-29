@@ -19,7 +19,8 @@ export const AuthErrors = {
     user_not_exists_error: { message: 'User does not exists.', status: 422, code: 2009 },
     invalid_user_id: { message: 'Invalid User ID.', status: 400, code: 2010 },
     session_expired: { message: 'Session expired.', status: 401, code: 2011 },
-    invalid_refresh_token: { message: 'Invalid auth token.', status: 400, code: 2012 }
+    invalid_refresh_token: { message: 'Invalid auth token.', status: 400, code: 2012 },
+    token_error: { message: 'Token is not correct', status: 423, code: 2013 }
 }
 
 export const AccountErrors = {

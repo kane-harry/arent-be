@@ -79,6 +79,7 @@
     "sharp": "^0.30.4",
     "sinon": "^13.0.2",
     "source-map-support": "^0.5.21",
+    "speakeasy": "^2.0.0",
     "supertest": "^6.2.3",
     "ts-node": "^10.7.0",
     "tsc-alias": "^1.6.6",
