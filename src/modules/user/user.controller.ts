@@ -5,7 +5,7 @@ import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middl
 import { requireAuth } from '@common/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
-import {Update2FAUserDto, UpdateUserDto} from './user.dto'
+import { Update2FAUserDto, UpdateUserDto } from './user.dto'
 
 class UserController implements IController {
     public path = '/users'

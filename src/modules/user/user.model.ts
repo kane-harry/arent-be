@@ -62,7 +62,7 @@ const userSchema = new Schema<IUser>(
         emailVerified: { type: Boolean, default: false },
         removed: { type: Boolean, default: false, get: (): undefined => undefined },
         twoFactorSecret: String,
-        twoFactorEnable: String,
+        twoFactorEnable: String
     },
     {
         toJSON: {

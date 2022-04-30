@@ -4,10 +4,10 @@ import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { forEach } from 'lodash'
-import {Update2FAUserDto, UpdateUserDto} from './user.dto'
+import { Update2FAUserDto, UpdateUserDto } from './user.dto'
 import UserModel from './user.model'
-import {generateToken, verifyToken} from "@common/twoFactor";
-import sendEmail from "@common/email";
+import { generateToken, verifyToken } from '@common/twoFactor'
+import sendEmail from '@common/email'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -72,14 +72,14 @@ export default class UserService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
         if (!user.twoFactorSecret) {
-            var speakeasy = require("speakeasy");
-            const secret = speakeasy.generateSecret({length: 20})
+            const speakeasy = require('speakeasy')
+            const secret = speakeasy.generateSecret({ length: 20 })
             user.set('twoFactorSecret', secret.base32)
             user.save()
         }
         const token = generateToken(user.twoFactorSecret)
-        const subject = `Welcome to Pellar`
-        const text = ``
+        const subject = 'Welcome to Pellar'
+        const text = ''
         const html = `This is 2FA verification code: <b>${token}</b>`
         await sendEmail(subject, text, html, user.email)
 
