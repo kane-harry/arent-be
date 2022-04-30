@@ -8,7 +8,10 @@ import { ethers } from 'ethers'
  */
 export const parsePrimeAmount = (amount: number) => {
     const decimal = config.system.primeDecimals
-    return ethers.utils.parseUnits(amount.toLocaleString('fullwide', { maximumFractionDigits: decimal }), decimal)
+
+    return ethers.utils.parseUnits(amount.toString(), decimal)
+    // TODO:  invalid decimal value (argument=\"value\", value=\"4,996.3\", code=INVALID_ARGUMENT, version=bignumber/5.6.0)
+    // return ethers.utils.parseUnits(amount.toLocaleString('fullwide', { maximumFractionDigits: decimal }), decimal)
 }
 
 /**
