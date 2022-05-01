@@ -18,7 +18,7 @@ import AccountService from '@modules/account/account.service'
 import { AuthModel } from './auth.model'
 import { AuthTokenType } from './auth.interface'
 import crypto from 'crypto'
-import {verifyToken} from "@common/twoFactor";
+import { verifyToken } from '@common/twoFactor'
 
 export default class AuthService {
     static async register(userData: CreateUserDto, options?: { req: CustomRequest }) {

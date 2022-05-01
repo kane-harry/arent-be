@@ -9,8 +9,8 @@ import { PrimeCoinProvider } from '@providers/coin.provider'
 import { ISendCoinDto, ITransactionFilter } from './transaction.interface'
 import { AccountExtType } from '@modules/account/account.interface'
 import { config } from '@config'
-import { parsePrimeAmount } from '@utils/number'
-import { ethers } from 'ethers'
+import { parsePrimeAmount, formatAmount } from '@utils/number'
+// import { ethers } from 'ethers'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: Express.User | undefined) {
@@ -23,6 +23,10 @@ export default class TransactionService {
 
         // this should be store as a string in wei (big number - string)
         const senderAccount = await AccountService.getAccountBySymbolAndAddress(symbol, params.sender)
+
+        if (operator !== senderAccount?.userId) {
+            // TODO
+        }
         // recipient can be raw wallet
         const recipientWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(params.symbol, params.recipient)
         if (!senderAccount) {
@@ -37,7 +41,10 @@ export default class TransactionService {
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { recipient: params.recipient })
             )
         }
-        const senderBalance = ethers.BigNumber.from(senderAccount.amount).sub(ethers.BigNumber.from(senderAccount.amountLocked))
+        // TODO : To Kane - error occurs - INVALID_ARGUMENT,invalid BigNumber
+
+        // const senderBalance = ethers.BigNumber.from(senderAccount.amount).sub(ethers.BigNumber.from(senderAccount.amountLocked))
+        const senderBalance = parsePrimeAmount(Number(senderAccount.amount) - Number(senderAccount.amountLocked))
         if (senderBalance.lt(amount)) {
             throw new BizException(
                 TransactionErrors.sender_insufficient_balance_error,
@@ -45,7 +52,11 @@ export default class TransactionService {
             )
         }
         const transferFee = Number(config.system.primeTransferFee)
-        const sendAmount = amount.sub(transferFee).toString() // needs to solve decimal precisions
+
+        const transferFeeBig = parsePrimeAmount(Number(config.system.primeTransferFee))
+        // const sendAmount = amount.sub(transferFee).toString() // needs to solve decimal precisions
+
+        const sendAmount = formatAmount(amount.sub(transferFeeBig).toString())
 
         const senderKeyStore = await AccountService.getAccountKeyStore(senderAccount.key)
         const privateKey = await decryptKeyWithSalt(senderKeyStore.keyStore, senderKeyStore.salt)

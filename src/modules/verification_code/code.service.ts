@@ -8,7 +8,7 @@ import { VerificationCode } from './code.model'
 import UserModel from '@modules/user/user.model'
 import { CodeType } from './code.interface'
 import crypto from 'crypto'
-import sendEmail from "@common/email";
+import sendEmail from '@common/email'
 
 export default class VerificationCodeService {
     static async generateCode(params: CreateCodeDto) {
