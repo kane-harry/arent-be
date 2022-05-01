@@ -57,9 +57,9 @@ export default class VerificationCodeService {
             })
             await mode.save()
         }
-        const subject = `Welcome to Pellar`
+        const subject = `Welcome to LightLink`
         const text = ``
-        const html = `This is verification code for ${params.codeType}: <b>${code}</b>`
+        const html = `This is your ${params.codeType} verification code: <b>${code}</b>`
         await sendEmail(subject, text, html, email)
 
         return { success: true }

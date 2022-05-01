@@ -78,9 +78,9 @@ export default class UserService {
             user.save()
         }
         const token = generateToken(user.twoFactorSecret)
-        const subject = `Welcome to Pellar`
+        const subject = `Welcome to LightLink`
         const text = ``
-        const html = `This is 2FA verification code: <b>${token}</b>`
+        const html = `This is the verification code you requested: <b>${token}</b>`
         await sendEmail(subject, text, html, user.email)
 
         return user
