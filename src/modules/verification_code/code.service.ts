@@ -18,7 +18,7 @@ export default class VerificationCodeService {
             if (params.codeType === CodeType.EmailRegistration) {
                 throw new BizException(AuthErrors.registration_email_exists_error, new ErrorContext('auth.service', 'generateCode', { email: email }))
             }
-            if (user.emailVerified && params.codeType === CodeType.EmailUpdating) {
+            if (user.emailVerified && params.codeType === CodeType.EmailUpdate) {
                 throw new BizException(
                     AuthErrors.registration_email_already_verified_error,
                     new ErrorContext('auth.service', 'generateCode', { email: email })

@@ -2,7 +2,7 @@ import IBaseModel from '@interfaces/base.model.interface'
 
 export enum CodeType {
     EmailRegistration = 'EmailRegistration',
-    EmailUpdating = 'EmailUpdating',
+    EmailUpdate = 'EmailUpdate',
     ForgotPassword = 'ForgotPassword',
     ForgotPin = 'ForgotPin'
 }
