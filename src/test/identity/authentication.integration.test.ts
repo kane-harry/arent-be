@@ -110,4 +110,21 @@ describe('Authentication', () => {
         expect(res1.status).equal(200)
         expect(res1.body.success).equal(true)
     }).timeout(10000)
+
+    it('ForgotPin', async () => {
+        const res = await request(server.app).post('/verification/code/get').send({
+            codeType: CodeType.ForgotPin,
+            email: userData.email,
+        })
+        expect(res.status).equal(200)
+        const verificationCode = await MODELS.VerificationCode.findOne({type: CodeType.ForgotPin, owner: userData.email}, {}, { sort: { 'created_at' : -1 } }).exec()
+        const res1 = await request(server.app).post('/auth/pin/forgot').send({
+            code: verificationCode?.code,
+            email: userData.email,
+            newPin: newPin
+        })
+
+        expect(res1.status).equal(200)
+        expect(res1.body.success).equal(true)
+    }).timeout(10000)
 })
