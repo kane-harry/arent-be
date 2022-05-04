@@ -4,6 +4,8 @@ import request from 'supertest'
 import {dbTest, MODELS} from '../init/db'
 import server from '@app/server'
 import {CodeType} from "@modules/verification_code/code.interface";
+import {login} from "@app/test/init/authenticate";
+import usersData from "@app/test/user/users.data";
 
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
@@ -14,6 +16,9 @@ const userData = {
 describe('Security', () => {
     before(async () => {
         await dbTest.connect()
+        await dbTest.mongoUnit.load({
+            users: usersData
+        })
     })
 
     after(async () => {
@@ -43,4 +48,10 @@ describe('Security', () => {
             expect(res.status).equal(200)
         }).timeout(10000)
     })
+
+    it(`Generate2FAToken`, async () => {
+        const auth = await login({ email: 'hoang.pellar@gmail.com', password: 'transluciaTP@01' })
+        const res = await request(server.app).post('/users/2fa/generate').set('Authorization', `Bearer ${auth.body.token}`).send()
+        expect(res.status).equal(200)
+    }).timeout(10000)
 })
