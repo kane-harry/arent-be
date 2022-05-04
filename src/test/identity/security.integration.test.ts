@@ -6,6 +6,7 @@ import server from '@app/server'
 import {CodeType} from "@modules/verification_code/code.interface";
 import {login} from "@app/test/init/authenticate";
 import usersData from "@app/test/user/users.data";
+import {generateToken} from "@common/twoFactor";
 
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
@@ -52,6 +53,20 @@ describe('Security', () => {
     it(`Generate2FAToken`, async () => {
         const auth = await login({ email: 'hoang.pellar@gmail.com', password: 'transluciaTP@01' })
         const res = await request(server.app).post('/users/2fa/generate').set('Authorization', `Bearer ${auth.body.token}`).send()
+        expect(res.status).equal(200)
+    }).timeout(10000)
+
+    it(`Update2FA`, async () => {
+        const user = await MODELS.UserModel.findOne({ email: 'hoang.pellar@gmail.com' }).exec()
+        if (!user) {
+            return expect(500).equal(200)
+        }
+        const token = generateToken(user?.twoFactorSecret)
+        const auth = await login({ email: 'hoang.pellar@gmail.com', password: 'transluciaTP@01' })
+        const res = await request(server.app).post('/users/2fa/generate').set('Authorization', `Bearer ${auth.body.token}`).send({
+            twoFactorEnable: 'email',
+            token: token,
+        })
         expect(res.status).equal(200)
     }).timeout(10000)
 })
