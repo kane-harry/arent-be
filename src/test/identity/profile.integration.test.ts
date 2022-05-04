@@ -2,7 +2,7 @@ import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import { dbTest, MODELS } from '../init/db'
-import usersData from './users.data'
+import usersData from '../init/users.data'
 import server from '@app/server'
 import { login } from '../init/authenticate'
 import AWS from 'aws-sdk'
@@ -11,7 +11,7 @@ import sinon from 'sinon'
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
 
-describe('Integration test for module User', () => {
+describe('Profile', () => {
     before(async () => {
         await dbTest.connect()
         await dbTest.mongoUnit.load({
@@ -25,7 +25,7 @@ describe('Integration test for module User', () => {
 
     context('Test case for function uploadAvatar', () => {
         it('uploadAvatar should be throw without authenticate', async () => {
-            const res = await request(server.app).post('/users/avatar').attach('avatar', './src/test/files/test.jpeg')
+            const res = await request(server.app).post('/users/avatar').attach('avatar', './src/test/init/test.jpeg')
             expect(res.status).equal(401)
             expect(res.body).empty
             expect(res.text).equal('Unauthorized')
@@ -49,7 +49,7 @@ describe('Integration test for module User', () => {
             const res = await request(server.app)
                 .post('/users/avatar')
                 .set('Authorization', `Bearer ${auth.body.token}`)
-                .attach('avatar', './src/test/files/test.jpeg')
+                .attach('avatar', './src/test/init/test.jpeg')
 
             expect(res.status).equal(200)
             expect(res.body.original).equal(avatarKey)

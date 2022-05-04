@@ -5,7 +5,7 @@ import {dbTest, MODELS} from '../init/db'
 import server from '@app/server'
 import {CodeType} from "@modules/verification_code/code.interface";
 import {login} from "@app/test/init/authenticate";
-import usersData from "@app/test/user/users.data";
+import usersData from "@app/test/init/users.data";
 import {generateToken} from "@common/twoFactor";
 
 chai.use(chaiAsPromised)
