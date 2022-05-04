@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import mongoUnit from 'mongo-unit'
 import UserModel from '@modules/user/user.model'
 import VerificationCode from '@modules/verification_code/code.model'
+import AccountModel from '@modules/account/account.model'
 
 export const dbTest = {
     mongoose,
@@ -20,5 +21,6 @@ export const dbTest = {
 
 export const MODELS = {
     UserModel,
-    VerificationCode
+    VerificationCode,
+    AccountModel
 }
