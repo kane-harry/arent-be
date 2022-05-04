@@ -2,26 +2,41 @@ import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import { dbTest, MODELS } from '../init/db'
-import usersData from '../init/users.data'
 import server from '@app/server'
-import { login } from '../init/authenticate'
 import AWS from 'aws-sdk'
 import sinon from 'sinon'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
+const userData = {
+    firstName: 'John',
+    lastName: 'Smith',
+    nickName: 'jsmith8',
+    email: 'email@gmail.com',
+    password: 'Test123!',
+    pin: '1111',
+    phone: 'phone',
+    country: 'country'
+}
+let shareData = {user: {}, token: '', refreshToken: ''}
 
 describe('Profile', () => {
     before(async () => {
         await dbTest.connect()
-        await dbTest.mongoUnit.load({
-            users: usersData
-        })
     })
 
     after(async () => {
         await dbTest.disconnect()
     })
+
+    it('Register', async () => {
+        const res = await request(server.app).post('/auth/register').send(userData)
+        expect(res.status).equal(200)
+
+        shareData.user = res.body.user
+        shareData.token = res.body.token
+        shareData.refreshToken = res.body.refreshToken
+    }).timeout(10000)
 
     context('Test case for function uploadAvatar', () => {
         it('uploadAvatar should be throw without authenticate', async () => {
@@ -32,7 +47,6 @@ describe('Profile', () => {
         })
 
         it('uploadAvatar should be success', async () => {
-            const auth = await login({ email: 'hoang.pellar@gmail.com', password: 'transluciaTP@01' })
             const avatarKey = 'avatar/25162a7e-972c-4338-9bbc-b654f81a70a9.jpeg'
             sinon.stub(AWS, 'S3').callsFake(() => {
                 const upload = () => {
@@ -48,7 +62,7 @@ describe('Profile', () => {
             })
             const res = await request(server.app)
                 .post('/users/avatar')
-                .set('Authorization', `Bearer ${auth.body.token}`)
+                .set('Authorization', `Bearer ${shareData.token}`)
                 .attach('avatar', './src/test/init/test.jpeg')
 
             expect(res.status).equal(200)
@@ -57,7 +71,7 @@ describe('Profile', () => {
             expect(res.body.sm).equal(avatarKey)
             expect(res.body.mini).equal(avatarKey)
 
-            const user = await MODELS.UserModel.findOne({ email: 'hoang.pellar@gmail.com' }).exec()
+            const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
             assert.deepEqual(user?.avatar, {
                 original: avatarKey,
                 lg: avatarKey,
@@ -91,8 +105,7 @@ describe('Profile', () => {
         it('updateUser should be throw with invalid playerId', async () => {})
 
         it('updateUser should be success', async () => {
-            const auth = await login({ email: 'hoang.pellar@gmail.com', password: 'transluciaTP@01' })
-            const res = await request(server.app).post('/users/info').set('Authorization', `Bearer ${auth.body.token}`).send({
+            const res = await request(server.app).post('/users/info').set('Authorization', `Bearer ${shareData.token}`).send({
                 firstName: 'firstName',
                 lastName: 'lastName',
                 nickName: 'nickName',
@@ -103,7 +116,7 @@ describe('Profile', () => {
 
             expect(res.status).equal(200)
 
-            const user = await MODELS.UserModel.findOne({ email: 'hoang.pellar@gmail.com' }).exec()
+            const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
             expect(user?.firstName).equal('firstName')
             expect(user?.lastName).equal('lastName')
             expect(user?.nickName).equal('nickName')
