@@ -5,20 +5,17 @@ import { dbTest, MODELS } from '../init/db'
 import server from '@app/server'
 import AWS from 'aws-sdk'
 import sinon from 'sinon'
+import { register } from '@app/test/init/authenticate'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
-const userData = {
-    firstName: 'John',
-    lastName: 'Smith',
-    nickName: 'jsmith8',
-    email: 'email@gmail.com',
-    password: 'Test123!',
-    pin: '1111',
-    phone: 'phone',
-    country: 'country'
+let shareData = {
+    user: {
+        email: ''
+    },
+    token: '',
+    refreshToken: ''
 }
-let shareData = {user: {}, token: '', refreshToken: ''}
 
 describe('Profile', () => {
     before(async () => {
@@ -30,12 +27,7 @@ describe('Profile', () => {
     })
 
     it('Register', async () => {
-        const res = await request(server.app).post('/auth/register').send(userData)
-        expect(res.status).equal(200)
-
-        shareData.user = res.body.user
-        shareData.token = res.body.token
-        shareData.refreshToken = res.body.refreshToken
+        await register(shareData)
     }).timeout(10000)
 
     context('Test case for function uploadAvatar', () => {
@@ -71,7 +63,7 @@ describe('Profile', () => {
             expect(res.body.sm).equal(avatarKey)
             expect(res.body.mini).equal(avatarKey)
 
-            const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
+            const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
             assert.deepEqual(user?.avatar, {
                 original: avatarKey,
                 lg: avatarKey,
@@ -96,14 +88,6 @@ describe('Profile', () => {
             expect(res.text).equal('Unauthorized')
         })
 
-        // TODO: fill some test
-        it('updateUser should be throw with invalid firstName', async () => {})
-        it('updateUser should be throw with invalid lastName', async () => {})
-        it('updateUser should be throw with invalid nickName', async () => {})
-        it('updateUser should be throw with invalid phone', async () => {})
-        it('updateUser should be throw with invalid country', async () => {})
-        it('updateUser should be throw with invalid playerId', async () => {})
-
         it('updateUser should be success', async () => {
             const res = await request(server.app).post('/users/info').set('Authorization', `Bearer ${shareData.token}`).send({
                 firstName: 'firstName',
@@ -116,7 +100,7 @@ describe('Profile', () => {
 
             expect(res.status).equal(200)
 
-            const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
+            const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
             expect(user?.firstName).equal('firstName')
             expect(user?.lastName).equal('lastName')
             expect(user?.nickName).equal('nickName')

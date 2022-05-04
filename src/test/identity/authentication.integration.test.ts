@@ -1,25 +1,16 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import {dbTest, MODELS} from '../init/db'
+import { dbTest, MODELS } from '../init/db'
 import server from '@app/server'
-import {CodeType} from "@modules/verification_code/code.interface";
+import { CodeType } from '@modules/verification_code/code.interface'
+import { register, userData } from '@app/test/init/authenticate'
 
 chai.use(chaiAsPromised)
-const {expect, assert} = chai
-const userData = {
-    firstName: 'John',
-    lastName: 'Smith',
-    nickName: 'jsmith8',
-    email: 'email@gmail.com',
-    password: 'Test123!',
-    pin: '1111',
-    phone: 'phone',
-    country: 'country'
-}
+const { expect, assert } = chai
 const newPassword = 'Test1221!'
 const newPin = '2222'
-let shareData = {user: {}, token: '', refreshToken: ''}
+let shareData = { user: {}, token: '', refreshToken: '' }
 
 describe('Authentication', () => {
     before(async () => {
@@ -31,10 +22,10 @@ describe('Authentication', () => {
     })
 
     it('Register', async () => {
-        const res = await request(server.app).post('/auth/register').send(userData)
+        const res = await register(shareData)
         expect(res.status).equal(200)
 
-        const user = await MODELS.UserModel.findOne({email: userData.email}).exec()
+        const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
 
         //Same
         expect(user?.firstName).equal(userData.firstName)
@@ -68,7 +59,7 @@ describe('Authentication', () => {
         const res1 = await request(server.app).post('/auth/password/reset').set('Authorization', `Bearer ${shareData.token}`).send({
             oldPassword: userData.password,
             newPassword: newPassword,
-            newPasswordConfirmation: newPassword,
+            newPasswordConfirmation: newPassword
         })
 
         expect(res1.status).equal(200)
@@ -79,7 +70,7 @@ describe('Authentication', () => {
         const res1 = await request(server.app).post('/auth/pin/reset').set('Authorization', `Bearer ${shareData.token}`).send({
             oldPin: userData.pin,
             newPin: newPin,
-            newPinConfirmation: newPin,
+            newPinConfirmation: newPin
         })
 
         expect(res1.status).equal(200)
@@ -97,10 +88,17 @@ describe('Authentication', () => {
     it('ForgotPassword', async () => {
         const res = await request(server.app).post('/verification/code/get').send({
             codeType: CodeType.ForgotPassword,
-            email: userData.email,
+            email: userData.email
         })
         expect(res.status).equal(200)
-        const verificationCode = await MODELS.VerificationCode.findOne({type: CodeType.ForgotPassword, owner: userData.email}, {}, { sort: { 'created_at' : -1 } }).exec()
+        const verificationCode = await MODELS.VerificationCode.findOne(
+            {
+                type: CodeType.ForgotPassword,
+                owner: userData.email
+            },
+            {},
+            { sort: { created_at: -1 } }
+        ).exec()
         const res1 = await request(server.app).post('/auth/password/forgot').send({
             code: verificationCode?.code,
             email: userData.email,
@@ -114,10 +112,17 @@ describe('Authentication', () => {
     it('ForgotPin', async () => {
         const res = await request(server.app).post('/verification/code/get').send({
             codeType: CodeType.ForgotPin,
-            email: userData.email,
+            email: userData.email
         })
         expect(res.status).equal(200)
-        const verificationCode = await MODELS.VerificationCode.findOne({type: CodeType.ForgotPin, owner: userData.email}, {}, { sort: { 'created_at' : -1 } }).exec()
+        const verificationCode = await MODELS.VerificationCode.findOne(
+            {
+                type: CodeType.ForgotPin,
+                owner: userData.email
+            },
+            {},
+            { sort: { created_at: -1 } }
+        ).exec()
         const res1 = await request(server.app).post('/auth/pin/forgot').send({
             code: verificationCode?.code,
             email: userData.email,

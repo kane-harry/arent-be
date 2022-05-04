@@ -1,24 +1,14 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import {dbTest, MODELS} from '../init/db'
+import { dbTest, MODELS } from '../init/db'
 import server from '@app/server'
-import {IAccount} from "@modules/account/account.interface";
-import AccountModel from "@modules/account/account.model";
+import { IAccount } from '@modules/account/account.interface'
+import { register } from '@app/test/init/authenticate'
 
 chai.use(chaiAsPromised)
-const {expect, assert} = chai
-const userData = {
-    firstName: 'John',
-    lastName: 'Smith',
-    nickName: 'jsmith8',
-    email: 'email@gmail.com',
-    password: 'Test123!',
-    pin: '1111',
-    phone: 'phone',
-    country: 'country'
-}
-let shareData = {user: {key: ''}, token: '', refreshToken: '', accounts: []}
+const { expect, assert } = chai
+let shareData = { user: { key: '' }, token: '', refreshToken: '', accounts: [] }
 
 describe('Account', () => {
     before(async () => {
@@ -30,12 +20,7 @@ describe('Account', () => {
     })
 
     it('Register', async () => {
-        const res = await request(server.app).post('/auth/register').send(userData)
-        expect(res.status).equal(200)
-
-        shareData.user = res.body.user
-        shareData.token = res.body.token
-        shareData.refreshToken = res.body.refreshToken
+        await register(shareData)
     }).timeout(10000)
 
     it('GetAccountsByUser', async () => {
@@ -43,7 +28,7 @@ describe('Account', () => {
         expect(res.status).equal(200)
         expect(res.body).be.an('array')
 
-        const accounts: IAccount[] = await MODELS.AccountModel.find({userId: shareData.user?.key}).exec()
+        const accounts: IAccount[] = await MODELS.AccountModel.find({ userId: shareData.user?.key }).exec()
         shareData.accounts = res.body
         const accountKeyFromResponse = res.body.map((item: { key: any }) => item.key)
         const accountKeyFromDatabase = accounts.map((item: IAccount) => item.key)
@@ -52,7 +37,7 @@ describe('Account', () => {
     }).timeout(10000)
 
     it('GetAccountDetail', async () => {
-        const account: IAccount = shareData.accounts[0];
+        const account: IAccount = shareData.accounts[0]
         const res = await request(server.app).get(`/accounts/${account.key}`).set('Authorization', `Bearer ${shareData.token}`).send()
         expect(res.status).equal(200)
 
