@@ -63,6 +63,17 @@ describe('Authentication', () => {
         shareData.refreshToken = res.body.refreshToken
     }).timeout(10000)
 
+    it('ResetPassword', async () => {
+        const res1 = await request(server.app).post('/auth/password/reset').set('Authorization', `Bearer ${shareData.token}`).send({
+            oldPassword: userData.password,
+            newPassword: newPassword,
+            newPasswordConfirmation: newPassword,
+        })
+
+        expect(res1.status).equal(200)
+        expect(res1.body.success).equal(true)
+    }).timeout(10000)
+
     it('Logout', async () => {
         const res = await request(server.app).post('/auth/logout').set('Authorization', `Bearer ${shareData.token}`).send({
             refreshToken: shareData.refreshToken
