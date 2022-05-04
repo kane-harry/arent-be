@@ -4,6 +4,7 @@ import request from 'supertest'
 import {dbTest, MODELS} from '../init/db'
 import server from '@app/server'
 import {IAccount} from "@modules/account/account.interface";
+import AccountModel from "@modules/account/account.model";
 
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
@@ -17,7 +18,7 @@ const userData = {
     phone: 'phone',
     country: 'country'
 }
-let shareData = {user: {key: ''}, token: '', refreshToken: ''}
+let shareData = {user: {key: ''}, token: '', refreshToken: '', accounts: []}
 
 describe('Account', () => {
     before(async () => {
@@ -42,12 +43,25 @@ describe('Account', () => {
         expect(res.status).equal(200)
         expect(res.body).be.an('array')
 
-        const user = await MODELS.UserModel.findOne({email: userData.email}).exec()
-        const accounts = await MODELS.AccountModel.find({userId: user?.key}).exec()
+        const accounts: IAccount[] = await MODELS.AccountModel.find({userId: shareData.user?.key}).exec()
+        shareData.accounts = res.body
         const accountKeyFromResponse = res.body.map((item: { key: any }) => item.key)
-        // @ts-ignore
         const accountKeyFromDatabase = accounts.map((item: IAccount) => item.key)
 
         assert.deepEqual(accountKeyFromResponse, accountKeyFromDatabase)
+    }).timeout(10000)
+
+    it('GetAccountDetail', async () => {
+        const account: IAccount = shareData.accounts[0];
+        const res = await request(server.app).get(`/accounts/${account.key}`).set('Authorization', `Bearer ${shareData.token}`).send()
+        expect(res.status).equal(200)
+
+        expect(res.body.key).equal(account.key)
+        expect(res.body.userId).equal(account.userId)
+        expect(res.body.name).equal(account.name)
+        expect(res.body.symbol).equal(account.symbol)
+        expect(res.body.platform).equal(account.platform)
+        expect(res.body.type).equal(account.type)
+        expect(res.body.address).equal(account.address)
     }).timeout(10000)
 })
