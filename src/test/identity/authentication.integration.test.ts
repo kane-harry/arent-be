@@ -16,6 +16,7 @@ const userData = {
     phone: 'phone',
     country: 'country'
 }
+let shareData = { user: {}, token: '', refreshToken: '' }
 
 describe('Integration test for module Authentication', () => {
     before(async () => {
@@ -55,6 +56,18 @@ describe('Integration test for module Authentication', () => {
             expect(res?.body?.user?.email).equal(userData.email)
             expect(res?.body?.token).is.a('string')
             expect(res?.body?.refreshToken).is.a('string')
+
+            shareData.user = res.body.user
+            shareData.token = res.body.token
+            shareData.refreshToken = res.body.refreshToken
+        }).timeout(10000)
+
+        it('Logout', async () => {
+            const res = await request(server.app).post('/auth/logout').set('Authorization', `Bearer ${shareData.token}`).send({
+                refreshToken: shareData.refreshToken
+            })
+
+            expect(res.status).equal(200)
         }).timeout(10000)
     })
 })
