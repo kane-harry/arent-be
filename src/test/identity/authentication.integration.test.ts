@@ -18,6 +18,7 @@ const userData = {
     country: 'country'
 }
 const newPassword = 'Test1221!'
+const newPin = '2222'
 let shareData = {user: {}, token: '', refreshToken: ''}
 
 describe('Authentication', () => {
@@ -68,6 +69,17 @@ describe('Authentication', () => {
             oldPassword: userData.password,
             newPassword: newPassword,
             newPasswordConfirmation: newPassword,
+        })
+
+        expect(res1.status).equal(200)
+        expect(res1.body.success).equal(true)
+    }).timeout(10000)
+
+    it('ResetPin', async () => {
+        const res1 = await request(server.app).post('/auth/pin/reset').set('Authorization', `Bearer ${shareData.token}`).send({
+            oldPin: userData.pin,
+            newPin: newPin,
+            newPinConfirmation: newPin,
         })
 
         expect(res1.status).equal(200)
