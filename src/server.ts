@@ -6,7 +6,7 @@ import UserController from '@modules/user/user.controller'
 import AccountController from '@modules/account/account.controller'
 import AccountMasterController from '@modules/account.master/account.master.controller'
 import TransactionController from '@modules/transaction/transaction.controller'
-import CoinController from '@modules/coin/coin.controller'
+import BlockchainController from '@modules/blockchain/blockchain.controller'
 import VerificationCodeController from '@modules/verification_code/code.controller'
 import SiteController from '@modules/site/site.controller'
 
@@ -18,7 +18,7 @@ const app = new App([
     new AccountController(),
     new AccountMasterController(),
     new TransactionController(),
-    new CoinController(),
+    new BlockchainController(),
     new SiteController()
 ])
 

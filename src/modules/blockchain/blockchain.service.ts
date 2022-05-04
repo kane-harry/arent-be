@@ -1,6 +1,6 @@
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
-import { CreateRawWalletDto, CreateSignatureDto, SendRawDto } from './coin.dto'
+import { CreateRawWalletDto, CreateSignatureDto, SendRawDto } from './blockchain.dto'
 import { trim, toUpper } from 'lodash'
 import { AccountErrors, TransactionErrors } from '@exceptions/custom.error'
 import { createEtherWallet, signMessage } from '@utils/wallet'
@@ -9,7 +9,7 @@ import { FeeMode, ISendRawDto, ITransactionFilter } from '@modules/transaction/t
 import { config } from '@config'
 import AccountService from '@modules/account/account.service'
 
-export default class CoinService {
+export default class BlockchainService {
     static async createRawWallet(params: CreateRawWalletDto) {
         const etherWallet = await createEtherWallet()
         // TODO : check symbols - should be prime tokens

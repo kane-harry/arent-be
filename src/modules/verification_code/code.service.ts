@@ -57,12 +57,12 @@ export default class VerificationCodeService {
             })
             await mode.save()
         }
-        const subject = `Welcome to LightLink`
-        const text = ``
+        const subject = 'Welcome to LightLink'
+        const text = ''
         const html = `This is your ${params.codeType} verification code: <b>${code}</b>`
         await sendEmail(subject, text, html, email)
 
-        //Temporary return code //TODO remove code later
+        // Temporary return code //TODO remove code later
         return { success: true, code: code }
     }
 
