@@ -3,6 +3,7 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import {dbTest, MODELS} from '../init/db'
 import server from '@app/server'
+import {CodeType} from "@modules/verification_code/code.interface";
 
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
@@ -16,6 +17,7 @@ const userData = {
     phone: 'phone',
     country: 'country'
 }
+const newPassword = 'Test1221!'
 let shareData = {user: {}, token: '', refreshToken: ''}
 
 describe('Authentication', () => {
@@ -67,5 +69,22 @@ describe('Authentication', () => {
         })
 
         expect(res.status).equal(200)
+    }).timeout(10000)
+
+    it('ForgotPassword', async () => {
+        const res = await request(server.app).post('/verification/code/get').send({
+            codeType: CodeType.ForgotPassword,
+            email: userData.email,
+        })
+        expect(res.status).equal(200)
+        const verificationCode = await MODELS.VerificationCode.findOne({type: CodeType.ForgotPassword, owner: userData.email}, {}, { sort: { 'created_at' : -1 } }).exec()
+        const res1 = await request(server.app).post('/auth/password/forgot').send({
+            code: verificationCode?.code,
+            email: userData.email,
+            newPassword: newPassword
+        })
+
+        expect(res1.status).equal(200)
+        expect(res1.body.success).equal(true)
     }).timeout(10000)
 })

@@ -41,3 +41,5 @@ export class VerificationCode extends VerificationCodeModel {
         return generate(options)
     }
 }
+
+export default VerificationCode
