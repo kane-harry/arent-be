@@ -5,28 +5,44 @@ import {dbTest, MODELS} from '../init/db'
 import server from '@app/server'
 import {CodeType} from "@modules/verification_code/code.interface";
 import {login} from "@app/test/init/authenticate";
-import usersData from "@app/test/init/users.data";
 import {generateToken} from "@common/twoFactor";
 
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
 const userData = {
+    firstName: 'John',
+    lastName: 'Smith',
+    nickName: 'jsmith8',
     email: 'email@gmail.com',
+    password: 'Test123!',
+    pin: '1111',
+    phone: 'phone',
+    country: 'country'
 }
+let shareData = {user: {}, token: '', refreshToken: ''}
 
 describe('Security', () => {
     before(async () => {
         await dbTest.connect()
-        await dbTest.mongoUnit.load({
-            users: usersData
-        })
     })
 
     after(async () => {
         await dbTest.disconnect()
     })
 
+    it('Register', async () => {
+        const res = await request(server.app).post('/auth/register').send(userData)
+        expect(res.status).equal(200)
+
+        shareData.user = res.body.user
+        shareData.token = res.body.token
+        shareData.refreshToken = res.body.refreshToken
+    }).timeout(10000)
+
     Object.keys(CodeType).map(key => {
+        if (key === CodeType.EmailRegistration) {
+            return
+        }
         it(`GetVerificationCode ${key}`, async () => {
             const res = await request(server.app).post('/verification/code/get').send({
                 codeType: key,
@@ -51,19 +67,17 @@ describe('Security', () => {
     })
 
     it(`Generate2FAToken`, async () => {
-        const auth = await login({ email: 'hoang.pellar@gmail.com', password: 'transluciaTP@01' })
-        const res = await request(server.app).post('/users/2fa/generate').set('Authorization', `Bearer ${auth.body.token}`).send()
+        const res = await request(server.app).post('/users/2fa/generate').set('Authorization', `Bearer ${shareData.token}`).send()
         expect(res.status).equal(200)
     }).timeout(10000)
 
     it(`Update2FA`, async () => {
-        const user = await MODELS.UserModel.findOne({ email: 'hoang.pellar@gmail.com' }).exec()
+        const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
         if (!user) {
             return expect(500).equal(200)
         }
         const token = generateToken(user?.twoFactorSecret)
-        const auth = await login({ email: 'hoang.pellar@gmail.com', password: 'transluciaTP@01' })
-        const res = await request(server.app).post('/users/2fa/generate').set('Authorization', `Bearer ${auth.body.token}`).send({
+        const res = await request(server.app).post('/users/2fa/generate').set('Authorization', `Bearer ${shareData.token}`).send({
             twoFactorEnable: 'email',
             token: token,
         })
