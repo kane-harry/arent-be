@@ -5,10 +5,11 @@ import request from 'supertest'
 import {dbTest, MODELS} from '../init/db'
 import server from '@app/server'
 import {register} from "@app/test/init/authenticate";
+import {config} from "@config";
 
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
-const symbol = 'LL'
+const symbol = config.system.primeToken
 let shareData1 = {user: {}, token: '', refreshToken: '', accounts: [], transactions: []}
 let shareData2 = {user: {}, token: '', refreshToken: '', accounts: [], transactions: []}
 describe('Transaction', () => {

@@ -4,11 +4,12 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import {dbTest} from '../init/db'
 import server from '@app/server'
+import {config} from "@config";
 
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
 let shareData = {accounts: [], signature: '', transactions: []}
-const symbol = 'LL'
+const symbol = config.system.primeToken
 describe('Blockchain', () => {
     before(async () => {
         await dbTest.connect()
