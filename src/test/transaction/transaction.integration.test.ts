@@ -54,4 +54,19 @@ describe('Transaction', () => {
         expect(res.body.message).equal('Insufficient funds to complete transaction.')
         //TODO switch to 200 code and send successfully
     }).timeout(10000)
+
+    it('Get Transactions by Account', async () => {
+        const pageIndex = 1
+        const pageSize = 25
+        const account = shareData1.accounts[0]
+        const res = await request(server.app).get(`/transactions/accounts/${account.key}?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        expect(res.status).equal(200)
+        expect(res.body.account).be.an('object')
+        expect(res.body.txns.items).be.an('array')
+        expect(res.body.txns.totalCount).exist
+        expect(res.body.txns.hasNextPage).exist
+        expect(res.body.txns.totalPages).exist
+        expect(res.body.txns.pageIndex).equal(pageIndex)
+        expect(res.body.txns.pageSize).equal(pageSize)
+    }).timeout(10000)
 })
