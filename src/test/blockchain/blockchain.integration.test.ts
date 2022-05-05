@@ -29,4 +29,22 @@ describe('Blockchain', () => {
             shareData.accounts.push(res.body[0])
         }
     }).timeout(10000)
+
+    it('Generate signature', async () => {
+        const sender = shareData.accounts[0]
+        const recipient = shareData.accounts[0]
+        const res = await request(server.app).post(`/blockchain/signature`)
+            .send({
+                symbol: symbol,
+                sender: sender.address,
+                recipient: recipient.address,
+                amount: '1',
+                privateKey: sender.privateKey,
+                nonce: '1',
+                notes: 'test notes',
+            })
+        expect(res.status).equal(200)
+        expect(res.body.signature).be.an('string')
+        shareData.signature = res.body.signature
+    }).timeout(10000)
 })
