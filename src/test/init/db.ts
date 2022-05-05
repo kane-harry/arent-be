@@ -14,8 +14,12 @@ export const dbTest = {
         await mongoose.connect(mongoUrl)
     },
     disconnect: async () => {
-        await mongoose.disconnect()
-        await mongoUnit.stop()
+        if (mongoose) {
+            await mongoose.disconnect()
+        }
+        if (mongoUnit) {
+            await mongoUnit.stop()
+        }
     }
 }
 
