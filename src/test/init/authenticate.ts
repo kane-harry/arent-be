@@ -1,8 +1,9 @@
 import server from '@app/server'
 import request from 'supertest'
 
-export const register = async (shareData: any) => {
-    const res = await request(server.app).post('/auth/register').send(userData)
+export const register = async (shareData: any, data: object = {}) => {
+    const formData = {...userData, ...data}
+    const res = await request(server.app).post('/auth/register').send(formData)
 
     shareData.user = res.body.user
     shareData.token = res.body.token
