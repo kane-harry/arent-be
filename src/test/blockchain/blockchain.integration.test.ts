@@ -65,4 +65,18 @@ describe('Blockchain', () => {
         expect(res.body.message).equal('Insufficient funds to complete transaction.')
         //TODO switch to 200 code and send successfully
     }).timeout(10000)
+
+    it('Get Transactions by Symbol', async () => {
+        const pageIndex = 1
+        const pageSize = 25
+        const res = await request(server.app).get(`/blockchain/${symbol}/txns?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        expect(res.status).equal(200)
+        expect(res.body.items).be.an('array')
+        expect(res.body.totalCount).exist
+        expect(res.body.hasNextPage).exist
+        expect(res.body.totalPages).exist
+        expect(res.body.pageIndex).equal(pageIndex)
+        expect(res.body.pageSize).equal(pageSize)
+        shareData.transactions = res.body.items
+    }).timeout(10000)
 })
