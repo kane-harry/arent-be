@@ -22,6 +22,7 @@ class BlockchainController implements IController {
         this.router.post(`${this.path}/sendraw`, validationMiddleware(SendRawDto), asyncHandler(this.sendRaw))
         this.router.get(`${this.path}/:symbol/txns`, asyncHandler(this.queryPrimeTxns))
         this.router.get(`${this.path}/:symbol/address/:address`, asyncHandler(this.getAccountBySymbolAndAddress))
+        this.router.get(`${this.path}/transaction/:key`, asyncHandler(this.getTxnByKey))
     }
 
     private async createRawWallet(req: Request, res: Response) {
@@ -59,6 +60,12 @@ class BlockchainController implements IController {
         const symbol: string = req.params.symbol
         const address: string = req.params.address
         const data = await BlockchainService.getAccountBySymbolAndAddress(symbol, address)
+        return res.json(data)
+    }
+
+    private async getTxnByKey(req: CustomRequest, res: Response) {
+        const key: string = req.params.key
+        const data = await BlockchainService.getTxnByKey(key)
         return res.json(data)
     }
 }

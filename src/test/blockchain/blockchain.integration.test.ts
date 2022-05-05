@@ -144,8 +144,9 @@ describe('Blockchain', () => {
 
     it('Get Transaction Detail', async () => {
         const transaction = shareData.transactions[0]
-        const res = await request(server.app).get(`/blockchain/${symbol}/transaction/${transaction.txns}`).send()
+        const res = await request(server.app).get(`/blockchain/transaction/${transaction.key}`).send()
         expect(res.status).equal(200)
+        expect(res.body.key).equal(transaction.key)
     }).timeout(10000)
 
     it('Get Transactions by Account', async () => {
