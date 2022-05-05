@@ -10,7 +10,7 @@ import {config} from "@config";
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
 const symbol = config.system.primeToken
-let shareData1 = {user: {}, token: '', refreshToken: '', accounts: [], transactions: []}
+let shareData1 = {user: {}, token: '', refreshToken: '', accounts: [], transactions: [], masterAccounts: []}
 let shareData2 = {user: {}, token: '', refreshToken: '', accounts: [], transactions: []}
 describe('Transaction', () => {
     before(async () => {
@@ -38,8 +38,38 @@ describe('Transaction', () => {
         shareData2.accounts = res2.body
     }).timeout(10000)
 
+    it('InitMasterAccounts', async () => {
+        const res1 = await request(server.app)
+            .post(`/master/accounts/`)
+            .set('Authorization', `Bearer ${shareData1.token}`)
+            .send()
+        expect(res1.status).equal(200)
+    }).timeout(10000)
+
+    it('GetMasterAccounts', async () => {
+        const res1 = await request(server.app)
+            .get(`/master/accounts/`)
+            .set('Authorization', `Bearer ${shareData1.token}`)
+            .send()
+        expect(res1.status).equal(200)
+        shareData1.masterAccounts = res1.body.filter(item => item.symbol === symbol)
+    }).timeout(10000)
+
+    it('MintMasterAccount', async () => {
+        const sender = shareData1.masterAccounts[0]
+        const res1 = await request(server.app)
+            .post(`/master/accounts/${sender.key}/mint`)
+            .set('Authorization', `Bearer ${shareData1.token}`)
+            .send({
+                amount: 100,
+                notes: 'mint master account',
+                type: 'mint'
+            })
+        expect(res1.status).equal(200)
+    }).timeout(10000)
+
     it('Send Funds', async () => {
-        const sender = shareData1.accounts[0]
+        const sender = shareData1.masterAccounts[0]
         const recipient = shareData2.accounts[0]
         const res = await request(server.app).post(`/transactions/send`)
             .set('Authorization', `Bearer ${shareData1.token}`)
@@ -51,15 +81,15 @@ describe('Transaction', () => {
                 nonce: '1',
                 notes: 'test notes',
             })
-        expect(res.status).equal(400)
-        expect(res.body.message).equal('Insufficient funds to complete transaction.')
-        //TODO switch to 200 code and send successfully
+        expect(res.status).equal(200)
+        expect(res.body.senderTxn).be.an('string')
+        expect(res.body.recipientTxn).be.an('string')
     }).timeout(10000)
 
     it('Get Transactions by Account', async () => {
         const pageIndex = 1
         const pageSize = 25
-        const account = shareData1.accounts[0]
+        const account = shareData1.masterAccounts[0]
         const res = await request(server.app).get(`/transactions/accounts/${account.key}?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
         expect(res.status).equal(200)
         expect(res.body.account).be.an('object')
