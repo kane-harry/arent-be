@@ -101,4 +101,8 @@ export default class BlockchainService {
             symbol: params.symbol
         })
     }
+
+    static async getAccountBySymbolAndAddress(symbol: string, address: string) {
+        return await PrimeCoinProvider.getWalletBySymbolAndAddress(symbol, address)
+    }
 }

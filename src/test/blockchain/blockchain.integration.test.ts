@@ -137,8 +137,9 @@ describe('Blockchain', () => {
 
     it('Get Account Detail', async () => {
         const account = shareData.accounts[0]
-        const res = await request(server.app).get(`/blockchain/${symbol}/account/${account.address}`).send()
+        const res = await request(server.app).get(`/blockchain/${symbol}/address/${account.address}`).send()
         expect(res.status).equal(200)
+        expect(res.body.address).equal(account.address)
     }).timeout(10000)
 
     it('Get Transaction Detail', async () => {
