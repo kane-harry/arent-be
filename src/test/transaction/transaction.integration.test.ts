@@ -99,5 +99,17 @@ describe('Transaction', () => {
         expect(res.body.txns.totalPages).exist
         expect(res.body.txns.pageIndex).equal(pageIndex)
         expect(res.body.txns.pageSize).equal(pageSize)
+        shareData1.transactions = res.body.txns.items
+    }).timeout(10000)
+
+    it('Get Transaction Detail', async () => {
+        const account = shareData1.masterAccounts[0]
+        const transaction = shareData1.transactions[0]
+        const res = await request(server.app).get(`/transactions/accounts/${account.key}/txn/${transaction.key}`).send()
+        expect(res.status).equal(200)
+        expect(res.body.key).equal(transaction.key)
+        expect(res.body.symbol).equal(symbol)
+        expect(res.body.sender).equal(account.address)
+        expect(res.body.type).equal('TRANSFER')
     }).timeout(10000)
 })
