@@ -79,4 +79,30 @@ describe('Blockchain', () => {
         expect(res.body.pageSize).equal(pageSize)
         shareData.transactions = res.body.items
     }).timeout(10000)
+
+    it('Get Account Detail', async () => {
+        const account = shareData.accounts[0]
+        const res = await request(server.app).get(`/blockchain/${symbol}/account/${account.address}`).send()
+        expect(res.status).equal(200)
+    }).timeout(10000)
+
+    it('Get Transaction Detail', async () => {
+        const transaction = shareData.transactions[0]
+        const res = await request(server.app).get(`/blockchain/${symbol}/transaction/${transaction.txns}`).send()
+        expect(res.status).equal(200)
+    }).timeout(10000)
+
+    it('Get Transactions by Account', async () => {
+        const pageIndex = 1
+        const pageSize = 25
+        const account = shareData.accounts[0]
+        const res = await request(server.app).get(`/blockchain/${symbol}/account/${account.address}/txns?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        expect(res.status).equal(200)
+        expect(res.body.items).be.an('array')
+        expect(res.body.totalCount).exist
+        expect(res.body.hasNextPage).exist
+        expect(res.body.totalPages).exist
+        expect(res.body.pageIndex).equal(pageIndex)
+        expect(res.body.pageSize).equal(pageSize)
+    }).timeout(10000)
 })
