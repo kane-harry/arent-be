@@ -109,4 +109,11 @@ export default class BlockchainService {
     static async getTxnByKey(key: string) {
         return await PrimeCoinProvider.getPrimeTxnByKey(key)
     }
+
+    static async queryAccountTxns(params: { address: string; filter: ITransactionFilter }) {
+        return await PrimeCoinProvider.queryPrimeTxns({
+            ...params.filter,
+            address: params.address
+        })
+    }
 }

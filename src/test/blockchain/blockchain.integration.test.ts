@@ -153,7 +153,7 @@ describe('Blockchain', () => {
         const pageIndex = 1
         const pageSize = 25
         const account = shareData.accounts[0]
-        const res = await request(server.app).get(`/blockchain/${symbol}/account/${account.address}/txns?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        const res = await request(server.app).get(`/blockchain/account/${account.address}/txns?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
         expect(res.status).equal(200)
         expect(res.body.items).be.an('array')
         expect(res.body.totalCount).exist
