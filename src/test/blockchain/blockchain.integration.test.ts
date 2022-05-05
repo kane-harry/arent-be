@@ -5,10 +5,12 @@ import request from 'supertest'
 import {dbTest} from '../init/db'
 import server from '@app/server'
 import {config} from "@config";
+import {register} from "@app/test/init/authenticate";
 
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
 let shareData = {accounts: [], signature: '', transactions: []}
+let shareMasterData = {user: {}, token: '', refreshToken: '', accounts: [], transactions: [], masterAccounts: []}
 const symbol = config.system.primeToken
 describe('Blockchain', () => {
     before(async () => {
@@ -33,7 +35,7 @@ describe('Blockchain', () => {
 
     it('Generate signature', async () => {
         const sender = shareData.accounts[0]
-        const recipient = shareData.accounts[0]
+        const recipient = shareData.accounts[1]
         const res = await request(server.app).post(`/blockchain/signature`)
             .send({
                 symbol: symbol,
@@ -49,9 +51,61 @@ describe('Blockchain', () => {
         shareData.signature = res.body.signature
     }).timeout(10000)
 
+    it('Register', async () => {
+        await register(shareMasterData)
+    }).timeout(10000)
+
+    it('InitMasterAccounts', async () => {
+        const res1 = await request(server.app)
+            .post(`/master/accounts/`)
+            .set('Authorization', `Bearer ${shareMasterData.token}`)
+            .send()
+        expect(res1.status).equal(200)
+    }).timeout(10000)
+
+    it('GetMasterAccounts', async () => {
+        const res1 = await request(server.app)
+            .get(`/master/accounts/`)
+            .set('Authorization', `Bearer ${shareMasterData.token}`)
+            .send()
+        expect(res1.status).equal(200)
+        shareMasterData.masterAccounts = res1.body.filter(item => item.symbol === symbol)
+    }).timeout(10000)
+
+    it('MintMasterAccount', async () => {
+        const sender = shareMasterData.masterAccounts[0]
+        const res1 = await request(server.app)
+            .post(`/master/accounts/${sender.key}/mint`)
+            .set('Authorization', `Bearer ${shareMasterData.token}`)
+            .send({
+                amount: 100,
+                notes: 'mint master account',
+                type: 'mint'
+            })
+        expect(res1.status).equal(200)
+    }).timeout(10000)
+
+    it('Send Funds', async () => {
+        const sender = shareMasterData.masterAccounts[0]
+        const recipient = shareData.accounts[0]
+        const res = await request(server.app).post(`/transactions/send`)
+            .set('Authorization', `Bearer ${shareMasterData.token}`)
+            .send({
+                symbol: symbol,
+                sender: sender.address,
+                recipient: recipient.address,
+                amount: '10',
+                nonce: '1',
+                notes: 'test notes',
+            })
+        expect(res.status).equal(200)
+        expect(res.body.senderTxn).be.an('string')
+        expect(res.body.recipientTxn).be.an('string')
+    }).timeout(10000)
+
     it('Broadcast Transaction', async () => {
         const sender = shareData.accounts[0]
-        const recipient = shareData.accounts[0]
+        const recipient = shareData.accounts[1]
         const res = await request(server.app).post(`/blockchain/sendraw`)
             .send({
                 symbol: symbol,
@@ -62,9 +116,9 @@ describe('Blockchain', () => {
                 notes: 'test notes',
                 signature: shareData.signature,
             })
-        expect(res.status).equal(400)
-        expect(res.body.message).equal('Insufficient funds to complete transaction.')
-        //TODO switch to 200 code and send successfully
+        expect(res.status).equal(200)
+        expect(res.body.senderTxn).be.an('string')
+        expect(res.body.recipientTxn).be.an('string')
     }).timeout(10000)
 
     it('Get Transactions by Symbol', async () => {
