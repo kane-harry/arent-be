@@ -47,4 +47,22 @@ describe('Blockchain', () => {
         expect(res.body.signature).be.an('string')
         shareData.signature = res.body.signature
     }).timeout(10000)
+
+    it('Broadcast Transaction', async () => {
+        const sender = shareData.accounts[0]
+        const recipient = shareData.accounts[0]
+        const res = await request(server.app).post(`/blockchain/sendraw`)
+            .send({
+                symbol: symbol,
+                sender: sender.address,
+                recipient: recipient.address,
+                amount: '1',
+                nonce: '1',
+                notes: 'test notes',
+                signature: shareData.signature,
+            })
+        expect(res.status).equal(400)
+        expect(res.body.message).equal('Insufficient funds to complete transaction.')
+        //TODO switch to 200 code and send successfully
+    }).timeout(10000)
 })
