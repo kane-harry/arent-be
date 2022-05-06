@@ -8,7 +8,8 @@ import { Update2FAUserDto, UpdateUserDto } from './user.dto'
 import UserModel from './user.model'
 import { generateTotpToken, verifyTotpToken } from '@common/twoFactor'
 import sendEmail from '@common/email'
-import {TwoFactorType} from "@modules/auth/auth.interface";
+import { TwoFactorType } from '@modules/auth/auth.interface'
+import * as bcrypt from 'bcrypt'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -95,8 +96,9 @@ export default class UserService {
         }
         switch (data.twoFactorEnable) {
             case TwoFactorType.PIN:
+                const pinHash = await bcrypt.hash(data.token, 10)
                 user?.set('twoFactorEnable', TwoFactorType.PIN, String)
-                user?.set('pin', data.token || user.pin, String)
+                user?.set('pin', pinHash || user.pin, String)
                 break
             case TwoFactorType.TOTP:
                 if (!verifyTotpToken(user.twoFactorSecret, data.token)) {
