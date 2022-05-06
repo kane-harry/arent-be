@@ -11,8 +11,8 @@ export const register = async (shareData: any, data: object = {}) => {
     const formData = {...userData, ...data}
 
     if (config.system.registrationRequireEmailVerified) {
-        const code = await getVerificationCode(formData.email)
-        await verifyCode(formData.email, code)
+        await getVerificationCode(formData.email)
+        await verifyCode(formData.email)
     }
 
     const res = await request(server.app).post('/auth/register').send(formData)
@@ -43,23 +43,22 @@ export const getVerificationCode = async (email: string) => {
     })
     expect(res.status).equal(200)
     validResponse(res.body)
+}
+
+export const verifyCode = async (email: string) => {
     const verificationCode = await MODELS.VerificationCode.findOne(
         {
-            codeType: CodeType.EmailRegistration,
-            email: email
+            type: CodeType.EmailRegistration,
+            owner: email
         },
         {},
         { sort: { created_at: -1 } }
     ).exec()
     expect(verificationCode?.code).exist
-    return verificationCode?.code
-}
-
-export const verifyCode = async (email: string, code: string) => {
     const res = await request(server.app).post('/verification/code/verify').send({
         codeType: CodeType.EmailRegistration,
         email: email,
-        code: code
+        code: verificationCode?.code
     })
     expect(res.status).equal(200)
     validResponse(res.body)
