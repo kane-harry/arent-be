@@ -110,6 +110,6 @@ describe('Transaction', () => {
         expect(res.body.key).equal(transaction.key)
         expect(res.body.symbol).equal(symbol)
         expect(res.body.sender).equal(account.address)
-        expect(res.body.type).equal('TRANSFER')
+        expect(res.body.type).equal(transaction.type)
     }).timeout(10000)
 })
