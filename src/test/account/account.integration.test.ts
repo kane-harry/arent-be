@@ -4,7 +4,7 @@ import request from 'supertest'
 import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import { IAccount } from '@modules/account/account.interface'
-import { register } from '@app/test/init/authenticate'
+import { initDataForUser } from '@app/test/init/authenticate'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -19,8 +19,8 @@ describe('Account', () => {
         await dbTest.disconnect()
     })
 
-    it('Register', async () => {
-        await register(shareData)
+    it('InitDataForUser', async () => {
+        await initDataForUser(shareData)
     }).timeout(10000)
 
     it('GetAccountsByUser', async () => {

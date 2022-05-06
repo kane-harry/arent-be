@@ -63,7 +63,7 @@ export default class VerificationCodeService {
         await sendEmail(subject, text, html, email)
 
         // Temporary return code //TODO remove code later
-        return { success: true, code: code }
+        return { success: true }
     }
 
     static async verifyCode(params: VerifyCodeDto) {

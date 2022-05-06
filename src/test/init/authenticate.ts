@@ -7,7 +7,7 @@ import chai from 'chai'
 import {config} from "@config";
 const { expect, assert } = chai
 
-export const register = async (shareData: any, data: object = {}) => {
+export const initDataForUser = async (shareData: any, data: object = {}) => {
     const formData = {...userData, ...data}
 
     if (config.system.registrationRequireEmailVerified) {
@@ -17,12 +17,18 @@ export const register = async (shareData: any, data: object = {}) => {
 
     const res = await request(server.app).post('/auth/register').send(formData)
     validResponse(res.body)
+    expect(res.status).equal(200)
+    expect(res.body.success).equal(true)
 
-    shareData.user = res.body.user
-    shareData.token = res.body.token
-    shareData.refreshToken = res.body.refreshToken
+    const res1 = await request(server.app).post('/auth/login').send({email: formData.email, password: formData.password})
+    validResponse(res.body)
+    expect(res1.status).equal(200)
 
-    return res
+    shareData.user = res1.body.user
+    shareData.token = res1.body.token
+    shareData.refreshToken = res1.body.refreshToken
+
+    return res1
 }
 
 export const userData = {

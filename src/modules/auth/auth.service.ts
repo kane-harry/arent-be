@@ -49,7 +49,8 @@ export default class AuthService {
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)
-        return this.logIn({ email: userData.email, password: userData.password, token: null }, options)
+
+        return { success: true }
     }
 
     private static formatCreateUserDto(userData: CreateUserDto) {

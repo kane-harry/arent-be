@@ -4,7 +4,7 @@ import request from 'supertest'
 import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import { CodeType } from '@modules/verification_code/code.interface'
-import { register, userData } from '@app/test/init/authenticate'
+import { initDataForUser, userData } from '@app/test/init/authenticate'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -22,7 +22,7 @@ describe('Authentication', () => {
     })
 
     it('Register', async () => {
-        const res = await register(shareData)
+        const res = await initDataForUser(shareData)
         expect(res.status).equal(200)
         validResponse(res.body)
 

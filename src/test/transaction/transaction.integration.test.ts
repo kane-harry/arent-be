@@ -4,7 +4,7 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import {dbTest, MODELS} from '../init/db'
 import server from '@app/server'
-import {register} from "@app/test/init/authenticate";
+import {initDataForUser} from "@app/test/init/authenticate";
 import {config} from "@config";
 
 chai.use(chaiAsPromised)
@@ -21,9 +21,9 @@ describe('Transaction', () => {
         await dbTest.disconnect()
     })
 
-    it('Register', async () => {
-        await register(shareData1, {email: 'user1@gmail.com'})
-        await register(shareData2, {email: 'user2@gmail.com'})
+    it('InitDataForUser', async () => {
+        await initDataForUser(shareData1, {email: 'user1@gmail.com'})
+        await initDataForUser(shareData2, {email: 'user2@gmail.com'})
     }).timeout(10000)
 
     it('GetAccountsByUser', async () => {

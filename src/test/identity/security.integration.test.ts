@@ -4,7 +4,7 @@ import request from 'supertest'
 import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import { CodeType } from '@modules/verification_code/code.interface'
-import { register } from '@app/test/init/authenticate'
+import { initDataForUser } from '@app/test/init/authenticate'
 import { generateToken } from '@common/twoFactor'
 
 chai.use(chaiAsPromised)
@@ -26,8 +26,8 @@ describe('Security', () => {
         await dbTest.disconnect()
     })
 
-    it('Register', async () => {
-        await register(shareData)
+    it('InitDataForUser', async () => {
+        await initDataForUser(shareData)
     }).timeout(10000)
 
     Object.keys(CodeType).map(key => {

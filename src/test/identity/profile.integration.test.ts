@@ -5,7 +5,7 @@ import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import AWS from 'aws-sdk'
 import sinon from 'sinon'
-import { register } from '@app/test/init/authenticate'
+import { initDataForUser } from '@app/test/init/authenticate'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -26,8 +26,8 @@ describe('Profile', () => {
         await dbTest.disconnect()
     })
 
-    it('Register', async () => {
-        await register(shareData)
+    it('InitDataForUser', async () => {
+        await initDataForUser(shareData)
     }).timeout(10000)
 
     context('Test case for function uploadAvatar', () => {
