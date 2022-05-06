@@ -1,9 +1,11 @@
 import server from '@app/server'
 import request from 'supertest'
+import {validResponse} from "@app/test/init/db";
 
 export const register = async (shareData: any, data: object = {}) => {
     const formData = {...userData, ...data}
     const res = await request(server.app).post('/auth/register').send(formData)
+    validResponse(res.body)
 
     shareData.user = res.body.user
     shareData.token = res.body.token

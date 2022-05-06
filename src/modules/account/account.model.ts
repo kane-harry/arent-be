@@ -26,6 +26,7 @@ const accountSchema = new Schema<IAccount>(
     {
         toJSON: {
             transform: (doc, ret) => {
+                delete ret._id
                 ret.amount = Number(ret.amount)
                 ret.amountLocked = Number(ret.amountLocked)
                 ret.deposited = Number(ret.deposited)

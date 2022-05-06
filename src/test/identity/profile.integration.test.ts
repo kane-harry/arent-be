@@ -1,7 +1,7 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import { dbTest, MODELS } from '../init/db'
+import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import AWS from 'aws-sdk'
 import sinon from 'sinon'
@@ -58,6 +58,7 @@ describe('Profile', () => {
                 .attach('avatar', './src/test/init/test.jpeg')
 
             expect(res.status).equal(200)
+            validResponse(res.body)
             expect(res.body.original).equal(avatarKey)
             expect(res.body.lg).equal(avatarKey)
             expect(res.body.sm).equal(avatarKey)
@@ -84,6 +85,7 @@ describe('Profile', () => {
                 playerId: 'playerId'
             })
             expect(res.status).equal(401)
+            validResponse(res.body)
             expect(res.body).empty
             expect(res.text).equal('Unauthorized')
         })
@@ -99,6 +101,7 @@ describe('Profile', () => {
             })
 
             expect(res.status).equal(200)
+            validResponse(res.body)
 
             const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
             expect(user?.firstName).equal('firstName')

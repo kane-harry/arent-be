@@ -1,7 +1,7 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import { dbTest, MODELS } from '../init/db'
+import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import { CodeType } from '@modules/verification_code/code.interface'
 import { register } from '@app/test/init/authenticate'
@@ -40,6 +40,7 @@ describe('Security', () => {
                 email: shareData.user.email
             })
             expect(res.status).equal(200)
+            validResponse(res.body)
             const verificationCode = await MODELS.VerificationCode.findOne(
                 {
                     type: key,
@@ -68,6 +69,7 @@ describe('Security', () => {
                 code: verificationCode?.code
             })
             expect(res.status).equal(200)
+            validResponse(res.body)
         }).timeout(10000)
     })
 
@@ -87,5 +89,6 @@ describe('Security', () => {
             token: token
         })
         expect(res.status).equal(200)
+        validResponse(res.body)
     }).timeout(10000)
 })

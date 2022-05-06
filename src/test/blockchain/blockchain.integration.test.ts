@@ -2,7 +2,7 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import {dbTest} from '../init/db'
+import {dbTest, validResponse} from '../init/db'
 import server from '@app/server'
 import {config} from "@config";
 import {register} from "@app/test/init/authenticate";
@@ -28,6 +28,7 @@ describe('Blockchain', () => {
                     symbol: symbol
                 })
             expect(res.status).equal(200)
+            validResponse(res.body)
             expect(res.body).be.an('array')
             shareData.accounts.push(res.body[0])
         }
@@ -47,6 +48,7 @@ describe('Blockchain', () => {
                 notes: 'test notes',
             })
         expect(res.status).equal(200)
+        validResponse(res.body)
         expect(res.body.signature).be.an('string')
         shareData.signature = res.body.signature
     }).timeout(10000)
@@ -69,6 +71,7 @@ describe('Blockchain', () => {
             .set('Authorization', `Bearer ${shareMasterData.token}`)
             .send()
         expect(res1.status).equal(200)
+        validResponse(res1.body)
         shareMasterData.masterAccounts = res1.body.filter(item => item.symbol === symbol)
     }).timeout(10000)
 
@@ -83,6 +86,7 @@ describe('Blockchain', () => {
                 type: 'mint'
             })
         expect(res1.status).equal(200)
+        validResponse(res1.body)
     }).timeout(10000)
 
     it('Send Funds', async () => {
@@ -99,6 +103,7 @@ describe('Blockchain', () => {
                 notes: 'test notes',
             })
         expect(res.status).equal(200)
+        validResponse(res.body)
         expect(res.body.senderTxn).be.an('string')
         expect(res.body.recipientTxn).be.an('string')
     }).timeout(10000)
@@ -117,6 +122,7 @@ describe('Blockchain', () => {
                 signature: shareData.signature,
             })
         expect(res.status).equal(200)
+        validResponse(res.body)
         expect(res.body.senderTxn).be.an('string')
         expect(res.body.recipientTxn).be.an('string')
     }).timeout(10000)
@@ -126,6 +132,7 @@ describe('Blockchain', () => {
         const pageSize = 25
         const res = await request(server.app).get(`/blockchain/${symbol}/txns?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
         expect(res.status).equal(200)
+        validResponse(res.body)
         expect(res.body.items).be.an('array')
         expect(res.body.totalCount).exist
         expect(res.body.hasNextPage).exist
@@ -139,6 +146,7 @@ describe('Blockchain', () => {
         const account = shareData.accounts[0]
         const res = await request(server.app).get(`/blockchain/${symbol}/address/${account.address}`).send()
         expect(res.status).equal(200)
+        validResponse(res.body)
         expect(res.body.address).equal(account.address)
     }).timeout(10000)
 
@@ -146,6 +154,7 @@ describe('Blockchain', () => {
         const transaction = shareData.transactions[0]
         const res = await request(server.app).get(`/blockchain/transaction/${transaction.key}`).send()
         expect(res.status).equal(200)
+        validResponse(res.body)
         expect(res.body.key).equal(transaction.key)
     }).timeout(10000)
 
@@ -155,6 +164,7 @@ describe('Blockchain', () => {
         const account = shareData.accounts[0]
         const res = await request(server.app).get(`/blockchain/account/${account.address}/txns?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
         expect(res.status).equal(200)
+        validResponse(res.body)
         expect(res.body.items).be.an('array')
         expect(res.body.totalCount).exist
         expect(res.body.hasNextPage).exist

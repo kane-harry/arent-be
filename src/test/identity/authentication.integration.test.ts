@@ -1,7 +1,7 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import { dbTest, MODELS } from '../init/db'
+import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import { CodeType } from '@modules/verification_code/code.interface'
 import { register, userData } from '@app/test/init/authenticate'
@@ -24,6 +24,7 @@ describe('Authentication', () => {
     it('Register', async () => {
         const res = await register(shareData)
         expect(res.status).equal(200)
+        validResponse(res.body)
 
         const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
 
@@ -46,6 +47,7 @@ describe('Authentication', () => {
         })
 
         expect(res.status).equal(200)
+        validResponse(res.body)
         expect(res?.body?.user?.email).equal(userData.email)
         expect(res?.body?.token).is.a('string')
         expect(res?.body?.refreshToken).is.a('string')
@@ -63,6 +65,7 @@ describe('Authentication', () => {
         })
 
         expect(res1.status).equal(200)
+        validResponse(res1.body)
         expect(res1.body.success).equal(true)
     }).timeout(10000)
 
@@ -74,6 +77,7 @@ describe('Authentication', () => {
         })
 
         expect(res1.status).equal(200)
+        validResponse(res1.body)
         expect(res1.body.success).equal(true)
     }).timeout(10000)
 
@@ -83,6 +87,7 @@ describe('Authentication', () => {
         })
 
         expect(res.status).equal(200)
+        validResponse(res.body)
     }).timeout(10000)
 
     it('ForgotPassword', async () => {
@@ -91,6 +96,7 @@ describe('Authentication', () => {
             email: userData.email
         })
         expect(res.status).equal(200)
+        validResponse(res.body)
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
                 type: CodeType.ForgotPassword,
@@ -115,6 +121,7 @@ describe('Authentication', () => {
             email: userData.email
         })
         expect(res.status).equal(200)
+        validResponse(res.body)
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
                 type: CodeType.ForgotPin,
@@ -130,6 +137,7 @@ describe('Authentication', () => {
         })
 
         expect(res1.status).equal(200)
+        validResponse(res1.body)
         expect(res1.body.success).equal(true)
     }).timeout(10000)
 })
