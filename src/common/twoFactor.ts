@@ -1,12 +1,12 @@
 const speakeasy = require('speakeasy')
 
-function generateToken(secret: string) {
+function generateTotpToken(secret: string) {
     return speakeasy.totp({
         secret: secret,
         encoding: 'base32'
     })
 }
-function verifyToken(secret: string, token: string | null) {
+function verifyTotpToken(secret: string, token: string | null) {
     return speakeasy.totp.verifyDelta({
         secret: secret,
         token: token,
@@ -15,4 +15,4 @@ function verifyToken(secret: string, token: string | null) {
     })
 }
 
-export { generateToken, verifyToken }
+export { generateTotpToken, verifyTotpToken }

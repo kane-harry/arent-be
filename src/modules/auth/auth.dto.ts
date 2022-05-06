@@ -9,7 +9,7 @@ export class LogInDto {
 
     @IsOptional()
     @IsString()
-    public token: string|null
+    public token: string
 }
 
 export class ResetPasswordDto {

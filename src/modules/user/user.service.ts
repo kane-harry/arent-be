@@ -6,8 +6,9 @@ import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { forEach } from 'lodash'
 import { Update2FAUserDto, UpdateUserDto } from './user.dto'
 import UserModel from './user.model'
-import { generateToken, verifyToken } from '@common/twoFactor'
+import { generateTotpToken, verifyTotpToken } from '@common/twoFactor'
 import sendEmail from '@common/email'
+import {TwoFactorType} from "@modules/auth/auth.interface";
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -77,7 +78,7 @@ export default class UserService {
             user.set('twoFactorSecret', secret.base32)
             user.save()
         }
-        const token = generateToken(user.twoFactorSecret)
+        const token = generateTotpToken(user.twoFactorSecret)
         const subject = 'Welcome to LightLink'
         const text = ''
         const html = `This is the verification code you requested: <b>${token}</b>`
@@ -92,11 +93,18 @@ export default class UserService {
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
-        if (!verifyToken(user.twoFactorSecret, data.token)) {
-            throw new BizException(AuthErrors.token_error, new ErrorContext('user.service', 'updateUser', {}))
+        switch (data.twoFactorEnable) {
+            case TwoFactorType.PIN:
+                user?.set('twoFactorEnable', TwoFactorType.PIN, String)
+                user?.set('pin', data.token || user.pin, String)
+                break
+            case TwoFactorType.TOTP:
+                if (!verifyTotpToken(user.twoFactorSecret, data.token)) {
+                    throw new BizException(AuthErrors.token_error, new ErrorContext('user.service', 'updateUser', {}))
+                }
+                user?.set('twoFactorEnable', TwoFactorType.TOTP, String)
+                break
         }
-
-        user?.set('twoFactorEnable', data.twoFactorEnable || user.firstName, String)
         user?.save()
 
         return user
