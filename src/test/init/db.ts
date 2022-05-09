@@ -34,4 +34,5 @@ export const MODELS = {
 export const validResponse = (data: any) => {
     const jsonData = JSON.stringify(data)
     expect(jsonData).not.include("_id")
+    expect(jsonData).not.include("twoFactorSecret")
 }

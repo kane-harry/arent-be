@@ -20,8 +20,8 @@ export const initDataForUser = async (shareData: any, data: object = {}) => {
     expect(res.status).equal(200)
     expect(res.body.success).equal(true)
 
-    const res1 = await request(server.app).post('/auth/login').send({email: formData.email, password: formData.password})
-    validResponse(res.body)
+    const res1 = await request(server.app).post('/auth/login').send({email: formData.email, password: formData.password, token: userData.pin})
+    validResponse(res1.body)
     expect(res1.status).equal(200)
 
     shareData.user = res1.body.user

@@ -16,9 +16,9 @@ import { UserActions } from '@modules/user_logs/user_log.interface'
 import { CustomRequest } from '@middlewares/request.middleware'
 import AccountService from '@modules/account/account.service'
 import { AuthModel } from './auth.model'
-import { AuthTokenType } from './auth.interface'
+import {AuthTokenType, TwoFactorType} from './auth.interface'
 import crypto from 'crypto'
-import { verifyToken } from '@common/twoFactor'
+import { verifyTotpToken } from '@common/twoFactor'
 
 export default class AuthService {
     static async register(userData: CreateUserDto, options?: { req: CustomRequest }) {
@@ -45,7 +45,8 @@ export default class AuthService {
             key: crypto.randomBytes(16).toString('hex'),
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
-            avatar: null
+            avatar: null,
+            twoFactorEnable: TwoFactorType.PIN
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)
@@ -74,11 +75,8 @@ export default class AuthService {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
         }
 
-        if (user.twoFactorEnable && user.twoFactorEnable.length) {
-            if (!verifyToken(user.twoFactorSecret, logInData.token)) {
-                throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
-            }
-        }
+        await this.verifyTwoFactor(user, logInData)
+
         // create token
         const accessToken = AuthModel.createAccessToken(user._id)
         const refreshToken = AuthModel.createRefreshToken(user._id)
@@ -283,5 +281,31 @@ export default class AuthService {
         }
         await AuthModel.deleteOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
         return { success: true }
+    }
+
+    static async verifyTwoFactor(user: IUser, logInData: LogInDto) {
+        if (!user.twoFactorEnable || !user.twoFactorEnable.length) {
+            return
+        }
+        switch (user.twoFactorEnable) {
+            case TwoFactorType.PIN:
+                if (!logInData.token) {
+                    throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
+                }
+                // @ts-ignore
+                const pinHash = user.get('pin', null, { getters: false })
+                const isMatching = await bcrypt.compare(logInData.token, pinHash)
+                if (!isMatching) {
+                    throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
+                }
+                break
+            case TwoFactorType.TOTP:
+                // @ts-ignore
+                const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
+                if (!verifyTotpToken(twoFactorSecret, logInData.token)) {
+                    throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
+                }
+                break
+        }
     }
 }

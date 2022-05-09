@@ -43,7 +43,8 @@ describe('Authentication', () => {
     it('Login', async () => {
         const res = await request(server.app).post('/auth/login').send({
             email: userData.email,
-            password: userData.password
+            password: userData.password,
+            token: userData.pin,
         })
 
         expect(res.status).equal(200)
