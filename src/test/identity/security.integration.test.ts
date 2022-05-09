@@ -84,7 +84,8 @@ describe('Security', () => {
         if (!user) {
             return expect(500).equal(200)
         }
-        const token = generateTotpToken(user?.twoFactorSecret)
+        const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
+        const token = generateTotpToken(twoFactorSecret)
         const res = await request(server.app).post('/users/2fa/update').set('Authorization', `Bearer ${shareData.token}`).send({
             twoFactorEnable: TwoFactorType.TOTP,
             token: token
@@ -98,7 +99,8 @@ describe('Security', () => {
         if (!user) {
             return expect(500).equal(200)
         }
-        const token = generateTotpToken(user?.twoFactorSecret)
+        const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
+        const token = generateTotpToken(twoFactorSecret)
 
         const res1 = await request(server.app).post('/auth/login').send({email: userData.email, password: userData.password, token: token})
         validResponse(res1.body)

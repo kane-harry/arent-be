@@ -79,7 +79,8 @@ export default class UserService {
             user.set('twoFactorSecret', secret.base32)
             user.save()
         }
-        const token = generateTotpToken(user.twoFactorSecret)
+        const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
+        const token = generateTotpToken(twoFactorSecret)
         const subject = 'Welcome to LightLink'
         const text = ''
         const html = `This is the verification code you requested: <b>${token}</b>`
@@ -101,7 +102,8 @@ export default class UserService {
                 user?.set('pin', pinHash || user.pin, String)
                 break
             case TwoFactorType.TOTP:
-                if (!verifyTotpToken(user.twoFactorSecret, data.token)) {
+                const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
+                if (!verifyTotpToken(twoFactorSecret, data.token)) {
                     throw new BizException(AuthErrors.token_error, new ErrorContext('user.service', 'updateUser', {}))
                 }
                 user?.set('twoFactorEnable', TwoFactorType.TOTP, String)
