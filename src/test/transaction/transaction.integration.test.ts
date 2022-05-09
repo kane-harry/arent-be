@@ -112,4 +112,15 @@ describe('Transaction', () => {
         expect(res.body.sender).equal(account.address)
         expect(res.body.type).equal(transaction.type)
     }).timeout(10000)
+
+    it('Export Transactions by Account', async () => {
+        const pageIndex = 1
+        const pageSize = 25
+        const account = shareData1.masterAccounts[0]
+        const res = await request(server.app).get(`/transactions/export?symbol=${symbol}&key=${account.key}&pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        expect(res.status).equal(200)
+        expect(res.type).equal('text/csv')
+        expect(res.charset).equal('utf-8')
+        expect(res.text.length).gt(0)
+    }).timeout(10000)
 })

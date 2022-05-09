@@ -6,6 +6,7 @@ import { CustomRequest } from '@middlewares/request.middleware'
 import TransactionService from './transaction.service'
 import { SendPrimeCoinsDto } from './transaction.dto'
 import { ITransactionFilter } from './transaction.interface'
+import {downloadResource} from "@utils/utility";
 
 class TransactionController implements IController {
     public path = '/transactions'
@@ -19,6 +20,7 @@ class TransactionController implements IController {
         this.router.post(`${this.path}/send`, validationMiddleware(SendPrimeCoinsDto), asyncHandler(this.sendPrimeCoins))
         this.router.get(`${this.path}/accounts/:key`, asyncHandler(this.queryTxnsByAccount))
         this.router.get(`${this.path}/accounts/:key/txn/:id`, asyncHandler(this.getTxnDetails))
+        this.router.get(`${this.path}/export`, asyncHandler(this.exportTxnsByAccount))
     }
 
     private async sendPrimeCoins(req: Request, res: Response) {
@@ -43,6 +45,31 @@ class TransactionController implements IController {
         const data = await TransactionService.getTxnDetails(key, id)
 
         return res.json(data)
+    }
+
+    private async exportTxnsByAccount(req: CustomRequest, res: Response) {
+        const key: string = req.query.key
+        const filter = req.query as ITransactionFilter
+        const operator = req.user
+        const data = await TransactionService.queryTxnsByAccount(key, filter, operator)
+
+        const fields = [
+            {label: 'Key', value: 'key'},
+            {label: 'Owner', value: 'owner'},
+            {label: 'Symbol', value: 'symbol'},
+            {label: 'Sender', value: 'sender'},
+            {label: 'Recipient', value: 'recipient'},
+            {label: 'Amount', value: 'amount'},
+            {label: 'Type', value: 'type'},
+            {label: 'Hash', value: 'hash'},
+            {label: 'Block', value: 'block'},
+            {label: 'Signature', value: 'signature'},
+            {label: 'Notes', value: 'notes'},
+            {label: 'Created', value: 'created'},
+            {label: 'Modified', value: 'modified'},
+        ];
+
+        return downloadResource(res, 'transactions.csv', fields, data.txns.items);
     }
 }
 
