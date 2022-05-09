@@ -4,12 +4,15 @@ import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { forEach } from 'lodash'
-import { Update2FAUserDto, UpdateUserDto } from './user.dto'
+import {GetUserListDto, Update2FAUserDto, UpdateUserDto} from './user.dto'
 import UserModel from './user.model'
 import { generateTotpToken, verifyTotpToken } from '@common/twoFactor'
 import sendEmail from '@common/email'
 import { TwoFactorType } from '@modules/auth/auth.interface'
 import * as bcrypt from 'bcrypt'
+import {unixTimestampToDate} from "@utils/utility";
+import {IUser} from "@modules/user/user.interface";
+import {QueryRO} from "@interfaces/query.model";
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -112,5 +115,32 @@ export default class UserService {
         user?.save()
 
         return user
+    }
+
+    public static getUserList = async (params: GetUserListDto) => {
+        const offset = (params.pageindex - 1) * params.pagesize
+        const reg = new RegExp(params.terms)
+        let filter = {
+            $or: [{ key: reg }, { email: reg }, { phone: reg }],
+            $and: [{ created: { $exists: true } }],
+        };
+        if (params.datefrom) {
+            const dateFrom = unixTimestampToDate(params.datefrom)
+            // @ts-ignore
+            filter.$and.push({ created: { $gte: dateFrom } })
+        }
+        if (params.dateto) {
+            const dateTo = unixTimestampToDate(params.dateto)
+            // @ts-ignore
+            filter.$and.push({ created: { $lt: dateTo } })
+        }
+        const sorting: any = { _id: 1 }
+        if (params.sortby) {
+            delete sorting._id
+            sorting[`${params.sortby}`] = params.orderby === 'asc' ? 1 : -1
+        }
+        const totalCount = await UserModel.countDocuments(filter)
+        const items = await UserModel.find<IUser>(filter).sort(sorting).skip(offset).limit(params.pagesize).exec()
+        return new QueryRO<IUser>(totalCount, params.pageindex, params.pagesize, items)
     }
 }

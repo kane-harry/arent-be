@@ -6,6 +6,7 @@ import server from '@app/server'
 import AWS from 'aws-sdk'
 import sinon from 'sinon'
 import { initDataForUser } from '@app/test/init/authenticate'
+import {IAccount} from "@modules/account/account.interface";
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -112,4 +113,19 @@ describe('Profile', () => {
             expect(user?.playerId).equal('playerId')
         })
     })
+
+    it('GetUserList', async () => {
+        const pageIndex = 1
+        const pageSize = 25
+        const res = await request(server.app).get(`/users/list?pageindex=${pageIndex}&pagesize=${pageSize}`).set('Authorization', `Bearer ${shareData.token}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+
+        expect(res.body.items).be.an('array')
+        expect(res.body.totalCount).exist
+        expect(res.body.hasNextPage).exist
+        expect(res.body.totalPages).exist
+        expect(res.body.pageIndex).equal(pageIndex)
+        expect(res.body.pageSize).equal(pageSize)
+    }).timeout(10000)
 })

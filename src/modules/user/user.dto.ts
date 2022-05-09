@@ -1,4 +1,5 @@
 import { IsOptional, IsString, Length } from 'class-validator'
+import IFilterModel from "@interfaces/filter.model.interface";
 
 export class CreateUserDto {
     @IsString()
@@ -69,4 +70,14 @@ export class Update2FAUserDto {
 
     @IsString()
     public token: string
+}
+
+export interface GetUserListDto extends IFilterModel {
+    type: string
+    status: string
+    terms: string
+    datefrom: string
+    dateto: string
+    sortby: string
+    orderby: string
 }

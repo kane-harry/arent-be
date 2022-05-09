@@ -1,7 +1,7 @@
 import { IAccount, IAccountFilter, AccountType, AccountExtType } from './account.interface'
 import AccountModel from './account.model'
 import { createEtherWallet } from '@utils/wallet'
-import { QueryRO } from '@interfaces/qurey.model'
+import { QueryRO } from '@interfaces/query.model'
 import { config } from '@config'
 import { toUpper, trim } from 'lodash'
 import { WithdrawDto } from './account.dto'

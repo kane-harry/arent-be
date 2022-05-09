@@ -4,8 +4,9 @@ import IController from '@interfaces/controller.interface'
 import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
 import { requireAuth } from '@common/authCheck'
 import UserService from './user.service'
-import { AuthenticationRequest } from '@middlewares/request.middleware'
-import { Update2FAUserDto, UpdateUserDto } from './user.dto'
+import {AuthenticationRequest, CustomRequest} from '@middlewares/request.middleware'
+import {GetUserListDto, Update2FAUserDto, UpdateUserDto} from './user.dto'
+import {IAccountFilter} from "@modules/account/account.interface";
 
 class UserController implements IController {
     public path = '/users'
@@ -39,6 +40,7 @@ class UserController implements IController {
 
         this.router.post(`${this.path}/2fa/generate`, requireAuth, asyncHandler(this.generateTwoFactorUser))
         this.router.post(`${this.path}/2fa/update`, requireAuth, asyncHandler(this.updateTwoFa))
+        this.router.get(`${this.path}/list`, requireAuth, asyncHandler(this.getUserList))
     }
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {
@@ -67,6 +69,12 @@ class UserController implements IController {
     private updateTwoFa = async (req: AuthenticationRequest, res: Response) => {
         const userData: Update2FAUserDto = req.body
         const data = await UserService.updateTwoFactorUser(userData, { req })
+        return res.send(data)
+    }
+
+    private getUserList = async (req: CustomRequest, res: Response) => {
+        const filter = req.query as GetUserListDto
+        const data = await UserService.getUserList(filter)
         return res.send(data)
     }
 }
