@@ -1,24 +1,24 @@
 import * as bcrypt from 'bcrypt'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
-import { CreateUserDto } from '@modules/user/user.dto'
-import { ForgotPasswordDto, ForgotPinDto, LogInDto, RefreshTokenDto, ResetPasswordDto, ResetPinDto } from './auth.dto'
-import { toLower, capitalize, escapeRegExp, trim } from 'lodash'
-import { IUser } from '@modules/user/user.interface'
+import {CreateUserDto} from '@modules/user/user.dto'
+import {ForgotPasswordDto, ForgotPinDto, LogInDto, RefreshTokenDto, ResetPasswordDto, ResetPinDto} from './auth.dto'
+import {capitalize, escapeRegExp, toLower, trim} from 'lodash'
+import {IUser} from '@modules/user/user.interface'
 import UserModel from '@modules/user/user.model'
-import { VerificationCode } from '@modules/verification_code/code.model'
-import { CodeType } from '@modules/verification_code/code.interface'
-import { AuthErrors } from '@exceptions/custom.error'
-import { config } from '@config'
+import {VerificationCode} from '@modules/verification_code/code.model'
+import {CodeType} from '@modules/verification_code/code.interface'
+import {AuthErrors} from '@exceptions/custom.error'
+import {config} from '@config'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import UserLogModel from '@modules/user_logs/user_log.model'
-import { UserActions } from '@modules/user_logs/user_log.interface'
-import { CustomRequest } from '@middlewares/request.middleware'
+import {UserActions} from '@modules/user_logs/user_log.interface'
+import {CustomRequest} from '@middlewares/request.middleware'
 import AccountService from '@modules/account/account.service'
-import { AuthModel } from './auth.model'
+import {AuthModel} from './auth.model'
 import {AuthTokenType, TwoFactorType} from './auth.interface'
 import crypto from 'crypto'
-import { verifyTotpToken } from '@common/twoFactor'
+import {verifyTotpToken} from '@common/twoFactor'
 
 export default class AuthService {
     static async register(userData: CreateUserDto, options?: { req: CustomRequest }) {
@@ -161,8 +161,9 @@ export default class AuthService {
 
     static async forgotPassword(passwordData: ForgotPasswordDto, options?: { req: CustomRequest }) {
         const { success } = await VerificationCodeService.verifyCode({
-            ...passwordData,
-            codeType: CodeType.ForgotPassword
+            codeType: CodeType.ForgotPassword,
+            owner: passwordData.email,
+            code: passwordData.code
         })
         if (!success) {
             throw new BizException(
@@ -235,8 +236,9 @@ export default class AuthService {
 
     static async forgotPin(pinData: ForgotPinDto, options?: { req: CustomRequest }) {
         const { success } = await VerificationCodeService.verifyCode({
-            ...pinData,
-            codeType: CodeType.ForgotPin
+            codeType: CodeType.ForgotPin,
+            owner: pinData.email,
+            code: pinData.code
         })
         if (!success) {
             throw new BizException(
@@ -287,11 +289,11 @@ export default class AuthService {
         if (!user.twoFactorEnable || !user.twoFactorEnable.length) {
             return
         }
+        if (!logInData.token) {
+            throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
+        }
         switch (user.twoFactorEnable) {
             case TwoFactorType.PIN:
-                if (!logInData.token) {
-                    throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
-                }
                 // @ts-ignore
                 const pinHash = user.get('pin', null, { getters: false })
                 const isMatching = await bcrypt.compare(logInData.token, pinHash)
@@ -303,6 +305,16 @@ export default class AuthService {
                 // @ts-ignore
                 const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
                 if (!verifyTotpToken(twoFactorSecret, logInData.token)) {
+                    throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
+                }
+                break
+            case TwoFactorType.SMS:
+                const { success } = await VerificationCodeService.verifyCode({
+                    codeType: CodeType.SMSLogIn,
+                    owner: user.phone,
+                    code: logInData.token
+                })
+                if (!success) {
                     throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
                 }
                 break

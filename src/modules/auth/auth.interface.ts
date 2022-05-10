@@ -15,5 +15,6 @@ export interface IAuthToken extends IBaseModel {
 
 export enum TwoFactorType {
     TOTP = 'TOTP',
-    PIN = 'PIN'
+    PIN = 'PIN',
+    SMS = 'SMS'
 }

@@ -38,14 +38,14 @@ export const userData = {
     email: 'email@gmail.com',
     password: 'Test123!',
     pin: '1111',
-    phone: 'phone',
+    phone: '+84988085977',
     country: 'country'
 }
 
 export const getVerificationCode = async (email: string) => {
     const res = await request(server.app).post('/verification/code/get').send({
         codeType: CodeType.EmailRegistration,
-        email: email
+        owner: email
     })
     expect(res.status).equal(200)
     validResponse(res.body)
@@ -63,7 +63,7 @@ export const verifyCode = async (email: string) => {
     expect(verificationCode?.code).exist
     const res = await request(server.app).post('/verification/code/verify').send({
         codeType: CodeType.EmailRegistration,
-        email: email,
+        owner: email,
         code: verificationCode?.code
     })
     expect(res.status).equal(200)

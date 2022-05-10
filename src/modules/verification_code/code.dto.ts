@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsEnum } from 'class-validator'
+import { IsString, IsEmail, IsEnum, IsOptional } from 'class-validator'
 import { map } from 'lodash'
 import { CodeType } from './code.interface'
 
@@ -10,8 +10,7 @@ export class CreateCodeDto {
     public codeType: CodeType
 
     @IsString()
-    @IsEmail()
-    public email: string
+    public owner: string
 }
 
 export class VerifyCodeDto extends CreateCodeDto {

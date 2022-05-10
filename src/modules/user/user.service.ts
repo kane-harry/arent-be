@@ -111,6 +111,9 @@ export default class UserService {
                 }
                 user?.set('twoFactorEnable', TwoFactorType.TOTP, String)
                 break
+            case TwoFactorType.SMS:
+                user?.set('twoFactorEnable', TwoFactorType.SMS, String)
+                break
         }
         user?.save()
 

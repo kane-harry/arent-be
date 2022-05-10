@@ -94,7 +94,7 @@ describe('Authentication', () => {
     it('ForgotPassword', async () => {
         const res = await request(server.app).post('/verification/code/get').send({
             codeType: CodeType.ForgotPassword,
-            email: userData.email
+            owner: userData.email
         })
         expect(res.status).equal(200)
         validResponse(res.body)
@@ -119,7 +119,7 @@ describe('Authentication', () => {
     it('ForgotPin', async () => {
         const res = await request(server.app).post('/verification/code/get').send({
             codeType: CodeType.ForgotPin,
-            email: userData.email
+            owner: userData.email
         })
         expect(res.status).equal(200)
         validResponse(res.body)
