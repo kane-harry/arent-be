@@ -28,6 +28,7 @@ export interface IUser extends IBaseModel {
     emailVerified: boolean
     twoFactorSecret: string
     twoFactorEnable: string
+    role: number | 0
 }
 
 export interface IUserFilter extends IFilterModel {

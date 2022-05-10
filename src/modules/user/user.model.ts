@@ -65,7 +65,8 @@ const userSchema = new Schema<IUser>(
             type: String,
             get: (): undefined => undefined
         },
-        twoFactorEnable: String
+        twoFactorEnable: String,
+        role: Number,
     },
     {
         toJSON: {

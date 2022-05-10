@@ -46,7 +46,8 @@ export default class AuthService {
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
             avatar: null,
-            twoFactorEnable: TwoFactorType.PIN
+            twoFactorEnable: TwoFactorType.PIN,
+            role: 0,
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)

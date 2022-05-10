@@ -5,6 +5,7 @@ import {MODELS, validResponse} from "@app/test/init/db";
 import {CodeType} from "@modules/verification_code/code.interface";
 import chai from 'chai'
 import {config} from "@config";
+import {role} from "@config/role";
 const { expect, assert } = chai
 
 export const initDataForUser = async (shareData: any, data: object = {}) => {
@@ -68,4 +69,11 @@ export const verifyCode = async (email: string) => {
     })
     expect(res.status).equal(200)
     validResponse(res.body)
+}
+
+export const makeAdmin = async (data: object = {}) => {
+    const formData = {...userData, ...data}
+    const user = await MODELS.UserModel.findOne({ email: formData.email }).exec()
+    user?.set('role', role.admin.id, Number)
+    user?.save()
 }

@@ -5,7 +5,7 @@ import { MintDto } from '@modules/account/account.dto'
 import validationMiddleware from '@middlewares/validation.middleware'
 import AccountMasterService from './account.master.service'
 import { requireAuth } from '@common/authCheck'
-import permissionMiddleware from '@middlewares/permission.middleware'
+import {requireAdmin} from "@config/role";
 
 class AccountController implements IController {
     public path = '/master/accounts'
@@ -16,12 +16,12 @@ class AccountController implements IController {
     }
 
     private initRoutes() {
-        this.router.post(`${this.path}`, requireAuth, permissionMiddleware(), asyncHandler(this.initMasterAccounts))
-        this.router.get(`${this.path}`, requireAuth, permissionMiddleware(), asyncHandler(this.getMasterAccounts))
+        this.router.post(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(this.initMasterAccounts))
+        this.router.get(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(this.getMasterAccounts))
         this.router.post(
             `${this.path}/:key/mint`,
             requireAuth,
-            permissionMiddleware(),
+            requireAdmin(),
             validationMiddleware(MintDto),
             asyncHandler(this.mintMasterAccount)
         )

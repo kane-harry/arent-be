@@ -4,7 +4,7 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import {dbTest, MODELS} from '../init/db'
 import server from '@app/server'
-import {initDataForUser} from "@app/test/init/authenticate";
+import {initDataForUser, makeAdmin} from "@app/test/init/authenticate";
 import {config} from "@config";
 
 chai.use(chaiAsPromised)
@@ -12,6 +12,7 @@ const {expect, assert} = chai
 const symbol = config.system.primeToken
 let shareData1 = {user: {}, token: '', refreshToken: '', accounts: [], transactions: [], masterAccounts: []}
 let shareData2 = {user: {}, token: '', refreshToken: '', accounts: [], transactions: []}
+let masterData = {user: {}, token: '', refreshToken: '', accounts: [], transactions: []}
 describe('Transaction', () => {
     before(async () => {
         await dbTest.connect()
@@ -24,6 +25,11 @@ describe('Transaction', () => {
     it('InitDataForUser', async () => {
         await initDataForUser(shareData1, {email: 'user1@gmail.com'})
         await initDataForUser(shareData2, {email: 'user2@gmail.com'})
+    }).timeout(10000)
+
+    it('InitDataForAdmin', async () => {
+        await initDataForUser(masterData, {email: 'admin@gmail.com'})
+        await makeAdmin({email: 'admin@gmail.com'})
     }).timeout(10000)
 
     it('GetAccountsByUser', async () => {
@@ -41,7 +47,7 @@ describe('Transaction', () => {
     it('InitMasterAccounts', async () => {
         const res1 = await request(server.app)
             .post(`/master/accounts/`)
-            .set('Authorization', `Bearer ${shareData1.token}`)
+            .set('Authorization', `Bearer ${masterData.token}`)
             .send()
         expect(res1.status).equal(200)
     }).timeout(10000)
@@ -49,7 +55,7 @@ describe('Transaction', () => {
     it('GetMasterAccounts', async () => {
         const res1 = await request(server.app)
             .get(`/master/accounts/`)
-            .set('Authorization', `Bearer ${shareData1.token}`)
+            .set('Authorization', `Bearer ${masterData.token}`)
             .send()
         expect(res1.status).equal(200)
         shareData1.masterAccounts = res1.body.filter(item => item.symbol === symbol)
@@ -59,7 +65,7 @@ describe('Transaction', () => {
         const sender = shareData1.masterAccounts[0]
         const res1 = await request(server.app)
             .post(`/master/accounts/${sender.key}/mint`)
-            .set('Authorization', `Bearer ${shareData1.token}`)
+            .set('Authorization', `Bearer ${masterData.token}`)
             .send({
                 amount: 100,
                 notes: 'mint master account',
@@ -72,7 +78,7 @@ describe('Transaction', () => {
         const sender = shareData1.masterAccounts[0]
         const recipient = shareData2.accounts[0]
         const res = await request(server.app).post(`/transactions/send`)
-            .set('Authorization', `Bearer ${shareData1.token}`)
+            .set('Authorization', `Bearer ${masterData.token}`)
             .send({
                 symbol: symbol,
                 sender: sender.address,

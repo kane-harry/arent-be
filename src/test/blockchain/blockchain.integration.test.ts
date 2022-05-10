@@ -5,7 +5,7 @@ import request from 'supertest'
 import {dbTest, validResponse} from '../init/db'
 import server from '@app/server'
 import {config} from "@config";
-import {initDataForUser} from "@app/test/init/authenticate";
+import {initDataForUser, makeAdmin} from "@app/test/init/authenticate";
 
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
@@ -53,8 +53,9 @@ describe('Blockchain', () => {
         shareData.signature = res.body.signature
     }).timeout(10000)
 
-    it('InitDataForUser', async () => {
-        await initDataForUser(shareMasterData)
+    it('InitDataForAdmin', async () => {
+        await initDataForUser(shareMasterData, {email: 'admin@gmail.com'})
+        await makeAdmin({email: 'admin@gmail.com'})
     }).timeout(10000)
 
     it('InitMasterAccounts', async () => {
