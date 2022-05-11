@@ -67,10 +67,10 @@ export default class VerificationCodeService {
         switch (params.codeType) {
             case CodeType.SMSLogIn:
             case CodeType.SMS:
-                await sendSms(subject, text, html, owner)
+                await sendSms(subject, html, html, owner)
                 break
             default:
-                await sendEmail(subject, text, html, owner)
+                await sendEmail(subject, html, html, owner)
                 break
         }
 
