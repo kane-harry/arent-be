@@ -76,13 +76,14 @@ export default class UserService {
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
-        if (!user.twoFactorSecret) {
+        let twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
+        if (!twoFactorSecret) {
             const speakeasy = require('speakeasy')
             const secret = speakeasy.generateSecret({ length: 20 })
             user.set('twoFactorSecret', secret.base32)
             user.save()
+            twoFactorSecret = secret.base32
         }
-        const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
         const token = generateTotpToken(twoFactorSecret)
         const subject = 'Welcome to LightLink'
         const text = ''
@@ -90,7 +91,7 @@ export default class UserService {
 
         await sendEmail(subject, text, html, user.email)
 
-        return user
+        return {secret: twoFactorSecret, token: token}
     }
 
     public static updateTwoFactorUser = async (data: Update2FAUserDto, options: { req: AuthenticationRequest }) => {
