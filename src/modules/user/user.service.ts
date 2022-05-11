@@ -54,7 +54,7 @@ export default class UserService {
     }
 
     public static getUserByNickname = async (nickName: string) => {
-        return await UserModel.findOne({ nickName }).exec()
+        return await UserModel.findOne({ nickName: {$regex: nickName, $options: 'i' } }).exec()
     }
 
     static createCreateTransaction = async (transactionParams: any) => {
