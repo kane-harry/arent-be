@@ -14,7 +14,6 @@ import { parsePrimeAmount, formatAmount } from '@utils/number'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: Express.User | undefined) {
-        // TODO: check account owner = operator
         params.notes = params.notes || ''
         const symbol = toUpper(trim(params.symbol))
 
@@ -23,10 +22,6 @@ export default class TransactionService {
 
         // this should be store as a string in wei (big number - string)
         const senderAccount = await AccountService.getAccountBySymbolAndAddress(symbol, params.sender)
-
-        if (operator !== senderAccount?.userId) {
-            // TODO
-        }
         // recipient can be raw wallet
         const recipientWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(params.symbol, params.recipient)
         if (!senderAccount) {
@@ -40,6 +35,15 @@ export default class TransactionService {
                 TransactionErrors.recipient_account_not_exists_error,
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { recipient: params.recipient })
             )
+        }
+        // @ts-ignore
+        if (!operator || operator.key !== senderAccount?.userId) {
+            if (senderAccount.type !== 'MASTER') {
+                throw new BizException(
+                    TransactionErrors.sender_account_not_exists_error,
+                    new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
+                )
+            }
         }
         // TODO : To Kane - error occurs - INVALID_ARGUMENT,invalid BigNumber
 

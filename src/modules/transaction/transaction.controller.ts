@@ -7,6 +7,7 @@ import TransactionService from './transaction.service'
 import { SendPrimeCoinsDto } from './transaction.dto'
 import { ITransactionFilter } from './transaction.interface'
 import {downloadResource} from "@utils/utility";
+import {requireAuth} from "@common/authCheck";
 
 class TransactionController implements IController {
     public path = '/transactions'
@@ -17,7 +18,7 @@ class TransactionController implements IController {
     }
 
     private initRoutes() {
-        this.router.post(`${this.path}/send`, validationMiddleware(SendPrimeCoinsDto), asyncHandler(this.sendPrimeCoins))
+        this.router.post(`${this.path}/send`, requireAuth, validationMiddleware(SendPrimeCoinsDto), asyncHandler(this.sendPrimeCoins))
         this.router.get(`${this.path}/accounts/:key`, asyncHandler(this.queryTxnsByAccount))
         this.router.get(`${this.path}/accounts/:key/txn/:id`, asyncHandler(this.getTxnDetails))
         this.router.get(`${this.path}/export`, asyncHandler(this.exportTxnsByAccount))
