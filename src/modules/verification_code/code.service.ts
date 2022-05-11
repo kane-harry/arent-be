@@ -75,7 +75,7 @@ export default class VerificationCodeService {
         }
 
         // Temporary return code //TODO remove code later
-        return { success: true }
+        return { success: true, code: code }
     }
 
     static async verifyCode(params: VerifyCodeDto) {
