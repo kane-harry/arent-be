@@ -2,12 +2,7 @@ import { config } from '@config'
 
 async function sendEmail(subject: string, text: string, html: string, address: string) {
     if (process.env.NODE_ENV !== 'production') {
-        console.log('sending email ..')
-        console.log('from => ' + config.emailNotification.fromAddress)
-        console.log('to => ' + address)
-        console.log('subject => ' + subject)
-        console.log('text => ' + text)
-        console.log('html => ' + html)
+        console.log(`sending email to ${address}, content: ${html}`)
         return
     }
 
