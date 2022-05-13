@@ -46,7 +46,7 @@ export default class AuthService {
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
             avatar: null,
-            twoFactorEnable: TwoFactorType.PIN,
+            twoFactorEnable: TwoFactorType.EMAIL,
             role: 0
         })
         const savedData = await mode.save()
@@ -309,7 +309,18 @@ export default class AuthService {
                 throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
             }
             break
-        case TwoFactorType.SMS:
+        case TwoFactorType.EMAIL: {
+            const { success } = await VerificationCodeService.verifyCode({
+                codeType: CodeType.EmailLogIn,
+                owner: user.email,
+                code: logInData.token
+            })
+            if (!success) {
+                throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
+            }
+            break
+        }
+        case TwoFactorType.SMS: {
             const { success } = await VerificationCodeService.verifyCode({
                 codeType: CodeType.SMSLogIn,
                 owner: user.phone,
@@ -319,6 +330,7 @@ export default class AuthService {
                 throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
             }
             break
+        }
         }
     }
 }

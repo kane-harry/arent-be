@@ -6,7 +6,8 @@ export enum CodeType {
     ForgotPassword = 'ForgotPassword',
     ForgotPin = 'ForgotPin',
     SMS = 'SMS',
-    SMSLogIn = 'SMSLogIn'
+    SMSLogIn = 'SMSLogIn',
+    EmailLogIn = 'EmailLogIn'
 }
 
 export interface IVerificationCode extends IBaseModel {

@@ -12,24 +12,25 @@ export const initDataForUser = async (shareData: any, data: object = {}) => {
     const formData = { ...userData, ...data }
 
     if (config.system.registrationRequireEmailVerified) {
-        await getVerificationCode(formData.email)
-        await verifyCode(formData.email)
+        const code = await getVerificationCode(formData.email, CodeType.EmailRegistration)
+        await verifyCode(formData.email, CodeType.EmailRegistration, code)
     }
 
-    const res = await request(server.app).post('/auth/register').send(formData)
-    validResponse(res.body)
-    expect(res.status).equal(200)
-    expect(res.body.success).equal(true)
+    const registerRes = await request(server.app).post('/auth/register').send(formData)
+    validResponse(registerRes.body)
+    expect(registerRes.status).equal(200)
+    expect(registerRes.body.success).equal(true)
 
-    const res1 = await request(server.app).post('/auth/login').send({ email: formData.email, password: formData.password, token: userData.pin })
-    validResponse(res1.body)
-    expect(res1.status).equal(200)
+    const loginCode = await getVerificationCode(formData.email, CodeType.EmailLogIn)
+    const loginRes = await request(server.app).post('/auth/login').send({ email: formData.email, password: formData.password, token: loginCode })
+    validResponse(loginRes.body)
+    expect(loginRes.status).equal(200)
 
-    shareData.user = res1.body.user
-    shareData.token = res1.body.token
-    shareData.refreshToken = res1.body.refreshToken
+    shareData.user = loginRes.body.user
+    shareData.token = loginRes.body.token
+    shareData.refreshToken = loginRes.body.refreshToken
 
-    return res1
+    return loginRes
 }
 
 export const userData = {
@@ -43,29 +44,32 @@ export const userData = {
     country: 'country'
 }
 
-export const getVerificationCode = async (email: string) => {
+export const getVerificationCode = async (email: string, codeType:string) => {
     const res = await request(server.app).post('/verification/code/get').send({
-        codeType: CodeType.EmailRegistration,
+        codeType: codeType,
         owner: email
     })
     expect(res.status).equal(200)
     validResponse(res.body)
-}
 
-export const verifyCode = async (email: string) => {
     const verificationCode = await MODELS.VerificationCode.findOne(
         {
-            type: CodeType.EmailRegistration,
+            type: codeType,
             owner: email
         },
         {},
         { sort: { created_at: -1 } }
     ).exec()
     expect(verificationCode?.code).exist
+
+    return verificationCode?.code
+}
+
+export const verifyCode = async (email: string, codeType:string, code: string) => {
     const res = await request(server.app).post('/verification/code/verify').send({
-        codeType: CodeType.EmailRegistration,
+        codeType: codeType,
         owner: email,
-        code: verificationCode?.code
+        code: code
     })
     expect(res.status).equal(200)
     validResponse(res.body)

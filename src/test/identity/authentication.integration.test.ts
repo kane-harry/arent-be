@@ -4,7 +4,7 @@ import request from 'supertest'
 import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import { CodeType } from '@modules/verification_code/code.interface'
-import { initDataForUser, userData } from '@app/test/init/authenticate'
+import {getVerificationCode, initDataForUser, userData} from '@app/test/init/authenticate'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -41,10 +41,11 @@ describe('Authentication', () => {
     }).timeout(10000)
 
     it('Login', async () => {
+        const loginCode = await getVerificationCode(userData.email, CodeType.EmailLogIn)
         const res = await request(server.app).post('/auth/login').send({
             email: userData.email,
             password: userData.password,
-            token: userData.pin,
+            token: loginCode,
         })
 
         expect(res.status).equal(200)
