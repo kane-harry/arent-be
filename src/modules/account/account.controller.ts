@@ -6,6 +6,7 @@ import { CustomRequest } from '@middlewares/request.middleware'
 import { WithdrawDto } from './account.dto'
 import { IAccountFilter } from './account.interface'
 import AccountService from './account.service'
+import {PrimeCoinProvider} from "@providers/coin.provider";
 // import { requireAuth } from '@common/authCheck'
 
 class AccountController implements IController {
@@ -38,6 +39,12 @@ class AccountController implements IController {
     private async getUserAccounts(req: CustomRequest, res: Response) {
         const userId = req.params.userId
         const data = await AccountService.getUserAccounts(userId)
+        for (const account of data) {
+            const coinAccount = await PrimeCoinProvider.getWalletBySymbolAndAddress(account.symbol, account.address)
+            if (coinAccount) {
+                account.amount = coinAccount.amount
+            }
+        }
         return res.json(data)
     }
 
