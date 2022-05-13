@@ -83,7 +83,7 @@ describe('Transaction', () => {
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
-                amount: '1',
+                amount: '12.123',
                 nonce: '1',
                 notes: 'test notes',
             })

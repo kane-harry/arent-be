@@ -42,7 +42,7 @@ describe('Blockchain', () => {
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
-                amount: '1',
+                amount: '4,996.3',
                 privateKey: sender.privateKey,
                 nonce: '1',
                 notes: 'test notes',
@@ -82,7 +82,7 @@ describe('Blockchain', () => {
             .post(`/master/accounts/${sender.key}/mint`)
             .set('Authorization', `Bearer ${shareMasterData.token}`)
             .send({
-                amount: 100,
+                amount: 40996.3,
                 notes: 'mint master account',
                 type: 'mint'
             })
@@ -117,7 +117,7 @@ describe('Blockchain', () => {
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
-                amount: '1',
+                amount: '4,996.3',
                 nonce: '1',
                 notes: 'test notes',
                 signature: shareData.signature,

@@ -10,7 +10,7 @@ import { ISendCoinDto, ITransactionFilter } from './transaction.interface'
 import { AccountExtType } from '@modules/account/account.interface'
 import { config } from '@config'
 import { parsePrimeAmount, formatAmount } from '@utils/number'
-// import { ethers } from 'ethers'
+import { ethers } from 'ethers'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: Express.User | undefined) {
@@ -18,7 +18,7 @@ export default class TransactionService {
         const symbol = toUpper(trim(params.symbol))
 
         // parse to unit with decimals
-        const amount = parsePrimeAmount(Number(params.amount))
+        const amount = parsePrimeAmount(params.amount)
 
         // this should be store as a string in wei (big number - string)
         const senderAccount = await AccountService.getAccountBySymbolAndAddress(symbol, params.sender)
@@ -45,10 +45,7 @@ export default class TransactionService {
                 )
             }
         }
-        // TODO : To Kane - error occurs - INVALID_ARGUMENT,invalid BigNumber
-
-        // const senderBalance = ethers.BigNumber.from(senderAccount.amount).sub(ethers.BigNumber.from(senderAccount.amountLocked))
-        const senderBalance = parsePrimeAmount(Number(senderAccount.amount) - Number(senderAccount.amountLocked))
+        const senderBalance = parsePrimeAmount(senderAccount.amount).sub(parsePrimeAmount(senderAccount.amountLocked))
         if (senderBalance.lt(amount)) {
             throw new BizException(
                 TransactionErrors.sender_insufficient_balance_error,
