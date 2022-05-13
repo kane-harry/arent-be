@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Length } from 'class-validator'
+import { IsOptional, IsString, Length, IsEmail, MinLength, Matches } from 'class-validator'
 import IFilterModel from '@interfaces/filter.model.interface'
 
 export class CreateUserDto {
@@ -16,9 +16,12 @@ export class CreateUserDto {
     public nickName: string
 
     @IsString()
+    @IsEmail()
     public email: string
 
+    @MinLength(6)
     @IsString()
+    @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {message: 'password too weak'})
     public password: string
 
     @IsString()
