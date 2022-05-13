@@ -23,8 +23,7 @@ const roles = {
     },
     merchant: {
         id: 1,
-        can: [config.operations.USERS_DETAIL
-        ]
+        can: [config.operations.USERS_DETAIL]
     },
     customer_service: {
         id: 10,
@@ -66,17 +65,11 @@ const roles = {
     },
     customer_service_bank_chat: {
         id: 13,
-        can: [
-            config.operations.TASK_EXPORT_ACCOUNT_WITHADAW,
-            config.operations.USER_RESET_BANK_VERIFICATION,
-            config.operations.USER_UPDATE_2FA
-        ]
+        can: [config.operations.TASK_EXPORT_ACCOUNT_WITHADAW, config.operations.USER_RESET_BANK_VERIFICATION, config.operations.USER_UPDATE_2FA]
     },
     customer_service_user_presale: {
         id: 15,
-        can: [
-            config.operations.USERS_PRESALE
-        ]
+        can: [config.operations.USERS_PRESALE]
     },
     customer_service_admin: {
         id: 20,
@@ -119,7 +112,9 @@ function isMerchant(roleObj: number) {
 }
 
 function can(role: number, operation: string) {
-    if (isAdmin(role)) { return true }
+    if (isAdmin(role)) {
+        return true
+    }
 
     const matchingRole = _.filter(roles, function (o: any) {
         return o.id === role
@@ -129,91 +124,89 @@ function can(role: number, operation: string) {
 }
 
 function userCan(operation: string) {
-    return [function (req: any, res: any, next: any) {
-        if (operation === config.operations.API_DOCUMENTATION) {
-            if (config.APPLICATION_OPENAPI_DOCS_ENABLED) {
+    return [
+        function (req: any, res: any, next: any) {
+            if (operation === config.operations.API_DOCUMENTATION) {
+                if (config.APPLICATION_OPENAPI_DOCS_ENABLED) {
+                    return next()
+                }
+                return res.sendStatus(401)
+            }
+
+            const userRole = req.user.role
+
+            if (userRole === roles.user.id && operation === config.operations.USERS_DETAIL && req.user.key === req.params.key) {
                 return next()
             }
+
+            if (can(userRole, operation)) {
+                return next()
+            }
+
             return res.sendStatus(401)
         }
-
-        const userRole = req.user.role
-
-        if ((userRole === roles.user.id) &&
-            (operation === config.operations.USERS_DETAIL && req.user.key === req.params.key)) {
-            return next()
-        }
-
-        if (can(userRole, operation)) {
-            return next()
-        }
-
-        return res.sendStatus(401)
-    }]
+    ]
 }
 
 function requireAdmin() {
-    return [function (req: any, res: any, next: any) {
-        if (req.user.role === roles.admin.id || req.user.role === roles.master_admin.id) {
-            next()
-        } else {
-            // return res.sendStatus(401);
-            next()
+    return [
+        function (req: any, res: any, next: any) {
+            if (req.user.role === roles.admin.id || req.user.role === roles.master_admin.id) {
+                next()
+            } else {
+                // return res.sendStatus(401);
+                next()
+            }
         }
-    }]
+    ]
 }
 
 function requireMasterAdmin() {
-    return [function (req: any, res: any, next: any) {
-        if (req.user.role === roles.master_admin.id) {
-            next()
-        } else {
-            return res.sendStatus(401)
+    return [
+        function (req: any, res: any, next: any) {
+            if (req.user.role === roles.master_admin.id) {
+                next()
+            } else {
+                return res.sendStatus(401)
+            }
         }
-    }]
+    ]
 }
 
 function requireMerchant() {
-    return [function (req: any, res: any, next: any) {
-        if (req.user.role == roles.admin.id || req.user.role == roles.merchant.id) {
-            next()
-        } else {
-            return res.sendStatus(401)
+    return [
+        function (req: any, res: any, next: any) {
+            if (req.user.role === roles.admin.id || req.user.role === roles.merchant.id) {
+                next()
+            } else {
+                return res.sendStatus(401)
+            }
         }
-    }]
+    ]
 }
 
 function requireOwner(section: string) {
-    return [function (req: any, res: any, next: any) {
-        if (req.user.role == roles.admin.id) {
-            return next()
+    return [
+        function (req: any, res: any, next: any) {
+            if (req.user.role === roles.admin.id) {
+                return next()
+            }
+            if (section === 'users') {
+                if (req.user.key === req.params.key || can(req.user.role, config.operations.USERS_DETAIL)) {
+                    return next()
+                }
+            } else if (section === 'logs') {
+                if (req.user.key === req.params.key) {
+                    return next()
+                }
+            } else if (section === 'accounts') {
+                if (req.user.key === req.params.key) {
+                    return next()
+                }
+            }
+            return res.sendStatus(401)
         }
-        if (section == 'users') {
-            if (req.user.key == req.params.key || can(req.user.role, config.operations.USERS_DETAIL)) {
-                return next()
-            }
-        } else if (section == 'logs') {
-            if (req.user.key == req.params.key) {
-                return next()
-            }
-        } else if (section == 'accounts') {
-            if (req.user.key == req.params.key) {
-                return next()
-            }
-        }
-        return res.sendStatus(401)
-    }]
+    ]
 }
 
-export {
-    requireAdmin,
-    requireMasterAdmin,
-    requireMerchant,
-    requireOwner,
-    isAdmin,
-    isMerchant,
-    isMasterAdmin,
-    can,
-    userCan,
-    role
-}
+export { requireAdmin, requireMasterAdmin, requireMerchant, requireOwner, isAdmin, isMerchant, isMasterAdmin, can, userCan, role }

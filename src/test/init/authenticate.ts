@@ -6,7 +6,7 @@ import { CodeType } from '@modules/verification_code/code.interface'
 import chai from 'chai'
 import { config } from '@config'
 import { role } from '@config/role'
-const { expect, assert } = chai
+const { expect } = chai
 
 export const initDataForUser = async (shareData: any, data: object = {}) => {
     const formData = { ...userData, ...data }

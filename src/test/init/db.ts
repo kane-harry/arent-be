@@ -4,7 +4,7 @@ import mongoUnit from 'mongo-unit'
 import UserModel from '@modules/user/user.model'
 import VerificationCode from '@modules/verification_code/code.model'
 import AccountModel from '@modules/account/account.model'
-const { expect, assert } = chai
+const { expect } = chai
 
 export const dbTest = {
     mongoose,

@@ -12,8 +12,8 @@ module.exports = {
     plugins: ['@typescript-eslint'],
     rules: {
         '@typescript-eslint/no-explicit-any': 0,
-        'no-console': 1,
-        'no-undef': 1,
+        'no-console': 0,
+        'no-undef': 0,
         'no-use-before-define': 1,
         'no-duplicate-imports': 2,
         camelcase: 0,
@@ -21,13 +21,16 @@ module.exports = {
         'no-empty-function': 1,
         'no-lonely-if': 1,
         semi: [1, 'never'],
-        '@typescript-eslint/no-unused-vars': 1,
+        '@typescript-eslint/no-unused-vars': 0,
         'no-unreachable': 1,
         quotes: [2, 'single', { avoidEscape: true }],
         'no-trailing-spaces': 1,
         'no-multiple-empty-lines': 1,
         'space-before-function-paren': 0,
-        'no-useless-constructor': 1,
-        indent: ['error', 4]
+        'no-useless-constructor': 0,
+        indent: ['error', 4],
+        'no-unused-vars': 'off',
+        'no-case-declarations': 'off',
+        'no-unused-expressions': 'off'
     }
 }
