@@ -6,7 +6,7 @@ import { CustomRequest } from '@middlewares/request.middleware'
 import { WithdrawDto } from './account.dto'
 import { IAccountFilter } from './account.interface'
 import AccountService from './account.service'
-import {PrimeCoinProvider} from "@providers/coin.provider";
+import { PrimeCoinProvider } from '@providers/coin.provider'
 // import { requireAuth } from '@common/authCheck'
 
 class AccountController implements IController {

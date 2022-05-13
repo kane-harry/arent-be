@@ -8,12 +8,8 @@ import { ethers } from 'ethers'
  */
 export const parsePrimeAmount = (amount: any) => {
     const decimal = config.system.primeDecimals
-    try{
-        amount = amount.toString().split(',').join('')
-        return ethers.utils.parseUnits(amount.toString(), decimal)
-    } catch (e) {
-        throw e
-    }
+    amount = amount.toString().split(',').join('')
+    return ethers.utils.parseUnits(amount.toString(), decimal)
 }
 
 /**

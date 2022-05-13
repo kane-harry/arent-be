@@ -8,7 +8,7 @@ import { SendPrimeCoinsDto } from './transaction.dto'
 import { ITransactionFilter } from './transaction.interface'
 import { downloadResource } from '@utils/utility'
 import { requireAuth } from '@common/authCheck'
-import UserModel from "@modules/user/user.model";
+import UserModel from '@modules/user/user.model'
 
 class TransactionController implements IController {
     public path = '/transactions'
@@ -29,17 +29,17 @@ class TransactionController implements IController {
         const params: SendPrimeCoinsDto = req.body
         const operator = req.user
 
-        const session = await UserModel.startSession();
-        session.startTransaction();
+        const session = await UserModel.startSession()
+        session.startTransaction()
         try {
             const data = await TransactionService.sendPrimeCoins(params, operator)
-            await session.commitTransaction();
-            session.endSession();
+            await session.commitTransaction()
+            session.endSession()
             return res.json(data)
         } catch (error) {
-            await session.abortTransaction();
-            session.endSession();
-            throw error;
+            await session.abortTransaction()
+            session.endSession()
+            throw error
         }
     }
 

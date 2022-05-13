@@ -5,7 +5,7 @@ import { CustomRequest } from '@middlewares/request.middleware'
 import AdminService from './admin.service'
 import { requireAdmin } from '@config/role'
 import { LockUserDto } from '@modules/admin/admin.dto'
-import {requireAuth} from "@common/authCheck";
+import { requireAuth } from '@common/authCheck'
 
 class AdminController implements IController {
     public path = '/admin'
