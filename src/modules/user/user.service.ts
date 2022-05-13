@@ -4,15 +4,15 @@ import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { forEach } from 'lodash'
-import {GetUserListDto, Update2FAUserDto, UpdateUserDto} from './user.dto'
+import { GetUserListDto, Update2FAUserDto, UpdateUserDto } from './user.dto'
 import UserModel from './user.model'
 import { generateTotpToken, verifyTotpToken } from '@common/twoFactor'
 import sendEmail from '@common/email'
 import { TwoFactorType } from '@modules/auth/auth.interface'
 import * as bcrypt from 'bcrypt'
-import {unixTimestampToDate} from "@utils/utility";
-import {IUser} from "@modules/user/user.interface";
-import {QueryRO} from "@interfaces/query.model";
+import { unixTimestampToDate } from '@utils/utility'
+import { IUser } from '@modules/user/user.interface'
+import { QueryRO } from '@interfaces/query.model'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -54,7 +54,7 @@ export default class UserService {
     }
 
     public static getUserByNickname = async (nickName: string) => {
-        return await UserModel.findOne({ nickName: {$regex: nickName, $options: 'i' } }).exec()
+        return await UserModel.findOne({ nickName: { $regex: nickName, $options: 'i' } }).exec()
     }
 
     static createCreateTransaction = async (transactionParams: any) => {
@@ -92,9 +92,9 @@ export default class UserService {
         await sendEmail(subject, text, html, user.email)
 
         if (process.env.NODE_ENV === 'development') {
-            return {secret: twoFactorSecret, token: token}
+            return { secret: twoFactorSecret, token: token }
         }
-        return {secret: twoFactorSecret}
+        return { secret: twoFactorSecret }
     }
 
     public static updateTwoFactorUser = async (data: Update2FAUserDto, options: { req: AuthenticationRequest }) => {
@@ -103,21 +103,21 @@ export default class UserService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
         switch (data.twoFactorEnable) {
-            case TwoFactorType.PIN:
-                const pinHash = await bcrypt.hash(data.token, 10)
-                user?.set('twoFactorEnable', TwoFactorType.PIN, String)
-                user?.set('pin', pinHash || user.pin, String)
-                break
-            case TwoFactorType.TOTP:
-                const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
-                if (!verifyTotpToken(twoFactorSecret, data.token)) {
-                    throw new BizException(AuthErrors.token_error, new ErrorContext('user.service', 'updateUser', {}))
-                }
-                user?.set('twoFactorEnable', TwoFactorType.TOTP, String)
-                break
-            case TwoFactorType.SMS:
-                user?.set('twoFactorEnable', TwoFactorType.SMS, String)
-                break
+        case TwoFactorType.PIN:
+            const pinHash = await bcrypt.hash(data.token, 10)
+            user?.set('twoFactorEnable', TwoFactorType.PIN, String)
+            user?.set('pin', pinHash || user.pin, String)
+            break
+        case TwoFactorType.TOTP:
+            const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
+            if (!verifyTotpToken(twoFactorSecret, data.token)) {
+                throw new BizException(AuthErrors.token_error, new ErrorContext('user.service', 'updateUser', {}))
+            }
+            user?.set('twoFactorEnable', TwoFactorType.TOTP, String)
+            break
+        case TwoFactorType.SMS:
+            user?.set('twoFactorEnable', TwoFactorType.SMS, String)
+            break
         }
         user?.save()
 
@@ -127,10 +127,10 @@ export default class UserService {
     public static getUserList = async (params: GetUserListDto) => {
         const offset = (params.pageindex - 1) * params.pagesize
         const reg = new RegExp(params.terms)
-        let filter = {
+        const filter = {
             $or: [{ key: reg }, { email: reg }, { phone: reg }],
-            $and: [{ created: { $exists: true } }],
-        };
+            $and: [{ created: { $exists: true } }]
+        }
         if (params.datefrom) {
             const dateFrom = unixTimestampToDate(params.datefrom)
             // @ts-ignore

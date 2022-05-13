@@ -5,7 +5,7 @@ import { MintDto } from '@modules/account/account.dto'
 import validationMiddleware from '@middlewares/validation.middleware'
 import AccountMasterService from './account.master.service'
 import { requireAuth } from '@common/authCheck'
-import {requireAdmin} from "@config/role";
+import { requireAdmin } from '@config/role'
 
 class AccountController implements IController {
     public path = '/master/accounts'

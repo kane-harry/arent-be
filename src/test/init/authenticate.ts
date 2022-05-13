@@ -1,15 +1,15 @@
 // @ts-nocheck
 import server from '@app/server'
 import request from 'supertest'
-import {MODELS, validResponse} from "@app/test/init/db";
-import {CodeType} from "@modules/verification_code/code.interface";
+import { MODELS, validResponse } from '@app/test/init/db'
+import { CodeType } from '@modules/verification_code/code.interface'
 import chai from 'chai'
-import {config} from "@config";
-import {role} from "@config/role";
+import { config } from '@config'
+import { role } from '@config/role'
 const { expect, assert } = chai
 
 export const initDataForUser = async (shareData: any, data: object = {}) => {
-    const formData = {...userData, ...data}
+    const formData = { ...userData, ...data }
 
     if (config.system.registrationRequireEmailVerified) {
         await getVerificationCode(formData.email)
@@ -21,7 +21,7 @@ export const initDataForUser = async (shareData: any, data: object = {}) => {
     expect(res.status).equal(200)
     expect(res.body.success).equal(true)
 
-    const res1 = await request(server.app).post('/auth/login').send({email: formData.email, password: formData.password, token: userData.pin})
+    const res1 = await request(server.app).post('/auth/login').send({ email: formData.email, password: formData.password, token: userData.pin })
     validResponse(res1.body)
     expect(res1.status).equal(200)
 
@@ -72,7 +72,7 @@ export const verifyCode = async (email: string) => {
 }
 
 export const makeAdmin = async (data: object = {}) => {
-    const formData = {...userData, ...data}
+    const formData = { ...userData, ...data }
     const user = await MODELS.UserModel.findOne({ email: formData.email }).exec()
     user?.set('role', role.admin.id, Number)
     user?.save()

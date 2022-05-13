@@ -1,11 +1,11 @@
-import UserModel from "@modules/user/user.model";
+import UserModel from '@modules/user/user.model'
 const phoneNumber = require('libphonenumber-js')
 
 async function stripPhoneNumber(phoneNumber: string) {
     if (typeof phoneNumber === 'string') {
-        return phoneNumber.replace(/\D/g, '');
+        return phoneNumber.replace(/\D/g, '')
     }
-    return phoneNumber;
+    return phoneNumber
 }
 
 async function formatPhoneNumberWithSymbol(phone: string) {
@@ -16,8 +16,8 @@ async function formatPhoneNumberWithSymbol(phone: string) {
 async function associatedPhoneCheck(phone: string, userkey: any) {
     let valid = true
 
-    let strippedNumber = await stripPhoneNumber(phone)
-    const user = await UserModel.findOne({phone: strippedNumber}).exec()
+    const strippedNumber = await stripPhoneNumber(phone)
+    const user = await UserModel.findOne({ phone: strippedNumber }).exec()
     if (user) {
         if (userkey && user.key === userkey) {
             valid = true
@@ -30,12 +30,12 @@ async function associatedPhoneCheck(phone: string, userkey: any) {
 }
 
 async function getPhoneInfo(phone: string) {
-    let formatted = await formatPhoneNumberWithSymbol(phone)
+    const formatted = await formatPhoneNumberWithSymbol(phone)
     let result = {
         isValid: false,
         number: ''
     }
-    let phoneInfo = phoneNumber.parsePhoneNumberFromString(formatted)
+    const phoneInfo = phoneNumber.parsePhoneNumberFromString(formatted)
     if (phoneInfo) {
         phoneInfo.isValid = phoneInfo.isValid()
 
@@ -43,7 +43,7 @@ async function getPhoneInfo(phone: string) {
             return result
         }
 
-        phoneInfo.country = phoneInfo.country.toUpperCase();
+        phoneInfo.country = phoneInfo.country.toUpperCase()
         result = phoneInfo
     }
     result.number = await stripPhoneNumber(phone)

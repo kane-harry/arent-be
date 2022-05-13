@@ -1,12 +1,12 @@
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
-import {AuthErrors} from '@exceptions/custom.error'
-import {toLower, trim} from 'lodash'
+import { AuthErrors } from '@exceptions/custom.error'
+import { toLower, trim } from 'lodash'
 import moment from 'moment'
-import {CreateCodeDto, VerifyCodeDto} from './code.dto'
-import {VerificationCode} from './code.model'
+import { CreateCodeDto, VerifyCodeDto } from './code.dto'
+import { VerificationCode } from './code.model'
 import UserModel from '@modules/user/user.model'
-import {CodeType} from './code.interface'
+import { CodeType } from './code.interface'
 import crypto from 'crypto'
 import sendEmail from '@common/email'
 import sendSms from '@common/sms'
@@ -14,9 +14,9 @@ import sendSms from '@common/sms'
 export default class VerificationCodeService {
     static async generateCode(params: CreateCodeDto) {
         const owner = toLower(trim(params.owner))
-        let filter = {
-            $or: [{ email: params.owner }, { phone: params.owner }],
-        };
+        const filter = {
+            $or: [{ email: params.owner }, { phone: params.owner }]
+        }
         const user = await UserModel.findOne(filter).exec()
         if (user) {
             if (params.codeType === CodeType.EmailRegistration) {
@@ -65,13 +65,13 @@ export default class VerificationCodeService {
         const text = ''
         const html = `This is your ${params.codeType} verification code: <b>${code}</b>`
         switch (params.codeType) {
-            case CodeType.SMSLogIn:
-            case CodeType.SMS:
-                await sendSms(subject, html, html, owner)
-                break
-            default:
-                await sendEmail(subject, html, html, owner)
-                break
+        case CodeType.SMSLogIn:
+        case CodeType.SMS:
+            await sendSms(subject, html, html, owner)
+            break
+        default:
+            await sendEmail(subject, html, html, owner)
+            break
         }
 
         if (process.env.NODE_ENV === 'development') {

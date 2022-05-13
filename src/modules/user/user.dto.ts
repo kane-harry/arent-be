@@ -1,5 +1,5 @@
 import { IsOptional, IsString, Length } from 'class-validator'
-import IFilterModel from "@interfaces/filter.model.interface";
+import IFilterModel from '@interfaces/filter.model.interface'
 
 export class CreateUserDto {
     @IsString()

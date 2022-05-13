@@ -75,11 +75,11 @@ export const config = {
         TASKS_LIST_USER_BANK: 'tasks_list_user_bank',
         TASKS_LIST_USER_KYC: 'tasks_list_user_kyc',
         TASK_APPROVE: 'tasks_approve',
-        TASK_APPROVE_USER_BANK: "task_approve_user_bank",
+        TASK_APPROVE_USER_BANK: 'task_approve_user_bank',
         TASK_APPROVE_USER_KYC: 'task_approve_user_kyc',
         TASK_REJECT: 'task_reject',
         TASK_REJECT_USER_KYC: 'task_reject_user_kyc',
-        TASK_REJECT_USER_BANK: "task_reject_user_bank",
+        TASK_REJECT_USER_BANK: 'task_reject_user_bank',
         TASK_EXPORT_ACCOUNT_WITHADAW: 'tasks_export_account_withdraw',
         USERS_DETAIL: 'users_detail',
         USER_RESET_BANK_VERIFICATION: 'user_rest_bank_verification',
@@ -101,5 +101,5 @@ export const config = {
         USER_LIST_EXPORT: 'users_export',
         VIEW_USER_DETAIL: 'view_user_detail',
         UPDATE_PHONE_STATUS: 'update_phone_status'
-    },
+    }
 }
