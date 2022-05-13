@@ -91,7 +91,10 @@ export default class UserService {
 
         await sendEmail(subject, text, html, user.email)
 
-        return {secret: twoFactorSecret, token: token}
+        if (process.env.NODE_ENV === 'development') {
+            return {secret: twoFactorSecret, token: token}
+        }
+        return {secret: twoFactorSecret}
     }
 
     public static updateTwoFactorUser = async (data: Update2FAUserDto, options: { req: AuthenticationRequest }) => {

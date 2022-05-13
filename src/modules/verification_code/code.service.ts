@@ -74,8 +74,10 @@ export default class VerificationCodeService {
                 break
         }
 
-        // Temporary return code //TODO remove code later
-        return { success: true, code: code }
+        if (process.env.NODE_ENV === 'development') {
+            return { success: true, code: code }
+        }
+        return { success: true }
     }
 
     static async verifyCode(params: VerifyCodeDto) {
