@@ -66,7 +66,7 @@ class UserController implements IController {
             nickName: data?.nickName,
             country: data?.country,
             avatar: data?.avatar,
-            status: data?.status,
+            status: data?.status
         }
         return res.send(resData)
     }

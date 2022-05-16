@@ -31,7 +31,7 @@ export default class AuthService {
             const duplicateInfo = {
                 email: userData.email === user.email ? userData.email : '',
                 phone: userData.phone === user.phone ? userData.phone : '',
-                nickName: userData.nickName === user.nickName ? userData.nickName : '',
+                nickName: userData.nickName === user.nickName ? userData.nickName : ''
             }
             throw new BizException(
                 AuthErrors.registration_info_exists_error,

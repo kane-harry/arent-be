@@ -11,7 +11,7 @@ import { AccountExtType } from '@modules/account/account.interface'
 import { config } from '@config'
 import { parsePrimeAmount, formatAmount } from '@utils/number'
 import { ethers } from 'ethers'
-import {UserStatus} from "@modules/user/user.interface";
+import { UserStatus } from '@modules/user/user.interface'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: Express.User | undefined) {
