@@ -44,6 +44,28 @@ export const userData = {
     country: 'country'
 }
 
+export const user1Data = {
+    firstName: 'John',
+    lastName: 'Smith',
+    nickName: 'jsmith9',
+    email: 'email1@gmail.com',
+    password: 'Test123!',
+    pin: '2222',
+    phone: '1234',
+    country: 'country'
+}
+
+export const adminData = {
+    firstName: 'John',
+    lastName: 'Smith',
+    nickName: 'admin',
+    email: 'admin1@gmail.com',
+    password: 'Test123!',
+    pin: '3333',
+    phone: '5678',
+    country: 'country'
+}
+
 export const getVerificationCode = async (email: string, codeType:string) => {
     const res = await request(server.app).post('/verification/code/get').send({
         codeType: codeType,

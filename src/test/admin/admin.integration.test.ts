@@ -3,7 +3,7 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
-import {initDataForUser, makeAdmin} from '@app/test/init/authenticate'
+import {adminData, initDataForUser, makeAdmin} from '@app/test/init/authenticate'
 import {UserStatus} from "@modules/user/user.interface";
 
 chai.use(chaiAsPromised)
@@ -25,8 +25,8 @@ describe('Admin', () => {
     }).timeout(10000)
 
     it('InitDataForAdmin', async () => {
-        await initDataForUser(adminShareData, {email: 'admin@gmail.com'})
-        await makeAdmin({email: 'admin@gmail.com'})
+        await initDataForUser(adminShareData, adminData)
+        await makeAdmin(adminData)
     }).timeout(10000)
 
     it('LockUser', async () => {
