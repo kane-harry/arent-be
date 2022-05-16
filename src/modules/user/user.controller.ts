@@ -36,11 +36,12 @@ class UserController implements IController {
 
         this.router.post(`${this.path}/info`, requireAuth, asyncHandler(this.updateUser))
 
-        this.router.get(`${this.path}/info/:nickName`, asyncHandler(this.getUserByNickName))
+        this.router.get(`${this.path}/info/:nickName`, asyncHandler(this.getPublicUserByNickName))
 
         this.router.post(`${this.path}/2fa/generate`, requireAuth, asyncHandler(this.generateTwoFactorUser))
         this.router.post(`${this.path}/2fa/update`, requireAuth, asyncHandler(this.updateTwoFa))
         this.router.get(`${this.path}/list`, requireAuth, asyncHandler(this.getUserList))
+        this.router.get(`${this.path}/me`, requireAuth, asyncHandler(this.getMyProfile))
     }
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {
@@ -55,10 +56,23 @@ class UserController implements IController {
         return res.send(data)
     }
 
-    private getUserByNickName = async (req: Request, res: Response) => {
+    private getPublicUserByNickName = async (req: Request, res: Response) => {
         const nickName: string = req.params.nickName
         const data = await UserService.getUserByNickname(nickName)
-        return res.send(data)
+        const resData = {
+            key: data?.key,
+            firstName: data?.firstName,
+            lastName: data?.lastName,
+            nickName: data?.nickName,
+            country: data?.country,
+            avatar: data?.avatar,
+            status: data?.status,
+        }
+        return res.send(resData)
+    }
+
+    private getMyProfile = async (req: Request, res: Response) => {
+        return res.send(req?.user)
     }
 
     private generateTwoFactorUser = async (req: AuthenticationRequest, res: Response) => {

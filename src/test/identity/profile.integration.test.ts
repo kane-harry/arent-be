@@ -128,4 +128,17 @@ describe('Profile', () => {
         expect(res.body.pageIndex).equal(pageIndex)
         expect(res.body.pageSize).equal(pageSize)
     }).timeout(10000)
+
+    it('GetProfile', async () => {
+        const res = await request(server.app).get(`/users/me`).set('Authorization', `Bearer ${shareData.token}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+
+        const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
+        expect(user?.firstName).equal(res.body.firstName)
+        expect(user?.lastName).equal(res.body.lastName)
+        expect(user?.nickName).equal(res.body.nickName)
+        expect(user?.phone).equal(res.body.phone)
+        expect(user?.country).equal(res.body.country)
+    }).timeout(10000)
 })
