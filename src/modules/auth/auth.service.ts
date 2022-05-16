@@ -23,11 +23,19 @@ import { verifyTotpToken } from '@common/twoFactor'
 export default class AuthService {
     static async register(userData: CreateUserDto, options?: { req: CustomRequest }) {
         userData = AuthService.formatCreateUserDto(userData)
-        const user = await UserModel.findOne({ email: userData.email }).exec()
+        const filter = {
+            $or: [{ email: userData.email }, { phone: userData.phone }, { nickName: userData.nickName }]
+        }
+        const user = await UserModel.findOne(filter).exec()
         if (user) {
+            const duplicateInfo = {
+                email: userData.email === user.email ? userData.email : '',
+                phone: userData.phone === user.phone ? userData.phone : '',
+                nickName: userData.nickName === user.nickName ? userData.nickName : '',
+            }
             throw new BizException(
-                AuthErrors.registration_email_exists_error,
-                new ErrorContext('auth.service', 'register', { email: userData.email })
+                AuthErrors.registration_info_exists_error,
+                new ErrorContext('auth.service', 'register', duplicateInfo)
             )
         }
         let emailVerified = false

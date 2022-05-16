@@ -6,6 +6,7 @@ export const CommonErrors = {
     request_forbidden_error: { code: 1004, status: 403, message: 'Forbidden' }
 }
 export const AuthErrors = {
+    registration_info_exists_error: { code: 2001, status: 400, message: 'Info already exists.' },
     registration_email_exists_error: { code: 2001, status: 400, message: 'This email already exists.' },
     registration_email_not_verified_error: { code: 2002, status: 400, message: 'Please verify your email address.' },
     registration_email_already_verified_error: { code: 2003, status: 400, message: 'This email is already verified.' },
