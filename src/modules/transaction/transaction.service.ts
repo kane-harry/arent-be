@@ -11,6 +11,7 @@ import { AccountExtType } from '@modules/account/account.interface'
 import { config } from '@config'
 import { parsePrimeAmount, formatAmount } from '@utils/number'
 import { ethers } from 'ethers'
+import {UserStatus} from "@modules/user/user.interface";
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: Express.User | undefined) {
@@ -44,6 +45,13 @@ export default class TransactionService {
                     new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
                 )
             }
+        }
+        // @ts-ignore
+        if (operator && operator?.status === UserStatus.Suspend) {
+            throw new BizException(
+                TransactionErrors.account_is_suspend,
+                new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
+            )
         }
         const senderBalance = parsePrimeAmount(senderAccount.amount).sub(parsePrimeAmount(senderAccount.amountLocked))
         if (senderBalance.lt(amount)) {

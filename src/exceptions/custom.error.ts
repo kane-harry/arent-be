@@ -38,5 +38,6 @@ export const TransactionErrors = {
     recipient_account_not_exists_error: { code: 4002, status: 400, message: 'Recipient account not found.' },
     sender_insufficient_balance_error: { message: 'Insufficient funds to complete transaction.', code: 4003, status: 400 },
     account_mint_type_error: { code: 4004, status: 400, message: 'Account does not support mint amount.' },
-    send_amount_less_than_fee_error: { message: 'Send amount must greater than transfer fee.', code: 4005, status: 400 }
+    send_amount_less_than_fee_error: { message: 'Send amount must greater than transfer fee.', code: 4005, status: 400 },
+    account_is_suspend: { code: 4006, status: 400, message: 'Account is suspend.' }
 }
