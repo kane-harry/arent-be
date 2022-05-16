@@ -28,6 +28,11 @@ export default class VerificationCodeService {
                     new ErrorContext('auth.service', 'generateCode', { owner: owner })
                 )
             }
+        } else {
+            //User not exist. Allow register only
+            if (params.codeType !== CodeType.EmailRegistration) {
+                throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'generateCode', { owner: owner }))
+            }
         }
         const code = VerificationCode.generate({ length: 6, charset: 'numeric' })
         const codeData = await VerificationCode.findOne({ owner: owner, type: params.codeType }).exec()
