@@ -2,7 +2,7 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import {dbTest, MODELS} from '../init/db'
+import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import {adminData, initDataForUser, makeAdmin, user1Data} from "@app/test/init/authenticate";
 import {config} from "@config";
@@ -13,6 +13,8 @@ const symbol = config.system.primeToken
 let shareData1 = {user: {}, token: '', refreshToken: '', accounts: [], transactions: [], masterAccounts: []}
 let shareData2 = {user: {}, token: '', refreshToken: '', accounts: [], transactions: []}
 let masterData = {user: {}, token: '', refreshToken: '', accounts: [], transactions: []}
+const amountSend = 12.023
+const fee = config.system.primeTransferFee
 describe('Transaction', () => {
     before(async () => {
         await dbTest.connect()
@@ -74,6 +76,14 @@ describe('Transaction', () => {
         expect(res1.status).equal(200)
     }).timeout(10000)
 
+    it('Validate Sender Amount After Mint', async () => {
+        const account = shareData1.masterAccounts[0]
+        const res = await request(server.app).get(`/accounts/${account.key}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.amount).equal(100)
+    }).timeout(10000)
+
     it('Send Funds', async () => {
         const sender = shareData1.masterAccounts[0]
         const recipient = shareData2.accounts[0]
@@ -83,13 +93,29 @@ describe('Transaction', () => {
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
-                amount: '12.123',
+                amount: amountSend.toString(),
                 nonce: '1',
                 notes: 'test notes',
             })
         expect(res.status).equal(200)
         expect(res.body.senderTxn).be.an('string')
         expect(res.body.recipientTxn).be.an('string')
+    }).timeout(10000)
+
+    it('Validate Sender Amount After Send', async () => {
+        const account = shareData1.masterAccounts[0]
+        const res = await request(server.app).get(`/accounts/${account.key}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.amount).equal(100 - amountSend + fee)
+    }).timeout(10000)
+
+    it('Validate Recipient Amount After Send', async () => {
+        const account = shareData2.accounts[0]
+        const res = await request(server.app).get(`/accounts/${account.key}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.amount).equal(amountSend - fee)
     }).timeout(10000)
 
     it('Get Transactions by Account', async () => {
