@@ -57,6 +57,12 @@ export default class TransactionService {
         const transferFeeBig = parsePrimeAmount(Number(config.system.primeTransferFee))
         // const sendAmount = amount.sub(transferFee).toString() // needs to solve decimal precisions
 
+        if (amount.lt(transferFeeBig)) {
+            throw new BizException(
+                TransactionErrors.send_amount_less_than_fee_error,
+                new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender, balance: senderAccount.amount, amount })
+            )
+        }
         const sendAmount = formatAmount(amount.sub(transferFeeBig).toString())
 
         const senderKeyStore = await AccountService.getAccountKeyStore(senderAccount.key)
