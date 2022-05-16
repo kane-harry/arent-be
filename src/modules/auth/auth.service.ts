@@ -30,6 +30,7 @@ export default class AuthService {
                 new ErrorContext('auth.service', 'register', { email: userData.email })
             )
         }
+        let emailVerified = false
         if (config.system.registrationRequireEmailVerified) {
             const codeData = await VerificationCode.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
             if (!codeData || codeData.enabled) {
@@ -38,6 +39,7 @@ export default class AuthService {
                     new ErrorContext('auth.service', 'generateCode', { email: userData.email })
                 )
             }
+            emailVerified = true
         }
 
         const mode = new UserModel({
@@ -47,7 +49,8 @@ export default class AuthService {
             pin: await bcrypt.hash(userData.pin, 10),
             avatar: null,
             twoFactorEnable: TwoFactorType.EMAIL,
-            role: 0
+            role: 0,
+            emailVerified
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)
