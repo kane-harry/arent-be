@@ -1,4 +1,4 @@
-import { IAccount, IAccountFilter, AccountType, AccountExtType } from './account.interface'
+import { AccountExtType, AccountType, IAccount, IAccountFilter } from './account.interface'
 import AccountModel from './account.model'
 import { createEtherWallet } from '@utils/wallet'
 import { QueryRO } from '@interfaces/query.model'
@@ -97,6 +97,17 @@ export default class AccountService {
 
     static async getAccountByKey(key: string) {
         const account = await AccountModel.findOne({ key }).select('-keyStore -salt').exec()
+        if (account?.extType === AccountExtType.Prime) {
+            const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
+            account.amount = wallet.amount
+            account.nonce = wallet.nonce
+        }
+
+        return account
+    }
+
+    static async getAccountBySymbol(symbol: string, userId: string) {
+        const account = await AccountModel.findOne({ symbol, userId }).select('-keyStore -salt').exec()
         if (account?.extType === AccountExtType.Prime) {
             const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
             account.amount = wallet.amount

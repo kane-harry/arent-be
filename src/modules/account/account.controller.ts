@@ -10,6 +10,7 @@ import { PrimeCoinProvider } from '@providers/coin.provider'
 import { ITransactionFilter } from '@modules/transaction/transaction.interface'
 import TransactionService from '@modules/transaction/transaction.service'
 import { downloadResource } from '@utils/utility'
+import { requireAuth } from '@common/authCheck'
 // import { requireAuth } from '@common/authCheck'
 
 class AccountController implements IController {
@@ -23,6 +24,7 @@ class AccountController implements IController {
     private initRoutes() {
         this.router.get(`${this.path}`, asyncHandler(this.queryAccounts))
         this.router.get(`${this.path}/:key`, asyncHandler(this.getAccountByKey))
+        this.router.get(`${this.path}/symbol/:symbol`, requireAuth, asyncHandler(this.getAccountBySymbol))
         this.router.get(`${this.path}/:key/trx/export`, asyncHandler(this.getExportTransactionByAccountKey))
         this.router.get(`${this.path}/user/:userId`, asyncHandler(this.getUserAccounts))
         this.router.post(`${this.path}/:key/withdraw`, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
@@ -31,6 +33,14 @@ class AccountController implements IController {
     private async getAccountByKey(req: Request, res: Response) {
         const key = req.params.key
         const data = await AccountService.getAccountByKey(key)
+        return res.json(data)
+    }
+
+    private async getAccountBySymbol(req: Request, res: Response) {
+        const symbol = req.params.symbol
+        // @ts-ignore
+        const userId = req.user ? req.user.key : ''
+        const data = await AccountService.getAccountBySymbol(symbol, userId)
         return res.json(data)
     }
 

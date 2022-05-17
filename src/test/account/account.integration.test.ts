@@ -9,7 +9,7 @@ import { initDataForUser } from '@app/test/init/authenticate'
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
 let shareData = { user: { key: '' }, token: '', refreshToken: '', accounts: [] }
-
+const symbol = 'LL'
 describe('Account', () => {
     before(async () => {
         await dbTest.connect()
@@ -50,5 +50,17 @@ describe('Account', () => {
         expect(res.body.platform).equal(account.platform)
         expect(res.body.type).equal(account.type)
         expect(res.body.address).equal(account.address)
+    }).timeout(10000)
+
+    it('GetMyAccountsBySymbol', async () => {
+        const res = await request(server.app)
+            .get(`/accounts/symbol/${symbol}`)
+            .set('Authorization', `Bearer ${shareData.token}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+
+        expect(res.body).be.an('object')
+        expect(res.body.symbol).equal(symbol)
+        expect(res.body.userId).equal(shareData.user.key)
     }).timeout(10000)
 })
