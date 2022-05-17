@@ -70,6 +70,7 @@ export default class VerificationCodeService {
         const text = ''
         const html = `This is your ${params.codeType} verification code: <b>${code}</b>`
         switch (params.codeType) {
+        case CodeType.PhoneUpdate:
         case CodeType.SMSLogIn:
         case CodeType.SMS:
             await sendSms(subject, html, html, owner)
