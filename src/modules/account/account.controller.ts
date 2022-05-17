@@ -7,6 +7,9 @@ import { WithdrawDto } from './account.dto'
 import { IAccountFilter } from './account.interface'
 import AccountService from './account.service'
 import { PrimeCoinProvider } from '@providers/coin.provider'
+import { ITransactionFilter } from '@modules/transaction/transaction.interface'
+import TransactionService from '@modules/transaction/transaction.service'
+import { downloadResource } from '@utils/utility'
 // import { requireAuth } from '@common/authCheck'
 
 class AccountController implements IController {
@@ -20,6 +23,7 @@ class AccountController implements IController {
     private initRoutes() {
         this.router.get(`${this.path}`, asyncHandler(this.queryAccounts))
         this.router.get(`${this.path}/:key`, asyncHandler(this.getAccountByKey))
+        this.router.get(`${this.path}/:key/trx/export`, asyncHandler(this.getExportTransactionByAccountKey))
         this.router.get(`${this.path}/user/:userId`, asyncHandler(this.getUserAccounts))
         this.router.post(`${this.path}/:key/withdraw`, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
     }
@@ -53,6 +57,31 @@ class AccountController implements IController {
         const params: WithdrawDto = req.body
         const data = await AccountService.withdraw(key, params)
         return res.json(data)
+    }
+
+    private async getExportTransactionByAccountKey(req: CustomRequest, res: Response) {
+        const key = req.params.key
+        const filter = req.query as ITransactionFilter
+        const operator = req.user
+        const data = await TransactionService.queryTxnsByAccount(key, filter, operator)
+
+        const fields = [
+            { label: 'Key', value: 'key' },
+            { label: 'Owner', value: 'owner' },
+            { label: 'Symbol', value: 'symbol' },
+            { label: 'Sender', value: 'sender' },
+            { label: 'Recipient', value: 'recipient' },
+            { label: 'Amount', value: 'amount' },
+            { label: 'Type', value: 'type' },
+            { label: 'Hash', value: 'hash' },
+            { label: 'Block', value: 'block' },
+            { label: 'Signature', value: 'signature' },
+            { label: 'Notes', value: 'notes' },
+            { label: 'Created', value: 'created' },
+            { label: 'Modified', value: 'modified' }
+        ]
+
+        return downloadResource(res, 'transactions.csv', fields, data.txns.items)
     }
 }
 

@@ -149,7 +149,21 @@ describe('Transaction', () => {
         const pageIndex = 1
         const pageSize = 25
         const account = shareData1.masterAccounts[0]
-        const res = await request(server.app).get(`/transactions/export?symbol=${symbol}&key=${account.key}&pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        const res = await request(server.app)
+            .get(`/transactions/export?symbol=${symbol}&key=${account.key}&pageindex=${pageIndex}&pagesize=${pageSize}`)
+            .set('Authorization', `Bearer ${masterData.token}`).send()
+            .send()
+        expect(res.status).equal(200)
+        expect(res.type).equal('text/csv')
+        expect(res.charset).equal('utf-8')
+        expect(res.text.length).gt(0)
+    }).timeout(10000)
+
+    it('Export Transactions by Account', async () => {
+        const account = shareData1.masterAccounts[0]
+        const res = await request(server.app)
+            .get(`/accounts/${account.key}/trx/export`)
+            .send()
         expect(res.status).equal(200)
         expect(res.type).equal('text/csv')
         expect(res.charset).equal('utf-8')
