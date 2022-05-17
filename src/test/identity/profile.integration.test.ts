@@ -7,6 +7,7 @@ import AWS from 'aws-sdk'
 import sinon from 'sinon'
 import { initDataForUser } from '@app/test/init/authenticate'
 import {IAccount} from "@modules/account/account.interface";
+import {CodeType} from "@modules/verification_code/code.interface";
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -15,7 +16,20 @@ let shareData = {
         email: ''
     },
     token: '',
-    refreshToken: ''
+    refreshToken: '',
+    newEmailCode: '',
+    newPhoneCode: ''
+}
+const updateData = {
+    email: 'new.email@gmail.com',
+    firstName: 'firstName',
+    lastName: 'lastName',
+    nickName: 'nickName',
+    phone: '4444',
+    country: 'country',
+    playerId: 'playerId',
+    newEmailCode: '',
+    newPhoneCode: '',
 }
 
 describe('Profile', () => {
@@ -75,16 +89,53 @@ describe('Profile', () => {
         })
     })
 
+    it(`GetVerificationCode EmailUpdate`, async () => {
+        const owner = updateData.email
+        const codeType = CodeType.EmailUpdate
+        const res = await request(server.app).post('/verification/code/get').send({
+            codeType: codeType,
+            owner: owner
+        })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const verificationCode = await MODELS.VerificationCode.findOne(
+            {
+                type: codeType,
+                owner: owner
+            },
+            {},
+            { sort: { created_at: -1 } }
+        ).exec()
+        expect(verificationCode?.code).exist
+        // @ts-ignore
+        shareData.newEmailCode = verificationCode?.code
+    }).timeout(10000)
+
+    it(`GetVerificationCode PhoneUpdate`, async () => {
+        const owner = updateData.phone
+        const codeType = CodeType.PhoneUpdate
+        const res = await request(server.app).post('/verification/code/get').send({
+            codeType: codeType,
+            owner: owner
+        })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const verificationCode = await MODELS.VerificationCode.findOne(
+            {
+                type: codeType,
+                owner: owner
+            },
+            {},
+            { sort: { created_at: -1 } }
+        ).exec()
+        expect(verificationCode?.code).exist
+        // @ts-ignore
+        shareData.newPhoneCode = verificationCode?.code
+    }).timeout(10000)
+
     context('Test case for function updateUser', () => {
         it('updateUser should be throw without authenticate', async () => {
-            const res = await request(server.app).post('/users/info').send({
-                firstName: 'firstName',
-                lastName: 'lastName',
-                nickName: 'nickName',
-                phone: 'phone',
-                country: 'country',
-                playerId: 'playerId'
-            })
+            const res = await request(server.app).post('/users/info').send(updateData)
             expect(res.status).equal(401)
             validResponse(res.body)
             expect(res.body).empty
@@ -92,25 +143,24 @@ describe('Profile', () => {
         })
 
         it('updateUser should be success', async () => {
-            const res = await request(server.app).post('/users/info').set('Authorization', `Bearer ${shareData.token}`).send({
-                firstName: 'firstName',
-                lastName: 'lastName',
-                nickName: 'nickName',
-                phone: 'phone',
-                country: 'country',
-                playerId: 'playerId'
-            })
+            updateData.newEmailCode = shareData.newEmailCode
+            updateData.newPhoneCode = shareData.newPhoneCode
+            const updateRes = await request(server.app)
+                .post('/users/info')
+                .set('Authorization', `Bearer ${shareData.token}`)
+                .send(updateData)
 
-            expect(res.status).equal(200)
-            validResponse(res.body)
+            expect(updateRes.status).equal(200)
+            validResponse(updateRes.body)
 
-            const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
-            expect(user?.firstName).equal('firstName')
-            expect(user?.lastName).equal('lastName')
-            expect(user?.nickName).equal('nickName')
-            expect(user?.phone).equal('phone')
-            expect(user?.country).equal('country')
-            expect(user?.playerId).equal('playerId')
+            const user = await MODELS.UserModel.findOne({ email: updateData.email }).exec()
+            expect(user?.email).equal(updateData.email)
+            expect(user?.firstName).equal(updateData.firstName)
+            expect(user?.lastName).equal(updateData.lastName)
+            expect(user?.nickName).equal(updateData.nickName)
+            expect(user?.phone).equal(updateData.phone)
+            expect(user?.country).equal(updateData.country)
+            expect(user?.playerId).equal(updateData.playerId)
         })
     })
 

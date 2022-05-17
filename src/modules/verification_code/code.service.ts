@@ -30,7 +30,7 @@ export default class VerificationCodeService {
             }
         } else {
             // User not exist. Allow register only
-            if (params.codeType !== CodeType.EmailRegistration) {
+            if (params.codeType !== CodeType.EmailRegistration && params.codeType !== CodeType.EmailUpdate && params.codeType !== CodeType.PhoneUpdate) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'generateCode', { owner: owner }))
             }
         }

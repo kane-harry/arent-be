@@ -42,6 +42,11 @@ export class CreateUserDto {
 export class UpdateUserDto {
     @IsOptional()
     @IsString()
+    @IsEmail()
+    public email: string
+
+    @IsOptional()
+    @IsString()
     @Length(2, 8)
     public firstName: string
 
@@ -65,6 +70,12 @@ export class UpdateUserDto {
 
     @IsOptional()
     public playerId: string
+
+    @IsOptional()
+    public newEmailCode: string
+
+    @IsOptional()
+    public newPhoneCode: string
 }
 
 export class Update2FAUserDto {

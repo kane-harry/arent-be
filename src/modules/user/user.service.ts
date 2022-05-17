@@ -13,6 +13,8 @@ import * as bcrypt from 'bcrypt'
 import { unixTimestampToDate } from '@utils/utility'
 import { IUser } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
+import VerificationCodeService from '@modules/verification_code/code.service'
+import { CodeType } from '@modules/verification_code/code.interface'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -42,6 +44,25 @@ export default class UserService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
 
+        const filter = {
+            $or: [{ email: data.email }, { phone: data.phone }, { nickName: data.nickName }]
+        }
+        const existUser = await UserModel.findOne(filter).exec()
+        if (existUser && existUser.key !== user.key) {
+            const duplicateInfo = {
+                email: existUser.email === user.email ? existUser.email : '',
+                phone: existUser.phone === user.phone ? existUser.phone : '',
+                nickName: existUser.nickName === user.nickName ? existUser.nickName : ''
+            }
+            throw new BizException(AuthErrors.registration_info_exists_error, new ErrorContext('user.service', 'updateUser', duplicateInfo))
+        }
+        if (data.email && data.email !== user.email) {
+            await this.verifyNewEmail(data)
+        }
+        if (data.phone && data.phone !== user.phone) {
+            await this.verifyNewPhone(data)
+        }
+        user?.set('email', data.email || user.email, String)
         user?.set('firstName', data.firstName || user.firstName, String)
         user?.set('lastName', data.lastName || user.lastName, String)
         user?.set('nickName', data.nickName || user.nickName, String)
@@ -149,5 +170,33 @@ export default class UserService {
         const totalCount = await UserModel.countDocuments(filter)
         const items = await UserModel.find<IUser>(filter).sort(sorting).skip(offset).limit(params.pagesize).exec()
         return new QueryRO<IUser>(totalCount, params.pageindex, params.pagesize, items)
+    }
+
+    public static verifyNewEmail = async (data: UpdateUserDto) => {
+        const { success } = await VerificationCodeService.verifyCode({
+            codeType: CodeType.EmailUpdate,
+            owner: data.email,
+            code: data.newEmailCode
+        })
+        if (!success) {
+            throw new BizException(
+                AuthErrors.verification_code_invalid_error,
+                new ErrorContext('auth.service', 'updateUser', { email: data.email })
+            )
+        }
+    }
+
+    public static verifyNewPhone = async (data: UpdateUserDto) => {
+        const { success } = await VerificationCodeService.verifyCode({
+            codeType: CodeType.PhoneUpdate,
+            owner: data.phone,
+            code: data.newPhoneCode
+        })
+        if (!success) {
+            throw new BizException(
+                AuthErrors.verification_code_invalid_error,
+                new ErrorContext('auth.service', 'updateUser', { phone: data.phone })
+            )
+        }
     }
 }
