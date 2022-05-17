@@ -9,6 +9,7 @@ import { ITransactionFilter } from './transaction.interface'
 import { downloadResource } from '@utils/utility'
 import { requireAuth } from '@common/authCheck'
 import UserModel from '@modules/user/user.model'
+import { requireAdmin } from '@config/role'
 
 class TransactionController implements IController {
     public path = '/transactions'
@@ -22,7 +23,7 @@ class TransactionController implements IController {
         this.router.post(`${this.path}/send`, requireAuth, validationMiddleware(SendPrimeCoinsDto), asyncHandler(this.sendPrimeCoins))
         this.router.get(`${this.path}/accounts/:key`, asyncHandler(this.queryTxnsByAccount))
         this.router.get(`${this.path}/accounts/:key/txn/:id`, asyncHandler(this.getTxnDetails))
-        this.router.get(`${this.path}/export`, asyncHandler(this.exportTxnsByAccount))
+        this.router.get(`${this.path}/export`, requireAuth, requireAdmin(), asyncHandler(this.exportTxnsByAccount))
     }
 
     private async sendPrimeCoins(req: Request, res: Response) {
