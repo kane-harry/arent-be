@@ -85,6 +85,7 @@ describe('Transaction', () => {
     }).timeout(10000)
 
     it('Send Funds', async () => {
+        const amountWithoutFee = parseFloat(amountSend) - config.system.primeTransferFee
         const sender = shareData1.masterAccounts[0]
         const recipient = shareData2.accounts[0]
         const res = await request(server.app).post(`/transactions/send`)
@@ -103,7 +104,7 @@ describe('Transaction', () => {
         expect(res.body.signature).be.an('string')
         expect(res.body.hash).be.an('string')
         expect(res.body.symbol).equal(symbol)
-        expect(res.body.amount).equal(amountSend.toString())
+        expect(res.body.amount).equal(amountWithoutFee.toString())
     }).timeout(10000)
 
     it('Validate Sender Amount After Send', async () => {

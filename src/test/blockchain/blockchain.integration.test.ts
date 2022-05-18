@@ -12,6 +12,7 @@ const {expect, assert} = chai
 let shareData = {accounts: [], signature: '', transactions: []}
 let shareMasterData = {user: {}, token: '', refreshToken: '', accounts: [], transactions: [], masterAccounts: []}
 const symbol = config.system.primeToken
+const amount = '4996.3'
 describe('Blockchain', () => {
     before(async () => {
         await dbTest.connect()
@@ -42,7 +43,7 @@ describe('Blockchain', () => {
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
-                amount: '4,996.3',
+                amount: amount,
                 privateKey: sender.privateKey,
                 nonce: '1',
                 notes: 'test notes',
@@ -92,6 +93,7 @@ describe('Blockchain', () => {
 
     it('Send Funds', async () => {
         const amount = '10000'
+        const amountWithoutFee = parseFloat(amount) - config.system.primeTransferFee
         const sender = shareMasterData.masterAccounts[0]
         const recipient = shareData.accounts[0]
         const res = await request(server.app).post(`/transactions/send`)
@@ -111,11 +113,10 @@ describe('Blockchain', () => {
         expect(res.body.signature).be.an('string')
         expect(res.body.hash).be.an('string')
         expect(res.body.symbol).equal(symbol)
-        expect(res.body.amount).equal(amount)
+        expect(res.body.amount).equal(amountWithoutFee.toString())
     }).timeout(10000)
 
     it('Broadcast Transaction', async () => {
-        const amount = '4996.3'
         const sender = shareData.accounts[0]
         const recipient = shareData.accounts[1]
         const res = await request(server.app).post(`/blockchain/sendraw`)
