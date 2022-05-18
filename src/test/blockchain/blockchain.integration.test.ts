@@ -91,6 +91,7 @@ describe('Blockchain', () => {
     }).timeout(10000)
 
     it('Send Funds', async () => {
+        const amount = '10000'
         const sender = shareMasterData.masterAccounts[0]
         const recipient = shareData.accounts[0]
         const res = await request(server.app).post(`/transactions/send`)
@@ -99,17 +100,22 @@ describe('Blockchain', () => {
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
-                amount: '10',
+                amount: amount,
                 nonce: '1',
                 notes: 'test notes',
             })
         expect(res.status).equal(200)
         validResponse(res.body)
-        expect(res.body.senderTxn).be.an('string')
-        expect(res.body.recipientTxn).be.an('string')
+        expect(res.body.blockTime).be.an('number')
+        expect(res.body.accounts).be.an('array')
+        expect(res.body.signature).be.an('string')
+        expect(res.body.hash).be.an('string')
+        expect(res.body.symbol).equal(symbol)
+        expect(res.body.amount).equal(amount)
     }).timeout(10000)
 
     it('Broadcast Transaction', async () => {
+        const amount = '4996.3'
         const sender = shareData.accounts[0]
         const recipient = shareData.accounts[1]
         const res = await request(server.app).post(`/blockchain/sendraw`)
@@ -117,15 +123,19 @@ describe('Blockchain', () => {
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
-                amount: '4,996.3',
+                amount: amount,
                 nonce: '1',
                 notes: 'test notes',
                 signature: shareData.signature,
             })
         expect(res.status).equal(200)
         validResponse(res.body)
-        expect(res.body.senderTxn).be.an('string')
-        expect(res.body.recipientTxn).be.an('string')
+        expect(res.body.blockTime).be.an('number')
+        expect(res.body.accounts).be.an('array')
+        expect(res.body.signature).be.an('string')
+        expect(res.body.hash).be.an('string')
+        expect(res.body.symbol).equal(symbol)
+        expect(res.body.amount).equal(amount)
     }).timeout(10000)
 
     it('Get Transactions by Symbol', async () => {

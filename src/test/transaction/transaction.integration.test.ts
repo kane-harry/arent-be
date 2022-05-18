@@ -98,8 +98,12 @@ describe('Transaction', () => {
                 notes: 'test notes',
             })
         expect(res.status).equal(200)
-        expect(res.body.senderTxn).be.an('string')
-        expect(res.body.recipientTxn).be.an('string')
+        expect(res.body.blockTime).be.an('number')
+        expect(res.body.accounts).be.an('array')
+        expect(res.body.signature).be.an('string')
+        expect(res.body.hash).be.an('string')
+        expect(res.body.symbol).equal(symbol)
+        expect(res.body.amount).equal(amountSend.toString())
     }).timeout(10000)
 
     it('Validate Sender Amount After Send', async () => {
