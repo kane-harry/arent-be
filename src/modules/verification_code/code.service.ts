@@ -15,7 +15,7 @@ export default class VerificationCodeService {
     static async generateCode(params: CreateCodeDto) {
         const owner = toLower(trim(params.owner))
         const filter = {
-            $or: [{ email: params.owner }, { phone: params.owner }]
+            $or: [{ email: params.owner, $options: 'i' }, { phone: params.owner, $options: 'i' }]
         }
         const user = await UserModel.findOne(filter).exec()
         if (user) {

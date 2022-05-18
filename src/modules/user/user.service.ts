@@ -62,7 +62,7 @@ export default class UserService {
         if (data.phone && data.phone !== user.phone) {
             await this.verifyNewPhone(data)
         }
-        user?.set('email', data.email || user.email, String)
+        user?.set('email', data.email.toLowerCase() || user.email, String)
         user?.set('firstName', data.firstName || user.firstName, String)
         user?.set('lastName', data.lastName || user.lastName, String)
         user?.set('nickName', data.nickName || user.nickName, String)
