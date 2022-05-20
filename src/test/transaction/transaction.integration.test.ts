@@ -104,6 +104,11 @@ describe('Transaction', () => {
         expect(res.body.hash).be.an('string')
         expect(res.body.symbol).equal(symbol)
         expect(res.body.amount).equal(amountWithoutFee.toString())
+
+        const amountForSender = parseFloat(res.body.sender_wallet.preBalance) - parseFloat(res.body.sender_wallet.postBalance)
+        const amountForRecipient = parseFloat(res.body.recipient_wallet.postBalance) - parseFloat(res.body.recipient_wallet.preBalance)
+        const fee = config.system.primeTransferFee
+        expect(amountForSender).equal(amountForRecipient + fee)
     }).timeout(10000)
 
     it('Validate Sender Amount After Send', async () => {
