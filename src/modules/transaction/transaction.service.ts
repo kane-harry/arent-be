@@ -2,15 +2,14 @@ import AccountService from '@modules/account/account.service'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { SendPrimeCoinsDto } from './transaction.dto'
-import { trim, toUpper } from 'lodash'
+import { toUpper, trim } from 'lodash'
 import { AccountErrors, TransactionErrors } from '@exceptions/custom.error'
 import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import { ISendCoinDto, ITransactionFilter } from './transaction.interface'
 import { AccountExtType } from '@modules/account/account.interface'
 import { config } from '@config'
-import { parsePrimeAmount, formatAmount } from '@utils/number'
-import { ethers } from 'ethers'
+import { formatAmount, parsePrimeAmount } from '@utils/number'
 import { UserStatus } from '@modules/user/user.interface'
 
 export default class TransactionService {
@@ -60,10 +59,8 @@ export default class TransactionService {
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender, balance: senderAccount.amount, amount })
             )
         }
-        const transferFee = Number(config.system.primeTransferFee)
 
         const transferFeeBig = parsePrimeAmount(Number(config.system.primeTransferFee))
-        // const sendAmount = amount.sub(transferFee).toString() // needs to solve decimal precisions
 
         if (amount.lt(transferFeeBig)) {
             throw new BizException(
@@ -79,6 +76,13 @@ export default class TransactionService {
         nonce = nonce + 1
         const message = `${symbol}:${params.sender}:${params.recipient}:${sendAmount}:${nonce}`
         const signature = await signMessage(privateKey, message)
+        const masterAccount = await AccountService.getMasterAccountBriefBySymbol(symbol)
+        if (!masterAccount) {
+            throw new BizException(
+                AccountErrors.master_account_not_exists_error,
+                new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
+            )
+        }
         const sendData: ISendCoinDto = {
             symbol: symbol,
             sender: params.sender,
@@ -88,35 +92,10 @@ export default class TransactionService {
             type: 'TRANSFER',
             signature: signature,
             notes: params.notes,
-            details: {} // addtional info
+            details: {}, // addtional info
+            feeAddress: masterAccount.address
         }
-        const data = await PrimeCoinProvider.sendPrimeCoins(sendData)
-        if (transferFee > 0) {
-            const masterAccount = await AccountService.getMasterAccountBriefBySymbol(symbol)
-            if (!masterAccount) {
-                throw new BizException(
-                    AccountErrors.master_account_not_exists_error,
-                    new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
-                )
-            }
-            nonce = nonce + 1
-            const feeNotes = `Transfer Fee for ${data.senderTxn}`
-            const feeMsg = `${symbol}:${params.sender}:${masterAccount.address}:${transferFee}:${nonce}`
-            const feeSignature = await signMessage(privateKey, feeMsg)
-            const sendFeeData: ISendCoinDto = {
-                symbol: symbol,
-                sender: params.sender,
-                recipient: masterAccount.address,
-                amount: String(transferFee),
-                nonce: String(nonce),
-                type: 'TRANSFER',
-                signature: feeSignature,
-                notes: feeNotes
-            }
-            await PrimeCoinProvider.sendPrimeCoins(sendFeeData)
-        }
-
-        return data
+        return await PrimeCoinProvider.sendPrimeCoins(sendData)
     }
 
     static async queryTxnsByAccount(key: string, filter: ITransactionFilter, operator: Express.User | undefined) {

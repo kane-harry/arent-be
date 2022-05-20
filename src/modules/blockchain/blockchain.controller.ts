@@ -19,7 +19,7 @@ class BlockchainController implements IController {
     private initRoutes() {
         this.router.post(`${this.path}/new`, validationMiddleware(CreateRawWalletDto), asyncHandler(this.createRawWallet))
         this.router.post(`${this.path}/signature`, validationMiddleware(CreateSignatureDto), asyncHandler(this.generateSignature))
-        this.router.post(`${this.path}/sendraw`, validationMiddleware(SendRawDto), asyncHandler(this.sendRaw))
+        this.router.post(`${this.path}/send`, validationMiddleware(SendRawDto), asyncHandler(this.send))
         this.router.get(`${this.path}/:symbol/txns`, asyncHandler(this.queryPrimeTxns))
         this.router.get(`${this.path}/:symbol/address/:address`, asyncHandler(this.getAccountBySymbolAndAddress))
         this.router.get(`${this.path}/transaction/:key`, asyncHandler(this.getTxnByKey))
@@ -40,9 +40,9 @@ class BlockchainController implements IController {
         return res.json(data)
     }
 
-    private async sendRaw(req: Request, res: Response) {
+    private async send(req: Request, res: Response) {
         const params: SendRawDto = req.body
-        const data = await BlockchainService.sendRaw(params)
+        const data = await BlockchainService.send(params)
 
         return res.json(data)
     }

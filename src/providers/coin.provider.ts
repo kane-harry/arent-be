@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { config } from '@config'
 import { generate } from 'hmac-auth-express'
 import { IMintToCoinDto } from '@modules/account/account.interface'
-import { ISendCoinDto, ISendRawDto, ITransactionFilter } from '@modules/transaction/transaction.interface'
+import { ISendCoinDto, ITransactionFilter } from '@modules/transaction/transaction.interface'
 import ApplicationException from '@exceptions/application.exception'
 import { CommonErrors } from '@exceptions/custom.error'
 
@@ -149,15 +149,6 @@ export class PrimeCoinProvider {
             return resp.data.data
         } catch (error) {
             return this.requestErrorHandler('sendPrimeCoins', error)
-        }
-    }
-
-    public static async sendRaw(sendData: ISendRawDto) {
-        try {
-            const resp = await this.instance.post('/transactions/sendraw', sendData)
-            return resp.data.data
-        } catch (error) {
-            return this.requestErrorHandler('sendRaw', error)
         }
     }
 

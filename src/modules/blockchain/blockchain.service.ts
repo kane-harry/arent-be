@@ -5,7 +5,7 @@ import { trim, toUpper } from 'lodash'
 import { AccountErrors, TransactionErrors } from '@exceptions/custom.error'
 import { createEtherWallet, signMessage } from '@utils/wallet'
 import { PrimeCoinProvider } from '@providers/coin.provider'
-import { FeeMode, ISendRawDto, ITransactionFilter } from '@modules/transaction/transaction.interface'
+import { FeeMode, ISendCoinDto, ITransactionFilter } from '@modules/transaction/transaction.interface'
 import { config } from '@config'
 import AccountService from '@modules/account/account.service'
 
@@ -32,7 +32,7 @@ export default class BlockchainService {
         return { signature }
     }
 
-    static async sendRaw(params: SendRawDto) {
+    static async send(params: SendRawDto) {
         const symbol = toUpper(trim(params.symbol))
         const senderWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(symbol, params.sender)
         const recipientWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(symbol, params.recipient)
@@ -78,7 +78,7 @@ export default class BlockchainService {
                 new ErrorContext('coin.service', 'sendRaw', { sender: params.sender })
             )
         }
-        const sendData: ISendRawDto = {
+        const sendData: ISendCoinDto = {
             symbol: symbol,
             sender: params.sender,
             recipient: params.recipient,
@@ -87,12 +87,11 @@ export default class BlockchainService {
             type: 'TRANSFER',
             signature: params.signature,
             notes: params.notes,
-            fee: String(transferFee),
             feeAddress: masterAccount.address,
             mode: mode
         }
 
-        return await PrimeCoinProvider.sendRaw(sendData)
+        return await PrimeCoinProvider.sendPrimeCoins(sendData)
     }
 
     static async queryPrimeTxns(params: { symbol: string; filter: ITransactionFilter }) {

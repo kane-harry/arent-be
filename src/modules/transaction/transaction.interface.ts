@@ -37,21 +37,9 @@ export interface ISendCoinDto {
     amount: string
     nonce: string
     signature: string
-    type?: string
-    notes?: string
-    details?: object // addtional info
-}
-
-export interface ISendRawDto {
-    symbol: string
-    sender: string
-    recipient: string
-    amount: string
-    nonce: string
-    signature: string
     type: string
     notes: string
-    fee: string
     feeAddress: string
-    mode: string
+    mode?: string
+    details?: object // addtional info
 }

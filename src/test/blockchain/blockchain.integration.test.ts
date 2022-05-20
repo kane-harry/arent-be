@@ -112,13 +112,13 @@ describe('Blockchain', () => {
         expect(res.body.signature).be.an('string')
         expect(res.body.hash).be.an('string')
         expect(res.body.symbol).equal(symbol)
-        expect(res.body.amount).equal(amountWithoutFee.toString())
+        expect(Math.abs(res.body.amount)).equal(Math.abs(amountWithoutFee.toString()))
     }).timeout(10000)
 
     it('Broadcast Transaction', async () => {
         const sender = shareData.accounts[0]
         const recipient = shareData.accounts[1]
-        const res = await request(server.app).post(`/blockchain/sendraw`)
+        const res = await request(server.app).post(`/blockchain/send`)
             .send({
                 symbol: symbol,
                 sender: sender.address,
