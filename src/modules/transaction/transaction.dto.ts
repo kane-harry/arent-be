@@ -15,4 +15,7 @@ export class SendPrimeCoinsDto {
 
     @IsOptional()
     public notes: string
+
+    @IsOptional()
+    public mode: string
 }

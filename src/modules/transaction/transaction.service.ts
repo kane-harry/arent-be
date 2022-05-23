@@ -68,13 +68,11 @@ export default class TransactionService {
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender, balance: senderAccount.amount, amount })
             )
         }
-        const sendAmount = formatAmount(amount.sub(transferFeeBig).toString())
-
         const senderKeyStore = await AccountService.getAccountKeyStore(senderAccount.key)
         const privateKey = await decryptKeyWithSalt(senderKeyStore.keyStore, senderKeyStore.salt)
         let nonce = senderAccount.nonce || 0
         nonce = nonce + 1
-        const message = `${symbol}:${params.sender}:${params.recipient}:${sendAmount}:${nonce}`
+        const message = `${symbol}:${params.sender}:${params.recipient}:${params.amount}:${nonce}`
         const signature = await signMessage(privateKey, message)
         const masterAccount = await AccountService.getMasterAccountBriefBySymbol(symbol)
         if (!masterAccount) {
@@ -87,13 +85,14 @@ export default class TransactionService {
             symbol: symbol,
             sender: params.sender,
             recipient: params.recipient,
-            amount: String(sendAmount),
+            amount: String(params.amount),
             nonce: String(nonce),
             type: 'TRANSFER',
             signature: signature,
             notes: params.notes,
             details: {}, // addtional info
-            feeAddress: masterAccount.address
+            feeAddress: masterAccount.address,
+            mode: params.mode
         }
         return await PrimeCoinProvider.sendPrimeCoins(sendData)
     }

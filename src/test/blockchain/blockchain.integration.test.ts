@@ -94,7 +94,6 @@ describe('Blockchain', () => {
 
     it('Send Funds', async () => {
         const amount = '10000'
-        const amountWithoutFee = parseFloat(amount) - config.system.primeTransferFee
         const sender = shareMasterData.masterAccounts[0]
         const recipient = shareData.accounts[0]
         const res = await request(server.app).post(`/transactions/send`)
@@ -113,7 +112,6 @@ describe('Blockchain', () => {
         expect(res.body.signature).be.an('string')
         expect(res.body.hash).be.an('string')
         expect(res.body.symbol).equal(symbol)
-        expect(Math.abs(res.body.amount)).equal(Math.abs(amountWithoutFee.toString()))
     }).timeout(10000)
 
     it('Broadcast Transaction', async () => {
