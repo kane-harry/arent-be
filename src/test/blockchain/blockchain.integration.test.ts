@@ -6,6 +6,7 @@ import {dbTest, validResponse} from '../init/db'
 import server from '@app/server'
 import {config} from "@config";
 import {adminData, initDataForUser, makeAdmin} from "@app/test/init/authenticate";
+import {FeeMode} from "@modules/transaction/transaction.interface";
 
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
@@ -127,6 +128,7 @@ describe('Blockchain', () => {
                 nonce: '1',
                 notes: 'test notes',
                 signature: shareData.signature,
+                mode: FeeMode.Exclusive
             })
         expect(res.status).equal(200)
         validResponse(res.body)
@@ -134,7 +136,7 @@ describe('Blockchain', () => {
         expect(res.body.signature).be.an('string')
         expect(res.body.hash).be.an('string')
         expect(res.body.symbol).equal(symbol)
-        expect(res.body.amount).equal(amount)
+        expect(Math.abs(res.body.amount)).equal(Math.abs(amount))
     }).timeout(10000)
 
     it('Get Transactions by Symbol', async () => {

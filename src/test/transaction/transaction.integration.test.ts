@@ -6,6 +6,8 @@ import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import {adminData, initDataForUser, makeAdmin, user1Data} from "@app/test/init/authenticate";
 import {config} from "@config";
+import {FeeMode} from "@modules/transaction/transaction.interface";
+import {formatAmount, parsePrimeAmount} from "@utils/number";
 
 chai.use(chaiAsPromised)
 const {expect, assert} = chai
@@ -97,6 +99,7 @@ describe('Transaction', () => {
                 amount: amountSend.toString(),
                 nonce: '1',
                 notes: 'test notes',
+                mode: FeeMode.Inclusive
             })
         expect(res.status).equal(200)
         expect(res.body.blockTime).be.an('number')
@@ -105,10 +108,9 @@ describe('Transaction', () => {
         expect(res.body.symbol).equal(symbol)
         expect(Math.abs(res.body.amount)).equal(Math.abs(amountWithoutFee.toString()))
 
-        const amountForSender = parseFloat(res.body.sender_wallet.preBalance) - parseFloat(res.body.sender_wallet.postBalance)
-        const amountForRecipient = parseFloat(res.body.recipient_wallet.postBalance) - parseFloat(res.body.recipient_wallet.preBalance)
-        const fee = config.system.primeTransferFee
-        expect(amountForSender).equal(amountForRecipient + fee)
+        const amountForSender = formatAmount(parsePrimeAmount(res.body.sender_wallet.preBalance).sub(parsePrimeAmount(res.body.sender_wallet.postBalance)))
+        const amountForRecipient = formatAmount(parsePrimeAmount(res.body.recipient_wallet.postBalance).sub(parsePrimeAmount(res.body.recipient_wallet.preBalance)))
+        expect(amountForSender).equal(amountForRecipient)
     }).timeout(10000)
 
     it('Validate Sender Amount After Send', async () => {
