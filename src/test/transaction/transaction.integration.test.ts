@@ -83,6 +83,38 @@ describe('Transaction', () => {
     }).timeout(10000)
 
     context('Test case for FeeMode.Inclusive', () => {
+        it('Send Funds 401', async () => {
+            const sender = shareData1.masterAccounts[0]
+            const recipient = shareData2.accounts[0]
+            const res = await request(server.app).post(`/transactions/send`).send({
+                symbol: symbol,
+                sender: sender.address,
+                recipient: recipient.address,
+                amount: amountSend.toString(),
+                nonce: '1',
+                notes: 'test notes',
+                mode: FeeMode.Inclusive
+            })
+            expect(res.status).equal(401)
+        })
+
+        it('Send Funds Wrong Sender', async () => {
+            const sender = shareData1.masterAccounts[0]
+            const recipient = shareData2.accounts[0]
+            const res = await request(server.app).post(`/transactions/send`)
+                .set('Authorization', `Bearer ${shareData2.token}`)
+                .send({
+                symbol: symbol,
+                sender: sender.address,
+                recipient: recipient.address,
+                amount: amountSend.toString(),
+                nonce: '1',
+                notes: 'test notes',
+                mode: FeeMode.Inclusive
+            })
+            expect(res.status).equal(400)
+        })
+
         it('Send Funds', async () => {
             const amountWithoutFee = parseFloat(amountSend) - config.system.primeTransferFee
             const sender = shareData1.masterAccounts[0]
