@@ -10,6 +10,9 @@ import { downloadResource } from '@utils/utility'
 import { requireAuth } from '@common/authCheck'
 import UserModel from '@modules/user/user.model'
 import { requireAdmin } from '@config/role'
+import BizException from '@exceptions/biz.exception'
+import { TransactionErrors } from '@exceptions/custom.error'
+import ErrorContext from '@exceptions/error.context'
 
 class TransactionController implements IController {
     public path = '/transactions'
@@ -28,7 +31,14 @@ class TransactionController implements IController {
 
     private async sendPrimeCoins(req: Request, res: Response) {
         const params: SendPrimeCoinsDto = req.body
-        const operator = req.user
+        // @ts-ignore
+        const operator = await UserModel.findOne({ email: req.user?.email }).exec()
+        if (!operator) {
+            throw new BizException(
+                TransactionErrors.sender_account_not_exists_error,
+                new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
+            )
+        }
 
         const session = await UserModel.startSession()
         session.startTransaction()
