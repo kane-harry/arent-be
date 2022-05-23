@@ -103,3 +103,10 @@ export const makeAdmin = async (data: object = {}) => {
     user?.set('role', role.admin.id, Number)
     user?.save()
 }
+
+export const makeUserSuspend = async (data: object = {}, status: string) => {
+    const formData = { ...userData, ...data }
+    const user = await MODELS.UserModel.findOne({ email: formData.email }).exec()
+    user?.set('status', status, String)
+    user?.save()
+}

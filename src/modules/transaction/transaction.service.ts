@@ -11,7 +11,7 @@ import { AccountExtType } from '@modules/account/account.interface'
 import { config } from '@config'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
 import { IUser, UserStatus } from '@modules/user/user.interface'
-import {isAdmin} from "@config/role";
+import { isAdmin } from '@config/role'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: IUser) {
@@ -39,7 +39,7 @@ export default class TransactionService {
         }
         if (operator.key !== senderAccount?.userId) {
             if (senderAccount.userId === 'MASTER' && isAdmin(operator.role)) {
-                //continue
+                // continue
             } else {
                 throw new BizException(
                     TransactionErrors.sender_account_not_own_wallet_error,

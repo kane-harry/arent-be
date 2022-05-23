@@ -4,11 +4,12 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
-import { adminData, initDataForUser, makeAdmin, user1Data } from '@app/test/init/authenticate'
+import {adminData, initDataForUser, makeAdmin, makeUserSuspend, user1Data} from '@app/test/init/authenticate'
 import { config } from '@config'
 import { FeeMode } from '@modules/transaction/transaction.interface'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
 import AccountService from '@modules/account/account.service'
+import {UserStatus} from "@modules/user/user.interface";
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -237,6 +238,23 @@ describe('Transaction', () => {
             validResponse(res.body)
             expect(res.body.amount.toString()).equal(currentRecipientAmount.toString())
         }).timeout(10000)
+    })
+
+    it('Send Funds User Suspend', async () => {
+        await makeUserSuspend(adminData, UserStatus.Suspend)
+        const sender = masterData.masterAccounts[0]
+        const recipient = shareData2.accounts[0]
+        const res = await request(server.app).post(`/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+            symbol: symbol,
+            sender: sender.address,
+            recipient: recipient.address,
+            amount: amountSend.toString(),
+            nonce: '1',
+            notes: 'test notes',
+            mode: FeeMode.Exclusive
+        })
+        expect(res.status).equal(400)
+        await makeUserSuspend(adminData, UserStatus.Normal)
     })
 
     it('Get Transactions by Account', async () => {
