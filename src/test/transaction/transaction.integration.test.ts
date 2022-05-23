@@ -10,6 +10,7 @@ import { FeeMode } from '@modules/transaction/transaction.interface'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
 import AccountService from '@modules/account/account.service'
 import {UserStatus} from "@modules/user/user.interface";
+import {TransactionErrors} from "@exceptions/custom.error";
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -255,6 +256,38 @@ describe('Transaction', () => {
         })
         expect(res.status).equal(400)
         await makeUserSuspend(adminData, UserStatus.Normal)
+    })
+
+    it('Send Funds Wrong Balance', async () => {
+        const sender = masterData.masterAccounts[0]
+        const recipient = shareData2.accounts[0]
+        const res = await request(server.app).post(`/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+            symbol: symbol,
+            sender: sender.address,
+            recipient: recipient.address,
+            amount: 'kdkd',
+            nonce: '1',
+            notes: 'test notes',
+            mode: FeeMode.Exclusive
+        })
+        expect(res.status).equal(500)
+    })
+
+    it('Send Funds Out Of Balance', async () => {
+        const sender = masterData.masterAccounts[0]
+        const recipient = shareData2.accounts[0]
+        const res = await request(server.app).post(`/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+            symbol: symbol,
+            sender: sender.address,
+            recipient: recipient.address,
+            amount: '50000',
+            nonce: '1',
+            notes: 'test notes',
+            mode: FeeMode.Exclusive
+        })
+        expect(res.status).equal(400)
+        expect(res.body.code).equal(TransactionErrors.sender_insufficient_balance_error.code)
+        expect(res.body.message).equal(TransactionErrors.sender_insufficient_balance_error.message)
     })
 
     it('Get Transactions by Account', async () => {
