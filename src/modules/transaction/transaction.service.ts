@@ -24,7 +24,7 @@ export default class TransactionService {
         // this should be store as a string in wei (big number - string)
         const senderAccount = await AccountService.getAccountBySymbolAndAddress(symbol, params.sender)
         // recipient can be raw wallet
-        const recipientWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(params.symbol, params.recipient)
+        const recipientWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(symbol, params.recipient)
         if (!senderAccount) {
             throw new BizException(
                 TransactionErrors.sender_account_not_exists_error,
@@ -60,8 +60,8 @@ export default class TransactionService {
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender, balance: senderAccount.amount, amount })
             )
         }
-
-        const transferFeeBig = parsePrimeAmount(Number(config.system.primeTransferFee))
+        const transferFee = Number(config.system.primeTransferFee || 0)
+        const transferFeeBig = parsePrimeAmount(transferFee)
 
         if (amount.lt(transferFeeBig)) {
             throw new BizException(
@@ -93,6 +93,7 @@ export default class TransactionService {
             notes: params.notes,
             details: {}, // addtional info
             feeAddress: masterAccount.address,
+            fee: String(transferFee),
             mode: params.mode
         }
         return await PrimeCoinProvider.sendPrimeCoins(sendData)

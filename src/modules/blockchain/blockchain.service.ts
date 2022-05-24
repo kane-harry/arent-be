@@ -50,7 +50,7 @@ export default class BlockchainService {
         }
         const mode = params.mode === 'exclusive' ? FeeMode.Exclusive : FeeMode.Inclusive
         params.mode = mode
-        const transferFee = Number(config.system.primeTransferFee)
+        const transferFee = Number(config.system.primeTransferFee || 0)
         if (mode === FeeMode.Inclusive) {
             const sendAmountWithFee = Number(params.amount)
             const amountWithoutFee = sendAmountWithFee - transferFee
@@ -88,6 +88,7 @@ export default class BlockchainService {
             signature: params.signature,
             notes: params.notes,
             feeAddress: masterAccount.address,
+            fee: String(transferFee),
             mode: mode
         }
 

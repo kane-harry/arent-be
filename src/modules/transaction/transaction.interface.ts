@@ -40,6 +40,7 @@ export interface ISendCoinDto {
     type: string
     notes: string
     feeAddress: string
+    fee: string
     mode?: string
     details?: object // addtional info
 }
