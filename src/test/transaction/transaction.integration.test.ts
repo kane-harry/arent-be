@@ -135,15 +135,18 @@ describe('Transaction', () => {
             expect(res.body.signature).be.an('string')
             expect(res.body.hash).be.an('string')
             expect(res.body.symbol).equal(symbol)
+            expect(res.body.sender).equal(sender.address)
+            expect(res.body.recipient).equal(recipient.address)
+            expect(res.body.feeMode).equal(FeeMode.Inclusive)
             expect(Math.abs(res.body.amount)).equal(Math.abs(amountWithoutFee.toString()))
 
             // Send 10, fee 0.1
             // Inclusive:
-            //      - Sender: 10
-            //      - Recipient: 9.9
-            //      - Fee: 0.1
+            //      - Sender: -10
+            //      - Recipient: +9.9
+            //      - Fee: +0.1
             // If sender was admin (fee == sender):
-            //      - Sender: 9.9
+            //      - Sender: -9.9
             const amountBigNumber = parsePrimeAmount(amountSend)
             const fee = parsePrimeAmount(config.system.primeTransferFee)
             const amountForSender = parsePrimeAmount(res.body.sender_wallet.preBalance).sub(parsePrimeAmount(res.body.sender_wallet.postBalance))
@@ -197,15 +200,18 @@ describe('Transaction', () => {
             expect(res.body.signature).be.an('string')
             expect(res.body.hash).be.an('string')
             expect(res.body.symbol).equal(symbol)
+            expect(res.body.sender).equal(sender.address)
+            expect(res.body.recipient).equal(recipient.address)
+            expect(res.body.feeMode).equal(FeeMode.Exclusive)
             expect(Math.abs(res.body.amount)).equal(Math.abs(amountSend.toString()))
 
             // Send 10, fee 0.1
             // Exclusive:
-            //     - Sender: 10.1
-            //     - Recipient: 10
-            //     - Fee: 0.1
+            //     - Sender: -10.1
+            //     - Recipient: +10
+            //     - Fee: +0.1
             // If sender was admin (fee == sender):
-            //     - Sender: 10
+            //     - Sender: -10
             const amountBigNumber = parsePrimeAmount(amountSend)
             const fee = parsePrimeAmount(config.system.primeTransferFee)
             const amountForSender = parsePrimeAmount(res.body.sender_wallet.preBalance).sub(parsePrimeAmount(res.body.sender_wallet.postBalance))
