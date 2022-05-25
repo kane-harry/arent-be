@@ -178,4 +178,24 @@ export class PrimeCoinProvider {
             return this.requestErrorHandler('getPrimeTxnByKey', error)
         }
     }
+
+    public static async getAllPrimeAccountList() {
+        try {
+            const resp = await this.instance.get(`/accounts/prime/list`)
+            // log
+            return resp.data.data
+        } catch (error) {
+            return this.requestErrorHandler('getAllPrimeAccountList', error)
+        }
+    }
+
+    public static async getPrimeAccountList(key: string) {
+        try {
+            const resp = await this.instance.get(`/accounts/${key}/prime/list`)
+            // log
+            return resp.data.data
+        } catch (error) {
+            return this.requestErrorHandler('getPrimeAccountList', error)
+        }
+    }
 }

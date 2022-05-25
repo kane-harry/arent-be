@@ -24,6 +24,9 @@ class BlockchainController implements IController {
         this.router.get(`${this.path}/:symbol/address/:address`, asyncHandler(this.getAccountBySymbolAndAddress))
         this.router.get(`${this.path}/transaction/:key`, asyncHandler(this.getTxnByKey))
         this.router.get(`${this.path}/account/:address/txns`, asyncHandler(this.queryAccountTxns))
+
+        this.router.get(`${this.path}/accounts/prime/list`, asyncHandler(this.getAllPrimeAccountList))
+        this.router.get(`${this.path}/:symbol/accounts/prime/list`, asyncHandler(this.getPrimeAccountList))
     }
 
     private async createRawWallet(req: Request, res: Response) {
@@ -77,6 +80,17 @@ class BlockchainController implements IController {
             address,
             filter
         })
+        return res.json(data)
+    }
+
+    private async getAllPrimeAccountList(req: CustomRequest, res: Response) {
+        const data = await BlockchainService.getAllPrimeAccountList()
+        return res.json(data)
+    }
+
+    private async getPrimeAccountList(req: CustomRequest, res: Response) {
+        var symbol = req.params.symbol.toUpperCase()
+        const data = await BlockchainService.getPrimeAccountList(symbol)
         return res.json(data)
     }
 }

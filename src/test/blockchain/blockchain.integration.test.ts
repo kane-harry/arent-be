@@ -182,4 +182,32 @@ describe('Blockchain', () => {
         expect(res.body.pageIndex).equal(pageIndex)
         expect(res.body.pageSize).equal(pageSize)
     }).timeout(10000)
+
+    it('Get Prime Account List', async () => {
+        const pageIndex = 1
+        const pageSize = 20
+        const res = await request(server.app).get(`/blockchain/${symbol}/accounts/prime/list?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items).be.an('array')
+        expect(res.body.totalCount).exist
+        expect(res.body.hasNextPage).exist
+        expect(res.body.totalPages).exist
+        expect(res.body.pageIndex).equal(pageIndex)
+        expect(res.body.pageSize).equal(pageSize)
+    }).timeout(10000)
+
+    it('Get All Prime Account List', async () => {
+        const pageIndex = 1
+        const pageSize = 20
+        const res = await request(server.app).get(`/blockchain/accounts/prime/list?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items).be.an('array')
+        expect(res.body.totalCount).exist
+        expect(res.body.hasNextPage).exist
+        expect(res.body.totalPages).exist
+        expect(res.body.pageIndex).equal(pageIndex)
+        expect(res.body.pageSize).equal(pageSize)
+    }).timeout(10000)
 })

@@ -116,4 +116,12 @@ export default class BlockchainService {
             address: params.address
         })
     }
+
+    static async getAllPrimeAccountList() {
+        return await PrimeCoinProvider.getAllPrimeAccountList()
+    }
+
+    static async getPrimeAccountList(key: string) {
+        return await PrimeCoinProvider.getPrimeAccountList(key)
+    }
 }
