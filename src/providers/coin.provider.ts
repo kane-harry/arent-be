@@ -181,7 +181,7 @@ export class PrimeCoinProvider {
 
     public static async getAllPrimeAccountList() {
         try {
-            const resp = await this.instance.get(`/accounts/prime/list`)
+            const resp = await this.instance.get('/accounts/prime/list')
             // log
             return resp.data.data
         } catch (error) {

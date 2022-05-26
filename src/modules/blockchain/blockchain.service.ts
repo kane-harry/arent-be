@@ -8,6 +8,7 @@ import { PrimeCoinProvider } from '@providers/coin.provider'
 import { FeeMode, ISendCoinDto, ITransactionFilter } from '@modules/transaction/transaction.interface'
 import { config } from '@config'
 import AccountService from '@modules/account/account.service'
+import { formatAmount, parsePrimeAmount } from '@utils/number'
 
 export default class BlockchainService {
     static async createRawWallet(params: CreateRawWalletDto) {
@@ -50,22 +51,23 @@ export default class BlockchainService {
         }
         const mode = params.mode === 'exclusive' ? FeeMode.Exclusive : FeeMode.Inclusive
         params.mode = mode
-        const transferFee = Number(config.system.primeTransferFee || 0)
+        const fee = config.system.primeTransferFee || 0
+        const transferFee = parsePrimeAmount(fee)
         if (mode === FeeMode.Inclusive) {
-            const sendAmountWithFee = Number(params.amount)
-            const amountWithoutFee = sendAmountWithFee - transferFee
-            if (amountWithoutFee < 0) {
+            const sendAmountWithFee = parsePrimeAmount(params.amount)
+            const amountWithoutFee = sendAmountWithFee.sub(transferFee)
+            if (amountWithoutFee.lt(0)) {
                 throw new BizException(
                     TransactionErrors.send_amount_less_than_fee_error,
                     new ErrorContext('coin.service', 'sendRaw', { sender: params.sender })
                 )
             }
         }
-        const amount = Number(params.amount)
-        const senderBalance = Number(senderWallet.amount)
+        const amount = parsePrimeAmount(params.amount)
+        const senderBalance = parsePrimeAmount(senderWallet.amount)
         // calculate send amount
-        const amountToSend = mode === FeeMode.Exclusive ? amount + transferFee : amount
-        if (senderBalance < amountToSend) {
+        const amountToSend = mode === FeeMode.Exclusive ? amount.add(transferFee) : amount
+        if (senderBalance.lt(amountToSend)) {
             throw new BizException(
                 TransactionErrors.sender_insufficient_balance_error,
                 new ErrorContext('coin.service', 'sendRaw', { sender: params.sender, balance: senderWallet.amount, amountToSend })
@@ -88,7 +90,7 @@ export default class BlockchainService {
             signature: params.signature,
             notes: params.notes,
             feeAddress: masterAccount.address,
-            fee: String(transferFee),
+            fee: String(fee),
             mode: mode
         }
 

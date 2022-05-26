@@ -89,7 +89,7 @@ class BlockchainController implements IController {
     }
 
     private async getPrimeAccountList(req: CustomRequest, res: Response) {
-        var symbol = req.params.symbol.toUpperCase()
+        const symbol = req.params.symbol.toUpperCase()
         const data = await BlockchainService.getPrimeAccountList(symbol)
         return res.json(data)
     }
