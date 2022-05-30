@@ -297,7 +297,7 @@ export default class AuthService {
         return { success: true }
     }
 
-    static async verifyTwoFactor(user: IUser, logInData: LogInDto) {
+    static async verifyTwoFactor(user: IUser, logInData: any, codeType: any = null) {
         if (!user.twoFactorEnable || !user.twoFactorEnable.length) {
             return
         }
@@ -321,8 +321,9 @@ export default class AuthService {
             }
             break
         case TwoFactorType.EMAIL: {
+            codeType = codeType ?? CodeType.EmailLogIn
             const { success } = await VerificationCodeService.verifyCode({
-                codeType: CodeType.EmailLogIn,
+                codeType: codeType,
                 owner: user.email,
                 code: logInData.token
             })
@@ -332,8 +333,9 @@ export default class AuthService {
             break
         }
         case TwoFactorType.SMS: {
+            codeType = codeType ?? CodeType.SMSLogIn
             const { success } = await VerificationCodeService.verifyCode({
-                codeType: CodeType.SMSLogIn,
+                codeType: codeType,
                 owner: user.phone,
                 code: logInData.token
             })

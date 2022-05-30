@@ -10,6 +10,10 @@ import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import crypto from 'crypto'
+import { IUser } from '@modules/user/user.interface'
+import VerificationCodeService from '@modules/verification_code/code.service'
+import { CodeType } from '@modules/verification_code/code.interface'
+import AuthService from '@modules/auth/auth.service'
 
 export default class AccountService {
     static async initUserAccounts(userId: string) {
@@ -167,12 +171,17 @@ export default class AccountService {
         return items
     }
 
-    static async withdraw(key: string, params: WithdrawDto) {
+    static async withdraw(key: string, params: WithdrawDto, operator: IUser) {
         const account = await AccountService.getAccountKeyStore(key)
         if (account.type === AccountExtType.Prime) {
             throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { key }))
         }
+        if (account.userId !== operator.key) {
+            throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { key }))
+        }
 
+        await AuthService.verifyTwoFactor(operator, params, CodeType.WithDraw)
+        // TODO
         throw new Error('Method not implemented.')
     }
 }

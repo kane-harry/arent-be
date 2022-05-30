@@ -17,4 +17,6 @@ export class WithdrawDto {
 
     @IsNumber({ allowNaN: false, maxDecimalPlaces: 8 }, { message: 'amount should be a decimal with max 8 decimal places.' })
     public amount: string
+
+    public token: string
 }

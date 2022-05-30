@@ -8,7 +8,8 @@ export enum CodeType {
     ForgotPin = 'ForgotPin',
     SMS = 'SMS',
     SMSLogIn = 'SMSLogIn',
-    EmailLogIn = 'EmailLogIn'
+    EmailLogIn = 'EmailLogIn',
+    WithDraw = 'WithDraw'
 }
 
 export interface IVerificationCode extends IBaseModel {

@@ -11,6 +11,10 @@ import { ITransactionFilter } from '@modules/transaction/transaction.interface'
 import TransactionService from '@modules/transaction/transaction.service'
 import { downloadResource } from '@utils/utility'
 import { requireAuth } from '@common/authCheck'
+import UserModel from '@modules/user/user.model'
+import BizException from '@exceptions/biz.exception'
+import { AccountErrors } from '@exceptions/custom.error'
+import ErrorContext from '@exceptions/error.context'
 // import { requireAuth } from '@common/authCheck'
 
 class AccountController implements IController {
@@ -27,7 +31,7 @@ class AccountController implements IController {
         this.router.get(`${this.path}/symbol/:symbol`, requireAuth, asyncHandler(this.getAccountBySymbol))
         this.router.get(`${this.path}/:key/trx/export`, asyncHandler(this.getExportTransactionByAccountKey))
         this.router.get(`${this.path}/user/:userId`, asyncHandler(this.getUserAccounts))
-        this.router.post(`${this.path}/:key/withdraw`, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
+        this.router.post(`${this.path}/:key/withdraw`, requireAuth, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
     }
 
     private async getAccountByKey(req: Request, res: Response) {
@@ -65,7 +69,12 @@ class AccountController implements IController {
     private async withdraw(req: CustomRequest, res: Response) {
         const key = req.params.key
         const params: WithdrawDto = req.body
-        const data = await AccountService.withdraw(key, params)
+        // @ts-ignore
+        const operator = await UserModel.findOne({ email: req.user?.email }).exec()
+        if (!operator) {
+            throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.controller', 'withdraw', { key }))
+        }
+        const data = await AccountService.withdraw(key, params, operator)
         return res.json(data)
     }
 
