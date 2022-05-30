@@ -154,8 +154,7 @@ function requireAdmin() {
             if (req.user.role === roles.admin.id || req.user.role === roles.master_admin.id) {
                 next()
             } else {
-                // return res.sendStatus(401);
-                next()
+                return res.sendStatus(401)
             }
         }
     ]
