@@ -337,13 +337,4 @@ describe('Transaction', () => {
         expect(res.charset).equal('utf-8')
         expect(res.text.length).gt(0)
     }).timeout(10000)
-
-    it('Export Transactions by Account', async () => {
-        const account = masterData.masterAccounts[0]
-        const res = await request(server.app).get(`/accounts/${account.key}/trx/export`).send()
-        expect(res.status).equal(200)
-        expect(res.type).equal('text/csv')
-        expect(res.charset).equal('utf-8')
-        expect(res.text.length).gt(0)
-    }).timeout(10000)
 })

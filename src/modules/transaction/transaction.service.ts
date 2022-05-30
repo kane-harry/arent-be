@@ -105,15 +105,8 @@ export default class TransactionService {
             throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('transaction.service', 'getTxnsByAccount', { key }))
         }
         filter.symbol = account.symbol
-        // TODO: Check role/owner - admin and owner can view txns
-        if (account.extType === AccountExtType.Prime) {
-            filter.owner = account.extKey
-            const txns = await PrimeCoinProvider.queryPrimeTxns(filter)
-            return { account, txns }
-        }
-        // get txns from federation db
-        filter.owner = account.key
-        const txns = await TransactionService.queryExtTxns(filter)
+        filter.owner = account.extKey
+        const txns = await PrimeCoinProvider.queryPrimeTxns(filter)
         return { account, txns }
     }
 
@@ -128,10 +121,6 @@ export default class TransactionService {
         }
         const txn = await TransactionService.getExtTrxByKey(id)
         return txn
-    }
-
-    static async queryExtTxns(filter: ITransactionFilter) {
-        throw new Error('Method not implemented.')
     }
 
     static async getExtTrxByKey(id: string) {
