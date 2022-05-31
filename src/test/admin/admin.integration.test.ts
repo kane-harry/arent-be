@@ -54,4 +54,26 @@ describe('Admin', () => {
         expect(lockResponse.body.key).equal(shareData.user.key)
         expect(lockResponse.body.status).equal(UserStatus.Normal)
     }).timeout(10000)
+
+    it('401 LockUser', async () => {
+        const lockResponse = await request(server.app)
+            .post(`/admin/user/lock`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send({
+                userKey: shareData.user.key,
+                userStatus: UserStatus.Suspend
+            })
+        expect(lockResponse.status).equal(401)
+    }).timeout(10000)
+
+    it('401 UnLockUser', async () => {
+        const lockResponse = await request(server.app)
+            .post(`/admin/user/lock`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send({
+                userKey: shareData.user.key,
+                userStatus: UserStatus.Normal
+            })
+        expect(lockResponse.status).equal(401)
+    }).timeout(10000)
 })
