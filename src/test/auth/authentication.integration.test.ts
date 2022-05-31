@@ -59,6 +59,25 @@ describe('Authentication', () => {
         shareData.refreshToken = res.body.refreshToken
     }).timeout(10000)
 
+    it('RefreshToken', async () => {
+        const res = await request(server.app).post('/auth/token/refresh').send({
+            refreshToken: shareData.refreshToken,
+        })
+
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res?.body?.token).exist
+    }).timeout(10000)
+
+    it('Logout', async () => {
+        const res = await request(server.app).post('/auth/logout').set('Authorization', `Bearer ${shareData.token}`).send({
+            refreshToken: shareData.refreshToken
+        })
+
+        expect(res.status).equal(200)
+        validResponse(res.body)
+    }).timeout(10000)
+
     it('ResetPassword', async () => {
         const res1 = await request(server.app).post('/auth/password/reset').set('Authorization', `Bearer ${shareData.token}`).send({
             oldPassword: userData.password,
@@ -81,15 +100,6 @@ describe('Authentication', () => {
         expect(res1.status).equal(200)
         validResponse(res1.body)
         expect(res1.body.success).equal(true)
-    }).timeout(10000)
-
-    it('Logout', async () => {
-        const res = await request(server.app).post('/auth/logout').set('Authorization', `Bearer ${shareData.token}`).send({
-            refreshToken: shareData.refreshToken
-        })
-
-        expect(res.status).equal(200)
-        validResponse(res.body)
     }).timeout(10000)
 
     it('ForgotPassword', async () => {
