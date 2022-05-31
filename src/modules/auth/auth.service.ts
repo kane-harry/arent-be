@@ -104,7 +104,7 @@ export default class AuthService {
 
         new UserLogModel({
             key: crypto.randomBytes(16).toString('hex'),
-            userId: user._id,
+            userId: user.key,
             action: UserActions.Login,
             agent: options?.req.agent,
             ipAddress: options?.req.ip_address
@@ -156,7 +156,7 @@ export default class AuthService {
 
         new UserLogModel({
             key: crypto.randomBytes(16).toString('hex'),
-            userId: user?._id,
+            userId: user?.key,
             action: UserActions.ResetPassword,
             agent: options?.req.agent,
             ipAddress: options?.req.ip_address,
@@ -198,7 +198,7 @@ export default class AuthService {
 
         new UserLogModel({
             key: crypto.randomBytes(16).toString('hex'),
-            userId: user?._id,
+            userId: user?.key,
             action: UserActions.ForgotPassword,
             agent: options?.req.agent,
             ipAddress: options?.req.ip_address,
@@ -231,7 +231,7 @@ export default class AuthService {
 
         new UserLogModel({
             key: crypto.randomBytes(16).toString('hex'),
-            userId: user?._id,
+            userId: user?.key,
             action: UserActions.ResetPin,
             agent: options?.req.agent,
             ipAddress: options?.req.ip_address,
@@ -273,7 +273,7 @@ export default class AuthService {
 
         new UserLogModel({
             key: crypto.randomBytes(16).toString('hex'),
-            userId: user?._id,
+            userId: user?.key,
             action: UserActions.ForgotPin,
             agent: options?.req.agent,
             ipAddress: options?.req.ip_address,
