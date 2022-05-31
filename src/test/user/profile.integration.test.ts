@@ -5,8 +5,7 @@ import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import AWS from 'aws-sdk'
 import sinon from 'sinon'
-import { initDataForUser } from '@app/test/init/authenticate'
-import {IAccount} from "@modules/account/account.interface";
+import {initDataForUser, userData} from '@app/test/init/authenticate'
 import {CodeType} from "@modules/verification_code/code.interface";
 
 chai.use(chaiAsPromised)
@@ -132,6 +131,22 @@ describe('Profile', () => {
         // @ts-ignore
         shareData.newPhoneCode = verificationCode?.code
     }).timeout(10000)
+
+    it('GetPublicUserByNickName', async () => {
+        const updateRes = await request(server.app)
+            .get(`/users/info/${userData.nickName}`)
+
+        expect(updateRes.status).equal(200)
+        validResponse(updateRes.body)
+
+        const user = await MODELS.UserModel.findOne({ nickName: userData.nickName }).exec()
+        expect(user?.email).equal(userData.email)
+        expect(user?.firstName).equal(userData.firstName)
+        expect(user?.lastName).equal(userData.lastName)
+        expect(user?.nickName).equal(userData.nickName)
+        expect(user?.phone).equal(userData.phone)
+        expect(user?.country).equal(userData.country)
+    })
 
     context('Test case for function updateUser', () => {
         it('updateUser should be throw without authenticate', async () => {
