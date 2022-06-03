@@ -123,7 +123,23 @@ export default class BlockchainService {
         return await PrimeCoinProvider.getAllPrimeAccountList()
     }
 
+    static async getAllPrimeTransactionList() {
+        return await PrimeCoinProvider.getAllPrimeTransactionList()
+    }
+
+    static async getAllPrimeTransactionStats() {
+        return await PrimeCoinProvider.getAllPrimeTransactionStats()
+    }
+
     static async getPrimeAccountList(key: string) {
         return await PrimeCoinProvider.getPrimeAccountList(key)
+    }
+
+    static async getPrimeTransactionList(key: string) {
+        return await PrimeCoinProvider.getPrimeTransactionList(key)
+    }
+
+    static async getPrimeTransactionStats(key: string) {
+        return await PrimeCoinProvider.getPrimeTransactionStats(key)
     }
 }

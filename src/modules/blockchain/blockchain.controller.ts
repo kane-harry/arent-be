@@ -27,6 +27,11 @@ class BlockchainController implements IController {
 
         this.router.get(`${this.path}/accounts/prime/list`, asyncHandler(this.getAllPrimeAccountList))
         this.router.get(`${this.path}/:symbol/accounts/prime/list`, asyncHandler(this.getPrimeAccountList))
+
+        this.router.get(`${this.path}/transactions/prime/list`, asyncHandler(this.getAllPrimeTransactionList))
+        this.router.get(`${this.path}/transactions/prime/stats`, asyncHandler(this.getAllPrimeTransactionStats))
+        this.router.get(`${this.path}/:symbol/transactions/prime/list`, asyncHandler(this.getPrimeTransactionList))
+        this.router.get(`${this.path}/:symbol/transactions/prime/stats`, asyncHandler(this.getPrimeTransactionStats))
     }
 
     private async createRawWallet(req: Request, res: Response) {
@@ -88,9 +93,31 @@ class BlockchainController implements IController {
         return res.json(data)
     }
 
+    private async getAllPrimeTransactionList(req: CustomRequest, res: Response) {
+        const data = await BlockchainService.getAllPrimeTransactionList()
+        return res.json(data)
+    }
+
+    private async getAllPrimeTransactionStats(req: CustomRequest, res: Response) {
+        const data = await BlockchainService.getAllPrimeTransactionStats()
+        return res.json(data)
+    }
+
     private async getPrimeAccountList(req: CustomRequest, res: Response) {
         const symbol = req.params.symbol.toUpperCase()
         const data = await BlockchainService.getPrimeAccountList(symbol)
+        return res.json(data)
+    }
+
+    private async getPrimeTransactionList(req: CustomRequest, res: Response) {
+        const symbol = req.params.symbol.toUpperCase()
+        const data = await BlockchainService.getPrimeTransactionList(symbol)
+        return res.json(data)
+    }
+
+    private async getPrimeTransactionStats(req: CustomRequest, res: Response) {
+        const symbol = req.params.symbol.toUpperCase()
+        const data = await BlockchainService.getPrimeTransactionStats(symbol)
         return res.json(data)
     }
 }

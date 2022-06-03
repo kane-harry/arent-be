@@ -189,6 +189,26 @@ export class PrimeCoinProvider {
         }
     }
 
+    public static async getAllPrimeTransactionList() {
+        try {
+            const resp = await this.instance.get('/transactions/prime/list')
+            // log
+            return resp.data.data
+        } catch (error) {
+            return this.requestErrorHandler('getAllPrimeTransactionList', error)
+        }
+    }
+
+    public static async getAllPrimeTransactionStats() {
+        try {
+            const resp = await this.instance.get('/transactions/prime/stats')
+            // log
+            return resp.data.data
+        } catch (error) {
+            return this.requestErrorHandler('getAllPrimeTransactionStats', error)
+        }
+    }
+
     public static async getPrimeAccountList(key: string) {
         try {
             const resp = await this.instance.get(`/accounts/${key}/prime/list`)
@@ -196,6 +216,26 @@ export class PrimeCoinProvider {
             return resp.data.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeAccountList', error)
+        }
+    }
+
+    public static async getPrimeTransactionList(key: string) {
+        try {
+            const resp = await this.instance.get(`/transactions/${key}/prime/list`)
+            // log
+            return resp.data.data
+        } catch (error) {
+            return this.requestErrorHandler('getPrimeTransactionList', error)
+        }
+    }
+
+    public static async getPrimeTransactionStats(key: string) {
+        try {
+            const resp = await this.instance.get(`/transactions/${key}/prime/stats`)
+            // log
+            return resp.data.data
+        } catch (error) {
+            return this.requestErrorHandler('getPrimeTransactionStats', error)
         }
     }
 }
