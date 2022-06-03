@@ -210,4 +210,56 @@ describe('Blockchain', () => {
         expect(res.body.pageIndex).equal(pageIndex)
         expect(res.body.pageSize).equal(pageSize)
     }).timeout(10000)
+
+    it('Get Prime Transaction List', async () => {
+        const pageIndex = 1
+        const pageSize = 20
+        const res = await request(server.app).get(`/blockchain/${symbol}/transactions/prime/list?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items).be.an('array')
+        expect(res.body.totalCount).exist
+        expect(res.body.hasNextPage).exist
+        expect(res.body.totalPages).exist
+        expect(res.body.pageIndex).equal(pageIndex)
+        expect(res.body.pageSize).equal(pageSize)
+    }).timeout(10000)
+
+    it('Get All Prime Transaction List', async () => {
+        const pageIndex = 1
+        const pageSize = 20
+        const res = await request(server.app).get(`/blockchain/transactions/prime/list?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items).be.an('array')
+        expect(res.body.totalCount).exist
+        expect(res.body.hasNextPage).exist
+        expect(res.body.totalPages).exist
+        expect(res.body.pageIndex).equal(pageIndex)
+        expect(res.body.pageSize).equal(pageSize)
+    }).timeout(10000)
+
+    it('Get Prime Transaction Stats', async () => {
+        const res = await request(server.app).get(`/blockchain/${symbol}/transactions/prime/stats`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.stats).be.an('object')
+        expect(res.body.stats.totalVolume).be.an('number')
+        expect(res.body.stats.totalCount).be.an('number')
+        expect(res.body.stats.lastDayVolume).be.an('number')
+        expect(res.body.stats.lastDayCount).be.an('number')
+        expect(res.body.stats.volumes).be.an('array')
+    }).timeout(10000)
+
+    it('Get All Prime Transaction Stats', async () => {
+        const res = await request(server.app).get(`/blockchain/transactions/prime/stats`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.stats).be.an('object')
+        expect(res.body.stats.totalVolume).be.an('number')
+        expect(res.body.stats.totalCount).be.an('number')
+        expect(res.body.stats.lastDayVolume).be.an('number')
+        expect(res.body.stats.lastDayCount).be.an('number')
+        expect(res.body.stats.volumes).be.an('array')
+    }).timeout(10000)
 })
