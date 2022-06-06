@@ -6,17 +6,18 @@ import { CodeType } from '@modules/verification_code/code.interface'
 import chai from 'chai'
 import { config } from '@config'
 import { role } from '@config/role'
+import SettingService from '@modules/setting/setting.service'
 const { expect } = chai
 
 export const initDataForUser = async (shareData: any, data: object = {}) => {
     const formData = { ...userData, ...data }
-
-    if (config.system.registrationRequireEmailVerified) {
+    const setting:any = await SettingService.getGlobalSetting()
+    if (setting.registrationRequireEmailVerified) {
         const code = await getVerificationCode(formData.email, CodeType.EmailRegistration)
         await verifyCode(formData.email, CodeType.EmailRegistration, code)
     }
 
-    if (config.system.registrationRequirePhoneVerified) {
+    if (setting.registrationRequirePhoneVerified) {
         const code = await getVerificationCode(formData.phone, CodeType.PhoneRegistration)
         await verifyCode(formData.phone, CodeType.PhoneRegistration, code)
     }
@@ -117,8 +118,9 @@ export const makeUserSuspend = async (data: object = {}, status: string) => {
 }
 
 export const getLoginCode = async (formData: any) => {
-    const codeType = config.system.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogIn
-    const owner = config.system.registrationRequireEmailVerified ? formData.email : formData.phone
+    const setting:any = await SettingService.getGlobalSetting()
+    const codeType = setting.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogIn
+    const owner = setting.registrationRequireEmailVerified ? formData.email : formData.phone
 
     const verificationCode = await MODELS.VerificationCode.findOne(
         {

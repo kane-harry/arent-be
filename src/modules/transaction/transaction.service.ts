@@ -12,6 +12,7 @@ import { config } from '@config'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
 import { IUser, UserStatus } from '@modules/user/user.interface'
 import { isAdmin } from '@config/role'
+import SettingService from '@modules/setting/setting.service'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: IUser) {
@@ -60,7 +61,8 @@ export default class TransactionService {
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender, balance: senderAccount.amount, amount })
             )
         }
-        const transferFee = Number(config.system.primeTransferFee || 0)
+        const setting:any = await SettingService.getGlobalSetting()
+        const transferFee = Number(setting.primeTransferFee || 0)
         const transferFeeBig = parsePrimeAmount(transferFee)
 
         if (amount.lt(transferFeeBig)) {

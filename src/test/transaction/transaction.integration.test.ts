@@ -11,6 +11,7 @@ import { formatAmount, parsePrimeAmount } from '@utils/number'
 import AccountService from '@modules/account/account.service'
 import {UserStatus} from "@modules/user/user.interface";
 import {TransactionErrors} from "@exceptions/custom.error";
+import SettingService from "@modules/setting/setting.service";
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -22,10 +23,12 @@ const mintValue = 100
 let currentSenderAmount = ''
 let currentRecipientAmount = ''
 const amountSend = 10
-const fee = config.system.primeTransferFee
+let feeConfig = null
 describe('Transaction', () => {
     before(async () => {
         await dbTest.connect()
+        const setting:any = await SettingService.getGlobalSetting()
+        feeConfig = setting.primeTransferFee.toString()
     })
 
     after(async () => {
@@ -118,7 +121,7 @@ describe('Transaction', () => {
         })
 
         it('Send Funds', async () => {
-            const amountWithoutFee = parseFloat(amountSend) - config.system.primeTransferFee
+            const amountWithoutFee = parseFloat(amountSend) - feeConfig
             const sender = masterData.masterAccounts[0]
             const recipient = shareData2.accounts[0]
             const res = await request(server.app).post(`/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
@@ -148,7 +151,7 @@ describe('Transaction', () => {
             // If sender was admin (fee == sender):
             //      - Sender: -9.9
             const amountBigNumber = parsePrimeAmount(amountSend)
-            const fee = parsePrimeAmount(config.system.primeTransferFee)
+            const fee = parsePrimeAmount(feeConfig)
             const amountForSender = parsePrimeAmount(res.body.sender_wallet.preBalance).sub(parsePrimeAmount(res.body.sender_wallet.postBalance))
             const amountForRecipient = parsePrimeAmount(res.body.recipient_wallet.postBalance).sub(
                 parsePrimeAmount(res.body.recipient_wallet.preBalance)
@@ -213,7 +216,7 @@ describe('Transaction', () => {
             // If sender was admin (fee == sender):
             //     - Sender: -10
             const amountBigNumber = parsePrimeAmount(amountSend)
-            const fee = parsePrimeAmount(config.system.primeTransferFee)
+            const fee = parsePrimeAmount(feeConfig)
             const amountForSender = parsePrimeAmount(res.body.sender_wallet.preBalance).sub(parsePrimeAmount(res.body.sender_wallet.postBalance))
             const amountForRecipient = parsePrimeAmount(res.body.recipient_wallet.postBalance).sub(
                 parsePrimeAmount(res.body.recipient_wallet.preBalance)

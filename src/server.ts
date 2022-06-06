@@ -10,6 +10,7 @@ import BlockchainController from '@modules/blockchain/blockchain.controller'
 import VerificationCodeController from '@modules/verification_code/code.controller'
 import SiteController from '@modules/site/site.controller'
 import AdminController from '@modules/admin/admin.controller'
+import SettingController from '@modules/setting/setting.controller'
 
 // validateEnv()
 const app = new App([
@@ -21,7 +22,8 @@ const app = new App([
     new TransactionController(),
     new BlockchainController(),
     new SiteController(),
-    new AdminController()
+    new AdminController(),
+    new SettingController()
 ])
 
 app.listen()

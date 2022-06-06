@@ -20,9 +20,6 @@ export const config = {
         coinServerSecrectKey: String(process.env.COIN_SERVER_SECRET_KEY || 'PELLAR-A5B57B456AC7A39E9EE24F353385C'),
         extTokens: [{ symbol: 'ETH', platform: 'ethereum' }],
         secret: String(process.env.SYSTEM_SECRET_KEY || 'PELLAR-7258EE75D288CFD621E9332255186'),
-        registrationRequireEmailVerified: process.env.REGISTRATION_REQUIRE_EMAIL_VERIFIED === 'true',
-        registrationRequirePhoneVerified: process.env.REGISTRATION_REQUIRE_PHONE_VERIFIED === 'true',
-        primeTransferFee: process.env.PRIME_TOKEN_TRANSFER_FEE || 0.1, // FOR TESTING
         primeDecimals: 8
     },
 

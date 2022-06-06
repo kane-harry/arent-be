@@ -9,6 +9,7 @@ import { FeeMode, ISendCoinDto, ITransactionFilter } from '@modules/transaction/
 import { config } from '@config'
 import AccountService from '@modules/account/account.service'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
+import SettingService from '@modules/setting/setting.service'
 
 export default class BlockchainService {
     static async createRawWallet(params: CreateRawWalletDto) {
@@ -51,7 +52,8 @@ export default class BlockchainService {
         }
         const mode = params.mode === 'exclusive' ? FeeMode.Exclusive : FeeMode.Inclusive
         params.mode = mode
-        const fee = config.system.primeTransferFee || 0
+        const setting:any = await SettingService.getGlobalSetting()
+        const fee = setting.primeTransferFee.toString() || 0
         const transferFee = parsePrimeAmount(fee)
         if (mode === FeeMode.Inclusive) {
             const sendAmountWithFee = parsePrimeAmount(params.amount)

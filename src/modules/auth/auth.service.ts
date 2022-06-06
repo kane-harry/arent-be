@@ -19,6 +19,7 @@ import { AuthModel } from './auth.model'
 import { AuthTokenType, MFAType } from './auth.interface'
 import crypto from 'crypto'
 import { verifyTotpToken } from '@common/twoFactor'
+import SettingService from '@modules/setting/setting.service'
 
 export default class AuthService {
     static async register(userData: CreateUserDto, options?: any) {
@@ -38,9 +39,10 @@ export default class AuthService {
                 new ErrorContext('auth.service', 'register', duplicateInfo)
             )
         }
+        const setting:any = await SettingService.getGlobalSetting()
         const MFASettings = { MFAType: MFAType.EMAIL, loginEnabled: true, withdrawEnabled: true }
         let emailVerified = false
-        if (config.system.registrationRequireEmailVerified) {
+        if (setting.registrationRequireEmailVerified) {
             const codeData = await VerificationCode.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
             if (!codeData || codeData.enabled) {
                 throw new BizException(
@@ -52,7 +54,7 @@ export default class AuthService {
             MFASettings.MFAType = MFAType.EMAIL
         }
         let phoneVerified = false
-        if (config.system.registrationRequirePhoneVerified) {
+        if (setting.registrationRequirePhoneVerified) {
             const codeData = await VerificationCode.findOne({ owner: userData.phone, type: CodeType.PhoneRegistration }).exec()
             if (!codeData || codeData.enabled) {
                 throw new BizException(
