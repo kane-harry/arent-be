@@ -30,6 +30,7 @@ export interface IUser extends IBaseModel {
     twoFactorSecret: string
     twoFactorEnable: string
     role: number | 0
+    MFASettings: Object
 }
 
 export interface IUserFilter extends IFilterModel {

@@ -6,7 +6,7 @@ import server from '@app/server'
 import {CodeType} from '@modules/verification_code/code.interface'
 import {initDataForUser, userData} from '@app/test/init/authenticate'
 import {generateTotpToken} from '@common/twoFactor'
-import {TwoFactorType} from "@modules/auth/auth.interface";
+import {MFAType} from "@modules/auth/auth.interface";
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -45,7 +45,7 @@ describe('Security', () => {
         const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
         const token = generateTotpToken(twoFactorSecret)
         const res = await request(server.app).post('/users/2fa/update').set('Authorization', `Bearer ${shareData.token}`).send({
-            twoFactorEnable: TwoFactorType.TOTP,
+            twoFactorEnable: MFAType.TOTP,
             token: token
         })
         expect(res.status).equal(200)
@@ -92,7 +92,7 @@ describe('Security', () => {
         expect(verificationCode?.code).exist
 
         const res1 = await request(server.app).post('/users/2fa/update').set('Authorization', `Bearer ${shareData.token}`).send({
-            twoFactorEnable: TwoFactorType.SMS,
+            twoFactorEnable: MFAType.SMS,
             token: verificationCode?.code
         })
         expect(res1.status).equal(200)

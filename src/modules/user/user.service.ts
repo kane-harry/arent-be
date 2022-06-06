@@ -8,7 +8,7 @@ import { GetUserListDto, Update2FAUserDto, UpdateUserDto } from './user.dto'
 import UserModel from './user.model'
 import { generateTotpToken, verifyTotpToken } from '@common/twoFactor'
 import sendEmail from '@common/email'
-import { TwoFactorType } from '@modules/auth/auth.interface'
+import { MFAType } from '@modules/auth/auth.interface'
 import * as bcrypt from 'bcrypt'
 import { unixTimestampToDate } from '@utils/utility'
 import { IUser } from '@modules/user/user.interface'
@@ -124,22 +124,22 @@ export default class UserService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
         switch (data.twoFactorEnable) {
-        case TwoFactorType.PIN:
+        case MFAType.PIN:
             const pinHash = await bcrypt.hash(data.token, 10)
-            user?.set('twoFactorEnable', TwoFactorType.PIN, String)
             user?.set('pin', pinHash || user.pin, String)
             break
-        case TwoFactorType.TOTP:
+        case MFAType.TOTP:
             const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
             if (!verifyTotpToken(twoFactorSecret, data.token)) {
                 throw new BizException(AuthErrors.token_error, new ErrorContext('user.service', 'updateUser', {}))
             }
-            user?.set('twoFactorEnable', TwoFactorType.TOTP, String)
             break
-        case TwoFactorType.SMS:
-            user?.set('twoFactorEnable', TwoFactorType.SMS, String)
+        case MFAType.SMS:
             break
         }
+        const MFASettings:any = user.MFASettings
+        MFASettings.MFAType = data.twoFactorEnable
+        user?.set('MFASettings', MFASettings, Object)
         user?.save()
 
         return user

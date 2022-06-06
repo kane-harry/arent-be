@@ -16,7 +16,7 @@ import { UserActions } from '@modules/user_logs/user_log.interface'
 import { CustomRequest } from '@middlewares/request.middleware'
 import AccountService from '@modules/account/account.service'
 import { AuthModel } from './auth.model'
-import { AuthTokenType, TwoFactorType } from './auth.interface'
+import { AuthTokenType, MFAType } from './auth.interface'
 import crypto from 'crypto'
 import { verifyTotpToken } from '@common/twoFactor'
 
@@ -38,6 +38,7 @@ export default class AuthService {
                 new ErrorContext('auth.service', 'register', duplicateInfo)
             )
         }
+        const MFASettings = {MFAType: MFAType.EMAIL, loginEnabled: true, withdrawEnabled: true}
         let emailVerified = false
         if (config.system.registrationRequireEmailVerified) {
             const codeData = await VerificationCode.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
@@ -48,6 +49,7 @@ export default class AuthService {
                 )
             }
             emailVerified = true
+            MFASettings.MFAType = MFAType.EMAIL
         }
         let phoneVerified = false
         if (config.system.registrationRequirePhoneVerified) {
@@ -59,6 +61,7 @@ export default class AuthService {
                 )
             }
             phoneVerified = true
+            MFASettings.MFAType = MFAType.SMS
         }
 
         const mode = new UserModel({
@@ -67,10 +70,11 @@ export default class AuthService {
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
             avatar: null,
-            twoFactorEnable: TwoFactorType.EMAIL,
+            twoFactorEnable: MFAType.EMAIL,
             role: 0,
             emailVerified,
-            phoneVerified
+            phoneVerified,
+            MFASettings
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)
@@ -101,7 +105,10 @@ export default class AuthService {
         }
 
         if (!options.forceLogin) {
-            await this.verifyTwoFactor(user, logInData)
+            // @ts-ignore
+            if (user.MFASettings.loginEnabled) {
+                await this.verifyTwoFactor(user, logInData)
+            }
         }
 
         // create token
@@ -319,8 +326,10 @@ export default class AuthService {
         if (!logInData.token) {
             throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
         }
-        switch (user.twoFactorEnable) {
-        case TwoFactorType.PIN:
+
+        // @ts-ignore
+        switch (user.MFASettings.MFAType) {
+        case MFAType.PIN:
             // @ts-ignore
             const pinHash = user.get('pin', null, { getters: false })
             const isMatching = await bcrypt.compare(logInData.token, pinHash)
@@ -328,14 +337,14 @@ export default class AuthService {
                 throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
             }
             break
-        case TwoFactorType.TOTP:
+        case MFAType.TOTP:
             // @ts-ignore
             const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
             if (!verifyTotpToken(twoFactorSecret, logInData.token)) {
                 throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
             }
             break
-        case TwoFactorType.EMAIL: {
+        case MFAType.EMAIL: {
             codeType = codeType ?? CodeType.EmailLogIn
             const { success } = await VerificationCodeService.verifyCode({
                 codeType: codeType,
@@ -347,7 +356,7 @@ export default class AuthService {
             }
             break
         }
-        case TwoFactorType.SMS: {
+        case MFAType.SMS: {
             codeType = codeType ?? CodeType.SMSLogIn
             const { success } = await VerificationCodeService.verifyCode({
                 codeType: codeType,

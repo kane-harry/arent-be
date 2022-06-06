@@ -25,7 +25,9 @@ export const initDataForUser = async (shareData: any, data: object = {}) => {
     validResponse(registerRes.body)
     expect(registerRes.status).equal(200)
 
-    const loginCode = await getVerificationCode(formData.email, CodeType.EmailLogIn)
+    const mfaType = config.system.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogIn
+    const owner = config.system.registrationRequireEmailVerified ? formData.email : formData.phone
+    const loginCode = await getVerificationCode(owner, mfaType)
     const loginRes = await request(server.app).post('/auth/login').send({ email: formData.email, password: formData.password, token: loginCode })
     validResponse(loginRes.body)
     expect(loginRes.status).equal(200)
