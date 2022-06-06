@@ -66,7 +66,6 @@ const userSchema = new Schema<IUser>(
             type: String,
             get: (): undefined => undefined
         },
-        twoFactorEnable: String,
         role: Number,
         MFASettings: { type: Object, default: {MFAType: 'EMAIL', loginEnabled: true, withdrawEnabled: true} }
     },

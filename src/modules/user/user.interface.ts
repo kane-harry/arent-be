@@ -28,7 +28,6 @@ export interface IUser extends IBaseModel {
     emailVerified: boolean
     phoneVerified: boolean
     twoFactorSecret: string
-    twoFactorEnable: string
     role: number | 0
     MFASettings: Object
 }

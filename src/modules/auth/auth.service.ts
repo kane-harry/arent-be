@@ -70,7 +70,6 @@ export default class AuthService {
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
             avatar: null,
-            twoFactorEnable: MFAType.EMAIL,
             role: 0,
             emailVerified,
             phoneVerified,
@@ -320,9 +319,6 @@ export default class AuthService {
     }
 
     static async verifyTwoFactor(user: IUser, logInData: any, codeType: any = null) {
-        if (!user.twoFactorEnable || !user.twoFactorEnable.length) {
-            return
-        }
         if (!logInData.token) {
             throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
         }
