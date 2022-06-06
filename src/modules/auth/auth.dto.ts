@@ -8,8 +8,7 @@ export class LogInDto {
     public password: string
 
     @IsOptional()
-    @IsString()
-    public token: string
+    public token: any
 }
 
 export class ResetPasswordDto {

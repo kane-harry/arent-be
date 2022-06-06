@@ -21,7 +21,7 @@ import crypto from 'crypto'
 import { verifyTotpToken } from '@common/twoFactor'
 
 export default class AuthService {
-    static async register(userData: CreateUserDto, options?: { req: CustomRequest }) {
+    static async register(userData: CreateUserDto, options?: any) {
         userData = AuthService.formatCreateUserDto(userData)
         const filter = {
             $or: [{ email: userData.email }, { phone: userData.phone }, { nickName: userData.nickName }]
@@ -63,7 +63,8 @@ export default class AuthService {
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)
 
-        return { success: true }
+        options.forceLogin = true
+        return this.logIn({ email: userData.email, password: userData.password, token: null }, options)
     }
 
     private static formatCreateUserDto(userData: CreateUserDto) {
@@ -76,7 +77,7 @@ export default class AuthService {
         return userData
     }
 
-    static async logIn(logInData: LogInDto, options?: { req: CustomRequest }) {
+    static async logIn(logInData: LogInDto, options?: any) {
         const user = await UserModel.findOne({ email: logInData.email }).exec()
         if (!user) {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
@@ -87,7 +88,9 @@ export default class AuthService {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
         }
 
-        await this.verifyTwoFactor(user, logInData)
+        if (!options.forceLogin) {
+            await this.verifyTwoFactor(user, logInData)
+        }
 
         // create token
         const accessToken = AuthModel.createAccessToken(user._id)
