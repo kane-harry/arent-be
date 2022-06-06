@@ -372,18 +372,24 @@ export default class AuthService {
         // @ts-ignore
         switch (user.MFASettings.MFAType) {
         case MFAType.EMAIL: {
-            await VerificationCodeService.generateCode({ codeType: CodeType.EmailLogIn, owner: user.email })
-            return 'Please check your email for login code'
+            const data:any = await VerificationCodeService.generateCode({ codeType: CodeType.EmailLogIn, owner: user.email })
+            data.message = 'Please check your email for login code'
+            return data
         }
         case MFAType.SMS: {
-            await VerificationCodeService.generateCode({ codeType: CodeType.SMSLogIn, owner: user.phone })
-            return 'Please check your phone for login code'
+            const data:any = await VerificationCodeService.generateCode({ codeType: CodeType.SMSLogIn, owner: user.phone })
+            data.message = 'Please check your phone for login code'
+            return data
         }
         case MFAType.PIN: {
-            return 'Please enter your pin as login code'
+            const data:any = {}
+            data.message = 'Please enter your pin as login code'
+            return data
         }
         case MFAType.TOTP: {
-            return 'Please check Google Authenticator for login code'
+            const data:any = {}
+            data.message = 'Please check Google Authenticator for login code'
+            return data
         }
         }
     }
