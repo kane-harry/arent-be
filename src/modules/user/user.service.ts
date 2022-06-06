@@ -92,13 +92,13 @@ export default class UserService {
         )
     }
 
-    public static generateTwoFactorUser = async (options: { req: AuthenticationRequest }) => {
+    public static generateTotp = async (options: { req: AuthenticationRequest }) => {
         const user = await UserModel.findOne({ email: options?.req?.user?.email }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
         let twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
-        if (!twoFactorSecret) {
+        if (!twoFactorSecret || twoFactorSecret === 'undefined') {
             const speakeasy = require('speakeasy')
             const secret = speakeasy.generateSecret({ length: 20 })
             user.set('twoFactorSecret', secret.base32)

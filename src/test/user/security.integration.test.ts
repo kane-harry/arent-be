@@ -32,8 +32,8 @@ describe('Security', () => {
         await initDataForUser(shareData)
     }).timeout(10000)
 
-    it(`Generate2FAToken`, async () => {
-        const res = await request(server.app).post('/users/2fa/generate').set('Authorization', `Bearer ${shareData.token}`).send()
+    it(`GenerateTotpToken`, async () => {
+        const res = await request(server.app).post('/users/totp/generate').set('Authorization', `Bearer ${shareData.token}`).send()
         expect(res.status).equal(200)
     }).timeout(10000)
 

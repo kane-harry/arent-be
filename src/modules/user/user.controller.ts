@@ -38,7 +38,7 @@ class UserController implements IController {
 
         this.router.get(`${this.path}/info/:nickName`, asyncHandler(this.getPublicUserByNickName))
 
-        this.router.post(`${this.path}/2fa/generate`, requireAuth, asyncHandler(this.generateTwoFactorUser))
+        this.router.post(`${this.path}/totp/generate`, requireAuth, asyncHandler(this.generateTotp))
         this.router.post(`${this.path}/mfa/update`, requireAuth, asyncHandler(this.updateMFA))
         this.router.get(`${this.path}/list`, requireAuth, asyncHandler(this.getUserList))
         this.router.get(`${this.path}/me`, requireAuth, asyncHandler(this.getMyProfile))
@@ -75,8 +75,8 @@ class UserController implements IController {
         return res.send(req?.user)
     }
 
-    private generateTwoFactorUser = async (req: AuthenticationRequest, res: Response) => {
-        const data = await UserService.generateTwoFactorUser({ req })
+    private generateTotp = async (req: AuthenticationRequest, res: Response) => {
+        const data = await UserService.generateTotp({ req })
         return res.send(data)
     }
 
