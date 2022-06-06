@@ -16,6 +16,11 @@ export const initDataForUser = async (shareData: any, data: object = {}) => {
         await verifyCode(formData.email, CodeType.EmailRegistration, code)
     }
 
+    if (config.system.registrationRequirePhoneVerified) {
+        const code = await getVerificationCode(formData.phone, CodeType.PhoneRegistration)
+        await verifyCode(formData.phone, CodeType.PhoneRegistration, code)
+    }
+
     const registerRes = await request(server.app).post('/auth/register').send(formData)
     validResponse(registerRes.body)
     expect(registerRes.status).equal(200)
@@ -65,10 +70,10 @@ export const adminData = {
     country: 'country'
 }
 
-export const getVerificationCode = async (email: string, codeType:string) => {
+export const getVerificationCode = async (owner: string, codeType:string) => {
     const res = await request(server.app).post('/verification/code/get').send({
         codeType: codeType,
-        owner: email
+        owner: owner
     })
     expect(res.status).equal(200)
     validResponse(res.body)
@@ -76,7 +81,7 @@ export const getVerificationCode = async (email: string, codeType:string) => {
     const verificationCode = await MODELS.VerificationCode.findOne(
         {
             type: codeType,
-            owner: email
+            owner: owner
         },
         {},
         { sort: { created_at: -1 } }
