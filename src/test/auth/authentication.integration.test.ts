@@ -5,6 +5,7 @@ import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import { CodeType } from '@modules/verification_code/code.interface'
 import {getVerificationCode, initDataForUser, userData} from '@app/test/init/authenticate'
+import {config} from "@config";
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -41,7 +42,9 @@ describe('Authentication', () => {
     }).timeout(10000)
 
     it('Login', async () => {
-        const loginCode = await getVerificationCode(userData.email, CodeType.EmailLogIn)
+        const owner = config.system.registrationRequireEmailVerified ? userData.email : userData.phone
+        const codeType = config.system.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogIn
+        const loginCode = await getVerificationCode(owner, codeType)
         const res = await request(server.app).post('/auth/login').send({
             email: userData.email,
             password: userData.password,

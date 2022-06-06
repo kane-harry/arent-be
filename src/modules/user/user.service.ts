@@ -142,6 +142,12 @@ export default class UserService {
         user?.set('MFASettings', MFASettings, Object)
         user?.save()
 
+        await UserModel.findOneAndUpdate(
+            { key: user.key },
+            { $set: { MFASettings: MFASettings } },
+            { new: true }
+        ).exec()
+
         return user
     }
 
