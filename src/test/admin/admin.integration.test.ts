@@ -5,6 +5,7 @@ import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import {adminData, initDataForUser, makeAdmin} from '@app/test/init/authenticate'
 import {UserStatus} from "@modules/user/user.interface";
+import UserModel from "@modules/user/user.model";
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -75,5 +76,34 @@ describe('Admin', () => {
                 userStatus: UserStatus.Normal
             })
         expect(lockResponse.status).equal(401)
+    }).timeout(10000)
+
+    it(`GenerateTotpToken`, async () => {
+        const res = await request(server.app).post('/users/totp/generate').set('Authorization', `Bearer ${shareData.token}`).send()
+        expect(res.status).equal(200)
+
+        const user = await UserModel.findOne({ key: shareData.user.key }).exec()
+        let twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
+        expect(twoFactorSecret).exist
+    }).timeout(10000)
+
+    it('401 Reset TOTP', async () => {
+        const response = await request(server.app)
+            .post(`/admin/user/${shareData.user.key}/totp/reset`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(response.status).equal(401)
+    }).timeout(10000)
+
+    it('Reset TOTP', async () => {
+        const response = await request(server.app)
+            .post(`/admin/user/${shareData.user.key}/totp/reset`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send()
+        expect(response.status).equal(200)
+
+        const user = await UserModel.findOne({ key: shareData.user.key }).exec()
+        let twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
+        expect(twoFactorSecret).equal('null')
     }).timeout(10000)
 })

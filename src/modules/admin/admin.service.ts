@@ -17,4 +17,17 @@ export default class AdminService {
 
         return user
     }
+
+    static async resetTotp(userKey:string) {
+        const user = await UserModel.findOne({ key: userKey }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('admin.service', 'lockUser', {}))
+        }
+
+        user?.set('twoFactorSecret', null, null)
+        user?.save()
+
+        return user
+    }
 }
