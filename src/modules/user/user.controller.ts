@@ -5,7 +5,7 @@ import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middl
 import { requireAuth } from '@common/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
-import { GetUserListDto, Update2FAUserDto, UpdateUserDto } from './user.dto'
+import { GetUserListDto, UpdateMFADto, UpdateUserDto } from './user.dto'
 import { IAccountFilter } from '@modules/account/account.interface'
 
 class UserController implements IController {
@@ -39,7 +39,7 @@ class UserController implements IController {
         this.router.get(`${this.path}/info/:nickName`, asyncHandler(this.getPublicUserByNickName))
 
         this.router.post(`${this.path}/2fa/generate`, requireAuth, asyncHandler(this.generateTwoFactorUser))
-        this.router.post(`${this.path}/2fa/update`, requireAuth, asyncHandler(this.updateTwoFa))
+        this.router.post(`${this.path}/mfa/update`, requireAuth, asyncHandler(this.updateMFA))
         this.router.get(`${this.path}/list`, requireAuth, asyncHandler(this.getUserList))
         this.router.get(`${this.path}/me`, requireAuth, asyncHandler(this.getMyProfile))
     }
@@ -80,9 +80,9 @@ class UserController implements IController {
         return res.send(data)
     }
 
-    private updateTwoFa = async (req: AuthenticationRequest, res: Response) => {
-        const userData: Update2FAUserDto = req.body
-        const data = await UserService.updateTwoFactorUser(userData, { req })
+    private updateMFA = async (req: AuthenticationRequest, res: Response) => {
+        const userData: UpdateMFADto = req.body
+        const data = await UserService.updateMFA(userData, { req })
         return res.send(data)
     }
 

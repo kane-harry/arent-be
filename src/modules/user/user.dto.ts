@@ -78,9 +78,9 @@ export class UpdateUserDto {
     public newPhoneCode: string
 }
 
-export class Update2FAUserDto {
+export class UpdateMFADto {
     @IsString()
-    public twoFactorEnable: string
+    public MFAType: string
 
     @IsString()
     public token: string

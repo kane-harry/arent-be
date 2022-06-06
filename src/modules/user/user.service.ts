@@ -4,7 +4,7 @@ import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { forEach } from 'lodash'
-import { GetUserListDto, Update2FAUserDto, UpdateUserDto } from './user.dto'
+import { GetUserListDto, UpdateMFADto, UpdateUserDto } from './user.dto'
 import UserModel from './user.model'
 import { generateTotpToken, verifyTotpToken } from '@common/twoFactor'
 import sendEmail from '@common/email'
@@ -118,12 +118,12 @@ export default class UserService {
         return { secret: twoFactorSecret }
     }
 
-    public static updateTwoFactorUser = async (data: Update2FAUserDto, options: { req: AuthenticationRequest }) => {
+    public static updateMFA = async (data: UpdateMFADto, options: { req: AuthenticationRequest }) => {
         const user = await UserModel.findOne({ email: options?.req?.user?.email }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
-        switch (data.twoFactorEnable) {
+        switch (data.MFAType) {
         case MFAType.PIN:
             const pinHash = await bcrypt.hash(data.token, 10)
             user?.set('pin', pinHash || user.pin, String)
@@ -138,7 +138,7 @@ export default class UserService {
             break
         }
         const MFASettings:any = user.MFASettings
-        MFASettings.MFAType = data.twoFactorEnable
+        MFASettings.MFAType = data.MFAType
         user?.set('MFASettings', MFASettings, Object)
         user?.save()
 

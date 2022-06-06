@@ -37,15 +37,15 @@ describe('Security', () => {
         expect(res.status).equal(200)
     }).timeout(10000)
 
-    it(`Update2FATotp`, async () => {
+    it(`UpdateMFATotp`, async () => {
         const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
         if (!user) {
             return expect(500).equal(200)
         }
         const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
         const token = generateTotpToken(twoFactorSecret)
-        const res = await request(server.app).post('/users/2fa/update').set('Authorization', `Bearer ${shareData.token}`).send({
-            twoFactorEnable: MFAType.TOTP,
+        const res = await request(server.app).post('/users/mfa/update').set('Authorization', `Bearer ${shareData.token}`).send({
+            MFAType: MFAType.TOTP,
             token: token
         })
         expect(res.status).equal(200)
@@ -69,7 +69,7 @@ describe('Security', () => {
         shareData.refreshToken = res1.body.refreshToken
     }).timeout(10000)
 
-    it(`Update2FASms`, async () => {
+    it(`UpdateMFASms`, async () => {
         const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
         if (!user) {
             return expect(500).equal(200)
@@ -91,8 +91,8 @@ describe('Security', () => {
         ).exec()
         expect(verificationCode?.code).exist
 
-        const res1 = await request(server.app).post('/users/2fa/update').set('Authorization', `Bearer ${shareData.token}`).send({
-            twoFactorEnable: MFAType.SMS,
+        const res1 = await request(server.app).post('/users/mfa/update').set('Authorization', `Bearer ${shareData.token}`).send({
+            MFAType: MFAType.SMS,
             token: verificationCode?.code
         })
         expect(res1.status).equal(200)
