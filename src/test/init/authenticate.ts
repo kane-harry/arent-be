@@ -25,9 +25,8 @@ export const initDataForUser = async (shareData: any, data: object = {}) => {
     validResponse(registerRes.body)
     expect(registerRes.status).equal(200)
 
-    const mfaType = config.system.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogIn
-    const owner = config.system.registrationRequireEmailVerified ? formData.email : formData.phone
-    const loginCode = await getVerificationCode(owner, mfaType)
+    await request(server.app).post('/auth/login').send({ email: formData.email, password: formData.password })
+    const loginCode = await getLoginCode(formData)
     const loginRes = await request(server.app).post('/auth/login').send({ email: formData.email, password: formData.password, token: loginCode })
     validResponse(loginRes.body)
     expect(loginRes.status).equal(200)
@@ -115,4 +114,21 @@ export const makeUserSuspend = async (data: object = {}, status: string) => {
     const user = await MODELS.UserModel.findOne({ email: formData.email }).exec()
     user?.set('status', status, String)
     user?.save()
+}
+
+export const getLoginCode = async (formData: any) => {
+    const codeType = config.system.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogIn
+    const owner = config.system.registrationRequireEmailVerified ? formData.email : formData.phone
+
+    const verificationCode = await MODELS.VerificationCode.findOne(
+        {
+            type: codeType,
+            owner: owner
+        },
+        {},
+        { sort: { created_at: -1 } }
+    ).exec()
+    expect(verificationCode?.code).exist
+
+    return verificationCode?.code
 }

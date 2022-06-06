@@ -38,7 +38,7 @@ export default class AuthService {
                 new ErrorContext('auth.service', 'register', duplicateInfo)
             )
         }
-        const MFASettings = {MFAType: MFAType.EMAIL, loginEnabled: true, withdrawEnabled: true}
+        const MFASettings = { MFAType: MFAType.EMAIL, loginEnabled: true, withdrawEnabled: true }
         let emailVerified = false
         if (config.system.registrationRequireEmailVerified) {
             const codeData = await VerificationCode.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
@@ -320,7 +320,8 @@ export default class AuthService {
 
     static async verifyTwoFactor(user: IUser, logInData: any, codeType: any = null) {
         if (!logInData.token) {
-            throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
+            const message = await this.sendMFACode(user)
+            throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', { message }))
         }
 
         // @ts-ignore
@@ -363,6 +364,26 @@ export default class AuthService {
                 throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
             }
             break
+        }
+        }
+    }
+
+    static async sendMFACode(user:IUser) {
+        // @ts-ignore
+        switch (user.MFASettings.MFAType) {
+        case MFAType.EMAIL: {
+            await VerificationCodeService.generateCode({ codeType: CodeType.EmailLogIn, owner: user.email })
+            return 'Please check your email for login code'
+        }
+        case MFAType.SMS: {
+            await VerificationCodeService.generateCode({ codeType: CodeType.SMSLogIn, owner: user.phone })
+            return 'Please check your phone for login code'
+        }
+        case MFAType.PIN: {
+            return 'Please enter your pin as login code'
+        }
+        case MFAType.TOTP: {
+            return 'Please check Google Authenticator for login code'
         }
         }
     }

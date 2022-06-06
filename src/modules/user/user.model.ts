@@ -67,7 +67,7 @@ const userSchema = new Schema<IUser>(
             get: (): undefined => undefined
         },
         role: Number,
-        MFASettings: { type: Object, default: {MFAType: 'EMAIL', loginEnabled: true, withdrawEnabled: true} }
+        MFASettings: { type: Object, default: { MFAType: 'EMAIL', loginEnabled: true, withdrawEnabled: true } }
     },
     {
         toJSON: {
