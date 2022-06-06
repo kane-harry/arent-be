@@ -26,6 +26,7 @@ export interface IUser extends IBaseModel {
     playerId?: string
     status: UserStatus
     emailVerified: boolean
+    phoneVerified: boolean
     twoFactorSecret: string
     twoFactorEnable: string
     role: number | 0

@@ -9,6 +9,7 @@ export const AuthErrors = {
     registration_info_exists_error: { code: 2001, status: 400, message: 'Info already exists.' },
     registration_email_exists_error: { code: 2001, status: 400, message: 'This email already exists.' },
     registration_email_not_verified_error: { code: 2002, status: 400, message: 'Please verify your email address.' },
+    registration_phone_not_verified_error: { code: 2002, status: 400, message: 'Please verify your phone.' },
     registration_email_already_verified_error: { code: 2003, status: 400, message: 'This email is already verified.' },
 
     verification_code_duplicate_request_in_minute_error: { code: 2004, status: 400, message: 'Please request verification code after 1 minute.' },

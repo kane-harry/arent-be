@@ -60,6 +60,7 @@ const userSchema = new Schema<IUser>(
             default: UserStatus.Normal
         },
         emailVerified: { type: Boolean, default: false },
+        phoneVerified: { type: Boolean, default: false },
         removed: { type: Boolean, default: false, get: (): undefined => undefined },
         twoFactorSecret: {
             type: String,

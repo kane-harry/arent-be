@@ -49,6 +49,17 @@ export default class AuthService {
             }
             emailVerified = true
         }
+        let phoneVerified = false
+        if (config.system.registrationRequirePhoneVerified) {
+            const codeData = await VerificationCode.findOne({ owner: userData.phone, type: CodeType.PhoneRegistration }).exec()
+            if (!codeData || codeData.enabled) {
+                throw new BizException(
+                    AuthErrors.registration_phone_not_verified_error,
+                    new ErrorContext('auth.service', 'generateCode', { phone: userData.phone })
+                )
+            }
+            phoneVerified = true
+        }
 
         const mode = new UserModel({
             ...userData,
@@ -58,7 +69,8 @@ export default class AuthService {
             avatar: null,
             twoFactorEnable: TwoFactorType.EMAIL,
             role: 0,
-            emailVerified
+            emailVerified,
+            phoneVerified
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)
