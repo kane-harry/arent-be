@@ -99,7 +99,7 @@ roles.customer_service.can = roles.customer_service.can.concat(roles.customer_se
 roles.customer_service.can = roles.customer_service.can.concat(roles.customer_service_bank_verifier.can)
 roles.customer_service.can = roles.customer_service.can.concat(roles.customer_service_bank_chat.can)
 
-function isAdmin(roleObj: number) {
+function isAdmin(roleObj: any) {
     return roleObj === roles.admin.id || roleObj === roles.master_admin.id
 }
 

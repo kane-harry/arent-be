@@ -14,6 +14,7 @@ let shareData = {
     user: {
         email: undefined,
         phone: undefined,
+        key: undefined,
     },
     token: '',
     refreshToken: ''
@@ -44,7 +45,7 @@ describe('Security', () => {
         }
         const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
         const token = generateTotpToken(twoFactorSecret)
-        const res = await request(server.app).post('/users/mfa/update').set('Authorization', `Bearer ${shareData.token}`).send({
+        const res = await request(server.app).post(`/users/${shareData.user.key}/mfa`).set('Authorization', `Bearer ${shareData.token}`).send({
             MFAType: MFAType.TOTP,
             token: token
         })
@@ -91,7 +92,7 @@ describe('Security', () => {
         ).exec()
         expect(verificationCode?.code).exist
 
-        const res1 = await request(server.app).post('/users/mfa/update').set('Authorization', `Bearer ${shareData.token}`).send({
+        const res1 = await request(server.app).post(`/users/${shareData.user.key}/mfa`).set('Authorization', `Bearer ${shareData.token}`).send({
             MFAType: MFAType.SMS,
             token: verificationCode?.code
         })

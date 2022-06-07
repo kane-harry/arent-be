@@ -16,6 +16,7 @@ import { QueryRO } from '@interfaces/query.model'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import { CodeType } from '@modules/verification_code/code.interface'
 import { getPhoneInfo } from '@common/phone-helper'
+import { isAdmin } from '@config/role'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -131,9 +132,13 @@ export default class UserService {
         return { secret: twoFactorSecret }
     }
 
-    public static updateMFA = async (data: UpdateMFADto, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ email: options?.req?.user?.email }).exec()
+    public static updateMFA = async (userKey:string, data: UpdateMFADto, options: { req: AuthenticationRequest }) => {
+        const user = await UserModel.findOne({ key: userKey }).exec()
         if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
+        }
+        // Check permission, allow real user or admin can update this
+        if (user.key !== options?.req?.user?.key && !isAdmin(options?.req?.user?.role)) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
         switch (data.MFAType) {
