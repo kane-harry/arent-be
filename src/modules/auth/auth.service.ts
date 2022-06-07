@@ -107,7 +107,7 @@ export default class AuthService {
     }
 
     static async logIn(logInData: LogInDto, options?: any) {
-        const user = await UserModel.findOne({ email: logInData.email }).exec()
+        const user = await UserModel.findOne({ email: logInData.email, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
         }

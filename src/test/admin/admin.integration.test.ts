@@ -3,7 +3,7 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
-import {adminData, initDataForUser, makeAdmin} from '@app/test/init/authenticate'
+import {adminData, initDataForUser, makeAdmin, userData} from '@app/test/init/authenticate'
 import {UserStatus} from "@modules/user/user.interface";
 import UserModel from "@modules/user/user.model";
 
@@ -105,5 +105,32 @@ describe('Admin', () => {
         const user = await UserModel.findOne({ key: shareData.user.key }).exec()
         let twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
         expect(twoFactorSecret).equal('null')
+    }).timeout(10000)
+
+    it('401 RemoveUser', async () => {
+        const response = await request(server.app)
+            .post(`/admin/user/${shareData.user.key}/remove`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(response.status).equal(401)
+    }).timeout(10000)
+
+    it('RemoveUser', async () => {
+        const response = await request(server.app)
+            .post(`/admin/user/${shareData.user.key}/remove`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send()
+        expect(response.status).equal(200)
+        expect(response.body.key).equal(shareData.user.key)
+
+        const user = await UserModel.findOne({ key: shareData.user.key }).exec()
+        let removed = String(user?.get('removed', null, { getters: false }))
+        expect(removed).equal('true')
+    }).timeout(10000)
+
+    it('Disable Login After Removed User', async () => {
+        const response = await request(server.app).post('/auth/login').send({email: userData.email, password: userData.password, token: '123456'})
+        validResponse(response.body)
+        expect(response.status).equal(400)
     }).timeout(10000)
 })

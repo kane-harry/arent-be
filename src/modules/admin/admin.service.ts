@@ -18,11 +18,24 @@ export default class AdminService {
         return user
     }
 
+    static async removeUser(userKey:string) {
+        const user = await UserModel.findOne({ key: userKey }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('admin.service', 'removeUser', {}))
+        }
+
+        user?.set('removed', true, Boolean)
+        user?.save()
+
+        return user
+    }
+
     static async resetTotp(userKey:string) {
         const user = await UserModel.findOne({ key: userKey }).exec()
 
         if (!user) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('admin.service', 'lockUser', {}))
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('admin.service', 'resetTotp', {}))
         }
 
         user?.set('twoFactorSecret', null, null)

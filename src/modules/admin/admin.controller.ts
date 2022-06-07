@@ -17,12 +17,19 @@ class AdminController implements IController {
 
     private initRoutes() {
         this.router.post(`${this.path}/user/lock`, requireAuth, requireAdmin(), asyncHandler(this.lockUser))
+        this.router.post(`${this.path}/user/:key/remove`, requireAuth, requireAdmin(), asyncHandler(this.removeUser))
         this.router.post(`${this.path}/user/:key/totp/reset`, requireAuth, requireAdmin(), asyncHandler(this.resetTotp))
     }
 
     private async lockUser(req: CustomRequest, res: Response) {
         const params: LockUserDto = req.body
         const data = await AdminService.lockUser(params)
+        return res.json(data)
+    }
+
+    private async removeUser(req: CustomRequest, res: Response) {
+        const userKey = req.params.key
+        const data = await AdminService.removeUser(userKey)
         return res.json(data)
     }
 
