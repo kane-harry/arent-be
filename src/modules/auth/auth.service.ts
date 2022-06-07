@@ -52,7 +52,7 @@ export default class AuthService {
             )
         }
         const setting:any = await SettingService.getGlobalSetting()
-        const MFASettings = { MFAType: MFAType.EMAIL, loginEnabled: true, withdrawEnabled: true }
+        const MFASettings = { MFAType: MFAType.EMAIL, loginEnabled: setting.loginRequireMFA, withdrawEnabled: setting.withdrawRequireMFA }
         let emailVerified = false
         if (setting.registrationRequireEmailVerified) {
             const codeData = await VerificationCode.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
