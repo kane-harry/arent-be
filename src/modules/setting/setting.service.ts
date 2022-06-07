@@ -5,10 +5,10 @@ import { defaultSetting } from '@modules/setting/setting.interface'
 export default class SettingService {
     public static getGlobalSetting = async () => {
         const setting = await SettingModel.findOne({}).exec()
-        return setting ?? await this.newGlobalSetting(defaultSetting)
+        return setting ?? (await SettingService.newGlobalSetting(defaultSetting))
     }
 
-    public static newGlobalSetting = async (params:SettingDto) => {
+    public static newGlobalSetting = async (params: SettingDto) => {
         const existSetting = await SettingModel.findOne({}).exec()
         if (existSetting) {
             return existSetting
@@ -18,10 +18,10 @@ export default class SettingService {
         return savedData
     }
 
-    public static updateGlobalSetting = async (data:object) => {
+    public static updateGlobalSetting = async (data: object) => {
         let setting = await SettingModel.findOne({}).exec()
         if (!setting) {
-            await this.newGlobalSetting(defaultSetting)
+            await SettingService.newGlobalSetting(defaultSetting)
         }
         setting = await SettingModel.findOne({}).exec()
         if (!setting) {
