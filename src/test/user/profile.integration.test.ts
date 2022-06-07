@@ -112,7 +112,7 @@ describe('Profile', () => {
     }).timeout(10000)
 
     it(`GetVerificationCode PhoneUpdate`, async () => {
-        const owner = updateData.phone
+        const owner = await stripPhoneNumber(updateData.phone)
         const codeType = CodeType.PhoneUpdate
         const res = await request(server.app).post('/verification/code/get').send({
             codeType: codeType,
@@ -173,8 +173,7 @@ describe('Profile', () => {
             expect(user?.firstName).equal(updateData.firstName)
             expect(user?.lastName).equal(updateData.lastName)
             expect(user?.nickName).equal(updateData.nickName)
-            expect(user?.phone).equal(updateData.phone)
-            expect(user?.country).equal(updateData.country)
+            expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(updateData.phone))
             expect(user?.playerId).equal(updateData.playerId)
         })
     })

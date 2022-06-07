@@ -10,9 +10,13 @@ import { CodeType } from './code.interface'
 import crypto from 'crypto'
 import sendEmail from '@common/email'
 import sendSms from '@common/sms'
+import { stripPhoneNumber } from '@common/phone-helper'
 
 export default class VerificationCodeService {
     static async generateCode(params: CreateCodeDto) {
+        if ([CodeType.PhoneRegistration, CodeType.PhoneUpdate, CodeType.SMS, CodeType.SMSLogIn].includes(params.codeType)) {
+            params.owner = await stripPhoneNumber(params.owner)
+        }
         const owner = toLower(trim(params.owner))
         const filter = {
             $or: [{ email: params.owner, $options: 'i' }, { phone: params.owner, $options: 'i' }]
@@ -94,6 +98,9 @@ export default class VerificationCodeService {
     }
 
     static async verifyCode(params: VerifyCodeDto) {
+        if ([CodeType.PhoneRegistration, CodeType.PhoneUpdate, CodeType.SMS, CodeType.SMSLogIn].includes(params.codeType)) {
+            params.owner = await stripPhoneNumber(params.owner)
+        }
         const codeData = await VerificationCode.findOne({ owner: params.owner, type: params.codeType, code: params.code }).exec()
 
         if (!codeData) {
