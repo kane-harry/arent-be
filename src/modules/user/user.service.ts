@@ -15,6 +15,7 @@ import { IUser } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import { CodeType } from '@modules/verification_code/code.interface'
+import { getPhoneInfo } from '@common/phone-helper'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -42,6 +43,18 @@ export default class UserService {
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
+        }
+
+        if (data.phone) {
+            const phoneInfo:any = await getPhoneInfo(data.phone)
+            if (!phoneInfo.isValid) {
+                throw new BizException(
+                    AuthErrors.invalid_phone,
+                    new ErrorContext('user.service', 'updateUser', { phone: data.phone })
+                )
+            }
+            data.phone = phoneInfo.number
+            data.country = phoneInfo.country
         }
 
         const filter = {

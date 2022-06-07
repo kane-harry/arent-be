@@ -57,7 +57,7 @@ export const user1Data = {
     email: 'email1@gmail.com',
     password: 'Test123!',
     pin: '2222',
-    phone: '1234',
+    phone: '+79366199804',
     country: 'country'
 }
 
@@ -68,7 +68,7 @@ export const adminData = {
     email: 'admin1@gmail.com',
     password: 'Test123!',
     pin: '3333',
-    phone: '5678',
+    phone: '+12133979823',
     country: 'country'
 }
 

@@ -7,6 +7,7 @@ import AWS from 'aws-sdk'
 import sinon from 'sinon'
 import {initDataForUser, userData} from '@app/test/init/authenticate'
 import {CodeType} from "@modules/verification_code/code.interface";
+import {formatPhoneNumberWithSymbol, stripPhoneNumber} from "@common/phone-helper";
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -24,7 +25,7 @@ const updateData = {
     firstName: 'firstName',
     lastName: 'lastName',
     nickName: 'nickName',
-    phone: '4444',
+    phone: '+972552992022',
     country: 'country',
     playerId: 'playerId',
     newEmailCode: '',
@@ -144,8 +145,7 @@ describe('Profile', () => {
         expect(user?.firstName).equal(userData.firstName)
         expect(user?.lastName).equal(userData.lastName)
         expect(user?.nickName).equal(userData.nickName)
-        expect(user?.phone).equal(userData.phone)
-        expect(user?.country).equal(userData.country)
+        expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(userData.phone))
     })
 
     context('Test case for function updateUser', () => {

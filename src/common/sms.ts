@@ -1,5 +1,5 @@
 import { config } from '@config'
-import stripPhoneNumber from 'common/phone-helper'
+import { stripPhoneNumber } from '@common/phone-helper'
 
 async function sendSms(subject: string, text: string, html: string, address: string) {
     const AWS = require('aws-sdk')
@@ -18,11 +18,11 @@ async function sendSms(subject: string, text: string, html: string, address: str
         }
 
         const data = await sns.publish(params).promise()
-        // console.log('sms:send | ' + JSON.stringify(data));
+        console.log('sms:send | ' + JSON.stringify(data))
 
         return true
     } catch (err: any) {
-        console.error('sms:send | ' + err.stack)
+        console.error('sms:send error | ' + err.stack)
         return false
     }
 }

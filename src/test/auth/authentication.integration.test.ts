@@ -7,6 +7,7 @@ import { CodeType } from '@modules/verification_code/code.interface'
 import {getVerificationCode, initDataForUser, userData} from '@app/test/init/authenticate'
 import {config} from "@config";
 import SettingService from "@modules/setting/setting.service";
+import {formatPhoneNumberWithSymbol, stripPhoneNumber} from "@common/phone-helper";
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -35,8 +36,7 @@ describe('Authentication', () => {
         expect(user?.lastName).equal(userData.lastName)
         expect(user?.nickName).equal(userData.nickName)
         expect(user?.email).equal(userData.email)
-        expect(user?.phone).equal(userData.phone)
-        expect(user?.country).equal(userData.country)
+        expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(userData.phone))
         //Different
         expect(user?.password).not.equal(userData.password)
         expect(user?.pin).not.equal(userData.pin)

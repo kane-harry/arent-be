@@ -20,9 +20,21 @@ import { AuthTokenType, MFAType } from './auth.interface'
 import crypto from 'crypto'
 import { verifyTotpToken } from '@common/twoFactor'
 import SettingService from '@modules/setting/setting.service'
+import { getPhoneInfo } from '@common/phone-helper'
 
 export default class AuthService {
     static async register(userData: CreateUserDto, options?: any) {
+        if (userData.phone) {
+            const phoneInfo:any = await getPhoneInfo(userData.phone)
+            if (!phoneInfo.isValid) {
+                throw new BizException(
+                    AuthErrors.invalid_phone,
+                    new ErrorContext('auth.service', 'register', { phone: userData.phone })
+                )
+            }
+            userData.phone = phoneInfo.number
+            userData.country = phoneInfo.country
+        }
         userData = AuthService.formatCreateUserDto(userData)
         const filter = {
             $or: [{ email: userData.email }, { phone: userData.phone }, { nickName: userData.nickName }]

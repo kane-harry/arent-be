@@ -1,19 +1,19 @@
 import UserModel from '@modules/user/user.model'
-const phoneNumber = require('libphonenumber-js')
+const phoneLib = require('libphonenumber-js')
 
-async function stripPhoneNumber(phoneNumber: string) {
+export const stripPhoneNumber = async (phoneNumber: any) => {
     if (typeof phoneNumber === 'string') {
         return phoneNumber.replace(/\D/g, '')
     }
     return phoneNumber
 }
 
-async function formatPhoneNumberWithSymbol(phone: string) {
+export const formatPhoneNumberWithSymbol = async (phone: any) => {
     phone = await stripPhoneNumber(phone)
     return `+${phone}`
 }
 
-async function associatedPhoneCheck(phone: string, userkey: any) {
+export const associatedPhoneCheck = async (phone: string, userkey: any) => {
     let valid = true
 
     const strippedNumber = await stripPhoneNumber(phone)
@@ -29,13 +29,13 @@ async function associatedPhoneCheck(phone: string, userkey: any) {
     return valid
 }
 
-async function getPhoneInfo(phone: string) {
+export const getPhoneInfo = async (phone: string) => {
     const formatted = await formatPhoneNumberWithSymbol(phone)
     let result = {
         isValid: false,
         number: ''
     }
-    const phoneInfo = phoneNumber.parsePhoneNumberFromString(formatted)
+    const phoneInfo = phoneLib.parsePhoneNumberFromString(formatted)
     if (phoneInfo) {
         phoneInfo.isValid = phoneInfo.isValid()
 
@@ -49,5 +49,3 @@ async function getPhoneInfo(phone: string) {
     result.number = await stripPhoneNumber(phone)
     return result
 }
-
-export default stripPhoneNumber
