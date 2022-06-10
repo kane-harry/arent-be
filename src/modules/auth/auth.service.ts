@@ -351,7 +351,7 @@ export default class AuthService {
         case MFAType.TOTP:
             // @ts-ignore
             const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
-            if (!verifyTotpToken(twoFactorSecret, logInData.token)) {
+            if (!verifyTotpToken(twoFactorSecret, logInData.token, user.email)) {
                 throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
             }
             break

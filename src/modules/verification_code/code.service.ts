@@ -44,7 +44,7 @@ export default class VerificationCodeService {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'generateCode', { owner: owner }))
             }
         }
-        const code = VerificationCode.generate({ length: 6, charset: 'numeric' })
+        const code = VerificationCode.generate({ length: 6, charset: 'numeric' }, owner)
         const codeData = await VerificationCode.findOne({ owner: owner, type: params.codeType }).exec()
         const currentTs = moment().unix()
         if (codeData) {

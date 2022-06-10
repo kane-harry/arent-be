@@ -119,7 +119,7 @@ export default class UserService {
             user.save()
             twoFactorSecret = secret.base32
         }
-        const token = generateTotpToken(twoFactorSecret)
+        const token = generateTotpToken(twoFactorSecret, user.email)
         const subject = 'Welcome to LightLink'
         const text = ''
         const html = `This is the verification code you requested: <b>${token}</b>`
@@ -148,7 +148,7 @@ export default class UserService {
             break
         case MFAType.TOTP:
             const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
-            if (!verifyTotpToken(twoFactorSecret, data.token)) {
+            if (!verifyTotpToken(twoFactorSecret, data.token, user.email)) {
                 throw new BizException(AuthErrors.token_error, new ErrorContext('user.service', 'updateUser', {}))
             }
             break
