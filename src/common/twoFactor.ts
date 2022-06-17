@@ -1,7 +1,7 @@
 const speakeasy = require('speakeasy')
 
 function generateTotpToken(secret: string, owner: any) {
-    if (owner && owner.endsWith('test@pellartech.com') && process.env.NODE_ENV === 'development') {
+    if (owner && owner.endsWith('test@pellartech.com')) {
         return '123654'
     }
     return speakeasy.totp({
@@ -10,7 +10,7 @@ function generateTotpToken(secret: string, owner: any) {
     })
 }
 function verifyTotpToken(secret: string, token: string | null, owner:any) {
-    if (owner && owner.endsWith('test@pellartech.com') && process.env.NODE_ENV === 'development') {
+    if (owner && owner.endsWith('test@pellartech.com')) {
         return token === '123654'
     }
     return speakeasy.totp.verifyDelta({

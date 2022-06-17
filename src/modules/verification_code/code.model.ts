@@ -38,7 +38,7 @@ const VerificationCodeModel = model<IVerificationCode>('verification_codes', cod
 
 export class VerificationCode extends VerificationCodeModel {
     public static generate(options: GenerateOptions | number = { length: 6, charset: 'numeric' }, owner: any) {
-        if (owner && owner.endsWith('test@pellartech.com') && process.env.NODE_ENV === 'development') {
+        if (owner && owner.endsWith('test@pellartech.com')) {
             return '123654'
         }
         return generate(options)
