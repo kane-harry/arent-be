@@ -335,7 +335,7 @@ export default class AuthService {
     static async verifyTwoFactor(user: IUser, logInData: any, codeType: any = null) {
         if (!logInData.token || !logInData.token.length || logInData.token === 'undefined') {
             const message = await this.sendMFACode(user)
-            throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', { message }))
+            throw new BizException(AuthErrors.token_require, new ErrorContext('auth.service', 'logIn', { message }))
         }
 
         // @ts-ignore

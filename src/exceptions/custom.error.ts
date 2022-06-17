@@ -23,7 +23,8 @@ export const AuthErrors = {
     session_expired: { message: 'Session expired.', status: 401, code: 2011 },
     invalid_refresh_token: { message: 'Invalid auth token.', status: 400, code: 2012 },
     token_error: { message: 'Token is not correct', status: 423, code: 2013 },
-    invalid_phone: { message: 'Invalid phone.', status: 424, code: 2014 }
+    invalid_phone: { message: 'Invalid phone.', status: 424, code: 2014 },
+    token_require: { message: 'Token is required', status: 425, code: 2016 }
 }
 
 export const AccountErrors = {
