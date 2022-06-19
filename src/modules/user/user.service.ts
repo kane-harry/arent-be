@@ -174,7 +174,7 @@ export default class UserService {
         const reg = new RegExp(params.terms)
         const filter = {
             $or: [{ key: reg }, { email: reg }, { phone: reg }],
-            $and: [{ created: { $exists: true }, removed: false }]
+            $and: [{ created: { $exists: true }}]
         }
         if (params.datefrom) {
             const dateFrom = unixTimestampToDate(params.datefrom)

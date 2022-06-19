@@ -61,7 +61,7 @@ const userSchema = new Schema<IUser>(
         },
         emailVerified: { type: Boolean, default: false },
         phoneVerified: { type: Boolean, default: false },
-        removed: { type: Boolean, default: false, get: (): undefined => undefined },
+        removed: { type: Boolean, default: false },
         twoFactorSecret: {
             type: String,
             get: (): undefined => undefined
