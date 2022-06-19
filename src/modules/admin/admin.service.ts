@@ -43,4 +43,17 @@ export default class AdminService {
 
         return user
     }
+
+    static async makeAdmin(email:string) {
+        const user = await UserModel.findOne({ email: email }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('admin.service', 'makeAdmin', {}))
+        }
+
+        user?.set('role', 999, null)
+        user?.save()
+
+        return user
+    }
 }
