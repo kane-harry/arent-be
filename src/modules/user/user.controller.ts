@@ -7,6 +7,7 @@ import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { GetUserListDto, UpdateMFADto, UpdateUserDto } from './user.dto'
 import { IAccountFilter } from '@modules/account/account.interface'
+import {requireAdmin} from "@config/role";
 
 class UserController implements IController {
     public path = '/users'
@@ -40,7 +41,7 @@ class UserController implements IController {
 
         this.router.post(`${this.path}/totp/generate`, requireAuth, asyncHandler(this.generateTotp))
         this.router.post(`${this.path}/:key/mfa`, requireAuth, asyncHandler(this.updateMFA))
-        this.router.get(`${this.path}/list`, requireAuth, asyncHandler(this.getUserList))
+        this.router.get(`${this.path}/list`, requireAuth, requireAdmin(), asyncHandler(this.getUserList))
         this.router.get(`${this.path}/me`, requireAuth, asyncHandler(this.getMyProfile))
     }
 
