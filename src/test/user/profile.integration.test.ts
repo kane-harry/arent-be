@@ -5,7 +5,7 @@ import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import AWS from 'aws-sdk'
 import sinon from 'sinon'
-import {initDataForUser, userData} from '@app/test/init/authenticate'
+import {adminData, initDataForUser, makeAdmin, userData} from '@app/test/init/authenticate'
 import {CodeType} from "@modules/verification_code/code.interface";
 import {formatPhoneNumberWithSymbol, stripPhoneNumber} from "@common/phone-helper";
 
@@ -20,6 +20,8 @@ let shareData = {
     newEmailCode: '',
     newPhoneCode: ''
 }
+let adminShareData = { user: { key: '' }, token: '', refreshToken: '', accounts: [] }
+
 const updateData = {
     email: 'new.email@gmail.com',
     firstName: 'firstName',
@@ -43,6 +45,11 @@ describe('Profile', () => {
 
     it('InitDataForUser', async () => {
         await initDataForUser(shareData)
+    }).timeout(10000)
+
+    it('InitDataForAdmin', async () => {
+        await initDataForUser(adminShareData, adminData)
+        await makeAdmin(adminData)
     }).timeout(10000)
 
     context('Test case for function uploadAvatar', () => {
@@ -181,7 +188,7 @@ describe('Profile', () => {
     it('GetUserList', async () => {
         const pageIndex = 1
         const pageSize = 25
-        const res = await request(server.app).get(`/users/list?pageindex=${pageIndex}&pagesize=${pageSize}`).set('Authorization', `Bearer ${shareData.token}`).send()
+        const res = await request(server.app).get(`/users/list?pageindex=${pageIndex}&pagesize=${pageSize}`).set('Authorization', `Bearer ${adminShareData.token}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
 
