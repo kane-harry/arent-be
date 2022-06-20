@@ -103,11 +103,10 @@ export default class TransactionService {
 
     static async queryTxnsByAccount(key: string, filter: ITransactionFilter, operator: Express.User | undefined) {
         const account = await AccountService.getAccountByKey(key)
-        if (!account) {
-            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('transaction.service', 'getTxnsByAccount', { key }))
+        if (account) {
+            filter.symbol = account.symbol
+            filter.owner = account.extKey
         }
-        filter.symbol = account.symbol
-        filter.owner = account.extKey
         const txns = await PrimeCoinProvider.queryPrimeTxns(filter)
         return { account, txns }
     }
