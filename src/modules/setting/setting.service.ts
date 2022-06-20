@@ -34,5 +34,7 @@ export default class SettingService {
             setting.set(field, data[field])
         }
         await setting.save()
+
+        return setting
     }
 }
