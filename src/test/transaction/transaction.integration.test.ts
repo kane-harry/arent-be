@@ -318,8 +318,7 @@ describe('Transaction', () => {
     it('Get Transactions', async () => {
         const pageIndex = 1
         const pageSize = 25
-        const account = masterData.masterAccounts[0]
-        const res = await request(server.app).get(`/transactions?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        const res = await request(server.app).get(`/transactions?pageindex=${pageIndex}&pagesize=${pageSize}&terms=l`).send()
         expect(res.status).equal(200)
         // expect(res.body.account).be.an('object')
         expect(res.body.txns.items).be.an('array')
