@@ -315,6 +315,22 @@ describe('Transaction', () => {
         shareData1.transactions = res.body.txns.items
     }).timeout(10000)
 
+    it('Get Transactions', async () => {
+        const pageIndex = 1
+        const pageSize = 25
+        const account = masterData.masterAccounts[0]
+        const res = await request(server.app).get(`/transactions?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        expect(res.status).equal(200)
+        // expect(res.body.account).be.an('object')
+        expect(res.body.txns.items).be.an('array')
+        expect(res.body.txns.totalCount).exist
+        expect(res.body.txns.hasNextPage).exist
+        expect(res.body.txns.totalPages).exist
+        expect(res.body.txns.pageIndex).equal(pageIndex)
+        expect(res.body.txns.pageSize).equal(pageSize)
+        shareData1.transactions = res.body.txns.items
+    }).timeout(10000)
+
     it('Get Transaction Detail', async () => {
         const account = masterData.masterAccounts[0]
         const transaction = shareData1.transactions[0]
