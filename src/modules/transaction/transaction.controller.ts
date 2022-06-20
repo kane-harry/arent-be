@@ -24,6 +24,7 @@ class TransactionController implements IController {
 
     private initRoutes() {
         this.router.post(`${this.path}/send`, requireAuth, validationMiddleware(SendPrimeCoinsDto), asyncHandler(this.sendPrimeCoins))
+        this.router.get(`${this.path}`, asyncHandler(this.queryTxnsByAccount))
         this.router.get(`${this.path}/accounts/:key`, asyncHandler(this.queryTxnsByAccount))
         this.router.get(`${this.path}/accounts/:key/txn/:id`, asyncHandler(this.getTxnDetails))
         this.router.get(`${this.path}/export`, requireAuth, requireAdmin(), asyncHandler(this.exportTxnsByAccount))
