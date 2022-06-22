@@ -144,4 +144,13 @@ export default class BlockchainService {
     static async getPrimeTransactionStats(key: string) {
         return await PrimeCoinProvider.getPrimeTransactionStats(key)
     }
+
+    static async increaseAmount(accountAddress:string, amount:string, type:string, notes:string) {
+        return await PrimeCoinProvider.mintPrimeCoins({
+            key: accountAddress,
+            amount: amount,
+            notes: notes,
+            type: type || 'DEPOSIT'
+        })
+    }
 }

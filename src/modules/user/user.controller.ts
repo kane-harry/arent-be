@@ -7,7 +7,7 @@ import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { GetUserListDto, UpdateMFADto, UpdateUserDto } from './user.dto'
 import { IAccountFilter } from '@modules/account/account.interface'
-import {requireAdmin} from "@config/role";
+import { requireAdmin } from '@config/role'
 
 class UserController implements IController {
     public path = '/users'

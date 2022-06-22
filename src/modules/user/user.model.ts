@@ -54,6 +54,7 @@ const userSchema = new Schema<IUser>(
         country: String,
         avatar: Object,
         playerId: String,
+        stripeId: String,
         status: {
             type: String,
             enum: UserStatus,
@@ -61,6 +62,7 @@ const userSchema = new Schema<IUser>(
         },
         emailVerified: { type: Boolean, default: false },
         phoneVerified: { type: Boolean, default: false },
+        kycVerified: { type: Boolean, default: false },
         removed: { type: Boolean, default: false },
         twoFactorSecret: {
             type: String,

@@ -45,3 +45,12 @@ export const TransactionErrors = {
     account_is_suspend: { code: 4006, status: 400, message: 'Account is suspend.' },
     sender_account_not_own_wallet_error: { code: 4007, status: 400, message: 'Sender account not own wallet.' }
 }
+
+export const DepositErrors = {
+    deposit_type_not_supported: { code: 4100, status: 400, message: 'Deposit type not supported' },
+    account_deposit_stripe_id_null: { code: 4101, status: 400, message: 'Account Deposit Stripe Id Null' },
+    account_is_not_exist: { code: 4102, status: 400, message: 'Account is not existed' },
+    deposit_stripe_disabled: { code: 4103, status: 400, message: 'Deposit Stripe Disabled' },
+    depositRequiredKycValidation: { code: 4104, status: 400, message: 'Deposit Required Kyc Validation' },
+    accountIsNotUSD: { code: 4105, status: 400, message: 'Account Is Not USD' }
+}

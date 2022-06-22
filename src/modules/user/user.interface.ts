@@ -24,9 +24,11 @@ export interface IUser extends IBaseModel {
     country: string
     avatar: Object | null
     playerId?: string
+    stripeId?: string
     status: UserStatus
     emailVerified: boolean
     phoneVerified: boolean
+    kycVerified: boolean
     twoFactorSecret: string
     role: number | 0
     MFASettings: Object

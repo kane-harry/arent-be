@@ -327,7 +327,6 @@ describe('Transaction', () => {
         expect(res.body.txns.totalPages).exist
         expect(res.body.txns.pageIndex).equal(pageIndex)
         expect(res.body.txns.pageSize).equal(pageSize)
-        shareData1.transactions = res.body.txns.items
     }).timeout(10000)
 
     it('Get Transaction Detail', async () => {
