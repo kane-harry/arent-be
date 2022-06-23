@@ -15,6 +15,7 @@ import UserModel from '@modules/user/user.model'
 import BizException from '@exceptions/biz.exception'
 import { AccountErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
+import {isAdmin} from "@config/role";
 // import { requireAuth } from '@common/authCheck'
 
 class AccountController implements IController {
@@ -30,7 +31,7 @@ class AccountController implements IController {
         this.router.get(`${this.path}/:key`, asyncHandler(this.getAccountByKey))
         this.router.get(`${this.path}/symbol/:symbol`, requireAuth, asyncHandler(this.getAccountBySymbol))
         this.router.get(`${this.path}/:key/trx/export`, asyncHandler(this.getExportTransactionByAccountKey))
-        this.router.get(`${this.path}/user/:userId`, asyncHandler(this.getUserAccounts))
+        this.router.get(`${this.path}/user/:userId`, requireAuth, asyncHandler(this.getUserAccounts))
         this.router.post(`${this.path}/:key/withdraw`, requireAuth, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
     }
 
@@ -56,6 +57,10 @@ class AccountController implements IController {
 
     private async getUserAccounts(req: CustomRequest, res: Response) {
         const userId = req.params.userId
+        // @ts-ignore
+        if (userId !== req.user?.key && isAdmin(req.user?.role)) {
+            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.controller', 'withdraw', { userId }))
+        }
         const data = await AccountService.getUserAccounts(userId)
         for (const account of data) {
             const coinAccount = await PrimeCoinProvider.getWalletBySymbolAndAddress(account.symbol, account.address)
