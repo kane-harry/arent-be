@@ -41,14 +41,19 @@ export default class AuthService {
         }
         const user = await UserModel.findOne(filter).exec()
         if (user) {
-            const duplicateInfo = {
-                email: userData.email === user.email ? userData.email : '',
-                phone: userData.phone === user.phone ? userData.phone : '',
-                nickName: userData.nickName === user.nickName ? userData.nickName : ''
+            let errorMessage
+            if (userData.email === user.email) {
+                errorMessage = `Email exists: ${user.email}`
+            }
+            if (userData.phone === user.phone) {
+                errorMessage = `Phone exists: ${user.phone}`
+            }
+            if (userData.nickName === user.nickName) {
+                errorMessage = `Nickname exists: ${user.nickName}`
             }
             throw new BizException(
                 AuthErrors.registration_info_exists_error,
-                new ErrorContext('auth.service', 'register', duplicateInfo)
+                new ErrorContext('auth.service', 'register', {}, errorMessage)
             )
         }
         const setting:any = await SettingService.getGlobalSetting()

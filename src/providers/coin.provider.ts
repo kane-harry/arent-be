@@ -71,7 +71,8 @@ export class PrimeCoinProvider {
         throw new ApplicationException(CommonErrors.internal_server_error, {
             className: 'PrimeCoinProvider',
             details: String(error),
-            method
+            method,
+            message: null
         })
     }
 
