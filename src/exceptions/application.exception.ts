@@ -16,7 +16,7 @@ class ApplicationException extends Error {
         this.name = this.constructor.name
         this.status = error?.status || 500
         this.code = error?.code || 0
-        this.message = error?.message || STATUS_CODES[500]
+        this.message = `${error?.message || STATUS_CODES[500]}. Details: ${errorContext?.details ? JSON.stringify(errorContext.details) : ''}`
         this.metaData = error?.metaData
         this.errorContext = errorContext
     }
