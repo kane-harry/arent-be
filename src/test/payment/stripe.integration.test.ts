@@ -50,7 +50,10 @@ describe('Stripe Payment', () => {
     }).timeout(10000)
 
     it('GetAccountsByUser', async () => {
-        const res = await request(server.app).get(`/accounts/user/${shareData.user?.key}`).send()
+        const res = await request(server.app)
+            .get(`/accounts/user/${shareData.user?.key}`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
 

@@ -15,7 +15,7 @@ import UserModel from '@modules/user/user.model'
 import BizException from '@exceptions/biz.exception'
 import { AccountErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
-import {isAdmin} from "@config/role";
+import {isAdmin, requireAdmin} from "@config/role";
 // import { requireAuth } from '@common/authCheck'
 
 class AccountController implements IController {
@@ -27,10 +27,10 @@ class AccountController implements IController {
     }
 
     private initRoutes() {
-        this.router.get(`${this.path}`, asyncHandler(this.queryAccounts))
-        this.router.get(`${this.path}/:key`, asyncHandler(this.getAccountByKey))
+        this.router.get(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(this.queryAccounts))
+        this.router.get(`${this.path}/:key`, requireAuth, asyncHandler(this.getAccountByKey))
         this.router.get(`${this.path}/symbol/:symbol`, requireAuth, asyncHandler(this.getAccountBySymbol))
-        this.router.get(`${this.path}/:key/trx/export`, asyncHandler(this.getExportTransactionByAccountKey))
+        this.router.get(`${this.path}/:key/trx/export`, requireAuth, asyncHandler(this.getExportTransactionByAccountKey))
         this.router.get(`${this.path}/user/:userId`, requireAuth, asyncHandler(this.getUserAccounts))
         this.router.post(`${this.path}/:key/withdraw`, requireAuth, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
     }
@@ -38,6 +38,9 @@ class AccountController implements IController {
     private async getAccountByKey(req: Request, res: Response) {
         const key = req.params.key
         const data = await AccountService.getAccountByKey(key)
+        if (data) {
+            AccountController.checkPermission(req, data.userId)
+        }
         return res.json(data)
     }
 
@@ -45,6 +48,7 @@ class AccountController implements IController {
         const symbol = req.params.symbol
         // @ts-ignore
         const userId = req.user ? req.user.key : ''
+        AccountController.checkPermission(req, userId)
         const data = await AccountService.getAccountBySymbol(symbol, userId)
         return res.json(data)
     }
@@ -57,10 +61,7 @@ class AccountController implements IController {
 
     private async getUserAccounts(req: CustomRequest, res: Response) {
         const userId = req.params.userId
-        // @ts-ignore
-        if (userId !== req.user?.key && isAdmin(req.user?.role)) {
-            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.controller', 'withdraw', { userId }))
-        }
+        AccountController.checkPermission(req, userId)
         const data = await AccountService.getUserAccounts(userId)
         for (const account of data) {
             const coinAccount = await PrimeCoinProvider.getWalletBySymbolAndAddress(account.symbol, account.address)
@@ -79,6 +80,7 @@ class AccountController implements IController {
         if (!operator) {
             throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.controller', 'withdraw', { key }))
         }
+        AccountController.checkPermission(req, operator.key)
         const data = await AccountService.withdraw(key, params, operator)
         return res.json(data)
     }
@@ -87,6 +89,8 @@ class AccountController implements IController {
         const key = req.params.key
         const filter = req.query as ITransactionFilter
         const operator = req.user
+        // @ts-ignore
+        AccountController.checkPermission(req, operator?.key)
         const data = await TransactionService.queryTxnsByAccount(key, filter, operator)
 
         const fields = [
@@ -106,6 +110,13 @@ class AccountController implements IController {
         ]
 
         return downloadResource(res, 'transactions.csv', fields, data.txns.items)
+    }
+
+    static checkPermission(req: CustomRequest, userId:any) {
+        // @ts-ignore
+        if (userId !== req.user?.key && !isAdmin(req.user?.role)) {
+            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.controller', 'withdraw', { userId }))
+        }
     }
 }
 

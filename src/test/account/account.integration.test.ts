@@ -4,11 +4,13 @@ import request from 'supertest'
 import {dbTest, MODELS, validResponse} from '../init/db'
 import server from '@app/server'
 import { IAccount } from '@modules/account/account.interface'
-import { initDataForUser } from '@app/test/init/authenticate'
+import {adminData, initDataForUser, makeAdmin} from '@app/test/init/authenticate'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
 let shareData = { user: { key: '' }, token: '', refreshToken: '', accounts: [] }
+let shareMasterData = {user: {}, token: '', refreshToken: '', accounts: [], transactions: [], masterAccounts: []}
+
 const symbol = 'LL'
 describe('Account', () => {
     before(async () => {
@@ -23,10 +25,18 @@ describe('Account', () => {
         await initDataForUser(shareData)
     }).timeout(10000)
 
+    it('InitDataForAdmin', async () => {
+        await initDataForUser(shareMasterData, adminData)
+        await makeAdmin(adminData)
+    }).timeout(10000)
+
     it('QueryAccounts', async () => {
         const pageIndex = 1
         const pageSize = 25
-        const res = await request(server.app).get(`/accounts?pageindex=${pageIndex}&pagesize=${pageSize}`).send()
+        const res = await request(server.app)
+            .get(`/accounts?pageindex=${pageIndex}&pagesize=${pageSize}`)
+            .set('Authorization', `Bearer ${shareMasterData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
 
@@ -41,7 +51,10 @@ describe('Account', () => {
 
     it('GetAccountDetail', async () => {
         const account: IAccount = shareData.accounts[0]
-        const res = await request(server.app).get(`/accounts/${account.key}`).send()
+        const res = await request(server.app)
+            .get(`/accounts/${account.key}`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
 
@@ -69,7 +82,9 @@ describe('Account', () => {
     it('Export Transactions by Account', async () => {
         const account = shareData.accounts[0]
         // @ts-ignore
-        const res = await request(server.app).get(`/accounts/${account.key}/trx/export`).send()
+        const res = await request(server.app).get(`/accounts/${account.key}/trx/export`)
+            .set('Authorization', `Bearer ${shareMasterData.token}`)
+            .send()
         expect(res.status).equal(200)
         expect(res.type).equal('text/csv')
         expect(res.charset).equal('utf-8')
@@ -77,7 +92,10 @@ describe('Account', () => {
     }).timeout(10000)
 
     it('GetAccountsByUser', async () => {
-        const res = await request(server.app).get(`/accounts/user/${shareData.user?.key}`).send()
+        const res = await request(server.app)
+            .get(`/accounts/user/${shareData.user?.key}`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
 
