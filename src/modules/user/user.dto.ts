@@ -47,12 +47,12 @@ export class UpdateUserDto {
 
     @IsOptional()
     @IsString()
-    @Length(2, 8)
+    @Length(2, 18)
     public firstName: string
 
     @IsOptional()
     @IsString()
-    @Length(2, 8)
+    @Length(2, 18)
     public lastName: string
 
     // TODO: check uniq nickname
