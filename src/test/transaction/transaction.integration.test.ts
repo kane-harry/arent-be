@@ -192,11 +192,33 @@ describe('Transaction', () => {
             const account = shareData2.accounts[0]
             const res = await request(server.app)
                 .get(`/accounts/${account.key}`)
-                .set('Authorization', `Bearer ${masterData.token}`)
+                .set('Authorization', `Bearer ${shareData2.token}`)
                 .send()
             expect(res.status).equal(200)
             validResponse(res.body)
             expect(res.body.amount.toString()).equal(currentRecipientAmount.toString())
+        }).timeout(10000)
+
+        it('Validate Transaction Exist After Send', async () => {
+            const account = masterData.masterAccounts[0]
+            const res = await request(server.app)
+                .get(`/transactions/accounts/${account.key}`)
+                .set('Authorization', `Bearer ${masterData.token}`)
+                .send()
+            expect(res.status).equal(200)
+            validResponse(res.body)
+            expect(res.body.txns.items.length).gt(0)
+        }).timeout(10000)
+
+        it('Validate Transaction Exist After Send', async () => {
+            const account = shareData2.accounts[0]
+            const res = await request(server.app)
+                .get(`/transactions/accounts/${account.key}`)
+                .set('Authorization', `Bearer ${shareData2.token}`)
+                .send()
+            expect(res.status).equal(200)
+            validResponse(res.body)
+            expect(res.body.txns.items.length).gt(0)
         }).timeout(10000)
     })
 
