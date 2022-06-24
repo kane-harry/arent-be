@@ -72,7 +72,7 @@ export class PrimeCoinProvider {
             className: 'PrimeCoinProvider',
             details: String(error),
             method,
-            message: null
+            message: String(error?.response?.data?.message || error?.message)
         })
     }
 
