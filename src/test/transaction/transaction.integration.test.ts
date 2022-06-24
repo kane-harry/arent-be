@@ -152,9 +152,9 @@ describe('Transaction', () => {
             //      - Sender: -9.9
             const amountBigNumber = parsePrimeAmount(amountSend)
             const fee = parsePrimeAmount(feeConfig)
-            const amountForSender = parsePrimeAmount(res.body.sender_wallet.preBalance).sub(parsePrimeAmount(res.body.sender_wallet.postBalance))
-            const amountForRecipient = parsePrimeAmount(res.body.recipient_wallet.postBalance).sub(
-                parsePrimeAmount(res.body.recipient_wallet.preBalance)
+            const amountForSender = parsePrimeAmount(res.body.senderWallet.preBalance).sub(parsePrimeAmount(res.body.senderWallet.postBalance))
+            const amountForRecipient = parsePrimeAmount(res.body.recipientWallet.postBalance).sub(
+                parsePrimeAmount(res.body.recipientWallet.preBalance)
             )
             expect(amountForRecipient.toString()).equal(amountBigNumber.sub(fee).toString())
 
@@ -164,8 +164,8 @@ describe('Transaction', () => {
             } else {
                 expect(amountForSender.toString()).equal(amountBigNumber.toString())
             }
-            currentSenderAmount = res.body.sender_wallet.postBalance
-            currentRecipientAmount = res.body.recipient_wallet.postBalance
+            currentSenderAmount = res.body.senderWallet.postBalance
+            currentRecipientAmount = res.body.recipientWallet.postBalance
         }).timeout(10000)
 
         it('Validate Sender Amount After Send', async () => {
@@ -217,9 +217,9 @@ describe('Transaction', () => {
             //     - Sender: -10
             const amountBigNumber = parsePrimeAmount(amountSend)
             const fee = parsePrimeAmount(feeConfig)
-            const amountForSender = parsePrimeAmount(res.body.sender_wallet.preBalance).sub(parsePrimeAmount(res.body.sender_wallet.postBalance))
-            const amountForRecipient = parsePrimeAmount(res.body.recipient_wallet.postBalance).sub(
-                parsePrimeAmount(res.body.recipient_wallet.preBalance)
+            const amountForSender = parsePrimeAmount(res.body.senderWallet.preBalance).sub(parsePrimeAmount(res.body.senderWallet.postBalance))
+            const amountForRecipient = parsePrimeAmount(res.body.recipientWallet.postBalance).sub(
+                parsePrimeAmount(res.body.recipientWallet.preBalance)
             )
             expect(amountForRecipient.toString()).equal(amountBigNumber.toString())
 
@@ -229,8 +229,8 @@ describe('Transaction', () => {
             } else {
                 expect(amountForSender.toString()).equal(amountBigNumber.add(fee).toString())
             }
-            currentSenderAmount = res.body.sender_wallet.postBalance
-            currentRecipientAmount = res.body.recipient_wallet.postBalance
+            currentSenderAmount = res.body.senderWallet.postBalance
+            currentRecipientAmount = res.body.recipientWallet.postBalance
         }).timeout(10000)
 
         it('Validate Sender Amount After Send', async () => {
