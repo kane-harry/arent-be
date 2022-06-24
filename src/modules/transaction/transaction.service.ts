@@ -105,7 +105,7 @@ export default class TransactionService {
         const account = await AccountService.getAccountByKey(key)
         if (account) {
             filter.symbol = account.symbol
-            filter.owner = account.extKey
+            filter.address = account.address
         }
         const txns = await PrimeCoinProvider.queryPrimeTxns(filter)
         return { account, txns }
