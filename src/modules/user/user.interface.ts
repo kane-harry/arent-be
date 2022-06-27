@@ -31,7 +31,7 @@ export interface IUser extends IBaseModel {
     kycVerified: boolean
     twoFactorSecret: string
     role: number | 0
-    MFASettings: Object
+    MFASettings: Object | any
 }
 
 export interface IUserFilter extends IFilterModel {

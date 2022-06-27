@@ -17,6 +17,7 @@ export default class AuthController implements IController {
     }
 
     private initializeRoutes() {
+        this.router.post(`${this.path}/registration/verify`, validationMiddleware(CreateUserDto), asyncHandler(this.verifyRegistration))
         this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), asyncHandler(this.register))
         this.router.post(`${this.path}/login`, validationMiddleware(LogInDto), asyncHandler(this.logIn))
         this.router.post(`${this.path}/token/refresh`, validationMiddleware(RefreshTokenDto), asyncHandler(this.refreshToken))
@@ -27,6 +28,13 @@ export default class AuthController implements IController {
 
         this.router.post(`${this.path}/pin/reset`, requireAuth, validationMiddleware(ResetPinDto), asyncHandler(this.resetPin))
         this.router.post(`${this.path}/pin/forgot`, validationMiddleware(ForgotPinDto), asyncHandler(this.forgotPin))
+    }
+
+    private verifyRegistration = async (req: CustomRequest, res: Response) => {
+        const userData: CreateUserDto = req.body
+        const data = await AuthService.verifyRegistration(userData, { req })
+
+        return res.send(data)
     }
 
     private register = async (req: CustomRequest, res: Response) => {

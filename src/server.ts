@@ -1,6 +1,5 @@
 import 'dotenv/config'
 import App from './app'
-// import validateEnv from '@common/validateEnv'
 import AuthController from '@modules/auth/auth.controller'
 import UserController from '@modules/user/user.controller'
 import AccountController from '@modules/account/account.controller'
@@ -13,7 +12,6 @@ import AdminController from '@modules/admin/admin.controller'
 import SettingController from '@modules/setting/setting.controller'
 import PaymentController from '@modules/payment/payment.controller'
 
-// validateEnv()
 const app = new App([
     new VerificationCodeController(),
     new AuthController(),

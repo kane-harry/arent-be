@@ -3,14 +3,14 @@ import { AuthErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
-import { forEach } from 'lodash'
+import { forEach, toLower, escapeRegExp, filter as lodashFilter } from 'lodash'
 import { GetUserListDto, UpdateMFADto, UpdateUserDto } from './user.dto'
 import UserModel from './user.model'
 import { generateTotpToken, verifyTotpToken } from '@common/twoFactor'
 import sendEmail from '@common/email'
 import { MFAType } from '@modules/auth/auth.interface'
 import * as bcrypt from 'bcrypt'
-import { unixTimestampToDate } from '@utils/utility'
+import { unixTimestampToDate, generateRandomCode } from '@utils/utility'
 import { IUser } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import VerificationCodeService from '@modules/verification_code/code.service'
@@ -47,12 +47,9 @@ export default class UserService {
         }
 
         if (data.phone) {
-            const phoneInfo:any = await getPhoneInfo(data.phone)
+            const phoneInfo: any = await getPhoneInfo(data.phone)
             if (!phoneInfo.isValid) {
-                throw new BizException(
-                    AuthErrors.invalid_phone,
-                    new ErrorContext('user.service', 'updateUser', { phone: data.phone })
-                )
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('user.service', 'updateUser', { phone: data.phone }))
             }
             data.phone = phoneInfo.number
             data.country = phoneInfo.country
@@ -71,10 +68,10 @@ export default class UserService {
             throw new BizException(AuthErrors.registration_info_exists_error, new ErrorContext('user.service', 'updateUser', duplicateInfo))
         }
         if (data.email && data.email !== user.email) {
-            await this.verifyNewEmail(data)
+            await UserService.verifyNewEmail(data)
         }
         if (data.phone && data.phone !== user.phone) {
-            await this.verifyNewPhone(data)
+            await UserService.verifyNewPhone(data)
         }
         user?.set('email', data.email.toLowerCase() || user.email, String)
         user?.set('firstName', data.firstName || user.firstName, String)
@@ -132,7 +129,7 @@ export default class UserService {
         return { secret: twoFactorSecret }
     }
 
-    public static updateMFA = async (userKey:string, data: UpdateMFADto, options: { req: AuthenticationRequest }) => {
+    public static updateMFA = async (userKey: string, data: UpdateMFADto, options: { req: AuthenticationRequest }) => {
         const user = await UserModel.findOne({ key: userKey }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
@@ -155,16 +152,12 @@ export default class UserService {
         case MFAType.SMS:
             break
         }
-        const MFASettings:any = user.MFASettings
+        const MFASettings: any = user.MFASettings
         MFASettings.MFAType = data.MFAType
         user?.set('MFASettings', MFASettings, Object)
         user?.save()
 
-        await UserModel.findOneAndUpdate(
-            { key: user.key },
-            { $set: { MFASettings: MFASettings } },
-            { new: true }
-        ).exec()
+        await UserModel.findOneAndUpdate({ key: user.key }, { $set: { MFASettings: MFASettings } }, { new: true }).exec()
 
         return user
     }
@@ -203,10 +196,7 @@ export default class UserService {
             code: data.newEmailCode
         })
         if (!success) {
-            throw new BizException(
-                AuthErrors.verification_code_invalid_error,
-                new ErrorContext('auth.service', 'updateUser', { email: data.email })
-            )
+            throw new BizException(AuthErrors.verification_code_invalid_error, new ErrorContext('auth.service', 'updateUser', { email: data.email }))
         }
     }
 
@@ -217,10 +207,30 @@ export default class UserService {
             code: data.newPhoneCode
         })
         if (!success) {
-            throw new BizException(
-                AuthErrors.verification_code_invalid_error,
-                new ErrorContext('auth.service', 'updateUser', { phone: data.phone })
-            )
+            throw new BizException(AuthErrors.verification_code_invalid_error, new ErrorContext('auth.service', 'updateUser', { phone: data.phone }))
         }
+    }
+
+    public static async generateRandomName(name: string) {
+        name = toLower(escapeRegExp(name))
+        let name_arr: any = name.split(' ')
+        name_arr = lodashFilter(name_arr, function (o) {
+            if (o.trim().length > 0) {
+                return o
+            }
+        })
+        let newName = name_arr.join('-')
+        let reg = new RegExp(name, 'i')
+        const filter = { nickName: reg }
+        let referenceInDatabase = await UserModel.findOne(filter).select('key nickName').exec()
+
+        while (referenceInDatabase != null) {
+            const proposedReference = generateRandomCode(2, 4, true)
+            newName = newName + '-' + proposedReference
+            reg = new RegExp(newName, 'i')
+            filter.nickName = reg
+            referenceInDatabase = await UserModel.findOne(filter).select('key nickName').exec()
+        }
+        return newName
     }
 }

@@ -21,44 +21,12 @@ import crypto from 'crypto'
 import { verifyTotpToken } from '@common/twoFactor'
 import SettingService from '@modules/setting/setting.service'
 import { getPhoneInfo } from '@common/phone-helper'
+import UserService from '@modules/user/user.service'
 
 export default class AuthService {
-    static async register(userData: CreateUserDto, options?: any) {
-        if (userData.phone) {
-            const phoneInfo:any = await getPhoneInfo(userData.phone)
-            if (!phoneInfo.isValid) {
-                throw new BizException(
-                    AuthErrors.invalid_phone,
-                    new ErrorContext('auth.service', 'register', { phone: userData.phone })
-                )
-            }
-            userData.phone = phoneInfo.number
-            userData.country = phoneInfo.country
-        }
-        userData = AuthService.formatCreateUserDto(userData)
-        const filter = {
-            $or: [{ email: userData.email }, { phone: userData.phone }, { nickName: userData.nickName }]
-        }
-        const user = await UserModel.findOne(filter).exec()
-        if (user) {
-            let errorMessage
-            if (userData.email === user.email) {
-                errorMessage = `Email exists: ${user.email}`
-            }
-            if (userData.phone === user.phone) {
-                errorMessage = `Phone exists: ${user.phone}`
-            }
-            if (userData.nickName === user.nickName) {
-                errorMessage = `Nickname exists: ${user.nickName}`
-            }
-            throw new BizException(
-                AuthErrors.registration_info_exists_error,
-                new ErrorContext('auth.service', 'register', {}, errorMessage)
-            )
-        }
-        const setting:any = await SettingService.getGlobalSetting()
-        const MFASettings = { MFAType: MFAType.EMAIL, loginEnabled: setting.loginRequireMFA, withdrawEnabled: setting.withdrawRequireMFA }
-        let emailVerified = false
+    static async verifyRegistration(userData: CreateUserDto, options?: any) {
+        userData = await AuthService.formatCreateUserDto(userData)
+        const setting: any = await SettingService.getGlobalSetting()
         if (setting.registrationRequireEmailVerified) {
             const codeData = await VerificationCode.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
             if (!codeData || codeData.enabled) {
@@ -67,6 +35,37 @@ export default class AuthService {
                     new ErrorContext('auth.service', 'generateCode', { email: userData.email })
                 )
             }
+        }
+        const filter: any = { $or: [{ email: userData.email }] }
+        if (userData.phone) {
+            filter.$or.push({ phone: userData.phone })
+        }
+        // const filter = { $or: [{ email: userData.email }, { phone: userData.phone }] }
+        const user = await UserModel.findOne(filter).select('key email phone').exec()
+        if (user) {
+            if (userData.email && userData.email === user.email) {
+                throw new BizException(
+                    AuthErrors.registration_email_exists_error,
+                    new ErrorContext('auth.service', 'register', { email: userData.email })
+                )
+            }
+            if (userData.phone && userData.phone === user.phone) {
+                throw new BizException(
+                    AuthErrors.registration_phone_exists_error,
+                    new ErrorContext('auth.service', 'register', { phone: userData.phone })
+                )
+            }
+        }
+        return { success: true }
+    }
+
+    static async register(userData: CreateUserDto, options?: any) {
+        userData = await AuthService.formatCreateUserDto(userData)
+        await this.verifyRegistration(userData, options)
+        const setting: any = await SettingService.getGlobalSetting()
+        const MFASettings = { MFAType: MFAType.EMAIL, loginEnabled: setting.loginRequireMFA, withdrawEnabled: setting.withdrawRequireMFA }
+        let emailVerified = false
+        if (setting.registrationRequireEmailVerified) {
             emailVerified = true
             MFASettings.MFAType = MFAType.EMAIL
         }
@@ -82,7 +81,6 @@ export default class AuthService {
             phoneVerified = true
             MFASettings.MFAType = MFAType.SMS
         }
-
         const mode = new UserModel({
             ...userData,
             key: crypto.randomBytes(16).toString('hex'),
@@ -101,13 +99,22 @@ export default class AuthService {
         return this.logIn({ email: userData.email, password: userData.password, token: null }, options)
     }
 
-    private static formatCreateUserDto(userData: CreateUserDto) {
-        userData.firstName = capitalize(escapeRegExp(userData.firstName))
-        userData.lastName = capitalize(escapeRegExp(userData.lastName))
-        userData.nickName = capitalize(escapeRegExp(userData.nickName))
+    private static async formatCreateUserDto(userData: CreateUserDto) {
+        userData.firstName = capitalize(escapeRegExp(trim(userData.firstName)))
+        userData.lastName = capitalize(escapeRegExp(trim(userData.lastName)))
+        // userData.nickName = capitalize(escapeRegExp(trim(userData.nickName)))
+        userData.nickName = await UserService.generateRandomName(userData.firstName)
         userData.email = toLower(trim(userData.email))
         userData.password = trim(userData.password)
         userData.pin = trim(userData.pin)
+        if (userData.phone) {
+            const phoneInfo: any = await getPhoneInfo(userData.phone)
+            if (!phoneInfo.isValid) {
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('auth.service', 'register', { phone: userData.phone }))
+            }
+            userData.phone = phoneInfo.number
+            userData.country = phoneInfo.country
+        }
         return userData
     }
 
@@ -125,7 +132,10 @@ export default class AuthService {
         if (!options.forceLogin) {
             // @ts-ignore
             if (user.MFASettings.loginEnabled) {
-                await this.verifyTwoFactor(user, logInData)
+                const data: any = await this.verifyTwoFactor(user, logInData)
+                if (data.requireMFACode) {
+                    return data
+                }
             }
         }
 
@@ -339,8 +349,10 @@ export default class AuthService {
 
     static async verifyTwoFactor(user: IUser, logInData: any, codeType: any = null) {
         if (!logInData.token || !logInData.token.length || logInData.token === 'undefined') {
-            const message = await this.sendMFACode(user)
-            throw new BizException(AuthErrors.token_require, new ErrorContext('auth.service', 'logIn', { message }))
+            await this.sendMFACode(user)
+            const result = { requireMFACode: true, type: user.MFASettings.MFAType, status: 'sent' }
+            return result
+            // throw new BizException(AuthErrors.token_require, new ErrorContext('auth.service', 'logIn', { message }))
         }
 
         // @ts-ignore
@@ -385,28 +397,29 @@ export default class AuthService {
             break
         }
         }
+        return { requireMFACode: false, type: user.MFASettings.MFAType, status: 'verified' }
     }
 
-    static async sendMFACode(user:IUser) {
+    static async sendMFACode(user: IUser) {
         // @ts-ignore
         switch (user.MFASettings.MFAType) {
         case MFAType.EMAIL: {
-            const data:any = await VerificationCodeService.generateCode({ codeType: CodeType.EmailLogIn, owner: user.email })
+            const data: any = await VerificationCodeService.generateCode({ codeType: CodeType.EmailLogIn, owner: user.email })
             data.message = 'Please check your email for login code'
             return data
         }
         case MFAType.SMS: {
-            const data:any = await VerificationCodeService.generateCode({ codeType: CodeType.SMSLogIn, owner: user.phone })
+            const data: any = await VerificationCodeService.generateCode({ codeType: CodeType.SMSLogIn, owner: user.phone })
             data.message = 'Please check your phone for login code'
             return data
         }
         case MFAType.PIN: {
-            const data:any = {}
+            const data: any = {}
             data.message = 'Please enter your pin as login code'
             return data
         }
         case MFAType.TOTP: {
-            const data:any = {}
+            const data: any = {}
             data.message = 'Please check Google Authenticator for login code'
             return data
         }

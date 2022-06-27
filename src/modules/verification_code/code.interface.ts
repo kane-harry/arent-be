@@ -10,12 +10,12 @@ export enum CodeType {
     SMS = 'SMS',
     SMSLogIn = 'SMSLogIn',
     EmailLogIn = 'EmailLogIn',
-    WithDraw = 'WithDraw'
+    WithDraw = 'Withdraw'
 }
 
 export interface IVerificationCode extends IBaseModel {
     key: string
-    owner: string
+    owner: string // email|phone|userkey
     type: CodeType
     code: string
     expiryTimestamp: number

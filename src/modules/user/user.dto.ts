@@ -3,16 +3,16 @@ import IFilterModel from '@interfaces/filter.model.interface'
 
 export class CreateUserDto {
     @IsString()
-    @Length(2, 8)
+    @Length(2, 20)
     public firstName: string
 
     @IsString()
-    @Length(2, 8)
+    @Length(2, 20)
     public lastName: string
 
     // TODO: check uniq nickname
-    @IsString()
-    @Length(2, 8)
+    @IsOptional()
+    @Length(2, 20)
     public nickName: string
 
     @IsString()
