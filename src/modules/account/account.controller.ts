@@ -15,7 +15,7 @@ import UserModel from '@modules/user/user.model'
 import BizException from '@exceptions/biz.exception'
 import { AccountErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
-import {isAdmin, requireAdmin} from "@config/role";
+import { isAdmin, requireAdmin } from '@config/role'
 // import { requireAuth } from '@common/authCheck'
 
 class AccountController implements IController {
@@ -112,7 +112,7 @@ class AccountController implements IController {
         return downloadResource(res, 'transactions.csv', fields, data.txns.items)
     }
 
-    static checkPermission(req: CustomRequest, userId:any) {
+    static checkPermission(req: CustomRequest, userId: any) {
         // @ts-ignore
         if (userId !== req.user?.key && !isAdmin(req.user?.role)) {
             throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.controller', 'withdraw', { userId }))

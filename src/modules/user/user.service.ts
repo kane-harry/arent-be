@@ -211,6 +211,10 @@ export default class UserService {
         }
     }
 
+    public static getUserByKey = async (key: string) => {
+        return await UserModel.findOne({ key }).exec()
+    }
+
     public static async generateRandomName(name: string) {
         name = toLower(escapeRegExp(name))
         let name_arr: any = name.split(' ')

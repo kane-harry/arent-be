@@ -43,6 +43,7 @@ class UserController implements IController {
         this.router.post(`${this.path}/:key/mfa`, requireAuth, asyncHandler(this.updateMFA))
         this.router.get(`${this.path}/list`, requireAuth, requireAdmin(), asyncHandler(this.getUserList))
         this.router.get(`${this.path}/me`, requireAuth, asyncHandler(this.getMyProfile))
+        this.router.get(`${this.path}/:key`, requireAuth, asyncHandler(this.getUserByKey))
     }
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {
@@ -91,6 +92,12 @@ class UserController implements IController {
     private getUserList = async (req: CustomRequest, res: Response) => {
         const filter = req.query as GetUserListDto
         const data = await UserService.getUserList(filter)
+        return res.send(data)
+    }
+
+    private getUserByKey = async (req: Request, res: Response) => {
+        const key: string = req.params.key
+        const data = await UserService.getUserByKey(key)
         return res.send(data)
     }
 }
