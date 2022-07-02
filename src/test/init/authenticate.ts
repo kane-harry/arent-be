@@ -11,7 +11,7 @@ const { expect } = chai
 
 export const initDataForUser = async (shareData: any, data: object = {}) => {
     const formData = { ...userData, ...data }
-    const setting:any = await SettingService.getGlobalSetting()
+    const setting: any = await SettingService.getGlobalSetting()
     if (setting.registrationRequireEmailVerified) {
         const code = await getVerificationCode(formData.email, CodeType.EmailRegistration)
         await verifyCode(formData.email, CodeType.EmailRegistration, code)
@@ -42,7 +42,7 @@ export const initDataForUser = async (shareData: any, data: object = {}) => {
 export const userData = {
     firstName: 'John',
     lastName: 'Smith',
-    nickName: 'jsmith8',
+    chatName: 'jsmith8',
     email: 'email@gmail.com',
     password: 'Test123!',
     pin: '1111',
@@ -53,7 +53,7 @@ export const userData = {
 export const user1Data = {
     firstName: 'John',
     lastName: 'Smith',
-    nickName: 'jsmith9',
+    chatName: 'jsmith9',
     email: 'email1@gmail.com',
     password: 'Test123!',
     pin: '2222',
@@ -64,7 +64,7 @@ export const user1Data = {
 export const adminData = {
     firstName: 'John',
     lastName: 'Smith',
-    nickName: 'admin',
+    chatName: 'admin',
     email: 'admin1@gmail.com',
     password: 'Test123!',
     pin: '3333',
@@ -72,7 +72,7 @@ export const adminData = {
     country: 'country'
 }
 
-export const getVerificationCode = async (owner: string, codeType:string) => {
+export const getVerificationCode = async (owner: string, codeType: string) => {
     const res = await request(server.app).post('/verification/code/get').send({
         codeType: codeType,
         owner: owner
@@ -93,7 +93,7 @@ export const getVerificationCode = async (owner: string, codeType:string) => {
     return verificationCode?.code
 }
 
-export const verifyCode = async (email: string, codeType:string, code: string) => {
+export const verifyCode = async (email: string, codeType: string, code: string) => {
     const res = await request(server.app).post('/verification/code/verify').send({
         codeType: codeType,
         owner: email,
@@ -118,8 +118,8 @@ export const makeUserSuspend = async (data: object = {}, status: string) => {
 }
 
 export const getLoginCode = async (formData: any) => {
-    const setting:any = await SettingService.getGlobalSetting()
-    const codeType = setting.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogIn
+    const setting: any = await SettingService.getGlobalSetting()
+    const codeType = setting.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogin
     const owner = setting.registrationRequireEmailVerified ? formData.email : formData.phone
 
     const verificationCode = await MODELS.VerificationCode.findOne(

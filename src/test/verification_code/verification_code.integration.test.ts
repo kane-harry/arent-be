@@ -1,10 +1,10 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import {dbTest, MODELS, validResponse} from '../init/db'
+import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
-import {CodeType} from '@modules/verification_code/code.interface'
-import {initDataForUser} from '@app/test/init/authenticate'
+import { CodeType } from '@modules/verification_code/code.interface'
+import { initDataForUser } from '@app/test/init/authenticate'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -34,7 +34,7 @@ describe('Verification Code', () => {
         if (key === CodeType.EmailRegistration) {
             return
         }
-        if (CodeType.SMS || key == CodeType.SMSLogIn) {
+        if (CodeType.SMS || key == CodeType.SMSLogin) {
             return
         }
         it(`GetVerificationCode ${key}`, async () => {
@@ -57,7 +57,7 @@ describe('Verification Code', () => {
         }).timeout(10000)
 
         it(`VerifyCode ${key}`, async () => {
-            const owner = key == CodeType.SMS || key == CodeType.SMSLogIn ? shareData.user.phone : shareData.user.email
+            const owner = key == CodeType.SMS || key == CodeType.SMSLogin ? shareData.user.phone : shareData.user.email
             const verificationCode = await MODELS.VerificationCode.findOne(
                 {
                     type: key,

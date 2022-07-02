@@ -4,7 +4,7 @@ import { IAccount } from './account.interface'
 const accountSchema = new Schema<IAccount>(
     {
         key: { type: String, required: true, index: true, unique: true },
-        userId: String,
+        userKey: String,
         name: String,
         symbol: { type: String, uppercase: true, index: true },
         platform: String,

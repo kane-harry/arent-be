@@ -6,7 +6,7 @@ import * as jwt from 'jsonwebtoken'
 const authSchema = new Schema<IAuthToken>(
     {
         key: { type: String, required: true, index: true, unique: true },
-        userId: {
+        userKey: {
             type: String,
             required: true
         },
@@ -36,22 +36,22 @@ const authSchema = new Schema<IAuthToken>(
 )
 
 export class AuthModel extends model<IAuthToken>('auth_tokens', authSchema) {
-    public static createAccessToken(userId: string) {
+    public static createAccessToken(userKey: string) {
         const expiresIn = config.JWT_Access.tokenExpiresIn
         const secret = String(config.JWT_Access.secret)
         // TODO: add client id ? not allow multiple device ?
         const payload = {
-            id: userId
+            key: userKey
         }
         return jwt.sign(payload, secret, { expiresIn })
     }
 
-    public static createRefreshToken(userId: string) {
+    public static createRefreshToken(userKey: string) {
         const expiresIn = config.JWT_Refresh.tokenExpiresIn
         const secret = String(config.JWT_Refresh.secret)
         // TODO: add client id ? not allow multiple device ?
         const payload = {
-            id: userId
+            key: userKey
         }
         return jwt.sign(payload, secret, { expiresIn })
     }

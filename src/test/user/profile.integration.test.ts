@@ -1,13 +1,13 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import {dbTest, MODELS, validResponse} from '../init/db'
+import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
 import AWS from 'aws-sdk'
 import sinon from 'sinon'
-import {adminData, initDataForUser, makeAdmin, userData} from '@app/test/init/authenticate'
-import {CodeType} from "@modules/verification_code/code.interface";
-import {formatPhoneNumberWithSymbol, stripPhoneNumber} from "@common/phone-helper";
+import { adminData, initDataForUser, makeAdmin, userData } from '@app/test/init/authenticate'
+import { CodeType } from '@modules/verification_code/code.interface'
+import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@common/phone-helper'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -26,12 +26,12 @@ const updateData = {
     email: 'new.email@gmail.com',
     firstName: 'firstName',
     lastName: 'lastName',
-    nickName: 'nickName',
+    chatName: 'chatName',
     phone: '+972552992022',
     country: 'country',
     playerId: 'playerId',
     newEmailCode: '',
-    newPhoneCode: '',
+    newPhoneCode: ''
 }
 
 describe('Profile', () => {
@@ -140,18 +140,17 @@ describe('Profile', () => {
         shareData.newPhoneCode = verificationCode?.code
     }).timeout(10000)
 
-    it('GetPublicUserByNickName', async () => {
-        const updateRes = await request(server.app)
-            .get(`/users/info/${userData.nickName}`)
+    it('GetPublicUserByChatName', async () => {
+        const updateRes = await request(server.app).get(`/users/info/${userData.chatName}`)
 
         expect(updateRes.status).equal(200)
         validResponse(updateRes.body)
 
-        const user = await MODELS.UserModel.findOne({ nickName: userData.nickName }).exec()
+        const user = await MODELS.UserModel.findOne({ chatName: userData.chatName }).exec()
         expect(user?.email).equal(userData.email)
         expect(user?.firstName).equal(userData.firstName)
         expect(user?.lastName).equal(userData.lastName)
-        expect(user?.nickName).equal(userData.nickName)
+        expect(user?.chatName).equal(userData.chatName)
         expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(userData.phone))
     })
 
@@ -167,10 +166,7 @@ describe('Profile', () => {
         it('updateUser should be success', async () => {
             updateData.newEmailCode = shareData.newEmailCode
             updateData.newPhoneCode = shareData.newPhoneCode
-            const updateRes = await request(server.app)
-                .post('/users/info')
-                .set('Authorization', `Bearer ${shareData.token}`)
-                .send(updateData)
+            const updateRes = await request(server.app).post('/users/info').set('Authorization', `Bearer ${shareData.token}`).send(updateData)
 
             expect(updateRes.status).equal(200)
             validResponse(updateRes.body)
@@ -179,7 +175,7 @@ describe('Profile', () => {
             expect(user?.email).equal(updateData.email)
             expect(user?.firstName).equal(updateData.firstName)
             expect(user?.lastName).equal(updateData.lastName)
-            expect(user?.nickName).equal(updateData.nickName)
+            expect(user?.chatName).equal(updateData.chatName)
             expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(updateData.phone))
             expect(user?.playerId).equal(updateData.playerId)
         })
@@ -188,7 +184,10 @@ describe('Profile', () => {
     it('GetUserList', async () => {
         const pageIndex = 1
         const pageSize = 25
-        const res = await request(server.app).get(`/users/list?pageindex=${pageIndex}&pagesize=${pageSize}`).set('Authorization', `Bearer ${adminShareData.token}`).send()
+        const res = await request(server.app)
+            .get(`/users/list?pageindex=${pageIndex}&pagesize=${pageSize}`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
 
@@ -208,7 +207,7 @@ describe('Profile', () => {
         const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
         expect(user?.firstName).equal(res.body.firstName)
         expect(user?.lastName).equal(res.body.lastName)
-        expect(user?.nickName).equal(res.body.nickName)
+        expect(user?.chatName).equal(res.body.chatName)
         expect(user?.phone).equal(res.body.phone)
         expect(user?.country).equal(res.body.country)
     }).timeout(10000)

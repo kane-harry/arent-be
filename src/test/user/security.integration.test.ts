@@ -1,12 +1,12 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import {dbTest, MODELS, validResponse} from '../init/db'
+import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
-import {CodeType} from '@modules/verification_code/code.interface'
-import {initDataForUser, userData} from '@app/test/init/authenticate'
-import {generateTotpToken} from '@common/twoFactor'
-import {MFAType} from "@modules/auth/auth.interface";
+import { CodeType } from '@modules/verification_code/code.interface'
+import { initDataForUser, userData } from '@app/test/init/authenticate'
+import { generateTotpToken } from '@common/twoFactor'
+import { MFAType } from '@modules/auth/auth.interface'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -14,7 +14,7 @@ let shareData = {
     user: {
         email: undefined,
         phone: undefined,
-        key: undefined,
+        key: undefined
     },
     token: '',
     refreshToken: ''
@@ -61,7 +61,7 @@ describe('Security', () => {
         const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
         const token = generateTotpToken(twoFactorSecret, user.email)
 
-        const res1 = await request(server.app).post('/auth/login').send({email: userData.email, password: userData.password, token: token})
+        const res1 = await request(server.app).post('/auth/login').send({ email: userData.email, password: userData.password, token: token })
         validResponse(res1.body)
         expect(res1.status).equal(200)
 
@@ -106,14 +106,14 @@ describe('Security', () => {
             return expect(500).equal(200)
         }
         const res = await request(server.app).post('/verification/code/get').send({
-            codeType: CodeType.SMSLogIn,
+            codeType: CodeType.SMSLogin,
             owner: shareData.user.phone
         })
         expect(res.status).equal(200)
         validResponse(res.body)
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
-                type: CodeType.SMSLogIn,
+                type: CodeType.SMSLogin,
                 owner: shareData.user.phone
             },
             {},
@@ -121,7 +121,9 @@ describe('Security', () => {
         ).exec()
         expect(verificationCode?.code).exist
 
-        const res1 = await request(server.app).post('/auth/login').send({email: userData.email, password: userData.password, token: verificationCode?.code})
+        const res1 = await request(server.app)
+            .post('/auth/login')
+            .send({ email: userData.email, password: userData.password, token: verificationCode?.code })
         validResponse(res1.body)
         expect(res1.status).equal(200)
 

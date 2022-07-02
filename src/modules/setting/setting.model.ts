@@ -19,18 +19,7 @@ const settingSchema = new Schema<ISetting>(
             type: Boolean,
             required: true
         },
-        depositStripeDisabled: {
-            type: Boolean,
-            required: true
-        },
-        depositRequiredKycValidation: {
-            type: Boolean,
-            required: true
-        },
-        primeTransferFee: { type: Types.Decimal128, default: new Types.Decimal128('0') },
-        stripDepositFeeRate: { type: Number, default: 0 },
-        stripDepositFeePerTransaction: { type: Number, default: 0 },
-        stripeApiKey: { type: String, default: '' }
+        primeTransferFee: { type: Types.Decimal128, default: new Types.Decimal128('0') }
     },
     {
         toJSON: {

@@ -20,7 +20,7 @@ export default class AccountMasterService {
         }
 
         const accounts: any[] = []
-        const userId = 'MASTER'
+        const userKey = 'MASTER'
         const primeTokens = config.system.primeTokens
         const etherWallet = await createEtherWallet()
         const coinWallets = await PrimeCoinProvider.createCoinWallet(primeTokens, etherWallet.address)
@@ -28,7 +28,7 @@ export default class AccountMasterService {
             const accountName = `${coinWallet.symbol} MASTER`
             const account = new AccountModel({
                 key: crypto.randomBytes(16).toString('hex'),
-                userId: userId,
+                userKey: userKey,
                 name: accountName,
                 symbol: coinWallet.symbol,
                 type: AccountType.Master,
@@ -48,7 +48,7 @@ export default class AccountMasterService {
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
                     key: crypto.randomBytes(16).toString('hex'),
-                    userId: userId,
+                    userKey: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Master,
@@ -70,7 +70,7 @@ export default class AccountMasterService {
                 const accountName = `${token.symbol} MASTER`
                 const account = new AccountModel({
                     key: crypto.randomBytes(16).toString('hex'),
-                    userId: userId,
+                    userKey: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Master,

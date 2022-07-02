@@ -1,10 +1,12 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios'
 import { config } from '@config'
 import { generate } from 'hmac-auth-express'
 import { IMintToCoinDto } from '@modules/account/account.interface'
 import { ISendCoinDto, ITransactionFilter } from '@modules/transaction/transaction.interface'
-import ApplicationException from '@exceptions/application.exception'
 import { CommonErrors } from '@exceptions/custom.error'
+import BizException from '@exceptions/biz.exception'
+import IErrorModel from '@interfaces/error.model.interface'
+import ErrorContext from '@exceptions/error.context'
 
 // TODO  catch coin errors using interceptors ?
 
@@ -53,14 +55,18 @@ _instance.interceptors.request.use(
 )
 _instance.interceptors.response.use(
     (response: AxiosResponse) => {
-        const status = response.status
-        if (status !== 200) {
-            // TODO:
-        }
-        return response
+        return response.data
     },
-    function (error) {
-        return Promise.reject(error)
+    (error: AxiosError) => {
+        // throw new ApplicationException(error?.response?.data as IErrorModel)
+        // const { response, request }: { response?: AxiosResponse; request?: XMLHttpRequest; } = error
+        // throw new ApplicationException(CommonErrors.internal_server_error, {
+        //     className: 'PrimeCoinProvider',
+        //     details: String(error?.response?.data?.error),
+        //     method: '',
+        //     message: String(response?.data?.error?.message || error?.message)
+        // })
+        return Promise.reject(error.response?.data?.error)
     }
 )
 export class PrimeCoinProvider {
@@ -68,18 +74,15 @@ export class PrimeCoinProvider {
 
     public static requestErrorHandler(method: string, error: any) {
         console.log(error)
-        throw new ApplicationException(CommonErrors.internal_server_error, {
-            className: 'PrimeCoinProvider',
-            details: String(error),
-            method,
-            message: String(error?.response?.data?.message || error?.message)
-        })
+        const errorModel = CommonErrors.coin_server_request_error as IErrorModel
+        errorModel.metaData = { error: error?.message }
+        throw new BizException(errorModel, new ErrorContext('PrimeCoinProvider', method, error?.context?.details))
     }
 
     public static async coinServerHeartBeat() {
         try {
             const resp = await this.instance.get('/sites/hello')
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('coinServerHeartBeat', error)
         }
@@ -93,7 +96,7 @@ export class PrimeCoinProvider {
         }
         try {
             const resp = await this.instance.post('/accounts', payload)
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('createCoinWallet', error)
         }
@@ -102,7 +105,7 @@ export class PrimeCoinProvider {
     public static async getWalletByKey(key: string) {
         try {
             const resp = await this.instance.get(`/accounts/${key}`)
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('getWalletByKey', error)
         }
@@ -111,7 +114,7 @@ export class PrimeCoinProvider {
     public static async getWalletBySymbolAndAddress(symbol: string, address: string) {
         try {
             const resp = await this.instance.get(`/accounts/${symbol}/address/${address}`)
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('getWalletBySymbolAndAddress', error)
         }
@@ -120,7 +123,7 @@ export class PrimeCoinProvider {
     public static async getWalletsByAddress(address: string) {
         try {
             const resp = await this.instance.get(`/accounts/address/${address}`)
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('getWalletsByAddress', error)
         }
@@ -129,7 +132,7 @@ export class PrimeCoinProvider {
     public static async queryWallets(filter: any) {
         try {
             const resp = await this.instance.get('/accounts', { params: filter })
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('queryWallets', error)
         }
@@ -138,7 +141,7 @@ export class PrimeCoinProvider {
     public static async mintPrimeCoins(params: IMintToCoinDto) {
         try {
             const resp = await this.instance.post('/transactions/mint', params)
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('mintPrimeCoins', error)
         }
@@ -147,7 +150,7 @@ export class PrimeCoinProvider {
     public static async sendPrimeCoins(sendData: ISendCoinDto) {
         try {
             const resp = await this.instance.post('/transactions', sendData)
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('sendPrimeCoins', error)
         }
@@ -164,7 +167,7 @@ export class PrimeCoinProvider {
         try {
             const resp = await this.instance.get(path)
             // log
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('queryPrimeTxns', error)
         }
@@ -174,7 +177,7 @@ export class PrimeCoinProvider {
         try {
             const resp = await this.instance.get(`/transactions/${key}`)
             // log
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeTxnByKey', error)
         }
@@ -184,7 +187,7 @@ export class PrimeCoinProvider {
         try {
             const resp = await this.instance.get('/accounts/prime/list')
             // log
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('getAllPrimeAccountList', error)
         }
@@ -194,7 +197,7 @@ export class PrimeCoinProvider {
         try {
             const resp = await this.instance.get('/transactions/prime/list')
             // log
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('getAllPrimeTransactionList', error)
         }
@@ -204,7 +207,7 @@ export class PrimeCoinProvider {
         try {
             const resp = await this.instance.get('/transactions/prime/stats')
             // log
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('getAllPrimeTransactionStats', error)
         }
@@ -214,7 +217,7 @@ export class PrimeCoinProvider {
         try {
             const resp = await this.instance.get(`/accounts/${key}/prime/list`)
             // log
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeAccountList', error)
         }
@@ -224,7 +227,7 @@ export class PrimeCoinProvider {
         try {
             const resp = await this.instance.get(`/transactions/${key}/prime/list`)
             // log
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeTransactionList', error)
         }
@@ -234,7 +237,7 @@ export class PrimeCoinProvider {
         try {
             const resp = await this.instance.get(`/transactions/${key}/prime/stats`)
             // log
-            return resp.data.data
+            return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeTransactionStats', error)
         }

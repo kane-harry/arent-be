@@ -8,7 +8,7 @@ import { IUser } from '@modules/user/user.interface'
 import UserModel from '@modules/user/user.model'
 import { VerificationCode } from '@modules/verification_code/code.model'
 import { CodeType } from '@modules/verification_code/code.interface'
-import { AuthErrors } from '@exceptions/custom.error'
+import { AuthErrors, VerificationCodeErrors } from '@exceptions/custom.error'
 import { config } from '@config'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import UserLogModel from '@modules/user_logs/user_log.model'
@@ -20,7 +20,7 @@ import { AuthTokenType, MFAType } from './auth.interface'
 import crypto from 'crypto'
 import { verifyTotpToken } from '@common/twoFactor'
 import SettingService from '@modules/setting/setting.service'
-import { getPhoneInfo } from '@common/phone-helper'
+import { getPhoneInfo, stripPhoneNumber } from '@common/phone-helper'
 import UserService from '@modules/user/user.service'
 
 export default class AuthService {
@@ -29,7 +29,7 @@ export default class AuthService {
         const setting: any = await SettingService.getGlobalSetting()
         if (setting.registrationRequireEmailVerified) {
             const codeData = await VerificationCode.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
-            if (!codeData || codeData.enabled) {
+            if (!codeData || !codeData.verified) {
                 throw new BizException(
                     AuthErrors.registration_email_not_verified_error,
                     new ErrorContext('auth.service', 'generateCode', { email: userData.email })
@@ -102,8 +102,7 @@ export default class AuthService {
     private static async formatCreateUserDto(userData: CreateUserDto) {
         userData.firstName = capitalize(escapeRegExp(trim(userData.firstName)))
         userData.lastName = capitalize(escapeRegExp(trim(userData.lastName)))
-        // userData.nickName = capitalize(escapeRegExp(trim(userData.nickName)))
-        userData.nickName = await UserService.generateRandomName(userData.firstName)
+        userData.chatName = await UserService.generateRandomName(userData.firstName)
         userData.email = toLower(trim(userData.email))
         userData.password = trim(userData.password)
         userData.pin = trim(userData.pin)
@@ -149,12 +148,12 @@ export default class AuthService {
         new AuthModel({
             key: crypto.randomBytes(16).toString('hex'),
             token: refreshToken,
-            userId: user._id
+            userKey: user.key
         }).save()
 
         new UserLogModel({
             key: crypto.randomBytes(16).toString('hex'),
-            userId: user.key,
+            userKey: user.key,
             action: UserActions.Login,
             agent: options?.req.agent,
             ipAddress: options?.req.ip_address
@@ -187,155 +186,117 @@ export default class AuthService {
         }
     }
 
-    static async resetPassword(passwordData: ResetPasswordDto, _user: IUser, options?: { req: CustomRequest }) {
-        if (passwordData.newPasswordConfirmation !== passwordData.newPassword) {
-            throw new BizException(AuthErrors.data_confirmation_mismatch_error, new ErrorContext('auth.service', 'resetPassword', {}))
+    static async forgotPassword(params: ForgotPasswordDto) {
+        let user
+        if (params.type === 'email') {
+            const email = toLower(trim(params.owner))
+            user = await UserModel.findOne({ email }).select('key email phone').exec()
+        } else if (params.type === 'phone') {
+            const phone = stripPhoneNumber(params.owner)
+            user = await UserModel.findOne({ phone }).select('key email phone').exec()
         }
 
-        const user = await UserModel.findOne({ email: _user?.email }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPassword', {}))
+        }
 
-        const oldPassHashed = String(user?.get('password', null, { getters: false }))
+        await VerificationCodeService.generateCode({ owner: user.key, codeType: CodeType.ForgotPassword })
+        // TODO - send code to user via email and phone
+        // Pseudocode
+        // if(params.type === 'email'){
+        //     emailService.sendForgotPasswordEmail(context)
+        // }else if (params.type === 'phone') {
+        //     sms.send(sms_subject, sms_content, phone)
+        // }
 
-        const isPasswordMatching = await bcrypt.compare(passwordData.oldPassword, oldPassHashed)
+        return { success: true }
+    }
+
+    static async resetPassword(params: ResetPasswordDto) {
+        let user
+        if (params.type === 'email') {
+            const email = toLower(trim(params.owner))
+            user = await UserModel.findOne({ email }).select('key email phone pin').exec()
+        } else if (params.type === 'phone') {
+            const phone = await stripPhoneNumber(params.owner)
+            user = await UserModel.findOne({ phone }).select('key email phone pin').exec()
+        }
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'resetPassword', {}))
+        }
+        const isPinCodeMatching = await bcrypt.compare(params.pin, user.get('pin', null, { getters: false }))
+        if (!isPinCodeMatching) {
+            throw new BizException(AuthErrors.invalid_pin_code_error, new ErrorContext('auth.service', 'resetPassword', {}))
+        }
+        const { success } = await VerificationCodeService.verifyCode({ owner: user.key, code: params.code, codeType: CodeType.ForgotPassword })
+        if (success) {
+            const newPassHashed = await bcrypt.hash(params.password, 10)
+            user.set('password', newPassHashed, String)
+            user.save()
+
+            // TODO - send notifications user via email and phone
+            // Pseudocode
+
+            // emailService.sendForgotPasswordEmail(context)
+        }
+        return { success }
+    }
+
+    static async forgotPin(params: ForgotPinDto) {
+        let user
+        if (params.type === 'email') {
+            const email = toLower(trim(params.owner))
+            user = await UserModel.findOne({ email }).select('key email phone').exec()
+        } else if (params.type === 'phone') {
+            const phone = await stripPhoneNumber(params.owner)
+            user = await UserModel.findOne({ phone }).select('key email phone').exec()
+        }
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
+        }
+
+        await VerificationCodeService.generateCode({ owner: user.key, codeType: CodeType.ForgotPin })
+        // TODO - send code to user via email and phone
+        // Pseudocode
+        // if(params.type === 'email'){
+        //     emailService.sendForgotPasswordEmail(context)
+        // }else if (params.type === 'phone') {
+        //     sms.send(sms_subject, sms_content, phone)
+        // }
+
+        return { success: true }
+    }
+
+    static async resetPin(params: ResetPinDto) {
+        let user
+        if (params.type === 'email') {
+            const email = toLower(trim(params.owner))
+            user = await UserModel.findOne({ email }).select('key email phone password').exec()
+        } else if (params.type === 'phone') {
+            const phone = await stripPhoneNumber(params.owner)
+            user = await UserModel.findOne({ phone }).select('key email phone password').exec()
+        }
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'resetPin', {}))
+        }
+        const isPasswordMatching = await bcrypt.compare(params.password, user.get('password', null, { getters: false }))
         if (!isPasswordMatching) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'resetPassword', {}))
-        }
-        const newPassHashed = await bcrypt.hash(passwordData.newPassword, 10)
-        user?.set('password', newPassHashed, String)
-        user?.save()
-
-        new UserLogModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userId: user?.key,
-            action: UserActions.ResetPassword,
-            agent: options?.req.agent,
-            ipAddress: options?.req.ip_address,
-            oldData: {
-                password: oldPassHashed
-            },
-            newData: {
-                password: newPassHashed
-            }
-        }).save()
-
-        return { success: true }
-    }
-
-    static async forgotPassword(passwordData: ForgotPasswordDto, options?: { req: CustomRequest }) {
-        const { success } = await VerificationCodeService.verifyCode({
-            codeType: CodeType.ForgotPassword,
-            owner: passwordData.email,
-            code: passwordData.code
-        })
-        if (!success) {
-            throw new BizException(
-                AuthErrors.verification_code_invalid_error,
-                new ErrorContext('auth.service', 'forgotPassword', { email: passwordData.email })
-            )
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
         }
 
-        const user = await UserModel.findOne({ email: passwordData?.email }).exec()
+        const { success } = await VerificationCodeService.verifyCode({ owner: user.key, code: params.code, codeType: CodeType.ForgotPin })
+        if (success) {
+            const newPin = await bcrypt.hash(params.pin, 10)
+            user.set('pin', newPin, String)
+            user.save()
 
-        if (!user) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'forgotPassword', {}))
+            // TODO - send notifications user via email and phone
+            // Pseudocode
+
+            // emailService.sendForgotPasswordEmail(context)
         }
-
-        const oldPassHashed = String(user?.get('password', null, { getters: false }))
-        const newPassHashed = await bcrypt.hash(passwordData.newPassword, 10)
-
-        user?.set('password', newPassHashed, String)
-        user?.save()
-
-        new UserLogModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userId: user?.key,
-            action: UserActions.ForgotPassword,
-            agent: options?.req.agent,
-            ipAddress: options?.req.ip_address,
-            oldData: {
-                password: oldPassHashed
-            },
-            newData: {
-                password: newPassHashed
-            }
-        }).save()
-
-        return { success: true }
-    }
-
-    static async resetPin(pinData: ResetPinDto, _user: IUser, options?: { req: CustomRequest }) {
-        if (pinData.newPinConfirmation !== pinData.newPin) {
-            throw new BizException(AuthErrors.data_confirmation_mismatch_error, new ErrorContext('auth.service', 'resetPin', {}))
-        }
-
-        const user = await UserModel.findOne({ email: _user?.email }).exec()
-
-        const oldPinHashed = String(user?.get('pin', null, { getters: false }))
-        const isPinMatching = await bcrypt.compare(pinData.oldPin, oldPinHashed)
-        if (!isPinMatching) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'resetPin', {}))
-        }
-        const newPinHashed = await bcrypt.hash(pinData.newPin, 10)
-        user?.set('pin', newPinHashed, String)
-        user?.save()
-
-        new UserLogModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userId: user?.key,
-            action: UserActions.ResetPin,
-            agent: options?.req.agent,
-            ipAddress: options?.req.ip_address,
-            oldData: {
-                pin: oldPinHashed
-            },
-            newData: {
-                pin: newPinHashed
-            }
-        }).save()
-
-        return { success: true }
-    }
-
-    static async forgotPin(pinData: ForgotPinDto, options?: { req: CustomRequest }) {
-        const { success } = await VerificationCodeService.verifyCode({
-            codeType: CodeType.ForgotPin,
-            owner: pinData.email,
-            code: pinData.code
-        })
-        if (!success) {
-            throw new BizException(
-                AuthErrors.verification_code_invalid_error,
-                new ErrorContext('auth.service', 'forgotPin', { email: pinData?.email })
-            )
-        }
-
-        const user = await UserModel.findOne({ email: pinData?.email }).exec()
-
-        if (!user) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'forgotPin', {}))
-        }
-
-        const oldPinHashed = String(user?.get('pin', null, { getters: false }))
-        const newPinHashed = await bcrypt.hash(pinData.newPin, 10)
-
-        user?.set('pin', newPinHashed, String)
-        user?.save()
-
-        new UserLogModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userId: user?.key,
-            action: UserActions.ForgotPin,
-            agent: options?.req.agent,
-            ipAddress: options?.req.ip_address,
-            oldData: {
-                pin: oldPinHashed
-            },
-            newData: {
-                pin: newPinHashed
-            }
-        }).save()
-
-        return { success: true }
+        return { success }
     }
 
     static async logOut(refreshTokenData: RefreshTokenDto) {
@@ -362,7 +323,7 @@ export default class AuthService {
             const pinHash = user.get('pin', null, { getters: false })
             const isMatching = await bcrypt.compare(logInData.token, pinHash)
             if (!isMatching) {
-                throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
+                throw new BizException(AuthErrors.invalid_pin_code_error, new ErrorContext('auth.service', 'logIn', {}))
             }
             break
         case MFAType.TOTP:
@@ -385,7 +346,7 @@ export default class AuthService {
             break
         }
         case MFAType.SMS: {
-            codeType = codeType ?? CodeType.SMSLogIn
+            codeType = codeType ?? CodeType.SMSLogin
             const { success } = await VerificationCodeService.verifyCode({
                 codeType: codeType,
                 owner: user.phone,
@@ -409,7 +370,7 @@ export default class AuthService {
             return data
         }
         case MFAType.SMS: {
-            const data: any = await VerificationCodeService.generateCode({ codeType: CodeType.SMSLogIn, owner: user.phone })
+            const data: any = await VerificationCodeService.generateCode({ codeType: CodeType.SMSLogin, owner: user.phone })
             data.message = 'Please check your phone for login code'
             return data
         }

@@ -1,5 +1,5 @@
 import BizException from '@exceptions/biz.exception'
-import { AuthErrors } from '@exceptions/custom.error'
+import { AuthErrors, VerificationCodeErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
@@ -56,14 +56,14 @@ export default class UserService {
         }
 
         const filter = {
-            $or: [{ email: data.email }, { phone: data.phone }, { nickName: data.nickName }]
+            $or: [{ email: data.email }, { phone: data.phone }, { chatName: data.chatName }]
         }
         const existUser = await UserModel.findOne(filter).exec()
         if (existUser && existUser.key !== user.key) {
             const duplicateInfo = {
                 email: existUser.email === user.email ? existUser.email : '',
                 phone: existUser.phone === user.phone ? existUser.phone : '',
-                nickName: existUser.nickName === user.nickName ? existUser.nickName : ''
+                chatName: existUser.chatName === user.chatName ? existUser.chatName : ''
             }
             throw new BizException(AuthErrors.registration_info_exists_error, new ErrorContext('user.service', 'updateUser', duplicateInfo))
         }
@@ -76,7 +76,7 @@ export default class UserService {
         user?.set('email', data.email.toLowerCase() || user.email, String)
         user?.set('firstName', data.firstName || user.firstName, String)
         user?.set('lastName', data.lastName || user.lastName, String)
-        user?.set('nickName', data.nickName || user.nickName, String)
+        user?.set('chatName', data.chatName || user.chatName, String)
         user?.set('phone', data.phone || user.phone, String)
         user?.set('country', data.country || user.country, String)
         user?.set('playerId', data.playerId || user.playerId, String)
@@ -85,8 +85,8 @@ export default class UserService {
         return user
     }
 
-    public static getUserByNickname = async (nickName: string) => {
-        return await UserModel.findOne({ nickName: { $regex: nickName, $options: 'i' } }).exec()
+    public static getUserByName = async (chatName: string) => {
+        return await UserModel.findOne({ chatName: { $regex: chatName, $options: 'i' } }).exec()
     }
 
     static createCreateTransaction = async (transactionParams: any) => {
@@ -196,7 +196,10 @@ export default class UserService {
             code: data.newEmailCode
         })
         if (!success) {
-            throw new BizException(AuthErrors.verification_code_invalid_error, new ErrorContext('auth.service', 'updateUser', { email: data.email }))
+            throw new BizException(
+                VerificationCodeErrors.verification_code_invalid_error,
+                new ErrorContext('auth.service', 'updateUser', { email: data.email })
+            )
         }
     }
 
@@ -207,7 +210,10 @@ export default class UserService {
             code: data.newPhoneCode
         })
         if (!success) {
-            throw new BizException(AuthErrors.verification_code_invalid_error, new ErrorContext('auth.service', 'updateUser', { phone: data.phone }))
+            throw new BizException(
+                VerificationCodeErrors.verification_code_invalid_error,
+                new ErrorContext('auth.service', 'updateUser', { phone: data.phone })
+            )
         }
     }
 
@@ -225,15 +231,15 @@ export default class UserService {
         })
         let newName = name_arr.join('-')
         let reg = new RegExp(name, 'i')
-        const filter = { nickName: reg }
-        let referenceInDatabase = await UserModel.findOne(filter).select('key nickName').exec()
+        const filter = { chatName: reg }
+        let referenceInDatabase = await UserModel.findOne(filter).select('key chatName').exec()
 
         while (referenceInDatabase != null) {
             const proposedReference = generateRandomCode(2, 4, true)
             newName = newName + '-' + proposedReference
             reg = new RegExp(newName, 'i')
-            filter.nickName = reg
-            referenceInDatabase = await UserModel.findOne(filter).select('key nickName').exec()
+            filter.chatName = reg
+            referenceInDatabase = await UserModel.findOne(filter).select('key chatName').exec()
         }
         return newName
     }

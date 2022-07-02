@@ -6,7 +6,7 @@ export enum AuthTokenType {
 
 export interface IAuthToken extends IBaseModel {
     key: string
-    userId: string
+    userKey: string
     type: AuthTokenType // just save refresh token => revoke refresh token => logout
     // device: string
     // ipAddress: string

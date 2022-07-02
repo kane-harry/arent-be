@@ -23,11 +23,14 @@ export default class AuthController implements IController {
         this.router.post(`${this.path}/token/refresh`, validationMiddleware(RefreshTokenDto), asyncHandler(this.refreshToken))
         this.router.post(`${this.path}/logout`, requireAuth, validationMiddleware(RefreshTokenDto), asyncHandler(this.logOut))
 
-        this.router.post(`${this.path}/password/reset`, requireAuth, validationMiddleware(ResetPasswordDto), asyncHandler(this.resetPassword))
         this.router.post(`${this.path}/password/forgot`, validationMiddleware(ForgotPasswordDto), asyncHandler(this.forgotPassword))
+        this.router.post(`${this.path}/password/reset`, validationMiddleware(ResetPasswordDto), asyncHandler(this.resetPassword))
 
-        this.router.post(`${this.path}/pin/reset`, requireAuth, validationMiddleware(ResetPinDto), asyncHandler(this.resetPin))
         this.router.post(`${this.path}/pin/forgot`, validationMiddleware(ForgotPinDto), asyncHandler(this.forgotPin))
+        this.router.post(`${this.path}/pin/reset`, validationMiddleware(ResetPinDto), asyncHandler(this.resetPin))
+
+        // TODO - admin can reset password and pin , generate a temp password , then user can reset new password and new pin.
+        // - please check https://github.com/pellartech/pellar-federation/blob/xif_develop/server/services/user.service.js#L556
     }
 
     private verifyRegistration = async (req: CustomRequest, res: Response) => {
@@ -57,30 +60,30 @@ export default class AuthController implements IController {
         return res.send(data)
     }
 
-    private resetPassword = async (req: AuthenticationRequest, res: Response) => {
-        const passwordData: ResetPasswordDto = req.body
-        const data = await AuthService.resetPassword(passwordData, req.user, { req })
+    private forgotPassword = async (req: Request, res: Response) => {
+        const params: ForgotPasswordDto = req.body
+        const data = await AuthService.forgotPassword(params)
 
         return res.send(data)
     }
 
-    private forgotPassword = async (req: AuthenticationRequest, res: Response) => {
-        const authData: ForgotPasswordDto = req.body
-        const data = await AuthService.forgotPassword(authData, { req })
-
-        return res.send(data)
-    }
-
-    private resetPin = async (req: AuthenticationRequest, res: Response) => {
-        const passwordData: ResetPinDto = req.body
-        const data = await AuthService.resetPin(passwordData, req.user, { req })
+    private resetPassword = async (req: Request, res: Response) => {
+        const params: ResetPasswordDto = req.body
+        const data = await AuthService.resetPassword(params)
 
         return res.send(data)
     }
 
     private forgotPin = async (req: AuthenticationRequest, res: Response) => {
-        const authData: ForgotPinDto = req.body
-        const data = await AuthService.forgotPin(authData, { req })
+        const params: ForgotPinDto = req.body
+        const data = await AuthService.forgotPin(params)
+
+        return res.send(data)
+    }
+
+    private resetPin = async (req: AuthenticationRequest, res: Response) => {
+        const params: ResetPinDto = req.body
+        const data = await AuthService.resetPin(params)
 
         return res.send(data)
     }

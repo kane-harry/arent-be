@@ -16,4 +16,13 @@ export class CreateCodeDto {
 export class VerifyCodeDto extends CreateCodeDto {
     @IsString()
     public code: string
+
+    @IsString()
+    @IsEnum(CodeType, {
+        message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
+    })
+    public codeType: CodeType
+
+    @IsString()
+    public owner: string
 }

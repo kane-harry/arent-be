@@ -1,13 +1,13 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import {dbTest, MODELS, validResponse} from '../init/db'
+import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
 import { CodeType } from '@modules/verification_code/code.interface'
-import {getVerificationCode, initDataForUser, userData} from '@app/test/init/authenticate'
-import {config} from "@config";
-import SettingService from "@modules/setting/setting.service";
-import {formatPhoneNumberWithSymbol, stripPhoneNumber} from "@common/phone-helper";
+import { getVerificationCode, initDataForUser, userData } from '@app/test/init/authenticate'
+import { config } from '@config'
+import SettingService from '@modules/setting/setting.service'
+import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@common/phone-helper'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -34,7 +34,7 @@ describe('Authentication', () => {
         //Same
         expect(user?.firstName).equal(userData.firstName)
         expect(user?.lastName).equal(userData.lastName)
-        expect(user?.nickName).equal(userData.nickName)
+        expect(user?.chatName).equal(userData.chatName)
         expect(user?.email).equal(userData.email)
         expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(userData.phone))
         //Different
@@ -43,14 +43,14 @@ describe('Authentication', () => {
     }).timeout(10000)
 
     it('Login', async () => {
-        const setting:any = await SettingService.getGlobalSetting()
+        const setting: any = await SettingService.getGlobalSetting()
         const owner = setting.registrationRequireEmailVerified ? userData.email : userData.phone
-        const codeType = setting.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogIn
+        const codeType = setting.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogin
         const loginCode = await getVerificationCode(owner, codeType)
         const res = await request(server.app).post('/auth/login').send({
             email: userData.email,
             password: userData.password,
-            token: loginCode,
+            token: loginCode
         })
 
         expect(res.status).equal(200)
@@ -66,7 +66,7 @@ describe('Authentication', () => {
 
     it('RefreshToken', async () => {
         const res = await request(server.app).post('/auth/token/refresh').send({
-            refreshToken: shareData.refreshToken,
+            refreshToken: shareData.refreshToken
         })
 
         expect(res.status).equal(200)

@@ -4,7 +4,7 @@ import { IUserLog } from './user_log.interface'
 const userLogSchema = new Schema<IUserLog>(
     {
         key: { type: String, required: true, index: true, unique: true },
-        userId: {
+        userKey: {
             type: String,
             required: true
         },
@@ -20,8 +20,8 @@ const userLogSchema = new Schema<IUserLog>(
             type: String,
             required: true
         },
-        oldData: Object,
-        newData: Object
+        preData: Object,
+        postData: Object
     },
     {
         timestamps: {

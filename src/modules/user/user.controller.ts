@@ -37,7 +37,7 @@ class UserController implements IController {
 
         this.router.post(`${this.path}/info`, requireAuth, asyncHandler(this.updateUser))
 
-        this.router.get(`${this.path}/info/:nickName`, asyncHandler(this.getPublicUserByNickName))
+        this.router.get(`${this.path}/info/:name`, asyncHandler(this.getUserByName))
 
         this.router.post(`${this.path}/totp/generate`, requireAuth, asyncHandler(this.generateTotp))
         this.router.post(`${this.path}/:key/mfa`, requireAuth, asyncHandler(this.updateMFA))
@@ -58,14 +58,14 @@ class UserController implements IController {
         return res.send(data)
     }
 
-    private getPublicUserByNickName = async (req: Request, res: Response) => {
-        const nickName: string = req.params.nickName
-        const data = await UserService.getUserByNickname(nickName)
+    private getUserByName = async (req: Request, res: Response) => {
+        const chatName: string = req.params.name
+        const data = await UserService.getUserByName(chatName)
         const resData = {
             key: data?.key,
             firstName: data?.firstName,
             lastName: data?.lastName,
-            nickName: data?.nickName,
+            chatName: data?.chatName,
             country: data?.country,
             avatar: data?.avatar,
             status: data?.status

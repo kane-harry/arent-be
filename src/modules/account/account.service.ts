@@ -16,8 +16,8 @@ import { CodeType } from '@modules/verification_code/code.interface'
 import AuthService from '@modules/auth/auth.service'
 
 export default class AccountService {
-    static async initUserAccounts(userId: string) {
-        if (userId === 'MASTER') {
+    static async initUserAccounts(userKey: string) {
+        if (userKey === 'MASTER') {
             throw new BizException(AuthErrors.invalid_user_id, new ErrorContext('account.service', 'initUserAccounts', {}))
         }
         const accounts: any[] = []
@@ -35,7 +35,7 @@ export default class AccountService {
             const accountName = `${coinWallet.symbol} Account`
             const account = new AccountModel({
                 key: crypto.randomBytes(16).toString('hex'),
-                userId: userId,
+                userKey: userKey,
                 name: accountName,
                 symbol: coinWallet.symbol,
                 type: AccountType.Prime,
@@ -55,7 +55,7 @@ export default class AccountService {
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
                     key: crypto.randomBytes(16).toString('hex'),
-                    userId: userId,
+                    userKey: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Ext,
@@ -77,7 +77,7 @@ export default class AccountService {
                 const accountName = `${token.symbol} Account`
                 const account = new AccountModel({
                     key: crypto.randomBytes(16).toString('hex'),
-                    userId: userId,
+                    userKey: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Ext,
@@ -110,8 +110,8 @@ export default class AccountService {
         return account
     }
 
-    static async getAccountBySymbol(symbol: string, userId: string) {
-        const account = await AccountModel.findOne({ symbol, userId }).select('-keyStore -salt').exec()
+    static async getAccountBySymbol(symbol: string, userKey: string) {
+        const account = await AccountModel.findOne({ symbol, userKey }).select('-keyStore -salt').exec()
         if (account?.extType === AccountExtType.Prime) {
             const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
             account.amount = wallet.amount
@@ -166,8 +166,8 @@ export default class AccountService {
         return new QueryRO<IAccount>(totalCount, params.pageindex, params.pagesize, items)
     }
 
-    static async getUserAccounts(userId: any) {
-        const items = await AccountModel.find({ userId: userId }).select('-keyStore -salt').exec()
+    static async getUserAccounts(userKey: any) {
+        const items = await AccountModel.find({ userKey: userKey }).select('-keyStore -salt').exec()
         return items
     }
 
@@ -176,11 +176,11 @@ export default class AccountService {
         if (account.type === AccountExtType.Prime) {
             throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { key }))
         }
-        if (account.userId !== operator.key) {
+        if (account.userKey !== operator.key) {
             throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { key }))
         }
 
-        await AuthService.verifyTwoFactor(operator, params, CodeType.WithDraw)
+        await AuthService.verifyTwoFactor(operator, params, CodeType.Withdraw)
         // TODO
         throw new Error('Method not implemented.')
     }

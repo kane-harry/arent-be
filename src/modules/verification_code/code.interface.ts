@@ -5,12 +5,14 @@ export enum CodeType {
     PhoneRegistration = 'PhoneRegistration',
     EmailUpdate = 'EmailUpdate',
     PhoneUpdate = 'PhoneUpdate',
+    VerifyEmail = 'VerifyEmail',
+    VerifyPhone = 'VerifyPhone',
     ForgotPassword = 'ForgotPassword',
     ForgotPin = 'ForgotPin',
     SMS = 'SMS',
-    SMSLogIn = 'SMSLogIn',
-    EmailLogIn = 'EmailLogIn',
-    WithDraw = 'Withdraw'
+    SMSLogin = 'SMSLogin',
+    EmailLogIn = 'EmailLogin',
+    Withdraw = 'Withdraw'
 }
 
 export interface IVerificationCode extends IBaseModel {
@@ -20,7 +22,7 @@ export interface IVerificationCode extends IBaseModel {
     code: string
     expiryTimestamp: number
     sentTimestamp: number
-    retryAttempts: number
     sentAttempts: number
+    verified: boolean
     enabled: boolean
 }

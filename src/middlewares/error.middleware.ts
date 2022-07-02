@@ -17,7 +17,7 @@ function errorMiddleware(error: ApplicationException, req: Request, res: Respons
         }
         : { status: error.status, code: error.code, message: error.message, metaData: error.metaData }
     return res.status(status).json({
-        ...errorDetail
+        error: errorDetail
     })
 }
 

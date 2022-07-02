@@ -1,4 +1,5 @@
-import { IsString, IsEmail, IsOptional } from 'class-validator'
+import { CodeType } from '@modules/verification_code/code.interface'
+import { IsString, IsEmail, IsOptional, IsNotEmpty, ValidateIf } from 'class-validator'
 
 export class LogInDto {
     @IsEmail()
@@ -10,51 +11,62 @@ export class LogInDto {
     @IsOptional()
     public token: any
 }
+export class ForgotPasswordDto {
+    // owner = email address | phone number
+    @IsNotEmpty()
+    public owner: string
+
+    // type = email | phone
+    @IsNotEmpty()
+    public type: string
+}
 
 export class ResetPasswordDto {
     @IsString()
-    public oldPassword: string
+    public owner: string
 
-    @IsString()
-    public newPassword: string
-
-    @IsString()
-    public newPasswordConfirmation: string
-}
-
-export class ForgotPasswordDto {
-    @IsString()
-    @IsEmail()
-    public email: string
+    // type = email | phone
+    @IsNotEmpty()
+    public type: string
 
     @IsString()
     public code: string
 
     @IsString()
-    public newPassword: string
+    public password: string
+
+    @IsString()
+    public pin: string
+}
+
+export class ForgotPinDto {
+    // owner = email address | phone number
+    @IsNotEmpty()
+    public owner: string
+
+    // type = email | phone
+    @IsNotEmpty()
+    public type: string
 }
 
 export class ResetPinDto {
     @IsString()
-    public oldPin: string
+    public owner: string
 
-    @IsString()
-    public newPin: string
-
-    @IsString()
-    public newPinConfirmation: string
-}
-
-export class ForgotPinDto {
-    @IsString()
-    @IsEmail()
-    public email: string
+    // type = email | phone
+    @IsNotEmpty()
+    public type: string
 
     @IsString()
     public code: string
 
+    // current password
     @IsString()
-    public newPin: string
+    public password: string
+
+    // new pin
+    @IsString()
+    public pin: string
 }
 
 export class RefreshTokenDto {

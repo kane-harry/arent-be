@@ -4,15 +4,10 @@ const _ = require('lodash')
 
 const role = {
     admin: { name: 'admin', id: 999 },
-    user: { name: 'user', id: 0 },
-    merchant: { name: 'merchant', id: 1 }
+    user: { name: 'user', id: 0 }
 }
 
 const roles = {
-    master_admin: {
-        id: 1000,
-        can: []
-    },
     admin: {
         id: 999,
         can: []
@@ -20,10 +15,6 @@ const roles = {
     user: {
         id: 0,
         can: []
-    },
-    merchant: {
-        id: 1,
-        can: [config.operations.USERS_DETAIL]
     },
     customer_service: {
         id: 10,
@@ -44,32 +35,6 @@ const roles = {
             config.operations.USERS_PRESALE,
             config.operations.USERS_PRESALE_LIST
         ]
-    },
-    customer_service_id_approver: {
-        id: 11,
-        can: [
-            config.operations.TASKS_LIST_USER_KYC,
-            config.operations.TASK_APPROVE_USER_KYC,
-            config.operations.TASK_REJECT_USER_KYC,
-            config.operations.USERS_DETAIL
-        ]
-    },
-    customer_service_bank_verifier: {
-        id: 12,
-        can: [
-            config.operations.TASKS_LIST_USER_BANK,
-            config.operations.TASK_APPROVE_USER_BANK,
-            config.operations.TASK_REJECT_USER_BANK,
-            config.operations.TASK_EXPORT_USER_BANK
-        ]
-    },
-    customer_service_bank_chat: {
-        id: 13,
-        can: [config.operations.TASK_EXPORT_ACCOUNT_WITHADAW, config.operations.USER_RESET_BANK_VERIFICATION, config.operations.USER_UPDATE_2FA]
-    },
-    customer_service_user_presale: {
-        id: 15,
-        can: [config.operations.USERS_PRESALE]
     },
     customer_service_admin: {
         id: 20,
@@ -95,20 +60,12 @@ const roles = {
 }
 
 // extend role to inherit other roles permissions
-roles.customer_service.can = roles.customer_service.can.concat(roles.customer_service_id_approver.can)
-roles.customer_service.can = roles.customer_service.can.concat(roles.customer_service_bank_verifier.can)
-roles.customer_service.can = roles.customer_service.can.concat(roles.customer_service_bank_chat.can)
+// roles.customer_service.can = roles.customer_service.can.concat(roles.customer_service_id_approver.can)
+// roles.customer_service.can = roles.customer_service.can.concat(roles.customer_service_bank_verifier.can)
+// roles.customer_service.can = roles.customer_service.can.concat(roles.customer_service_bank_chat.can)
 
 function isAdmin(roleObj: any) {
-    return roleObj === roles.admin.id || roleObj === roles.master_admin.id
-}
-
-function isMasterAdmin(roleObj: number) {
-    return roleObj === roles.master_admin.id
-}
-
-function isMerchant(roleObj: number) {
-    return roleObj === roles.merchant.id
+    return roleObj === roles.admin.id
 }
 
 function can(role: number, operation: string) {
@@ -160,30 +117,6 @@ function requireAdmin() {
     ]
 }
 
-function requireMasterAdmin() {
-    return [
-        function (req: any, res: any, next: any) {
-            if (req.user.role === roles.master_admin.id) {
-                next()
-            } else {
-                return res.sendStatus(401)
-            }
-        }
-    ]
-}
-
-function requireMerchant() {
-    return [
-        function (req: any, res: any, next: any) {
-            if (req.user.role === roles.admin.id || req.user.role === roles.merchant.id) {
-                next()
-            } else {
-                return res.sendStatus(401)
-            }
-        }
-    ]
-}
-
 function requireOwner(section: string) {
     return [
         function (req: any, res: any, next: any) {
@@ -208,4 +141,4 @@ function requireOwner(section: string) {
     ]
 }
 
-export { requireAdmin, requireMasterAdmin, requireMerchant, requireOwner, isAdmin, isMerchant, isMasterAdmin, can, userCan, role }
+export { requireAdmin, requireOwner, isAdmin, can, userCan, role }

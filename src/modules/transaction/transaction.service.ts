@@ -38,8 +38,8 @@ export default class TransactionService {
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { recipient: params.recipient })
             )
         }
-        if (operator.key !== senderAccount?.userId) {
-            if (senderAccount.userId === 'MASTER' && isAdmin(operator.role)) {
+        if (operator.key !== senderAccount?.userKey) {
+            if (senderAccount.userKey === 'MASTER' && isAdmin(operator.role)) {
                 // continue
             } else {
                 throw new BizException(
@@ -61,7 +61,7 @@ export default class TransactionService {
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender, balance: senderAccount.amount, amount })
             )
         }
-        const setting:any = await SettingService.getGlobalSetting()
+        const setting: any = await SettingService.getGlobalSetting()
         const transferFee = Number(setting.primeTransferFee || 0)
         const transferFeeBig = parsePrimeAmount(transferFee)
 

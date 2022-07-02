@@ -21,8 +21,8 @@ const codeSchema = new Schema<IVerificationCode>(
         code: String,
         expiryTimestamp: { type: Number, default: moment().add(15, 'minutes').unix() },
         sentTimestamp: { type: Number, default: moment().unix() },
-        retryAttempts: { type: Number, default: 0 },
         sentAttempts: { type: Number, default: 1 },
+        verified: { type: Boolean, default: false },
         enabled: { type: Boolean, default: true }
     },
     {

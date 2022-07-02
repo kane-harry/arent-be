@@ -15,7 +15,7 @@ export enum AccountExtType {
 
 export interface IAccount extends IBaseModel {
     key: string
-    userId: string
+    userKey: string
     name: string
     symbol: string
     type: string
@@ -38,7 +38,7 @@ export interface IAccount extends IBaseModel {
 export interface IAccountFilter extends IFilterModel {
     symbol?: string
     addresses?: string
-    userid?: string
+    userKey?: string
 }
 
 export interface IMintToCoinDto {

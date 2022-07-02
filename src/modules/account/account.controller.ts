@@ -31,7 +31,7 @@ class AccountController implements IController {
         this.router.get(`${this.path}/:key`, requireAuth, asyncHandler(this.getAccountByKey))
         this.router.get(`${this.path}/symbol/:symbol`, requireAuth, asyncHandler(this.getAccountBySymbol))
         this.router.get(`${this.path}/:key/trx/export`, requireAuth, asyncHandler(this.getExportTransactionByAccountKey))
-        this.router.get(`${this.path}/user/:userId`, requireAuth, asyncHandler(this.getUserAccounts))
+        this.router.get(`${this.path}/user/:userKey`, requireAuth, asyncHandler(this.getUserAccounts))
         this.router.post(`${this.path}/:key/withdraw`, requireAuth, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
     }
 
@@ -39,7 +39,7 @@ class AccountController implements IController {
         const key = req.params.key
         const data = await AccountService.getAccountByKey(key)
         if (data) {
-            AccountController.checkPermission(req, data.userId)
+            AccountController.checkPermission(req, data.userKey)
         }
         return res.json(data)
     }
@@ -47,9 +47,9 @@ class AccountController implements IController {
     private async getAccountBySymbol(req: Request, res: Response) {
         const symbol = req.params.symbol
         // @ts-ignore
-        const userId = req.user ? req.user.key : ''
-        AccountController.checkPermission(req, userId)
-        const data = await AccountService.getAccountBySymbol(symbol, userId)
+        const userKey = req.user ? req.user.key : ''
+        AccountController.checkPermission(req, userKey)
+        const data = await AccountService.getAccountBySymbol(symbol, userKey)
         return res.json(data)
     }
 
@@ -60,9 +60,9 @@ class AccountController implements IController {
     }
 
     private async getUserAccounts(req: CustomRequest, res: Response) {
-        const userId = req.params.userId
-        AccountController.checkPermission(req, userId)
-        const data = await AccountService.getUserAccounts(userId)
+        const userKey = req.params.userKey
+        AccountController.checkPermission(req, userKey)
+        const data = await AccountService.getUserAccounts(userKey)
         for (const account of data) {
             const coinAccount = await PrimeCoinProvider.getWalletBySymbolAndAddress(account.symbol, account.address)
             if (coinAccount) {
@@ -112,10 +112,10 @@ class AccountController implements IController {
         return downloadResource(res, 'transactions.csv', fields, data.txns.items)
     }
 
-    static checkPermission(req: CustomRequest, userId: any) {
+    static checkPermission(req: CustomRequest, userKey: any) {
         // @ts-ignore
-        if (userId !== req.user?.key && !isAdmin(req.user?.role)) {
-            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.controller', 'withdraw', { userId }))
+        if (userKey !== req.user?.key && !isAdmin(req.user?.role)) {
+            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.controller', 'withdraw', { userKey }))
         }
     }
 }

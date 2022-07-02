@@ -13,7 +13,7 @@ export class CreateUserDto {
     // TODO: check uniq nickname
     @IsOptional()
     @Length(2, 20)
-    public nickName: string
+    public chatName: string
 
     @IsString()
     @IsEmail()
@@ -28,7 +28,6 @@ export class CreateUserDto {
     @Length(4, 4)
     public pin: string
 
-    // TODO: check phone
     @IsOptional()
     public phone: string
 
@@ -59,7 +58,7 @@ export class UpdateUserDto {
     @IsOptional()
     @IsString()
     @Length(2, 8)
-    public nickName: string
+    public chatName: string
 
     // TODO: check phone
     @IsOptional()

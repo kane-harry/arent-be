@@ -6,19 +6,13 @@ export enum UserStatus {
     Suspend = 'Suspend'
 }
 
-export type Permission = {
-    resource: string // url pattern
-    action: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD'
-}
-
 export interface IUser extends IBaseModel {
     key: string
     firstName: string
     lastName: string
-    nickName: string
+    chatName: string
     email: string
     password: string
-    permissions: Array<Permission>
     pin: string
     phone: string
     country: string
