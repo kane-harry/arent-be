@@ -1,22 +1,23 @@
 import BizException from '@exceptions/biz.exception'
-import { AuthErrors, VerificationCodeErrors } from '@exceptions/custom.error'
+import { AuthErrors, CommonErrors, VerificationCodeErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
-import { forEach, toLower, escapeRegExp, filter as lodashFilter } from 'lodash'
-import { GetUserListDto, UpdateMFADto, UpdateUserDto } from './user.dto'
+import { forEach, toLower, escapeRegExp, filter as lodashFilter, trim } from 'lodash'
+import { SetupCredentialsDto, SetupTotpDto, UpdateProfileDto, UpdateSecurityDto } from './user.dto'
 import UserModel from './user.model'
-import { generateTotpToken, verifyTotpToken } from '@common/twoFactor'
 import sendEmail from '@common/email'
 import { MFAType } from '@modules/auth/auth.interface'
 import * as bcrypt from 'bcrypt'
 import { unixTimestampToDate, generateRandomCode } from '@utils/utility'
-import { IUser } from '@modules/user/user.interface'
+import { IUser, IUserQueryFilter, UserStatus } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import { CodeType } from '@modules/verification_code/code.interface'
 import { getPhoneInfo } from '@common/phone-helper'
 import { isAdmin } from '@config/role'
+import { generateUnixTimestamp, randomCode } from '@common/utility'
+import { getNewSecret, verifyNewDevice } from '@utils/totp'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -39,130 +40,80 @@ export default class UserService {
         return avatars
     }
 
-    public static updateUser = async (data: UpdateUserDto, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ email: options?.req?.user?.email }).exec()
-
+    public static updateProfile = async (key: string, params: UpdateProfileDto, options: { req: AuthenticationRequest }) => {
+        // TODO - check role - admin can update user's profile , user can update himself only
+        const user = await UserModel.findOne({ key }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
-
-        if (data.phone) {
-            const phoneInfo: any = await getPhoneInfo(data.phone)
-            if (!phoneInfo.isValid) {
-                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('user.service', 'updateUser', { phone: data.phone }))
+        const postChatName = trim(toLower(params.chatName))
+        const preChatName = user.chatName
+        if (preChatName !== postChatName) {
+            const existUser = await UserModel.findOne({ chatName: postChatName }).exec()
+            if (existUser) {
+                throw new BizException(
+                    AuthErrors.registration_chatname_exist_error,
+                    new ErrorContext('user.service', 'updateProfile', { chatName: postChatName })
+                )
             }
-            data.phone = phoneInfo.number
-            data.country = phoneInfo.country
         }
+        user.set('firstName', params.firstName || user.firstName, String)
+        user.set('lastName', params.lastName || user.lastName, String)
+        user.set('chatName', params.chatName || user.chatName, String)
+        user.save()
+        return user
+    }
 
-        const filter = {
-            $or: [{ email: data.email }, { phone: data.phone }, { chatName: data.chatName }]
-        }
-        const existUser = await UserModel.findOne(filter).exec()
-        if (existUser && existUser.key !== user.key) {
-            const duplicateInfo = {
-                email: existUser.email === user.email ? existUser.email : '',
-                phone: existUser.phone === user.phone ? existUser.phone : '',
-                chatName: existUser.chatName === user.chatName ? existUser.chatName : ''
-            }
-            throw new BizException(AuthErrors.registration_info_exists_error, new ErrorContext('user.service', 'updateUser', duplicateInfo))
-        }
-        if (data.email && data.email !== user.email) {
-            await UserService.verifyNewEmail(data)
-        }
-        if (data.phone && data.phone !== user.phone) {
-            await UserService.verifyNewPhone(data)
-        }
-        user?.set('email', data.email.toLowerCase() || user.email, String)
-        user?.set('firstName', data.firstName || user.firstName, String)
-        user?.set('lastName', data.lastName || user.lastName, String)
-        user?.set('chatName', data.chatName || user.chatName, String)
-        user?.set('phone', data.phone || user.phone, String)
-        user?.set('country', data.country || user.country, String)
-        user?.set('playerId', data.playerId || user.playerId, String)
+    public static getProfile = async (key: string, options: { req: AuthenticationRequest }) => {
+        // TODO -  check permissions - user A can't get user B's profile, admin can get all fields
+        // for public info - call getBriefByName
+        const user = await UserModel.findOne({ key }).exec()
+        return user
+    }
+
+    public static getBriefByName = async (chatName: string) => {
+        return await UserModel.findOne({ chatName: chatName }).select('key firstName lastName email chatName country').exec()
+    }
+
+    public static getTotp = async (options: { req: AuthenticationRequest }) => {
+        const user = await UserModel.findOne({ key: options?.req?.user?.key }).exec()
+        const totpTemp = await getNewSecret()
+        user?.set('totpTempSecret', totpTemp.secret)
         user?.save()
+        return { totpTemp: totpTemp }
+    }
+
+    public static setTotp = async (params: SetupTotpDto, options: { req: AuthenticationRequest }) => {
+        const user = await UserModel.findOne({ key: options?.req?.user?.key }).select('key totpTempSecret').exec()
+        const secret = user?.totpTempSecret
+        const verified = await verifyNewDevice(secret, params.token1, params.token2)
+        if (!verified) {
+            throw new BizException(AuthErrors.user_token_setup_error, new ErrorContext('user.service', 'updateProfile', { email: user?.email }))
+        }
+        user?.set('totpTempSecret', null)
+        user?.set('totpSecret', secret)
+        user?.set('totpSetup', true)
+        user?.set('mfaSettings.type', MFAType.TOTP)
+        user?.save()
+        return user
+    }
+
+    public static updateSecurity = async (key: string, params: UpdateSecurityDto, options: { req: AuthenticationRequest }) => {
+        const user = await UserModel.findOne({ key }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateSecurity', {}))
+        }
+        // Check permission, only user can update this
+        if (user.key !== options?.req?.user?.key) {
+            // TODO - return 401 ?
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateSecurity', {}))
+        }
+        // TODO  - please check this logic in XIF
 
         return user
     }
 
-    public static getUserByName = async (chatName: string) => {
-        return await UserModel.findOne({ chatName: { $regex: chatName, $options: 'i' } }).exec()
-    }
-
-    static createCreateTransaction = async (transactionParams: any) => {
-        throw new BizException(
-            { message: 'Not implemented.', status: 400, code: 400 },
-            new ErrorContext('transaction.service', 'createCreateTransaction', {})
-        )
-    }
-
-    static getTransactionById = async (id: string) => {
-        throw new BizException(
-            { message: 'Not implemented.', status: 400, code: 400 },
-            new ErrorContext('transaction.service', 'getTransactionById', {})
-        )
-    }
-
-    public static generateTotp = async (options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ email: options?.req?.user?.email }).exec()
-        if (!user) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
-        }
-        let twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
-        if (!twoFactorSecret || twoFactorSecret === 'undefined' || twoFactorSecret === 'null') {
-            const speakeasy = require('speakeasy')
-            const secret = speakeasy.generateSecret({ length: 20 })
-            user.set('twoFactorSecret', secret.base32)
-            user.save()
-            twoFactorSecret = secret.base32
-        }
-        const token = generateTotpToken(twoFactorSecret, user.email)
-        const subject = 'Welcome to LightLink'
-        const text = ''
-        const html = `This is the verification code you requested: <b>${token}</b>`
-
-        await sendEmail(subject, text, html, user.email)
-
-        if (process.env.NODE_ENV === 'development') {
-            return { secret: twoFactorSecret, token: token }
-        }
-        return { secret: twoFactorSecret }
-    }
-
-    public static updateMFA = async (userKey: string, data: UpdateMFADto, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key: userKey }).exec()
-        if (!user) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
-        }
-        // Check permission, allow real user or admin can update this
-        if (user.key !== options?.req?.user?.key && !isAdmin(options?.req?.user?.role)) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
-        }
-        switch (data.MFAType) {
-        case MFAType.PIN:
-            const pinHash = await bcrypt.hash(data.token, 10)
-            user?.set('pin', pinHash || user.pin, String)
-            break
-        case MFAType.TOTP:
-            const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
-            if (!verifyTotpToken(twoFactorSecret, data.token, user.email)) {
-                throw new BizException(AuthErrors.token_error, new ErrorContext('user.service', 'updateUser', {}))
-            }
-            break
-        case MFAType.SMS:
-            break
-        }
-        const MFASettings: any = user.MFASettings
-        MFASettings.MFAType = data.MFAType
-        user?.set('MFASettings', MFASettings, Object)
-        user?.save()
-
-        await UserModel.findOneAndUpdate({ key: user.key }, { $set: { MFASettings: MFASettings } }, { new: true }).exec()
-
-        return user
-    }
-
-    public static getUserList = async (params: GetUserListDto) => {
+    public static getUserList = async (params: IUserQueryFilter) => {
         const offset = (params.pageindex - 1) * params.pagesize
         const reg = new RegExp(params.terms)
         const filter = {
@@ -189,38 +140,6 @@ export default class UserService {
         return new QueryRO<IUser>(totalCount, params.pageindex, params.pagesize, items)
     }
 
-    public static verifyNewEmail = async (data: UpdateUserDto) => {
-        const { success } = await VerificationCodeService.verifyCode({
-            codeType: CodeType.EmailUpdate,
-            owner: data.email,
-            code: data.newEmailCode
-        })
-        if (!success) {
-            throw new BizException(
-                VerificationCodeErrors.verification_code_invalid_error,
-                new ErrorContext('auth.service', 'updateUser', { email: data.email })
-            )
-        }
-    }
-
-    public static verifyNewPhone = async (data: UpdateUserDto) => {
-        const { success } = await VerificationCodeService.verifyCode({
-            codeType: CodeType.PhoneUpdate,
-            owner: data.phone,
-            code: data.newPhoneCode
-        })
-        if (!success) {
-            throw new BizException(
-                VerificationCodeErrors.verification_code_invalid_error,
-                new ErrorContext('auth.service', 'updateUser', { phone: data.phone })
-            )
-        }
-    }
-
-    public static getUserByKey = async (key: string) => {
-        return await UserModel.findOne({ key }).exec()
-    }
-
     public static async generateRandomName(name: string) {
         name = toLower(escapeRegExp(name))
         let name_arr: any = name.split(' ')
@@ -242,5 +161,87 @@ export default class UserService {
             referenceInDatabase = await UserModel.findOne(filter).select('key chatName').exec()
         }
         return newName
+    }
+
+    public static async resetCredentials(key: string) {
+        const user = await UserModel.findOne({ key }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
+        }
+
+        const changePasswordNextLoginCode = randomCode(true, 8, 8)
+        const changePasswordNextLoginTimestamp = generateUnixTimestamp()
+        user.set('changePasswordNextLogin', true)
+        user.set('changePasswordNextLoginCode', changePasswordNextLoginCode)
+        user.set('changePasswordNextLoginTimestamp', changePasswordNextLoginTimestamp)
+        user.set('mfaSettings.loginEnabled', false) // TODO : works ?
+        user.set('loginCount', 0)
+        user.set('lockedTimestamp', 0)
+        user.save()
+
+        // TODO - send code to user via email and phone
+        // Pseudocode
+        // if(user.email){
+        //     emailService.sendResetCredentialsNotificationEmail(context)
+        // }else if (user.phone) {
+        //     sms.send(sms_subject, sms_content, phone)
+        // }
+
+        return { success: true }
+    }
+
+    public static async setupCredentials(params: SetupCredentialsDto) {
+        const email = toLower(trim(params.email))
+        const user = await UserModel.findOne({ email }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'setupCredentials', { email }))
+        }
+        if (!user.changePasswordNextLogin || user.changePasswordNextLogin !== true) {
+            throw new BizException(CommonErrors.bad_request, new ErrorContext('user.service', 'setupCredentials', { email }))
+        }
+        let changePasswordNextLoginAttempts = user.changePasswordNextLoginAttempts || 0
+        if (changePasswordNextLoginAttempts >= 5) {
+            user.set('status', UserStatus.Locked, String)
+            user.save()
+            throw new BizException(AuthErrors.user_locked_error, new ErrorContext('user.service', 'setupCredentials', { email }))
+        }
+        const currentTimestamp = generateUnixTimestamp()
+        changePasswordNextLoginAttempts++
+        user.set('changePasswordNextLoginAttempts', changePasswordNextLoginAttempts, Number)
+        user.save()
+
+        if (
+            !user.changePasswordNextLoginCode ||
+            toLower(user.changePasswordNextLoginCode.toLowerCase()) !== toLower(params.code) ||
+            user.changePasswordNextLoginTimestamp < currentTimestamp - 60 * 15
+        ) {
+            throw new BizException(
+                AuthErrors.user_reset_credentials_incorrect_code_error,
+                new ErrorContext('user.service', 'setupCredentials', { email })
+            )
+        }
+        const newPassHashed = await bcrypt.hash(params.password, 10)
+        user.set('password', newPassHashed, String)
+
+        const newPinHashed = await bcrypt.hash(params.pin, 10)
+        user.set('pin', newPinHashed, String)
+        user.set('changePasswordNextLogin', false)
+        user.set('changePasswordNextLoginCode', '')
+        user.set('changePasswordNextLoginTimestamp', 0)
+        user.set('loginCount', 0)
+        user.set('lockedTimestamp', 0)
+        user.save()
+
+        // TODO - send code to user via email and phone
+        // Pseudocode
+        // if(user.email){
+        //     emailService.sendResetCredentialsNotificationEmail(context)
+        // }else if (user.phone) {
+        //     sms.send(sms_subject, sms_content, phone)
+        // }
+
+        return { success: true }
     }
 }

@@ -74,18 +74,18 @@ describe('Account', () => {
         expect(res.body.userKey).equal(shareData.user.key)
     }).timeout(10000)
 
-    it('Export Transactions by Account', async () => {
-        const account = shareData.accounts[0]
-        // @ts-ignore
-        const res = await request(server.app)
-            .get(`/accounts/${account.key}/trx/export`)
-            .set('Authorization', `Bearer ${shareMasterData.token}`)
-            .send()
-        expect(res.status).equal(200)
-        expect(res.type).equal('text/csv')
-        expect(res.charset).equal('utf-8')
-        expect(res.text.length).gt(0)
-    }).timeout(10000)
+    // it('Export Transactions by Account', async () => {
+    //     const account = shareData.accounts[0]
+    //     // @ts-ignore
+    //     const res = await request(server.app)
+    //         .get(`/accounts/${account.key}/trx/export`)
+    //         .set('Authorization', `Bearer ${shareMasterData.token}`)
+    //         .send()
+    //     expect(res.status).equal(200)
+    //     expect(res.type).equal('text/csv')
+    //     expect(res.charset).equal('utf-8')
+    //     expect(res.text.length).gt(0)
+    // }).timeout(10000)
 
     it('GetAccountsByUser', async () => {
         const res = await request(server.app).get(`/accounts/user/${shareData.user?.key}`).set('Authorization', `Bearer ${shareData.token}`).send()

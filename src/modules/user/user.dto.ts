@@ -38,12 +38,7 @@ export class CreateUserDto {
     public playerId: string
 }
 
-export class UpdateUserDto {
-    @IsOptional()
-    @IsString()
-    @IsEmail()
-    public email: string
-
+export class UpdateProfileDto {
     @IsOptional()
     @IsString()
     @Length(2, 18)
@@ -59,38 +54,43 @@ export class UpdateUserDto {
     @IsString()
     @Length(2, 8)
     public chatName: string
-
-    // TODO: check phone
-    @IsOptional()
-    public phone: string
-
-    @IsOptional()
-    public country: string
-
-    @IsOptional()
-    public playerId: string
-
-    @IsOptional()
-    public newEmailCode: string
-
-    @IsOptional()
-    public newPhoneCode: string
 }
 
-export class UpdateMFADto {
+export class SetupTotpDto {
     @IsString()
-    public MFAType: string
+    @Length(6, 6)
+    public token1: string
 
     @IsString()
-    public token: string
+    @Length(6, 6)
+    public token2: string
 }
 
-export interface GetUserListDto extends IFilterModel {
-    type: string
-    status: string
-    terms: string
-    datefrom: string
-    dateto: string
-    sortby: string
-    orderby: string
+export class UpdateSecurityDto {
+    @IsString()
+    public type: string
+
+    @IsString()
+    public loginEnabled: string
+
+    @IsString()
+    public withdrawEnabled: string
+
+    @IsOptional()
+    @IsString()
+    public code: string
+}
+
+export class SetupCredentialsDto {
+    @IsEmail()
+    public email: string
+
+    @IsString()
+    public code: string
+
+    @IsString()
+    public pin: string
+
+    @IsString()
+    public password: string
 }

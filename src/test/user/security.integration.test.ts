@@ -5,8 +5,8 @@ import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
 import { CodeType } from '@modules/verification_code/code.interface'
 import { initDataForUser, userData } from '@app/test/init/authenticate'
-import { generateTotpToken } from '@common/twoFactor'
 import { MFAType } from '@modules/auth/auth.interface'
+import { generateToken } from '@utils/totp'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -44,7 +44,7 @@ describe('Security', () => {
             return expect(500).equal(200)
         }
         const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
-        const token = generateTotpToken(twoFactorSecret, user.email)
+        const token = generateToken(twoFactorSecret)
         const res = await request(server.app).post(`/users/${shareData.user.key}/mfa`).set('Authorization', `Bearer ${shareData.token}`).send({
             MFAType: MFAType.TOTP,
             token: token
@@ -59,7 +59,7 @@ describe('Security', () => {
             return expect(500).equal(200)
         }
         const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
-        const token = generateTotpToken(twoFactorSecret, user.email)
+        const token = generateToken(twoFactorSecret)
 
         const res1 = await request(server.app).post('/auth/login').send({ email: userData.email, password: userData.password, token: token })
         validResponse(res1.body)

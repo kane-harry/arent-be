@@ -1,3 +1,4 @@
+import moment from 'moment'
 import { Schema, model } from 'mongoose'
 import { IUser, UserStatus } from './user.interface'
 
@@ -34,22 +35,32 @@ const userSchema = new Schema<IUser>(
         country: String,
         avatar: Object,
         playerId: String,
-        stripeId: String,
         status: {
             type: String,
             enum: UserStatus,
             default: UserStatus.Normal
         },
+        role: Number,
         emailVerified: { type: Boolean, default: false },
         phoneVerified: { type: Boolean, default: false },
         kycVerified: { type: Boolean, default: false },
-        removed: { type: Boolean, default: false },
-        twoFactorSecret: {
+        totpTempSecret: String,
+        totpSecret: {
             type: String,
             get: (): undefined => undefined
         },
-        role: Number,
-        MFASettings: { type: Object, default: { MFAType: 'EMAIL', loginEnabled: false, withdrawEnabled: false } }
+        totpSetup: { type: Boolean, default: false },
+        mfaSettings: { type: Object, default: { type: 'EMAIL', loginEnabled: false, withdrawEnabled: false } },
+        changePasswordNextLogin: { type: Boolean, default: false },
+        changePasswordNextLoginTimestamp: { type: Number, default: moment().unix() },
+        changePasswordNextLoginCode: {
+            type: String,
+            get: (): undefined => undefined
+        },
+        changePasswordNextLoginAttempts: { type: Number, default: 0 },
+        lockedTimestamp: { type: Number, default: 0 },
+        loginCount: { type: Number, default: 0 },
+        removed: { type: Boolean, default: false }
     },
     {
         toJSON: {

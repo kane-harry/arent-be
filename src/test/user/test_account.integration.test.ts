@@ -1,12 +1,12 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import {dbTest, MODELS, validResponse} from '../init/db'
+import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
-import {CodeType} from '@modules/verification_code/code.interface'
-import {initDataForUser, userData} from '@app/test/init/authenticate'
-import {generateTotpToken} from '@common/twoFactor'
-import {MFAType} from "@modules/auth/auth.interface";
+import { CodeType } from '@modules/verification_code/code.interface'
+import { initDataForUser, userData } from '@app/test/init/authenticate'
+import { MFAType } from '@modules/auth/auth.interface'
+import { generateToken } from '@utils/totp'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -14,14 +14,14 @@ let shareData = {
     user: {
         email: undefined,
         phone: undefined,
-        key: undefined,
+        key: undefined
     },
     token: '',
     refreshToken: ''
 }
 
 export const testData = {
-    email: 'gjgtest@pellartech.com',
+    email: 'gjgtest@pellartech.com'
 }
 
 describe('Test Account *test@pellartech.com', () => {
@@ -48,7 +48,7 @@ describe('Test Account *test@pellartech.com', () => {
             return expect(500).equal(200)
         }
         const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
-        const token = generateTotpToken(twoFactorSecret, user.email)
+        const token = generateToken(twoFactorSecret)
         expect(token).equal('123654')
         const res = await request(server.app).post(`/users/${shareData.user.key}/mfa`).set('Authorization', `Bearer ${shareData.token}`).send({
             MFAType: MFAType.TOTP,
@@ -64,10 +64,10 @@ describe('Test Account *test@pellartech.com', () => {
             return expect(500).equal(200)
         }
         const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
-        const token = generateTotpToken(twoFactorSecret, user.email)
+        const token = generateToken(twoFactorSecret)
         expect(token).equal('123654')
 
-        const res1 = await request(server.app).post('/auth/login').send({email: testData.email, password: userData.password, token: token})
+        const res1 = await request(server.app).post('/auth/login').send({ email: testData.email, password: userData.password, token: token })
         validResponse(res1.body)
         expect(res1.status).equal(200)
 

@@ -7,6 +7,7 @@ import { ForgotPasswordDto, ForgotPinDto, LogInDto, RefreshTokenDto, ResetPasswo
 import { requireAuth } from '@common/authCheck'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import AuthService from './auth.service'
+import { requireAdmin } from '@config/role'
 
 export default class AuthController implements IController {
     public path = '/auth'
@@ -28,9 +29,6 @@ export default class AuthController implements IController {
 
         this.router.post(`${this.path}/pin/forgot`, validationMiddleware(ForgotPinDto), asyncHandler(this.forgotPin))
         this.router.post(`${this.path}/pin/reset`, validationMiddleware(ResetPinDto), asyncHandler(this.resetPin))
-
-        // TODO - admin can reset password and pin , generate a temp password , then user can reset new password and new pin.
-        // - please check https://github.com/pellartech/pellar-federation/blob/xif_develop/server/services/user.service.js#L556
     }
 
     private verifyRegistration = async (req: CustomRequest, res: Response) => {
@@ -51,6 +49,12 @@ export default class AuthController implements IController {
         const logInData: LogInDto = req.body
         const data = await AuthService.logIn(logInData, { req })
 
+        return res.send(data)
+    }
+
+    private logOut = async (req: Request, res: Response) => {
+        const tokenData: RefreshTokenDto = req.body
+        const data = await AuthService.logOut(tokenData)
         return res.send(data)
     }
 
@@ -85,12 +89,6 @@ export default class AuthController implements IController {
         const params: ResetPinDto = req.body
         const data = await AuthService.resetPin(params)
 
-        return res.send(data)
-    }
-
-    private logOut = async (req: Request, res: Response) => {
-        const tokenData: RefreshTokenDto = req.body
-        const data = await AuthService.logOut(tokenData)
         return res.send(data)
     }
 }

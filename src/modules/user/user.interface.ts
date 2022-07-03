@@ -3,6 +3,7 @@ import IFilterModel from '@interfaces/filter.model.interface'
 
 export enum UserStatus {
     Normal = 'Normal',
+    Locked = 'Locked',
     Suspend = 'Suspend'
 }
 
@@ -18,17 +19,27 @@ export interface IUser extends IBaseModel {
     country: string
     avatar: Object | null
     playerId?: string
-    stripeId?: string
     status: UserStatus
     emailVerified: boolean
     phoneVerified: boolean
     kycVerified: boolean
-    twoFactorSecret: string
     role: number | 0
-    MFASettings: Object | any
+    loginCount: number | 0
+    lockedTimestamp: number | 0
+    mfaSettings: Object | any
+    changePasswordNextLogin: boolean
+    changePasswordNextLoginTimestamp: number
+    changePasswordNextLoginCode: string
+    changePasswordNextLoginAttempts: number
+    totpTempSecret: string
+    totpSecret: string
+    totpSetup: boolean
 }
 
-export interface IUserFilter extends IFilterModel {
-    symbol?: string
-    email?: string // query user's account list -  abc,abe,efg
+export interface IUserQueryFilter extends IFilterModel {
+    type: string
+    status: string
+    terms: string
+    datefrom: string
+    dateto: string
 }

@@ -4,7 +4,8 @@ export const CommonErrors = {
     request_validation_error: { code: 1002, status: 422, message: 'The request failed due to a validation error.' },
     internal_server_error: { code: 1003, status: 500, message: 'Internal Server Error' },
     request_forbidden_error: { code: 1004, status: 403, message: 'Forbidden' },
-    coin_server_request_error: { code: 1005, status: 400, message: 'The request failed due to a coin server error.' }
+    coin_server_request_error: { code: 1005, status: 400, message: 'The request failed due to a coin server error.' },
+    bad_request: { code: 1006, status: 400, message: 'Bad Request.' }
 }
 export const AuthErrors = {
     registration_info_exists_error: { code: 2001, status: 400, message: 'Info already exists.' },
@@ -13,7 +14,7 @@ export const AuthErrors = {
     registration_email_not_verified_error: { code: 2004, status: 400, message: 'Please verify your email address.' },
     registration_phone_not_verified_error: { code: 2005, status: 400, message: 'Please verify your phone.' },
     registration_email_already_verified_error: { code: 2006, status: 400, message: 'This email is already verified.' },
-
+    registration_chatname_exist_error: { code: 2006, status: 400, message: 'This chatname already exists.' },
     credentials_invalid_error: { message: 'Wrong credentials provided.', status: 400, code: 2007 },
     data_confirmation_mismatch_error: { message: 'Data confirmation mismatch.', status: 422, code: 2008 },
     user_not_exists_error: { message: 'User does not exists.', status: 400, code: 2009 },
@@ -23,7 +24,10 @@ export const AuthErrors = {
     token_error: { message: 'Token is not correct', status: 400, code: 2013 },
     invalid_phone: { message: 'Invalid phone.', status: 400, code: 2014 },
     token_require: { message: 'Token is required', status: 400, code: 2016 },
-    invalid_pin_code_error: { message: 'Invalid pin code', status: 400, code: 2017 }
+    invalid_pin_code_error: { message: 'Invalid pin code', status: 400, code: 2017 },
+    user_locked_error: { message: 'Your account is locked, please contact customer service for help.', code: 2018, status: 400 },
+    user_reset_credentials_incorrect_code_error: { message: 'code is incorrect.', code: 2019, status: 400 },
+    user_token_setup_error: { message: 'We could not verify your tokens, please try again', code: 2020, status: 400 }
 }
 
 export const AccountErrors = {

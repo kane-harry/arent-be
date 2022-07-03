@@ -4,24 +4,23 @@ import ErrorContext from '@exceptions/error.context'
 import { CreateUserDto } from '@modules/user/user.dto'
 import { ForgotPasswordDto, ForgotPinDto, LogInDto, RefreshTokenDto, ResetPasswordDto, ResetPinDto } from './auth.dto'
 import { capitalize, escapeRegExp, toLower, trim } from 'lodash'
-import { IUser } from '@modules/user/user.interface'
+import { IUser, UserStatus } from '@modules/user/user.interface'
 import UserModel from '@modules/user/user.model'
 import { VerificationCode } from '@modules/verification_code/code.model'
 import { CodeType } from '@modules/verification_code/code.interface'
-import { AuthErrors, VerificationCodeErrors } from '@exceptions/custom.error'
-import { config } from '@config'
+import { AuthErrors } from '@exceptions/custom.error'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import UserLogModel from '@modules/user_logs/user_log.model'
 import { UserActions } from '@modules/user_logs/user_log.interface'
-import { CustomRequest } from '@middlewares/request.middleware'
 import AccountService from '@modules/account/account.service'
 import { AuthModel } from './auth.model'
 import { AuthTokenType, MFAType } from './auth.interface'
 import crypto from 'crypto'
-import { verifyTotpToken } from '@common/twoFactor'
 import SettingService from '@modules/setting/setting.service'
 import { getPhoneInfo, stripPhoneNumber } from '@common/phone-helper'
 import UserService from '@modules/user/user.service'
+import { generateUnixTimestamp } from '@common/utility'
+import { verifyToken } from '@utils/totp'
 
 export default class AuthService {
     static async verifyRegistration(userData: CreateUserDto, options?: any) {
@@ -63,11 +62,11 @@ export default class AuthService {
         userData = await AuthService.formatCreateUserDto(userData)
         await this.verifyRegistration(userData, options)
         const setting: any = await SettingService.getGlobalSetting()
-        const MFASettings = { MFAType: MFAType.EMAIL, loginEnabled: setting.loginRequireMFA, withdrawEnabled: setting.withdrawRequireMFA }
+        const mfaSettings = { type: MFAType.EMAIL, loginEnabled: setting.loginRequireMFA, withdrawEnabled: setting.withdrawRequireMFA }
         let emailVerified = false
         if (setting.registrationRequireEmailVerified) {
             emailVerified = true
-            MFASettings.MFAType = MFAType.EMAIL
+            mfaSettings.type = MFAType.EMAIL
         }
         let phoneVerified = false
         if (setting.registrationRequirePhoneVerified) {
@@ -79,7 +78,7 @@ export default class AuthService {
                 )
             }
             phoneVerified = true
-            MFASettings.MFAType = MFAType.SMS
+            mfaSettings.type = MFAType.SMS
         }
         const mode = new UserModel({
             ...userData,
@@ -90,7 +89,7 @@ export default class AuthService {
             role: 0,
             emailVerified,
             phoneVerified,
-            MFASettings
+            mfaSettings
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)
@@ -118,19 +117,68 @@ export default class AuthService {
     }
 
     static async logIn(logInData: LogInDto, options?: any) {
+        const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ email: logInData.email, removed: false }).exec()
         if (!user) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
+        }
+        if (user.status === UserStatus.Locked) {
+            throw new BizException(AuthErrors.user_locked_error, new ErrorContext('user.service', 'login', { email: logInData.email }))
         }
 
+        if (user.changePasswordNextLogin && user.changePasswordNextLogin === true) {
+            let changePasswordNextLoginAttempts = user.changePasswordNextLoginAttempts || 0
+            changePasswordNextLoginAttempts++
+
+            user.set('changePasswordNextLoginAttempts', changePasswordNextLoginAttempts, Number)
+            user.save()
+            if (changePasswordNextLoginAttempts >= 5) {
+                user.set('status', UserStatus.Locked, String)
+                user.set('loginCount', 0, Number)
+                throw new BizException(AuthErrors.user_locked_error, new ErrorContext('user.service', 'login', { email: logInData.email }))
+            }
+
+            if (
+                !user.changePasswordNextLoginCode ||
+                toLower(user.changePasswordNextLoginCode) !== toLower(logInData.password) ||
+                user.changePasswordNextLoginTimestamp < currentTimestamp - 60 * 15
+            ) {
+                throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
+            }
+            return {
+                key: user.key,
+                email: user.email,
+                phone: user.phone,
+                changePasswordNextLogin: true
+            }
+        }
+
+        let loginCount = user.loginCount || 0
+        if (loginCount >= 5 && user.lockedTimestamp > currentTimestamp - 60 * 60) {
+            const retryInMinutes = Math.ceil((user.lockedTimestamp - (currentTimestamp - 3600)) / 60)
+            // TODO - update token version
+            //   await userModel.updateTokenVersion(user.key, currentTimestamp, db)
+            throw new BizException(
+                {
+                    message: `Please try again in ${retryInMinutes} minutes, or click "forgot password" to reset your login password and login again`,
+                    code: 0,
+                    status: 400
+                },
+                new ErrorContext('auth.service', 'logIn', { email: logInData.email })
+            )
+        }
+        // user.token_version = currentTimestamp
         const isPasswordMatching = await bcrypt.compare(logInData.password, user.get('password', null, { getters: false }))
         if (!isPasswordMatching) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
+            loginCount = loginCount + 1
+            user.set('loginCount', loginCount, Number)
+            user.save()
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
         }
 
         if (!options.forceLogin) {
             // @ts-ignore
-            if (user.MFASettings.loginEnabled) {
+            if (user.mfaSettings.loginEnabled) {
                 const data: any = await this.verifyTwoFactor(user, logInData)
                 if (data.requireMFACode) {
                     return data
@@ -141,6 +189,9 @@ export default class AuthService {
         // create token
         const accessToken = AuthModel.createAccessToken(user._id)
         const refreshToken = AuthModel.createRefreshToken(user._id)
+
+        user.set('loginCount', 0, Number)
+        user.save()
 
         // TODO: check device login
         // send mail warning login
@@ -184,6 +235,15 @@ export default class AuthService {
                 throw new BizException(AuthErrors.invalid_refresh_token, new ErrorContext('auth.service', 'refreshToken', {}))
             }
         }
+    }
+
+    static async logOut(refreshTokenData: RefreshTokenDto) {
+        const authData = await AuthModel.findOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
+        if (!authData) {
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
+        }
+        await AuthModel.deleteOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
+        return { success: true }
     }
 
     static async forgotPassword(params: ForgotPasswordDto) {
@@ -299,25 +359,19 @@ export default class AuthService {
         return { success }
     }
 
-    static async logOut(refreshTokenData: RefreshTokenDto) {
-        const authData = await AuthModel.findOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
-        if (!authData) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
-        }
-        await AuthModel.deleteOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
-        return { success: true }
-    }
-
+    // TODO : RE
     static async verifyTwoFactor(user: IUser, logInData: any, codeType: any = null) {
         if (!logInData.token || !logInData.token.length || logInData.token === 'undefined') {
             await this.sendMFACode(user)
-            const result = { requireMFACode: true, type: user.MFASettings.MFAType, status: 'sent' }
+            const result = { requireMFACode: true, type: user.mfaSettings.type, status: 'sent' }
             return result
             // throw new BizException(AuthErrors.token_require, new ErrorContext('auth.service', 'logIn', { message }))
         }
 
+        // TODO - refactor ???
+
         // @ts-ignore
-        switch (user.MFASettings.MFAType) {
+        switch (user.mfaSettings.type) {
         case MFAType.PIN:
             // @ts-ignore
             const pinHash = user.get('pin', null, { getters: false })
@@ -328,8 +382,8 @@ export default class AuthService {
             break
         case MFAType.TOTP:
             // @ts-ignore
-            const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
-            if (!verifyTotpToken(twoFactorSecret, logInData.token, user.email)) {
+            const totpSecret = String(user?.get('totpSecret', null, { getters: false }))
+            if (!verifyToken(totpSecret, logInData.token)) {
                 throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
             }
             break
@@ -358,12 +412,13 @@ export default class AuthService {
             break
         }
         }
-        return { requireMFACode: false, type: user.MFASettings.MFAType, status: 'verified' }
+        return { requireMFACode: false, type: user.mfaSettings.type, status: 'verified' }
     }
 
+    // TODO - refactor
     static async sendMFACode(user: IUser) {
         // @ts-ignore
-        switch (user.MFASettings.MFAType) {
+        switch (user.mfaSettings.type) {
         case MFAType.EMAIL: {
             const data: any = await VerificationCodeService.generateCode({ codeType: CodeType.EmailLogIn, owner: user.email })
             data.message = 'Please check your email for login code'

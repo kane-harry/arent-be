@@ -5,9 +5,10 @@ import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middl
 import { requireAuth } from '@common/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
-import { GetUserListDto, UpdateMFADto, UpdateUserDto } from './user.dto'
-import { IAccountFilter } from '@modules/account/account.interface'
+import { SetupCredentialsDto, SetupTotpDto, UpdateProfileDto, UpdateSecurityDto } from './user.dto'
 import { requireAdmin } from '@config/role'
+import validationMiddleware from '@middlewares/validation.middleware'
+import { IUserQueryFilter } from './user.interface'
 
 class UserController implements IController {
     public path = '/users'
@@ -35,15 +36,33 @@ class UserController implements IController {
             asyncHandler(this.uploadAvatar)
         )
 
-        this.router.post(`${this.path}/info`, requireAuth, asyncHandler(this.updateUser))
+        this.router.put(`${this.path}/:key/profile`, requireAuth, validationMiddleware(UpdateProfileDto), asyncHandler(this.updateProfile))
+        this.router.get(`${this.path}/:key/profile`, requireAuth, asyncHandler(this.getProfile))
+        this.router.get(`${this.path}/:name/brief`, asyncHandler(this.getBriefByName)) // public route
+        this.router.get(`${this.path}/:key/totp`, requireAuth, asyncHandler(this.getTotp))
+        this.router.post(`${this.path}/:key/totp`, requireAuth, validationMiddleware(SetupTotpDto), asyncHandler(this.setTotp))
+        this.router.post(`${this.path}/:key/security`, requireAuth, validationMiddleware(UpdateSecurityDto), asyncHandler(this.updateSecurity))
+        this.router.get(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(this.getUserList))
 
-        this.router.get(`${this.path}/info/:name`, asyncHandler(this.getUserByName))
+        // TODO - admin can reset password and pin , generate a temp password , then user can reset new password and new pin.
+        // - please check https://github.com/pellartech/pellar-federation/blob/xif_develop/server/services/user.service.js#L556
+        this.router.post(`${this.path}/:key/credentials/reset`, requireAuth, requireAdmin(), asyncHandler(this.resetCredentials))
+        this.router.post(
+            `${this.path}/credentials/setup`,
+            requireAuth,
+            validationMiddleware(SetupCredentialsDto),
+            asyncHandler(this.setupCredentials)
+        )
 
-        this.router.post(`${this.path}/totp/generate`, requireAuth, asyncHandler(this.generateTotp))
-        this.router.post(`${this.path}/:key/mfa`, requireAuth, asyncHandler(this.updateMFA))
-        this.router.get(`${this.path}/list`, requireAuth, requireAdmin(), asyncHandler(this.getUserList))
-        this.router.get(`${this.path}/me`, requireAuth, asyncHandler(this.getMyProfile))
-        this.router.get(`${this.path}/:key`, requireAuth, asyncHandler(this.getUserByKey))
+        // this.router.post(`${this.path}/:key/lock`, requireAuth, requireAdmin(), asyncHandler(this.lockUser))
+        // this.router.post(`${this.path}/:key/remove`, requireAuth, requireAdmin(), asyncHandler(this.removeUser)) // soft delete - don't query removed = false
+        // this.router.post(`${this.path}/:key/totp/reset`, requireAuth, requireAdmin(), asyncHandler(this.resetTotp))
+        // this.router.post(`${this.path}/:key/role/update`, asyncHandler(this.updateUserRole))
+        // /users/list/export // export all users
+        // /users/:key/phone/update
+        // 1. get verification code for new phone (on client side) - call verification/code/get {type:PhoneUpdate , owner: new phone number}
+        // 2. check the phone is valid then update phone number, send sms
+        // /users/:key/email/update // same as above , send email notification
     }
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {
@@ -52,52 +71,58 @@ class UserController implements IController {
         return res.send(data)
     }
 
-    private updateUser = async (req: AuthenticationRequest, res: Response) => {
-        const userData: UpdateUserDto = req.body
-        const data = await UserService.updateUser(userData, { req })
+    private updateProfile = async (req: AuthenticationRequest, res: Response) => {
+        const key = req.params.key
+        const userData: UpdateProfileDto = req.body
+        const data = await UserService.updateProfile(key, userData, { req })
         return res.send(data)
     }
 
-    private getUserByName = async (req: Request, res: Response) => {
+    private getProfile = async (req: AuthenticationRequest, res: Response) => {
+        const key = req.params.key
+        const data = await UserService.getProfile(key, { req })
+        return res.send(data)
+    }
+
+    private getBriefByName = async (req: Request, res: Response) => {
         const chatName: string = req.params.name
-        const data = await UserService.getUserByName(chatName)
-        const resData = {
-            key: data?.key,
-            firstName: data?.firstName,
-            lastName: data?.lastName,
-            chatName: data?.chatName,
-            country: data?.country,
-            avatar: data?.avatar,
-            status: data?.status
-        }
-        return res.send(resData)
-    }
-
-    private getMyProfile = async (req: Request, res: Response) => {
-        return res.send(req?.user)
-    }
-
-    private generateTotp = async (req: AuthenticationRequest, res: Response) => {
-        const data = await UserService.generateTotp({ req })
+        const data = await UserService.getBriefByName(chatName)
         return res.send(data)
     }
 
-    private updateMFA = async (req: AuthenticationRequest, res: Response) => {
+    private getTotp = async (req: AuthenticationRequest, res: Response) => {
+        const data = await UserService.getTotp({ req })
+        return res.send(data)
+    }
+
+    private setTotp = async (req: AuthenticationRequest, res: Response) => {
+        const params: SetupTotpDto = req.body
+        const data = await UserService.setTotp(params, { req })
+        return res.send(data)
+    }
+
+    private updateSecurity = async (req: AuthenticationRequest, res: Response) => {
         const userKey = req.params.key
-        const userData: UpdateMFADto = req.body
-        const data = await UserService.updateMFA(userKey, userData, { req })
+        const params: UpdateSecurityDto = req.body
+        const data = await UserService.updateSecurity(userKey, params, { req })
         return res.send(data)
     }
 
     private getUserList = async (req: CustomRequest, res: Response) => {
-        const filter = req.query as GetUserListDto
+        const filter = req.query as IUserQueryFilter
         const data = await UserService.getUserList(filter)
         return res.send(data)
     }
 
-    private getUserByKey = async (req: Request, res: Response) => {
+    private resetCredentials = async (req: Request, res: Response) => {
         const key: string = req.params.key
-        const data = await UserService.getUserByKey(key)
+        const data = await UserService.resetCredentials(key)
+        return res.send(data)
+    }
+
+    private setupCredentials = async (req: Request, res: Response) => {
+        const params: SetupCredentialsDto = req.body
+        const data = await UserService.setupCredentials(params)
         return res.send(data)
     }
 }

@@ -76,6 +76,11 @@ export default class VerificationCodeService {
         }
 
         // TODO - create an email service to send emails
+        // emailService.sendRegistrationVerificationCode(context);
+        // emailService.sendChangeEmailVerificationCode(context);
+        // or
+        // sms.send(sms_subject, sms_contents, phone)
+
         const subject = 'Welcome to LightLink'
         const text = ''
         const html = `This is your ${params.codeType} verification code: <b>${code}</b>`
@@ -123,6 +128,10 @@ export default class VerificationCodeService {
             const sentAttempts = codeData.sentAttempts + 1
             const codeEnabled = sentAttempts > 5
             await VerificationCode.findByIdAndUpdate(codeData._id, { enabled: codeEnabled }).exec()
+            throw new BizException(
+                VerificationCodeErrors.verification_code_invalid_error,
+                new ErrorContext('verification_code.service', 'generateCode', { code: params.code })
+            )
         }
 
         return { success: valid }
