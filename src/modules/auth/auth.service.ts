@@ -197,6 +197,7 @@ export default class AuthService {
         const refreshToken = AuthModel.createRefreshToken(user._id)
 
         user.set('loginCount', 0, Number)
+        user.set('lockedTimestamp', currentTimestamp, Number)
         user.save()
 
         // TODO: check device login

@@ -97,10 +97,15 @@ export class SetupCredentialsDto {
     public password: string
 }
 
-export class LockUserDto {
+export class UpdateUserStatusDto {
     @IsString()
     @IsEnum(UserStatus, {
         message: `userStatus must be one of ${map(UserStatus, el => el).join(' ')}`
     })
-    public userStatus: UserStatus
+    public status: UserStatus
+}
+
+export class UpdateUserRoleDto {
+    @IsString()
+    public role: string
 }
