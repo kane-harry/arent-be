@@ -136,6 +136,7 @@ export default class AuthService {
             if (changePasswordNextLoginAttempts >= 5) {
                 user.set('status', UserStatus.Locked, String)
                 user.set('loginCount', 0, Number)
+                user.save()
                 throw new BizException(AuthErrors.user_locked_error, new ErrorContext('user.service', 'login', { email: logInData.email }))
             }
 
@@ -159,6 +160,8 @@ export default class AuthService {
             const retryInMinutes = Math.ceil((user.lockedTimestamp - (currentTimestamp - 3600)) / 60)
             // TODO - update token version
             //   await userModel.updateTokenVersion(user.key, currentTimestamp, db)
+            user.set('lockedTimestamp', currentTimestamp, Number)
+            user.save()
             throw new BizException(
                 {
                     message: `Please try again in ${retryInMinutes} minutes, or click "forgot password" to reset your login password and login again`,
@@ -173,6 +176,7 @@ export default class AuthService {
         if (!isPasswordMatching) {
             loginCount = loginCount + 1
             user.set('loginCount', loginCount, Number)
+            user.set('lockedTimestamp', currentTimestamp, Number)
             user.save()
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
         }
@@ -192,6 +196,7 @@ export default class AuthService {
         const refreshToken = AuthModel.createRefreshToken(user._id)
 
         user.set('loginCount', 0, Number)
+        user.set('lockedTimestamp', currentTimestamp, Number)
         user.save()
 
         // TODO: check device login

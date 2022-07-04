@@ -4,7 +4,15 @@ import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { forEach, toLower, escapeRegExp, filter as lodashFilter, trim } from 'lodash'
-import { LockUserDto, SetupCredentialsDto, SetupTotpDto, UpdatePhoneDto, UpdateProfileDto, UpdateSecurityDto } from './user.dto'
+import {
+    SetupCredentialsDto,
+    SetupTotpDto,
+    UpdatePhoneDto,
+    UpdateProfileDto,
+    UpdateSecurityDto,
+    UpdateUserRoleDto,
+    UpdateUserStatusDto
+} from './user.dto'
 import UserModel from './user.model'
 import { MFAType } from '@modules/auth/auth.interface'
 import * as bcrypt from 'bcrypt'
@@ -243,14 +251,15 @@ export default class UserService {
         return { success: true }
     }
 
-    static async lockUser(userKey: string, params: LockUserDto) {
+    static async updateUserStatus(userKey: string, params: UpdateUserStatusDto) {
         const user = await UserModel.findOne({ key: userKey }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'lockUser', {}))
         }
 
-        user?.set('status', params.userStatus, String)
+        user?.set('status', params.status, String)
+        // TODO - refresh token version - force logout
         user?.save()
 
         return user
@@ -264,6 +273,7 @@ export default class UserService {
         }
 
         user?.set('removed', true, Boolean)
+        // TODO - refresh token version - force logout
         user?.save()
 
         return user
@@ -276,20 +286,23 @@ export default class UserService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'resetTotp', {}))
         }
 
-        user?.set('twoFactorSecret', null, null)
+        user?.set('totpSecret', null, null)
+        user?.set('totpSetup', false, Boolean)
+        // TODO - refresh token version - force logout
         user?.save()
 
         return user
     }
 
-    static async updateUserRole(userKey: string) {
+    static async updateUserRole(userKey: string, params: UpdateUserRoleDto) {
         const user = await UserModel.findOne({ key: userKey }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUserRole', {}))
         }
 
-        user?.set('role', 999, null)
+        user?.set('role', Number(params.role), Number)
+        // TODO - refresh token version - force logout
         user?.save()
 
         return user
