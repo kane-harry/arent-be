@@ -5,7 +5,7 @@ import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middl
 import { requireAuth } from '@common/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
-import { SetupCredentialsDto, SetupTotpDto, UpdateProfileDto, UpdateSecurityDto, LockUserDto, UpdatePhoneDto } from './user.dto'
+import { SetupCredentialsDto, SetupTotpDto, UpdateProfileDto, UpdateSecurityDto, LockUserDto, UpdatePhoneDto, UpdateEmailDto } from './user.dto'
 import { requireAdmin } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUserQueryFilter } from './user.interface'
@@ -63,6 +63,7 @@ class UserController implements IController {
         this.router.post(`${this.path}/:key/totp/reset`, requireAuth, requireAdmin(), asyncHandler(this.resetTotp))
         this.router.post(`${this.path}/:key/role/update`, requireAuth, requireAdmin(), asyncHandler(this.updateUserRole))
         this.router.post(`${this.path}/:key/phone/update`, requireAuth, asyncHandler(this.updatePhone))
+        this.router.post(`${this.path}/:key/email/update`, requireAuth, asyncHandler(this.updateEmail))
 
         // this.router.post(`${this.path}/:key/lock`, requireAuth, requireAdmin(), asyncHandler(this.lockUser))
         // this.router.post(`${this.path}/:key/remove`, requireAuth, requireAdmin(), asyncHandler(this.removeUser)) // soft delete - don't query removed = false
@@ -169,6 +170,17 @@ class UserController implements IController {
             throw new BizException(UpdatePhoneEmailErrors.code_invalid_error, new ErrorContext('user.service', 'updatePhone', { ...params }))
         }
         const data = await UserService.updatePhone(userKey, params, { req })
+        return res.json(data)
+    }
+
+    private async updateEmail(req: AuthenticationRequest, res: Response) {
+        const userKey = req.params.key
+        const params: UpdateEmailDto = req.body
+        const allowTypes = [CodeType.EmailUpdate]
+        if (!allowTypes.includes(params.codeType)) {
+            throw new BizException(UpdatePhoneEmailErrors.code_invalid_error, new ErrorContext('user.service', 'updateEmail', { ...params }))
+        }
+        const data = await UserService.updateEmail(userKey, params, { req })
         return res.json(data)
     }
 }

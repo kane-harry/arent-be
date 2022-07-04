@@ -338,4 +338,48 @@ export default class UserService {
 
         return { success: true }
     }
+
+    static async updateEmail(userKey: string, params: UpdatePhoneDto, options: { req: AuthenticationRequest }) {
+        const userCurrent = await UserModel.findOne({ key: options.req.user.key }).exec()
+        const user = await UserModel.findOne({ key: userKey }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateEmail', {}))
+        }
+
+        const codeData = await VerificationCode.findOne({ owner: params.owner, type: params.codeType, code: params.code }).exec()
+        if (userCurrent?.role === role.admin.id) {
+            user?.set('email', params.owner, String)
+            user?.save()
+            if (codeData) {
+                await VerificationCode.findByIdAndUpdate(codeData._id, { verified: true, enabled: false }).exec()
+            }
+        } else {
+            if (userCurrent?.key !== user.key || !codeData) {
+                throw new BizException(
+                    UpdatePhoneEmailErrors.code_invalid_error,
+                    new ErrorContext('users.service', 'updateEmail', { code: params.code })
+                )
+            }
+            const currentTs = moment().unix()
+            if (codeData.verified || codeData.expiryTimestamp < currentTs) {
+                throw new BizException(
+                    UpdatePhoneEmailErrors.code_invalid_error,
+                    new ErrorContext('users.service', 'updateEmail', { code: params.code })
+                )
+            }
+            const valid = codeData.code === params.code
+            if (valid) {
+                user?.set('email', params.owner, String)
+                user?.save()
+                await VerificationCode.findByIdAndUpdate(codeData._id, { verified: true, enabled: false }).exec()
+            } else {
+                throw new BizException(
+                    UpdatePhoneEmailErrors.code_invalid_error,
+                    new ErrorContext('users.service', 'updateEmail', { code: params.code })
+                )
+            }
+        }
+
+        return { success: true }
+    }
 }
