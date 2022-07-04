@@ -5,7 +5,7 @@ import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middl
 import { requireAuth } from '@common/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
-import { SetupCredentialsDto, SetupTotpDto, UpdateProfileDto, UpdateSecurityDto } from './user.dto'
+import { SetupCredentialsDto, SetupTotpDto, UpdateProfileDto, UpdateSecurityDto, LockUserDto } from './user.dto'
 import { requireAdmin } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUserQueryFilter } from './user.interface'
@@ -53,6 +53,11 @@ class UserController implements IController {
             validationMiddleware(SetupCredentialsDto),
             asyncHandler(this.setupCredentials)
         )
+
+        this.router.post(`${this.path}/:key/lock`, requireAuth, requireAdmin(), asyncHandler(this.lockUser))
+        this.router.post(`${this.path}/:key/remove`, requireAuth, requireAdmin(), asyncHandler(this.removeUser))
+        this.router.post(`${this.path}/:key/totp/reset`, requireAuth, requireAdmin(), asyncHandler(this.resetTotp))
+        this.router.post(`${this.path}/:key/role/update`, requireAuth, requireAdmin(), asyncHandler(this.updateUserRole))
 
         // this.router.post(`${this.path}/:key/lock`, requireAuth, requireAdmin(), asyncHandler(this.lockUser))
         // this.router.post(`${this.path}/:key/remove`, requireAuth, requireAdmin(), asyncHandler(this.removeUser)) // soft delete - don't query removed = false
@@ -124,6 +129,31 @@ class UserController implements IController {
         const params: SetupCredentialsDto = req.body
         const data = await UserService.setupCredentials(params)
         return res.send(data)
+    }
+
+    private async lockUser(req: CustomRequest, res: Response) {
+        const userKey = req.params.key
+        const params: LockUserDto = req.body
+        const data = await UserService.lockUser(userKey, params)
+        return res.json(data)
+    }
+
+    private async removeUser(req: CustomRequest, res: Response) {
+        const userKey = req.params.key
+        const data = await UserService.removeUser(userKey)
+        return res.json(data)
+    }
+
+    private async resetTotp(req: CustomRequest, res: Response) {
+        const userKey = req.params.key
+        const data = await UserService.resetTotp(userKey)
+        return res.json(data)
+    }
+
+    private async updateUserRole(req: CustomRequest, res: Response) {
+        const userKey = req.params.key
+        const data = await UserService.updateUserRole(userKey)
+        return res.json(data)
     }
 }
 

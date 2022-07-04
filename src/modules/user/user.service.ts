@@ -4,7 +4,7 @@ import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { forEach, toLower, escapeRegExp, filter as lodashFilter, trim } from 'lodash'
-import { SetupCredentialsDto, SetupTotpDto, UpdateProfileDto, UpdateSecurityDto } from './user.dto'
+import { LockUserDto, SetupCredentialsDto, SetupTotpDto, UpdateProfileDto, UpdateSecurityDto } from './user.dto'
 import UserModel from './user.model'
 import sendEmail from '@common/email'
 import { MFAType } from '@modules/auth/auth.interface'
@@ -243,5 +243,57 @@ export default class UserService {
         // }
 
         return { success: true }
+    }
+
+    static async lockUser(userKey: string, params: LockUserDto) {
+        const user = await UserModel.findOne({ key: userKey }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'lockUser', {}))
+        }
+
+        user?.set('status', params.userStatus, String)
+        user?.save()
+
+        return user
+    }
+
+    static async removeUser(userKey: string) {
+        const user = await UserModel.findOne({ key: userKey }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'removeUser', {}))
+        }
+
+        user?.set('removed', true, Boolean)
+        user?.save()
+
+        return user
+    }
+
+    static async resetTotp(userKey: string) {
+        const user = await UserModel.findOne({ key: userKey }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'resetTotp', {}))
+        }
+
+        user?.set('twoFactorSecret', null, null)
+        user?.save()
+
+        return user
+    }
+
+    static async updateUserRole(userKey: string) {
+        const user = await UserModel.findOne({ key: userKey }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUserRole', {}))
+        }
+
+        user?.set('role', 999, null)
+        user?.save()
+
+        return user
     }
 }

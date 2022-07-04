@@ -1,5 +1,7 @@
-import { IsOptional, IsString, Length, IsEmail, MinLength, Matches } from 'class-validator'
+import { IsOptional, IsString, Length, IsEmail, MinLength, Matches, IsEnum } from 'class-validator'
 import IFilterModel from '@interfaces/filter.model.interface'
+import { UserStatus } from '@modules/user/user.interface'
+import { map } from 'lodash'
 
 export class CreateUserDto {
     @IsString()
@@ -93,4 +95,12 @@ export class SetupCredentialsDto {
 
     @IsString()
     public password: string
+}
+
+export class LockUserDto {
+    @IsString()
+    @IsEnum(UserStatus, {
+        message: `userStatus must be one of ${map(UserStatus, el => el).join(' ')}`
+    })
+    public userStatus: UserStatus
 }
