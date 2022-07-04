@@ -2,6 +2,7 @@ import { IsOptional, IsString, Length, IsEmail, MinLength, Matches, IsEnum } fro
 import IFilterModel from '@interfaces/filter.model.interface'
 import { UserStatus } from '@modules/user/user.interface'
 import { map } from 'lodash'
+import { CodeType } from '@modules/verification_code/code.interface'
 
 export class CreateUserDto {
     @IsString()
@@ -103,4 +104,18 @@ export class LockUserDto {
         message: `userStatus must be one of ${map(UserStatus, el => el).join(' ')}`
     })
     public userStatus: UserStatus
+}
+
+export class UpdatePhoneDto {
+    @IsString()
+    public code: string
+
+    @IsString()
+    @IsEnum(CodeType, {
+        message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
+    })
+    public codeType: CodeType
+
+    @IsString()
+    public owner: string
 }

@@ -60,7 +60,6 @@ export default class AuthService {
     }
 
     static async register(userData: CreateUserDto, options?: any) {
-        console.log('111111')
         userData = await AuthService.formatCreateUserDto(userData)
         await this.verifyRegistration(userData, options)
         const setting: any = await SettingService.getGlobalSetting()

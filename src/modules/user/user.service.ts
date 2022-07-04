@@ -1,23 +1,21 @@
 import BizException from '@exceptions/biz.exception'
-import { AuthErrors, CommonErrors, VerificationCodeErrors } from '@exceptions/custom.error'
+import { AuthErrors, CommonErrors, UpdatePhoneEmailErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { forEach, toLower, escapeRegExp, filter as lodashFilter, trim } from 'lodash'
-import { LockUserDto, SetupCredentialsDto, SetupTotpDto, UpdateProfileDto, UpdateSecurityDto } from './user.dto'
+import { LockUserDto, SetupCredentialsDto, SetupTotpDto, UpdatePhoneDto, UpdateProfileDto, UpdateSecurityDto } from './user.dto'
 import UserModel from './user.model'
-import sendEmail from '@common/email'
 import { MFAType } from '@modules/auth/auth.interface'
 import * as bcrypt from 'bcrypt'
 import { unixTimestampToDate, generateRandomCode } from '@utils/utility'
 import { IUser, IUserQueryFilter, UserStatus } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
-import VerificationCodeService from '@modules/verification_code/code.service'
-import { CodeType } from '@modules/verification_code/code.interface'
-import { getPhoneInfo } from '@common/phone-helper'
-import { isAdmin } from '@config/role'
+import { role } from '@config/role'
 import { generateUnixTimestamp, randomCode } from '@common/utility'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
+import VerificationCode from '@modules/verification_code/code.model'
+import moment from 'moment'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -295,5 +293,49 @@ export default class UserService {
         user?.save()
 
         return user
+    }
+
+    static async updatePhone(userKey: string, params: UpdatePhoneDto, options: { req: AuthenticationRequest }) {
+        const userCurrent = await UserModel.findOne({ key: options.req.user.key }).exec()
+        const user = await UserModel.findOne({ key: userKey }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
+        }
+
+        const codeData = await VerificationCode.findOne({ owner: params.owner, type: params.codeType, code: params.code }).exec()
+        if (userCurrent?.role === role.admin.id) {
+            user?.set('phone', params.owner, String)
+            user?.save()
+            if (codeData) {
+                await VerificationCode.findByIdAndUpdate(codeData._id, { verified: true, enabled: false }).exec()
+            }
+        } else {
+            if (userCurrent?.key !== user.key || !codeData) {
+                throw new BizException(
+                    UpdatePhoneEmailErrors.code_invalid_error,
+                    new ErrorContext('users.service', 'updatePhone', { code: params.code })
+                )
+            }
+            const currentTs = moment().unix()
+            if (codeData.verified || codeData.expiryTimestamp < currentTs) {
+                throw new BizException(
+                    UpdatePhoneEmailErrors.code_invalid_error,
+                    new ErrorContext('users.service', 'updatePhone', { code: params.code })
+                )
+            }
+            const valid = codeData.code === params.code
+            if (valid) {
+                user?.set('phone', params.owner, String)
+                user?.save()
+                await VerificationCode.findByIdAndUpdate(codeData._id, { verified: true, enabled: false }).exec()
+            } else {
+                throw new BizException(
+                    UpdatePhoneEmailErrors.code_invalid_error,
+                    new ErrorContext('users.service', 'updatePhone', { code: params.code })
+                )
+            }
+        }
+
+        return { success: true }
     }
 }

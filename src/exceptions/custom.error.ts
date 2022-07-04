@@ -64,3 +64,8 @@ export const VerificationCodeErrors = {
     verification_code_duplicate_request_in_hour_error: { code: 5003, status: 400, message: 'Please request verification code after 1 hour.' },
     verification_code_invalid_error: { code: 5004, status: 400, message: 'Invalid verification code.' }
 }
+
+export const UpdatePhoneEmailErrors = {
+    code_type_not_supported: { code: 5001, status: 400, message: 'Code type not supported' },
+    code_invalid_error: { code: 5004, status: 400, message: 'Invalid verification code.' }
+}

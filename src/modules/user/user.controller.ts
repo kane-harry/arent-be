@@ -5,10 +5,14 @@ import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middl
 import { requireAuth } from '@common/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
-import { SetupCredentialsDto, SetupTotpDto, UpdateProfileDto, UpdateSecurityDto, LockUserDto } from './user.dto'
+import { SetupCredentialsDto, SetupTotpDto, UpdateProfileDto, UpdateSecurityDto, LockUserDto, UpdatePhoneDto } from './user.dto'
 import { requireAdmin } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUserQueryFilter } from './user.interface'
+import { CodeType } from '@modules/verification_code/code.interface'
+import BizException from '@exceptions/biz.exception'
+import { UpdatePhoneEmailErrors, VerificationCodeErrors } from '@exceptions/custom.error'
+import ErrorContext from '@exceptions/error.context'
 
 class UserController implements IController {
     public path = '/users'
@@ -58,6 +62,7 @@ class UserController implements IController {
         this.router.post(`${this.path}/:key/remove`, requireAuth, requireAdmin(), asyncHandler(this.removeUser))
         this.router.post(`${this.path}/:key/totp/reset`, requireAuth, requireAdmin(), asyncHandler(this.resetTotp))
         this.router.post(`${this.path}/:key/role/update`, requireAuth, requireAdmin(), asyncHandler(this.updateUserRole))
+        this.router.post(`${this.path}/:key/phone/update`, requireAuth, asyncHandler(this.updatePhone))
 
         // this.router.post(`${this.path}/:key/lock`, requireAuth, requireAdmin(), asyncHandler(this.lockUser))
         // this.router.post(`${this.path}/:key/remove`, requireAuth, requireAdmin(), asyncHandler(this.removeUser)) // soft delete - don't query removed = false
@@ -153,6 +158,17 @@ class UserController implements IController {
     private async updateUserRole(req: CustomRequest, res: Response) {
         const userKey = req.params.key
         const data = await UserService.updateUserRole(userKey)
+        return res.json(data)
+    }
+
+    private async updatePhone(req: AuthenticationRequest, res: Response) {
+        const userKey = req.params.key
+        const params: UpdatePhoneDto = req.body
+        const allowTypes = [CodeType.PhoneUpdate]
+        if (!allowTypes.includes(params.codeType)) {
+            throw new BizException(UpdatePhoneEmailErrors.code_invalid_error, new ErrorContext('user.service', 'updatePhone', { ...params }))
+        }
+        const data = await UserService.updatePhone(userKey, params, { req })
         return res.json(data)
     }
 }
