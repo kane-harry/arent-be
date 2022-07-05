@@ -148,6 +148,11 @@ export default class UserService {
         return new QueryRO<IUser>(totalCount, params.pageindex, params.pagesize, items)
     }
 
+    public static getAllUser = async () => {
+        const items = await UserModel.find<IUser>().exec()
+        return items
+    }
+
     public static async generateRandomName(name: string) {
         name = toLower(escapeRegExp(name))
         let name_arr: any = name.split(' ')
