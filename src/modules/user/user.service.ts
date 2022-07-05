@@ -1,5 +1,5 @@
 import BizException from '@exceptions/biz.exception'
-import { AuthErrors, CommonErrors, UpdatePhoneEmailErrors } from '@exceptions/custom.error'
+import { AuthErrors, CommonErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
@@ -15,17 +15,19 @@ import {
     UpdateUserStatusDto
 } from './user.dto'
 import UserModel from './user.model'
-import { MFAType } from '@modules/auth/auth.interface'
+import { AuthTokenType, MFAType } from '@modules/auth/auth.interface'
 import * as bcrypt from 'bcrypt'
 import { unixTimestampToDate, generateRandomCode } from '@utils/utility'
 import { IUser, IUserQueryFilter, UserStatus } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
-import { role } from '@config/role'
 import { generateUnixTimestamp, randomCode } from '@common/utility'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
 import { CodeType } from '@modules/verification_code/code.interface'
 import { stripPhoneNumber } from '@common/phone-helper'
 import VerificationCodeService from '@modules/verification_code/code.service'
+import sendEmail from '@common/email'
+import { AuthModel } from '@modules/auth/auth.model'
+import sendSms from '@common/sms'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -333,6 +335,10 @@ export default class UserService {
         user?.set('phone', phone, String)
         user?.save()
         // TODO - 1. force logout & send sms notifications
+        const subject = 'Welcome to LightLink'
+        const html = 'You have successfully updated your phone!'
+        await sendSms(subject, html, html, phone)
+        await AuthModel.deleteOne({ token: params.refreshToken, type: AuthTokenType.RefreshToken }).exec()
         return { success: true }
     }
 
@@ -350,6 +356,10 @@ export default class UserService {
         user?.set('email', email, String)
         user?.save()
         // TODO - 1. force logout & send email notifications
+        const subject = 'Welcome to LightLink'
+        const html = 'You have successfully updated your email!'
+        await sendEmail(subject, html, html, email)
+        await AuthModel.deleteOne({ token: params.refreshToken, type: AuthTokenType.RefreshToken }).exec()
         return { success: true }
     }
 }
