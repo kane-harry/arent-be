@@ -117,9 +117,6 @@ export class UpdatePhoneDto {
 
     @IsString()
     public phone: string
-
-    @IsString()
-    public refreshToken: string
 }
 
 export class UpdateEmailDto {
@@ -128,7 +125,4 @@ export class UpdateEmailDto {
 
     @IsString()
     public email: string
-
-    @IsString()
-    public refreshToken: string
 }
