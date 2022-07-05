@@ -22,7 +22,7 @@ export default class AuthController implements IController {
         this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), asyncHandler(this.register))
         this.router.post(`${this.path}/login`, validationMiddleware(LogInDto), asyncHandler(this.logIn))
         this.router.post(`${this.path}/token/refresh`, validationMiddleware(RefreshTokenDto), asyncHandler(this.refreshToken))
-        this.router.get(`${this.path}/me`, requireAuth, asyncHandler(this.getCurrentUser))
+        this.router.get(`${this.path}/current`, requireAuth, asyncHandler(this.getCurrentUser))
         this.router.post(`${this.path}/logout`, requireAuth, validationMiddleware(RefreshTokenDto), asyncHandler(this.logOut))
 
         this.router.post(`${this.path}/password/forgot`, validationMiddleware(ForgotPasswordDto), asyncHandler(this.forgotPassword))

@@ -111,20 +111,17 @@ export default class TransactionService {
         return { account, txns }
     }
 
-    static async getTxnDetails(key: string, id: string) {
-        const account = await AccountService.getAccountByKey(key)
-        if (!account) {
-            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('transaction.service', 'getTxnsByAccount', { key }))
+    static async getTxnDetails(id: string) {
+        let txn = await TransactionService.getLocalTxnByKey(id)
+        if (!txn) {
+            txn = await PrimeCoinProvider.getPrimeTxnByKey(id)
         }
-        if (account.extType === AccountExtType.Prime) {
-            const txn = await PrimeCoinProvider.getPrimeTxnByKey(id)
-            return txn
-        }
-        const txn = await TransactionService.getExtTrxByKey(id)
         return txn
     }
 
-    static async getExtTrxByKey(id: string) {
-        throw new Error('Function not implemented.')
+    static async getLocalTxnByKey(id: string) {
+        // find txn in fed db
+        return null
+        // throw new Error('Function not implemented.')
     }
 }
