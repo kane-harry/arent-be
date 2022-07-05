@@ -23,6 +23,7 @@ export default class AuthController implements IController {
         this.router.post(`${this.path}/login`, validationMiddleware(LogInDto), asyncHandler(this.logIn))
         this.router.post(`${this.path}/tokenversion/refresh`, asyncHandler(this.refreshToken))
         this.router.post(`${this.path}/logout`, requireAuth, asyncHandler(this.logOut))
+        this.router.get(`${this.path}/current`, requireAuth, asyncHandler(this.getCurrentUser))
 
         this.router.post(`${this.path}/password/forgot`, validationMiddleware(ForgotPasswordDto), asyncHandler(this.forgotPassword))
         this.router.post(`${this.path}/password/reset`, validationMiddleware(ResetPasswordDto), asyncHandler(this.resetPassword))
@@ -59,6 +60,11 @@ export default class AuthController implements IController {
 
     private refreshToken = async (req: AuthenticationRequest, res: Response) => {
         const data = await AuthService.refreshTokenVersion(req.user?.key)
+    }
+
+    private getCurrentUser = async (req: AuthenticationRequest, res: Response) => {
+        const userKey = req.user.key
+        const data = await AuthService.getCurrentUser(userKey)
         return res.send(data)
     }
 

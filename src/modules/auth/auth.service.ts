@@ -247,6 +247,11 @@ export default class AuthService {
         return { success: true }
     }
 
+    static async getCurrentUser(key: string) {
+        const user = await UserModel.findOne({ key }).exec()
+        return user
+    }
+
     static async forgotPassword(params: ForgotPasswordDto) {
         let user
         if (params.type === 'email') {
