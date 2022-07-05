@@ -116,13 +116,7 @@ export class UpdatePhoneDto {
     public code: string
 
     @IsString()
-    @IsEnum(CodeType, {
-        message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
-    })
-    public codeType: CodeType
-
-    @IsString()
-    public owner: string
+    public phone: string
 }
 
 export class UpdateEmailDto {
@@ -130,11 +124,5 @@ export class UpdateEmailDto {
     public code: string
 
     @IsString()
-    @IsEnum(CodeType, {
-        message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
-    })
-    public codeType: CodeType
-
-    @IsString()
-    public owner: string
+    public email: string
 }

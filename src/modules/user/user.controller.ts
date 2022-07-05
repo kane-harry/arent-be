@@ -18,10 +18,6 @@ import {
 import { requireAdmin } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUserQueryFilter } from './user.interface'
-import { CodeType } from '@modules/verification_code/code.interface'
-import BizException from '@exceptions/biz.exception'
-import { UpdatePhoneEmailErrors, VerificationCodeErrors } from '@exceptions/custom.error'
-import ErrorContext from '@exceptions/error.context'
 
 class UserController implements IController {
     public path = '/users'
@@ -172,10 +168,6 @@ class UserController implements IController {
     private async updatePhone(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
         const params: UpdatePhoneDto = req.body
-        const allowTypes = [CodeType.PhoneUpdate]
-        if (!allowTypes.includes(params.codeType)) {
-            throw new BizException(UpdatePhoneEmailErrors.code_invalid_error, new ErrorContext('user.service', 'updatePhone', { ...params }))
-        }
         const data = await UserService.updatePhone(userKey, params, { req })
         return res.json(data)
     }
@@ -183,10 +175,6 @@ class UserController implements IController {
     private async updateEmail(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
         const params: UpdateEmailDto = req.body
-        const allowTypes = [CodeType.EmailUpdate]
-        if (!allowTypes.includes(params.codeType)) {
-            throw new BizException(UpdatePhoneEmailErrors.code_invalid_error, new ErrorContext('user.service', 'updateEmail', { ...params }))
-        }
         const data = await UserService.updateEmail(userKey, params, { req })
         return res.json(data)
     }

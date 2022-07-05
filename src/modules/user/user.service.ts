@@ -7,6 +7,7 @@ import { forEach, toLower, escapeRegExp, filter as lodashFilter, trim } from 'lo
 import {
     SetupCredentialsDto,
     SetupTotpDto,
+    UpdateEmailDto,
     UpdatePhoneDto,
     UpdateProfileDto,
     UpdateSecurityDto,
@@ -22,8 +23,9 @@ import { QueryRO } from '@interfaces/query.model'
 import { role } from '@config/role'
 import { generateUnixTimestamp, randomCode } from '@common/utility'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
-import VerificationCode from '@modules/verification_code/code.model'
-import moment from 'moment'
+import { CodeType } from '@modules/verification_code/code.interface'
+import { stripPhoneNumber } from '@common/phone-helper'
+import VerificationCodeService from '@modules/verification_code/code.service'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -309,90 +311,38 @@ export default class UserService {
     }
 
     static async updatePhone(userKey: string, params: UpdatePhoneDto, options: { req: AuthenticationRequest }) {
-        const userCurrent = await UserModel.findOne({ key: options.req.user.key }).exec()
         const user = await UserModel.findOne({ key: userKey }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
         }
 
-        const codeData = await VerificationCode.findOne({ owner: params.owner, type: params.codeType, code: params.code }).exec()
-        if (userCurrent?.role === role.admin.id) {
-            user?.set('phone', params.owner, String)
-            user?.save()
-            if (codeData) {
-                await VerificationCode.findByIdAndUpdate(codeData._id, { verified: true, enabled: false }).exec()
-            }
-        } else {
-            if (userCurrent?.key !== user.key || !codeData) {
-                throw new BizException(
-                    UpdatePhoneEmailErrors.code_invalid_error,
-                    new ErrorContext('users.service', 'updatePhone', { code: params.code })
-                )
-            }
-            const currentTs = moment().unix()
-            if (codeData.verified || codeData.expiryTimestamp < currentTs) {
-                throw new BizException(
-                    UpdatePhoneEmailErrors.code_invalid_error,
-                    new ErrorContext('users.service', 'updatePhone', { code: params.code })
-                )
-            }
-            const valid = codeData.code === params.code
-            if (valid) {
-                user?.set('phone', params.owner, String)
-                user?.save()
-                await VerificationCode.findByIdAndUpdate(codeData._id, { verified: true, enabled: false }).exec()
-            } else {
-                throw new BizException(
-                    UpdatePhoneEmailErrors.code_invalid_error,
-                    new ErrorContext('users.service', 'updatePhone', { code: params.code })
-                )
-            }
+        const phone = await stripPhoneNumber(params.phone)
+        // check phone is available
+        const existingUser = await UserModel.findOne({ phone, removed: false }).exec()
+        if (existingUser && existingUser.key !== user.key) {
+            throw new BizException(AuthErrors.registration_phone_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
         }
-
+        await VerificationCodeService.verifyCode({ code: params.code, codeType: CodeType.PhoneUpdate, owner: phone })
+        user?.set('phone', phone, String)
+        user?.save()
+        // TODO - 1. force logout & send sms notifications
         return { success: true }
     }
 
-    static async updateEmail(userKey: string, params: UpdatePhoneDto, options: { req: AuthenticationRequest }) {
-        const userCurrent = await UserModel.findOne({ key: options.req.user.key }).exec()
+    static async updateEmail(userKey: string, params: UpdateEmailDto, options: { req: AuthenticationRequest }) {
         const user = await UserModel.findOne({ key: userKey }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateEmail', {}))
         }
-
-        const codeData = await VerificationCode.findOne({ owner: params.owner, type: params.codeType, code: params.code }).exec()
-        if (userCurrent?.role === role.admin.id) {
-            user?.set('email', params.owner, String)
-            user?.save()
-            if (codeData) {
-                await VerificationCode.findByIdAndUpdate(codeData._id, { verified: true, enabled: false }).exec()
-            }
-        } else {
-            if (userCurrent?.key !== user.key || !codeData) {
-                throw new BizException(
-                    UpdatePhoneEmailErrors.code_invalid_error,
-                    new ErrorContext('users.service', 'updateEmail', { code: params.code })
-                )
-            }
-            const currentTs = moment().unix()
-            if (codeData.verified || codeData.expiryTimestamp < currentTs) {
-                throw new BizException(
-                    UpdatePhoneEmailErrors.code_invalid_error,
-                    new ErrorContext('users.service', 'updateEmail', { code: params.code })
-                )
-            }
-            const valid = codeData.code === params.code
-            if (valid) {
-                user?.set('email', params.owner, String)
-                user?.save()
-                await VerificationCode.findByIdAndUpdate(codeData._id, { verified: true, enabled: false }).exec()
-            } else {
-                throw new BizException(
-                    UpdatePhoneEmailErrors.code_invalid_error,
-                    new ErrorContext('users.service', 'updateEmail', { code: params.code })
-                )
-            }
+        const email = trim(toLower(params.email))
+        const existingUser = await UserModel.findOne({ email, removed: false }).exec()
+        if (existingUser && existingUser.key !== user.key) {
+            throw new BizException(AuthErrors.registration_email_exists_error, new ErrorContext('user.service', 'updateEmail', { email }))
         }
-
+        await VerificationCodeService.verifyCode({ code: params.code, codeType: CodeType.EmailUpdate, owner: email })
+        user?.set('email', email, String)
+        user?.save()
+        // TODO - 1. force logout & send email notifications
         return { success: true }
     }
 }
