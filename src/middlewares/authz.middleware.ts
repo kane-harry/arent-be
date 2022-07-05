@@ -14,7 +14,7 @@ export default (passport: PassportStatic) => {
     passport.use(
         new JwtStrategy(opts, async (payload, done) => {
             const user = await UserModel.findById(payload.id || payload.key).exec()
-            if (!user) {
+            if (!user || payload.tokenVersion !== user.tokenVersion) {
                 return done(null, false)
             }
             return done(null, user)

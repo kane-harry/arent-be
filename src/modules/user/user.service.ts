@@ -28,6 +28,7 @@ import VerificationCodeService from '@modules/verification_code/code.service'
 import sendEmail from '@common/email'
 import { AuthModel } from '@modules/auth/auth.model'
 import sendSms from '@common/sms'
+import AuthService from '@modules/auth/auth.service'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -338,7 +339,7 @@ export default class UserService {
         const subject = 'Welcome to LightLink'
         const html = 'You have successfully updated your phone!'
         await sendSms(subject, html, html, phone)
-        AuthModel.deleteMany({ userKey: userKey, type: AuthTokenType.RefreshToken }).exec()
+        await AuthService.refreshTokenVersion(userKey)
         return { success: true }
     }
 
@@ -359,7 +360,7 @@ export default class UserService {
         const subject = 'Welcome to LightLink'
         const html = 'You have successfully updated your email!'
         await sendEmail(subject, html, html, email)
-        await AuthModel.deleteMany({ userKey: userKey, type: AuthTokenType.RefreshToken }).exec()
+        await AuthService.refreshTokenVersion(userKey)
         return { success: true }
     }
 }

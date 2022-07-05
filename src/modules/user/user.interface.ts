@@ -34,6 +34,7 @@ export interface IUser extends IBaseModel {
     totpTempSecret: string
     totpSecret: string
     totpSetup: boolean
+    tokenVersion: number
 }
 
 export interface IUserQueryFilter extends IFilterModel {

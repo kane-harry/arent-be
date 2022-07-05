@@ -80,6 +80,7 @@ export default class AuthService {
             phoneVerified = true
             mfaSettings.type = MFAType.SMS
         }
+        const currentTimestamp = generateUnixTimestamp()
         const mode = new UserModel({
             ...userData,
             key: crypto.randomBytes(16).toString('hex'),
@@ -89,7 +90,8 @@ export default class AuthService {
             role: 0,
             emailVerified,
             phoneVerified,
-            mfaSettings
+            mfaSettings,
+            tokenVersion: currentTimestamp
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)
@@ -131,6 +133,7 @@ export default class AuthService {
             changePasswordNextLoginAttempts++
 
             user.set('changePasswordNextLoginAttempts', changePasswordNextLoginAttempts, Number)
+            user.set('tokenVersion', currentTimestamp, Number)
             user.save()
             if (changePasswordNextLoginAttempts >= 5) {
                 user.set('status', UserStatus.Locked, String)
@@ -191,21 +194,12 @@ export default class AuthService {
         }
 
         // create token
-        const accessToken = AuthModel.createAccessToken(user._id)
-        const refreshToken = AuthModel.createRefreshToken(user._id)
+        const accessToken = AuthModel.createAccessToken(user._id, currentTimestamp)
 
         user.set('loginCount', 0, Number)
         user.set('lockedTimestamp', currentTimestamp, Number)
+        user.set('tokenVersion', currentTimestamp, Number)
         user.save()
-
-        // TODO: check device login
-        // send mail warning login
-        // run job to delete expired tokens
-        new AuthModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            token: refreshToken,
-            userKey: user.key
-        }).save()
 
         new UserLogModel({
             key: crypto.randomBytes(16).toString('hex'),
@@ -215,39 +209,41 @@ export default class AuthService {
             ipAddress: options?.req.ip_address
         }).save()
 
-        return { user: user, token: accessToken, refreshToken }
+        return { user: user, token: accessToken }
     }
 
-    static async refreshToken(refreshTokenData: RefreshTokenDto) {
-        const authData = await AuthModel.findOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
-        if (!authData) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
-        }
-        try {
-            const payload = AuthModel.verifyRefreshToken(refreshTokenData.refreshToken) as any
-            const token = AuthModel.createAccessToken(payload.id)
-            return { token }
-        } catch (err) {
-            const error = err as any
-            switch (error?.name) {
-            case 'TokenExpiredError':
-                AuthModel.deleteOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
-                throw new BizException(AuthErrors.session_expired, new ErrorContext('auth.service', 'refreshToken', {}))
-            case 'JsonWebTokenError':
-                throw new BizException(AuthErrors.invalid_refresh_token, new ErrorContext('auth.service', 'refreshToken', {}))
+    // static async refreshToken(user) {
+    //     const authData = await AuthModel.findOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
+    //     if (!authData) {
+    //         throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
+    //     }
+    //     try {
+    //         const payload = AuthModel.verifyRefreshToken(refreshTokenData.refreshToken) as any
+    //         const token = AuthModel.createAccessToken(payload.id)
+    //         return { token }
+    //     } catch (err) {
+    //         const error = err as any
+    //         switch (error?.name) {
+    //         case 'TokenExpiredError':
+    //             AuthModel.deleteOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
+    //             throw new BizException(AuthErrors.session_expired, new ErrorContext('auth.service', 'refreshToken', {}))
+    //         case 'JsonWebTokenError':
+    //             throw new BizException(AuthErrors.invalid_refresh_token, new ErrorContext('auth.service', 'refreshToken', {}))
 
-            default:
-                throw new BizException(AuthErrors.invalid_refresh_token, new ErrorContext('auth.service', 'refreshToken', {}))
-            }
-        }
-    }
+    //         default:
+    //             throw new BizException(AuthErrors.invalid_refresh_token, new ErrorContext('auth.service', 'refreshToken', {}))
+    //         }
+    //     }
+    // }
 
-    static async logOut(refreshTokenData: RefreshTokenDto) {
-        const authData = await AuthModel.findOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
-        if (!authData) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
+    static async refreshTokenVersion(key: string) {
+        const currentTimestamp = generateUnixTimestamp()
+        const user = await UserModel.findOne({ key }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'tokenVersion', {}))
         }
-        await AuthModel.deleteOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
+        user.set('tokenVersion', currentTimestamp, Number)
+        await user.save()
         return { success: true }
     }
 

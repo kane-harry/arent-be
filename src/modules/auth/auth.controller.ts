@@ -21,8 +21,8 @@ export default class AuthController implements IController {
         this.router.post(`${this.path}/registration/verify`, validationMiddleware(CreateUserDto), asyncHandler(this.verifyRegistration))
         this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), asyncHandler(this.register))
         this.router.post(`${this.path}/login`, validationMiddleware(LogInDto), asyncHandler(this.logIn))
-        this.router.post(`${this.path}/token/refresh`, validationMiddleware(RefreshTokenDto), asyncHandler(this.refreshToken))
-        this.router.post(`${this.path}/logout`, requireAuth, validationMiddleware(RefreshTokenDto), asyncHandler(this.logOut))
+        this.router.post(`${this.path}/tokenversion/refresh`, asyncHandler(this.refreshToken))
+        this.router.post(`${this.path}/logout`, requireAuth, asyncHandler(this.logOut))
 
         this.router.post(`${this.path}/password/forgot`, validationMiddleware(ForgotPasswordDto), asyncHandler(this.forgotPassword))
         this.router.post(`${this.path}/password/reset`, validationMiddleware(ResetPasswordDto), asyncHandler(this.resetPassword))
@@ -52,15 +52,13 @@ export default class AuthController implements IController {
         return res.send(data)
     }
 
-    private logOut = async (req: Request, res: Response) => {
-        const tokenData: RefreshTokenDto = req.body
-        const data = await AuthService.logOut(tokenData)
+    private logOut = async (req: AuthenticationRequest, res: Response) => {
+        const data = await AuthService.refreshTokenVersion(req.user?.key)
         return res.send(data)
     }
 
-    private refreshToken = async (req: Request, res: Response) => {
-        const tokenData: RefreshTokenDto = req.body
-        const data = await AuthService.refreshToken(tokenData)
+    private refreshToken = async (req: AuthenticationRequest, res: Response) => {
+        const data = await AuthService.refreshTokenVersion(req.user?.key)
         return res.send(data)
     }
 

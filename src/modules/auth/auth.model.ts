@@ -36,12 +36,13 @@ const authSchema = new Schema<IAuthToken>(
 )
 
 export class AuthModel extends model<IAuthToken>('auth_tokens', authSchema) {
-    public static createAccessToken(userKey: string) {
+    public static createAccessToken(userKey: string, tokenVersion: number) {
         const expiresIn = config.JWT_Access.tokenExpiresIn
         const secret = String(config.JWT_Access.secret)
         // TODO: add client id ? not allow multiple device ?
         const payload = {
-            key: userKey
+            key: userKey,
+            tokenVersion: tokenVersion
         }
         return jwt.sign(payload, secret, { expiresIn })
     }

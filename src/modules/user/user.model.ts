@@ -1,3 +1,4 @@
+import { generateUnixTimestamp } from '@common/utility'
 import moment from 'moment'
 import { Schema, model } from 'mongoose'
 import { IUser, UserStatus } from './user.interface'
@@ -60,7 +61,8 @@ const userSchema = new Schema<IUser>(
         changePasswordNextLoginAttempts: { type: Number, default: 0 },
         lockedTimestamp: { type: Number, default: 0 },
         loginCount: { type: Number, default: 0 },
-        removed: { type: Boolean, default: false }
+        removed: { type: Boolean, default: false },
+        tokenVersion: { type: Number }
     },
     {
         toJSON: {

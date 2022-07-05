@@ -70,14 +70,7 @@ class UserController implements IController {
         this.router.post(`${this.path}/:key/role/update`, requireAuth, requireAdmin(), asyncHandler(this.updateUserRole))
         this.router.post(`${this.path}/:key/phone/update`, requireAuth, asyncHandler(this.updatePhone))
         this.router.post(`${this.path}/:key/email/update`, requireAuth, asyncHandler(this.updateEmail))
-        this.router.get(`${this.path}/list/export`, requireAuth, requireAdmin(), asyncHandler(this.exportAllUser))
-
-        // TODO -
-        // /users/list/export // export all users
-        // /users/:key/phone/update
-        // 1. get verification code for new phone (on client side) - call verification/code/get {type:PhoneUpdate , owner: new phone number}
-        // 2. check the phone is valid then update phone number, send sms
-        // /users/:key/email/update // same as above , send email notification
+        this.router.get(`${this.path}/list/export`, requireAuth, asyncHandler(this.exportAllUser))
     }
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {
