@@ -287,7 +287,9 @@ export default class UserService {
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'resetTotp', {}))
         }
-
+        if (user.mfaSettings.type === MFAType.TOTP) {
+            user?.set('mfaSettings.type', MFAType.EMAIL, String)
+        }
         user?.set('totpSecret', null, null)
         user?.set('totpSetup', false, Boolean)
         // TODO - refresh token version - force logout
