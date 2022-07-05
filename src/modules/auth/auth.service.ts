@@ -24,7 +24,6 @@ import { verifyToken } from '@utils/totp'
 
 export default class AuthService {
     static async verifyRegistration(userData: CreateUserDto, options?: any) {
-        console.log('3333')
         userData = await AuthService.formatCreateUserDto(userData)
         const setting: any = await SettingService.getGlobalSetting()
         if (setting.registrationRequireEmailVerified) {

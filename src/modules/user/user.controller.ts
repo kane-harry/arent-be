@@ -18,6 +18,7 @@ import {
 import { requireAdmin } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUserQueryFilter } from './user.interface'
+import { downloadResource } from '@utils/utility'
 
 class UserController implements IController {
     public path = '/users'
@@ -69,6 +70,7 @@ class UserController implements IController {
         this.router.post(`${this.path}/:key/role/update`, requireAuth, requireAdmin(), asyncHandler(this.updateUserRole))
         this.router.post(`${this.path}/:key/phone/update`, requireAuth, asyncHandler(this.updatePhone))
         this.router.post(`${this.path}/:key/email/update`, requireAuth, asyncHandler(this.updateEmail))
+        this.router.get(`${this.path}/list/export`, requireAuth, requireAdmin(), asyncHandler(this.exportAllUser))
 
         // TODO -
         // /users/list/export // export all users
@@ -125,6 +127,30 @@ class UserController implements IController {
         const filter = req.query as IUserQueryFilter
         const data = await UserService.getUserList(filter)
         return res.send(data)
+    }
+
+    private exportAllUser = async (req: CustomRequest, res: Response) => {
+        const data = await UserService.getAllUser()
+        const fields = [
+            { label: 'Key', value: 'key' },
+            { label: 'First Name', value: 'firstName' },
+            { label: 'Last Name', value: 'lastName' },
+            { label: 'Chat Name', value: 'chatName' },
+            { label: 'Full Name', value: 'fullName' },
+            { label: 'Email', value: 'email' },
+            { label: 'Phone', value: 'phone' },
+            { label: 'Country', value: 'country' },
+            { label: 'Avatar', value: 'avatar' },
+            { label: 'Status', value: 'status' },
+            { label: 'Role', value: 'role' },
+            { label: 'Email Verified', value: 'emailVerified' },
+            { label: 'Phone Verified', value: 'phoneVerified' },
+            { label: 'Removed', value: 'removed' },
+            { label: 'KYC Verified', value: 'kycVerified' },
+            { label: 'Created', value: 'created' }
+        ]
+
+        return downloadResource(res, 'export.csv', fields, data)
     }
 
     private resetCredentials = async (req: Request, res: Response) => {
