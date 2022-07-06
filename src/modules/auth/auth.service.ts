@@ -162,8 +162,7 @@ export default class AuthService {
         let loginCount = user.loginCount || 0
         if (loginCount >= 5 && user.lockedTimestamp > currentTimestamp - 60 * 60) {
             const retryInMinutes = Math.ceil((user.lockedTimestamp - (currentTimestamp - 3600)) / 60)
-            // TODO - update token version
-            //   await userModel.updateTokenVersion(user.key, currentTimestamp, db)
+            user.set('tokenVersion', currentTimestamp, Number)
             user.set('lockedTimestamp', currentTimestamp, Number)
             user.save()
             throw new BizException(
@@ -175,12 +174,13 @@ export default class AuthService {
                 new ErrorContext('auth.service', 'logIn', { email: logInData.email })
             )
         }
-        // user.token_version = currentTimestamp
+
         const isPasswordMatching = await bcrypt.compare(logInData.password, user.get('password', null, { getters: false }))
         if (!isPasswordMatching) {
             loginCount = loginCount + 1
             user.set('loginCount', loginCount, Number)
             user.set('lockedTimestamp', currentTimestamp, Number)
+            user.set('tokenVersion', currentTimestamp, Number)
             user.save()
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
         }
@@ -238,7 +238,7 @@ export default class AuthService {
     //     }
     // }
 
-    static async refreshTokenVersion(key: string) {
+    static async updateTokenVersion(key: string) {
         const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key }).exec()
         if (!user) {
@@ -303,7 +303,7 @@ export default class AuthService {
             user.save()
 
             // logout
-            await AuthService.refreshTokenVersion(user.key)
+            await AuthService.updateTokenVersion(user.key)
 
             const subject = 'Welcome to LightLink'
             const html = 'You have successfully reset your password!'
@@ -336,13 +336,6 @@ export default class AuthService {
             owner: params.owner,
             codeType: params.type === 'email' ? CodeType.EmailForgotPin : CodeType.SMSForgotPin
         })
-        // TODO - send code to user via email and phone
-        // Pseudocode
-        // if(params.type === 'email'){
-        //     emailService.sendForgotPasswordEmail(context)
-        // }else if (params.type === 'phone') {
-        //     sms.send(sms_subject, sms_content, phone)
-        // }
 
         return { success: true }
     }
@@ -375,7 +368,7 @@ export default class AuthService {
             user.save()
 
             // logout
-            await AuthService.refreshTokenVersion(user.key)
+            await AuthService.updateTokenVersion(user.key)
 
             // send notifications user via email and phone
             const subject = 'Welcome to LightLink'
@@ -396,7 +389,6 @@ export default class AuthService {
             await this.sendMFACode(user)
             const result = { requireMFACode: true, type: user.mfaSettings.type, status: 'sent' }
             return result
-            // throw new BizException(AuthErrors.token_require, new ErrorContext('auth.service', 'logIn', { message }))
         }
 
         // TODO - refactor ???

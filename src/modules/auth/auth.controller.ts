@@ -54,12 +54,12 @@ export default class AuthController implements IController {
     }
 
     private logOut = async (req: AuthenticationRequest, res: Response) => {
-        const data = await AuthService.refreshTokenVersion(req.user?.key)
+        const data = await AuthService.updateTokenVersion(req.user?.key)
         return res.send(data)
     }
 
     private refreshToken = async (req: AuthenticationRequest, res: Response) => {
-        const data = await AuthService.refreshTokenVersion(req.user?.key)
+        const data = await AuthService.updateTokenVersion(req.user?.key)
         res.send(data)
     }
 

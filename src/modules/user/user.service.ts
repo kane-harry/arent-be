@@ -378,7 +378,7 @@ export default class UserService {
         const subject = 'Welcome to LightLink'
         const html = 'You have successfully updated your phone!'
         await sendSms(subject, html, html, phone)
-        await AuthService.refreshTokenVersion(userKey)
+        await AuthService.updateTokenVersion(userKey)
         return { success: true }
     }
 
@@ -399,7 +399,7 @@ export default class UserService {
         const subject = 'Welcome to LightLink'
         const html = 'You have successfully updated your email!'
         await sendEmail(subject, html, html, email)
-        await AuthService.refreshTokenVersion(userKey)
+        await AuthService.updateTokenVersion(userKey)
         return { success: true }
     }
 }
