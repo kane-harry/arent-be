@@ -109,14 +109,14 @@ describe('Authentication', () => {
 
     it('ForgotPassword', async () => {
         const res = await request(server.app).post('/verification/code/get').send({
-            codeType: CodeType.ForgotPassword,
+            codeType: CodeType.EmailForgotPassword,
             owner: userData.email
         })
         expect(res.status).equal(200)
         validResponse(res.body)
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
-                type: CodeType.ForgotPassword,
+                type: CodeType.EmailForgotPassword,
                 owner: userData.email
             },
             {},
@@ -134,14 +134,14 @@ describe('Authentication', () => {
 
     it('ForgotPin', async () => {
         const res = await request(server.app).post('/verification/code/get').send({
-            codeType: CodeType.ForgotPin,
+            codeType: CodeType.EmailForgotPin,
             owner: userData.email
         })
         expect(res.status).equal(200)
         validResponse(res.body)
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
-                type: CodeType.ForgotPin,
+                type: CodeType.EmailForgotPin,
                 owner: userData.email
             },
             {},

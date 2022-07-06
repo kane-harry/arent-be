@@ -14,7 +14,16 @@ import { stripPhoneNumber } from '@common/phone-helper'
 
 export default class VerificationCodeService {
     static async generateCode(params: CreateCodeDto) {
-        if ([CodeType.PhoneRegistration, CodeType.PhoneUpdate, CodeType.SMS, CodeType.SMSLogin].includes(params.codeType)) {
+        if (
+            [
+                CodeType.PhoneRegistration,
+                CodeType.PhoneUpdate,
+                CodeType.SMS,
+                CodeType.SMSLogin,
+                CodeType.SMSForgotPassword,
+                CodeType.SMSForgotPin
+            ].includes(params.codeType)
+        ) {
             params.owner = await stripPhoneNumber(params.owner)
         }
         const owner = toLower(trim(params.owner))
@@ -90,6 +99,7 @@ export default class VerificationCodeService {
         case CodeType.SMSLogin:
         case CodeType.SMS:
         case CodeType.SMSForgotPassword:
+        case CodeType.SMSForgotPin:
             await sendSms(subject, html, html, owner)
             break
         default:
@@ -104,7 +114,16 @@ export default class VerificationCodeService {
     }
 
     static async verifyCode(params: VerifyCodeDto) {
-        if ([CodeType.PhoneRegistration, CodeType.PhoneUpdate, CodeType.SMS, CodeType.SMSLogin].includes(params.codeType)) {
+        if (
+            [
+                CodeType.PhoneRegistration,
+                CodeType.PhoneUpdate,
+                CodeType.SMS,
+                CodeType.SMSLogin,
+                CodeType.SMSForgotPassword,
+                CodeType.SMSForgotPin
+            ].includes(params.codeType)
+        ) {
             params.owner = await stripPhoneNumber(params.owner)
         }
         const codeData = await VerificationCode.findOne({ owner: params.owner, type: params.codeType, code: params.code }).exec()
