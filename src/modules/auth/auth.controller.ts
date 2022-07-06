@@ -60,6 +60,7 @@ export default class AuthController implements IController {
 
     private refreshToken = async (req: AuthenticationRequest, res: Response) => {
         const data = await AuthService.refreshTokenVersion(req.user?.key)
+        res.send(data)
     }
 
     private getCurrentUser = async (req: AuthenticationRequest, res: Response) => {

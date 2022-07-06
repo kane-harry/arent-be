@@ -70,7 +70,6 @@ export class AdminUpdateProfileDto {
     @Length(2, 18)
     public lastName: string
 
-    // TODO: check uniq nickname
     @IsOptional()
     @IsString()
     @Length(2, 8)
