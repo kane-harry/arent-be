@@ -5,6 +5,7 @@ import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { forEach, toLower, escapeRegExp, filter as lodashFilter, trim } from 'lodash'
 import {
+    AdminUpdateProfileDto,
     SetupCredentialsDto,
     SetupTotpDto,
     UpdateEmailDto,
@@ -52,15 +53,14 @@ export default class UserService {
     }
 
     public static updateProfile = async (key: string, params: UpdateProfileDto, options: { req: AuthenticationRequest }) => {
-        // TODO - check role - admin can update user's profile , user can update himself only
         const user = await UserModel.findOne({ key }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
         const postChatName = trim(toLower(params.chatName))
-        const preChatName = user.chatName
+        const preChatName = trim(toLower(user.chatName))
         if (preChatName !== postChatName) {
-            const existUser = await UserModel.findOne({ chatName: postChatName }).exec()
+            const existUser = await UserModel.findOne({ chatName: new RegExp(postChatName, 'i'), removed: false }).exec()
             if (existUser) {
                 throw new BizException(
                     AuthErrors.registration_chatname_exist_error,
@@ -71,6 +71,45 @@ export default class UserService {
         user.set('firstName', params.firstName || user.firstName, String)
         user.set('lastName', params.lastName || user.lastName, String)
         user.set('chatName', params.chatName || user.chatName, String)
+        user.save()
+        return user
+    }
+
+    public static updateProfileByAdmin = async (key: string, params: AdminUpdateProfileDto, options: { req: AuthenticationRequest }) => {
+        const user = await UserModel.findOne({ key }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
+        }
+        const postChatName = trim(toLower(params.chatName))
+        const preChatName = trim(toLower(user.chatName))
+        if (preChatName !== postChatName) {
+            const existUser = await UserModel.findOne({ chatName: new RegExp(postChatName, 'i'), removed: false }).exec()
+            if (existUser) {
+                throw new BizException(
+                    AuthErrors.registration_chatname_exist_error,
+                    new ErrorContext('user.service', 'updateProfile', { chatName: postChatName })
+                )
+            }
+        }
+        const email = trim(toLower(params.email))
+        if (email) {
+            const existingUser = await UserModel.findOne({ email, removed: false }).exec()
+            if (existingUser && existingUser.key !== user.key) {
+                throw new BizException(AuthErrors.registration_email_exists_error, new ErrorContext('user.service', 'updateEmail', { email }))
+            }
+        }
+        const phone = await stripPhoneNumber(params.phone)
+        if (phone) {
+            const existingUser = await UserModel.findOne({ phone, removed: false }).exec()
+            if (existingUser && existingUser.key !== user.key) {
+                throw new BizException(AuthErrors.registration_phone_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
+            }
+        }
+        user.set('firstName', params.firstName || user.firstName, String)
+        user.set('lastName', params.lastName || user.lastName, String)
+        user.set('chatName', params.chatName || user.chatName, String)
+        user.set('phone', phone || user.phone, String)
+        user.set('email', email || user.email, String)
         user.save()
         return user
     }

@@ -59,6 +59,32 @@ export class UpdateProfileDto {
     public chatName: string
 }
 
+export class AdminUpdateProfileDto {
+    @IsOptional()
+    @IsString()
+    @Length(2, 18)
+    public firstName: string
+
+    @IsOptional()
+    @IsString()
+    @Length(2, 18)
+    public lastName: string
+
+    // TODO: check uniq nickname
+    @IsOptional()
+    @IsString()
+    @Length(2, 8)
+    public chatName: string
+
+    @IsOptional()
+    public phone: string
+
+    @IsString()
+    @IsOptional()
+    @IsEmail()
+    public email: string
+}
+
 export class SetupTotpDto {
     @IsString()
     @Length(6, 6)

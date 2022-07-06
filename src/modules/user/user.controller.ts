@@ -6,6 +6,7 @@ import { requireAuth } from '@common/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import {
+    AdminUpdateProfileDto,
     SetupCredentialsDto,
     SetupTotpDto,
     UpdateEmailDto,
@@ -54,6 +55,14 @@ class UserController implements IController {
         this.router.post(`${this.path}/:key/security`, requireAuth, validationMiddleware(UpdateSecurityDto), asyncHandler(this.updateSecurity))
         this.router.get(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(this.getUserList))
 
+        this.router.put(
+            `${this.path}/:key/profile/admin`,
+            requireAuth,
+            requireAdmin(),
+            validationMiddleware(AdminUpdateProfileDto),
+            asyncHandler(this.updateProfileByAdmin)
+        )
+
         // TODO - admin can reset password and pin , generate a temp password , then user can reset new password and new pin.
         // - please check https://github.com/pellartech/pellar-federation/blob/xif_develop/server/services/user.service.js#L556
         this.router.post(`${this.path}/:key/credentials/reset`, requireAuth, requireAdmin(), asyncHandler(this.resetCredentials))
@@ -83,6 +92,13 @@ class UserController implements IController {
         const key = req.params.key
         const userData: UpdateProfileDto = req.body
         const data = await UserService.updateProfile(key, userData, { req })
+        return res.send(data)
+    }
+
+    private updateProfileByAdmin = async (req: AuthenticationRequest, res: Response) => {
+        const key = req.params.key
+        const userData: AdminUpdateProfileDto = req.body
+        const data = await UserService.updateProfileByAdmin(key, userData, { req })
         return res.send(data)
     }
 
