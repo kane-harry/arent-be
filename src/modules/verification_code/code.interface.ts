@@ -8,6 +8,7 @@ export enum CodeType {
     VerifyEmail = 'VerifyEmail',
     VerifyPhone = 'VerifyPhone',
     ForgotPassword = 'ForgotPassword',
+    SMSForgotPassword = 'SMSForgotPassword',
     ForgotPin = 'ForgotPin',
     SMS = 'SMS',
     SMSLogin = 'SMSLogin',

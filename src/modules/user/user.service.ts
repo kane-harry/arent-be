@@ -374,7 +374,7 @@ export default class UserService {
         await VerificationCodeService.verifyCode({ code: params.code, codeType: CodeType.PhoneUpdate, owner: phone })
         user?.set('phone', phone, String)
         user?.save()
-        // TODO - 1. force logout & send sms notifications
+        // logout & send sms notifications
         const subject = 'Welcome to LightLink'
         const html = 'You have successfully updated your phone!'
         await sendSms(subject, html, html, phone)
@@ -395,7 +395,7 @@ export default class UserService {
         await VerificationCodeService.verifyCode({ code: params.code, codeType: CodeType.EmailUpdate, owner: email })
         user?.set('email', email, String)
         user?.save()
-        // TODO - 1. force logout & send email notifications
+        // logout & send email notifications
         const subject = 'Welcome to LightLink'
         const html = 'You have successfully updated your email!'
         await sendEmail(subject, html, html, email)

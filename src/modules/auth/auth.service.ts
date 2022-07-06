@@ -21,6 +21,8 @@ import { getPhoneInfo, stripPhoneNumber } from '@common/phone-helper'
 import UserService from '@modules/user/user.service'
 import { generateUnixTimestamp } from '@common/utility'
 import { verifyToken } from '@utils/totp'
+import sendEmail from '@common/email'
+import sendSms from '@common/sms'
 
 export default class AuthService {
     static async verifyRegistration(userData: CreateUserDto, options?: any) {
@@ -258,7 +260,7 @@ export default class AuthService {
             const email = toLower(trim(params.owner))
             user = await UserModel.findOne({ email }).select('key email phone').exec()
         } else if (params.type === 'phone') {
-            const phone = stripPhoneNumber(params.owner)
+            const phone = await stripPhoneNumber(params.owner)
             user = await UserModel.findOne({ phone }).select('key email phone').exec()
         }
 
@@ -266,7 +268,10 @@ export default class AuthService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPassword', {}))
         }
 
-        await VerificationCodeService.generateCode({ owner: user.key, codeType: CodeType.ForgotPassword })
+        await VerificationCodeService.generateCode({
+            owner: params.owner,
+            codeType: params.type === 'email' ? CodeType.ForgotPassword : CodeType.SMSForgotPassword
+        })
         // TODO - send code to user via email and phone
         // Pseudocode
         // if(params.type === 'email'){
@@ -294,16 +299,28 @@ export default class AuthService {
         if (!isPinCodeMatching) {
             throw new BizException(AuthErrors.invalid_pin_code_error, new ErrorContext('auth.service', 'resetPassword', {}))
         }
-        const { success } = await VerificationCodeService.verifyCode({ owner: user.key, code: params.code, codeType: CodeType.ForgotPassword })
+        const { success } = await VerificationCodeService.verifyCode({
+            owner: params.owner,
+            code: params.code,
+            codeType: params.type === 'email' ? CodeType.ForgotPassword : CodeType.SMSForgotPassword
+        })
         if (success) {
             const newPassHashed = await bcrypt.hash(params.password, 10)
             user.set('password', newPassHashed, String)
             user.save()
 
-            // TODO - send notifications user via email and phone
-            // Pseudocode
+            // logout
+            await AuthService.refreshTokenVersion(user.key)
 
-            // emailService.sendForgotPasswordEmail(context)
+            const subject = 'Welcome to LightLink'
+            const html = 'You have successfully reset your password!'
+
+            // send notifications user via email and phone
+            if (params.type === 'email') {
+                await sendEmail(subject, html, html, user.email)
+            } else if (params.type === 'phone') {
+                await sendSms(subject, html, html, user.phone)
+            }
         }
         return { success }
     }

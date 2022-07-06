@@ -89,6 +89,7 @@ export default class VerificationCodeService {
         case CodeType.PhoneUpdate:
         case CodeType.SMSLogin:
         case CodeType.SMS:
+        case CodeType.SMSForgotPassword:
             await sendSms(subject, html, html, owner)
             break
         default:
