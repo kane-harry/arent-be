@@ -8,9 +8,9 @@ import { VerificationCode } from './code.model'
 import UserModel from '@modules/user/user.model'
 import { CodeType } from './code.interface'
 import crypto from 'crypto'
-import sendEmail from '@common/email'
-import sendSms from '@common/sms'
-import { stripPhoneNumber } from '@common/phone-helper'
+import sendEmail from '@utils/email'
+import sendSms from '@utils/sms'
+import { stripPhoneNumber } from '@utils/phone-helper'
 
 export default class VerificationCodeService {
     static async generateCode(params: CreateCodeDto) {

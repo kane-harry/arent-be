@@ -32,7 +32,6 @@
     "paths": {
       "@config": ["config/index"],
       "@config/*": ["config/*"],
-      "@common/*": ["common/*"],
       "@exceptions/*": ["exceptions/*"],
       "@interfaces/*": ["interfaces/*"],
       "@middlewares/*": ["middlewares/*"],

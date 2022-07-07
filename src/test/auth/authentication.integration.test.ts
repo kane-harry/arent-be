@@ -7,7 +7,7 @@ import { CodeType } from '@modules/verification_code/code.interface'
 import { getVerificationCode, initDataForUser, userData } from '@app/test/init/authenticate'
 import { config } from '@config'
 import SettingService from '@modules/setting/setting.service'
-import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@common/phone-helper'
+import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@utils/phone-helper'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai

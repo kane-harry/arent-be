@@ -1,8 +1,8 @@
-import asyncHandler from '@common/asyncHandler'
+import asyncHandler from '@utils/asyncHandler'
 import { Request, Router, Response } from 'express'
 import IController from '@interfaces/controller.interface'
 import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
-import { requireAuth } from '@common/authCheck'
+import { requireAuth } from '@utils/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import {

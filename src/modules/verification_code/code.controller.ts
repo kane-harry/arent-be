@@ -1,4 +1,4 @@
-import asyncHandler from '@common/asyncHandler'
+import asyncHandler from '@utils/asyncHandler'
 import { Request, Response, Router } from 'express'
 import validationMiddleware from '@middlewares/validation.middleware'
 import IController from '@interfaces/controller.interface'

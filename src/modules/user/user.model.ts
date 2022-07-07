@@ -1,4 +1,4 @@
-import { generateUnixTimestamp } from '@common/utility'
+import { generateUnixTimestamp } from '@utils/utility'
 import moment from 'moment'
 import { Schema, model } from 'mongoose'
 import { IUser, UserStatus } from './user.interface'

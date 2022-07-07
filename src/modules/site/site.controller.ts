@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express'
-import asyncHandler from '@common/asyncHandler'
+import asyncHandler from '@utils/asyncHandler'
 import IController from '@interfaces/controller.interface'
 import SiteService from './site.service'
 

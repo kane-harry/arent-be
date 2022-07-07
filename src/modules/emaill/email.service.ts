@@ -1,5 +1,5 @@
 import { config } from '@config'
-import sendEmail from '@common/email'
+import sendEmail from '@utils/email'
 import { ContextMailDto } from './email.dto'
 const EmailTemplates = require('swig-email-templates')
 
