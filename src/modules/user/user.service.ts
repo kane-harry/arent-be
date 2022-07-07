@@ -309,8 +309,8 @@ export default class UserService {
         }
 
         user?.set('status', params.status, String)
-        // TODO - refresh token version - force logout
         user?.save()
+        await AuthService.updateTokenVersion(userKey)
 
         return user
     }
@@ -323,8 +323,8 @@ export default class UserService {
         }
 
         user?.set('removed', true, Boolean)
-        // TODO - refresh token version - force logout
         user?.save()
+        await AuthService.updateTokenVersion(userKey)
 
         return user
     }
@@ -340,8 +340,8 @@ export default class UserService {
         }
         user?.set('totpSecret', null, null)
         user?.set('totpSetup', false, Boolean)
-        // TODO - refresh token version - force logout
         user?.save()
+        await AuthService.updateTokenVersion(userKey)
 
         return user
     }
@@ -354,8 +354,8 @@ export default class UserService {
         }
 
         user?.set('role', Number(params.role), Number)
-        // TODO - refresh token version - force logout
         user?.save()
+        await AuthService.updateTokenVersion(userKey)
 
         return user
     }
