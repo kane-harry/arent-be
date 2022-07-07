@@ -30,6 +30,7 @@ import sendEmail from '@common/email'
 import { AuthModel } from '@modules/auth/auth.model'
 import sendSms from '@common/sms'
 import AuthService from '@modules/auth/auth.service'
+import EmailService from '@modules/emaill/email.service'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -396,9 +397,7 @@ export default class UserService {
         user?.set('email', email, String)
         user?.save()
         // logout & send email notifications
-        const subject = 'Welcome to LightLink'
-        const html = 'You have successfully updated your email!'
-        await sendEmail(subject, html, html, email)
+        await EmailService.sendEmailUpdateComplete({ address: email })
         await AuthService.updateTokenVersion(userKey)
         return { success: true }
     }

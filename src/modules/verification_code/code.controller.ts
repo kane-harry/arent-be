@@ -4,6 +4,7 @@ import validationMiddleware from '@middlewares/validation.middleware'
 import IController from '@interfaces/controller.interface'
 import { CreateCodeDto, VerifyCodeDto } from './code.dto'
 import VerificationCodeService from './code.service'
+import EmailService from '@modules/emaill/email.service'
 import { CodeType } from './code.interface'
 import BizException from '@exceptions/biz.exception'
 import { VerificationCodeErrors } from '@exceptions/custom.error'
@@ -34,6 +35,19 @@ export default class VerificationCodeController implements IController {
         }
 
         const data = await VerificationCodeService.generateCode(params)
+
+        if (data.type === 'email') {
+            switch (params.codeType) {
+            case CodeType.EmailRegistration:
+                await EmailService.sendRegistrationVerificationCode({ address: params.owner, code: data.code })
+                break
+            case CodeType.EmailUpdate:
+                await EmailService.sendEmailUpdateCode({ address: params.owner, code: data.code })
+                break
+            default:
+                break
+            }
+        }
 
         return res.send(data)
     }

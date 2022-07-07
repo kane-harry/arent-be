@@ -3,7 +3,7 @@ import { config } from '@config'
 async function sendEmail(subject: string, text: string, html: string, address: string) {
     if (process.env.NODE_ENV !== 'production') {
         console.log(`sending email to ${address}, content: ${html}`)
-        return
+        // return
     }
 
     const sgMail = require('@sendgrid/mail')

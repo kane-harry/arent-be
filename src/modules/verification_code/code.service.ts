@@ -84,14 +84,7 @@ export default class VerificationCodeService {
             await mode.save()
         }
 
-        // TODO - create an email service to send emails
-        // emailService.sendRegistrationVerificationCode(context);
-        // emailService.sendChangeEmailVerificationCode(context);
-        // or
-        // sms.send(sms_subject, sms_contents, phone)
-
         const subject = 'Welcome to LightLink'
-        const text = ''
         const html = `This is your ${params.codeType} verification code: <b>${code}</b>`
         switch (params.codeType) {
         case CodeType.PhoneRegistration:
@@ -103,8 +96,7 @@ export default class VerificationCodeService {
             await sendSms(subject, html, html, owner)
             break
         default:
-            await sendEmail(subject, html, html, owner)
-            break
+            return { success: true, code: code, type: 'email' }
         }
 
         if (process.env.NODE_ENV === 'development') {

@@ -46,10 +46,13 @@ export const config = {
     },
 
     emailNotification: {
+        EMAIL_PARAM_CLIENT_NAME: process.env.EMAIL_PARAM_CLIENT_NAME || 'ABC Inc',
         fromAddress: String(process.env.EMAIL_NOTIFICATION_FROM_ADDRESS || 'tech@pellartech.com'),
         toAddress: String(process.env.EMAIL_NOTIFICATION_TO_ADDRESS || 'tech@pellartech.com'),
         emailSendgridApiKey: String(process.env.EMAIL_SENDGRID_API_KEY)
     },
+
+    EMAIL_TEMPLATES_ROOT_PATH: 'src/templates',
 
     redis: {
         enabled: Boolean(process.env.REDIS_ENABLED || false),

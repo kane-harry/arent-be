@@ -23,6 +23,7 @@ import { generateUnixTimestamp } from '@common/utility'
 import { verifyToken } from '@utils/totp'
 import sendEmail from '@common/email'
 import sendSms from '@common/sms'
+import EmailService from '@modules/emaill/email.service'
 
 export default class AuthService {
     static async verifyRegistration(userData: CreateUserDto, options?: any) {
@@ -268,10 +269,14 @@ export default class AuthService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPassword', {}))
         }
 
-        await VerificationCodeService.generateCode({
+        const res = await VerificationCodeService.generateCode({
             owner: params.owner,
             codeType: params.type === 'email' ? CodeType.EmailForgotPassword : CodeType.SMSForgotPassword
         })
+
+        if (res.type === 'email') {
+            await EmailService.sendPasswordResetCode({ address: params.owner, code: res.code })
+        }
 
         return { success: true }
     }
@@ -310,7 +315,7 @@ export default class AuthService {
 
             // send notifications user via email and phone
             if (params.type === 'email') {
-                await sendEmail(subject, html, html, user.email)
+                await EmailService.sendPasswordResetComplete({ address: user.email })
             } else if (params.type === 'phone') {
                 await sendSms(subject, html, html, user.phone)
             }
@@ -332,10 +337,14 @@ export default class AuthService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
         }
 
-        await VerificationCodeService.generateCode({
+        const res = await VerificationCodeService.generateCode({
             owner: params.owner,
             codeType: params.type === 'email' ? CodeType.EmailForgotPin : CodeType.SMSForgotPin
         })
+
+        if (res.type === 'email') {
+            await EmailService.sendPinResetCode({ address: params.owner, code: res.code })
+        }
 
         return { success: true }
     }
@@ -375,7 +384,7 @@ export default class AuthService {
             const html = 'You have successfully reset your pin!'
 
             if (params.type === 'email') {
-                await sendEmail(subject, html, html, user.email)
+                await EmailService.sendPinResetComplete({ address: user.email })
             } else if (params.type === 'phone') {
                 await sendSms(subject, html, html, user.phone)
             }
@@ -444,6 +453,9 @@ export default class AuthService {
         switch (user.mfaSettings.type) {
         case MFAType.EMAIL: {
             const data: any = await VerificationCodeService.generateCode({ codeType: CodeType.EmailLogIn, owner: user.email })
+            if (data.type === 'email') {
+                await EmailService.sendLoginVerificationCode({ address: user.email, code: data.code })
+            }
             data.message = 'Please check your email for login code'
             return data
         }
