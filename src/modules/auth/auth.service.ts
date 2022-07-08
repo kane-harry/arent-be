@@ -25,6 +25,7 @@ import EmailService from '@modules/emaill/email.service'
 import { SecurityActions } from '@modules/user_security/user_security.interface'
 import UserHistoryModel from '@modules/user_history/user_history.model'
 import { UserHistoryActions } from '@modules/user_history/user_history.interface'
+import { AuthenticationRequest } from '@middlewares/request.middleware'
 
 export default class AuthService {
     static async verifyRegistration(userData: CreateUserDto, options?: any) {
@@ -301,14 +302,14 @@ export default class AuthService {
         return { success: true }
     }
 
-    static async resetPassword(params: ResetPasswordDto) {
+    static async resetPassword(params: ResetPasswordDto, options: { req: AuthenticationRequest }) {
         let user
         if (params.type === 'email') {
             const email = toLower(trim(params.owner))
-            user = await UserModel.findOne({ email }).select('key email phone pin').exec()
+            user = await UserModel.findOne({ email }).select('key email phone pin password').exec()
         } else if (params.type === 'phone') {
             const phone = await stripPhoneNumber(params.owner)
-            user = await UserModel.findOne({ phone }).select('key email phone pin').exec()
+            user = await UserModel.findOne({ phone }).select('key email phone pin password').exec()
         }
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'resetPassword', {}))
@@ -324,6 +325,23 @@ export default class AuthService {
         })
         if (success) {
             const newPassHashed = await bcrypt.hash(params.password, 10)
+
+            // log
+            new UserHistoryModel({
+                key: crypto.randomBytes(16).toString('hex'),
+                userKey: user.key,
+                action: UserHistoryActions.ResetPassword,
+                agent: options?.req.agent,
+                country: user.country,
+                ipAddress: options?.req.ip_address,
+                preData: {
+                    password: user.password
+                },
+                postData: {
+                    pasword: newPassHashed
+                }
+            }).save()
+
             user.set('password', newPassHashed, String)
             user.save()
 
@@ -369,7 +387,7 @@ export default class AuthService {
         return { success: true }
     }
 
-    static async resetPin(params: ResetPinDto) {
+    static async resetPin(params: ResetPinDto, options: { req: AuthenticationRequest }) {
         let user
         if (params.type === 'email') {
             const email = toLower(trim(params.owner))
@@ -383,7 +401,7 @@ export default class AuthService {
         }
         const isPasswordMatching = await bcrypt.compare(params.password, user.get('password', null, { getters: false }))
         if (!isPasswordMatching) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', {}))
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'resetPin', {}))
         }
 
         const { success } = await VerificationCodeService.verifyCode({
@@ -393,6 +411,23 @@ export default class AuthService {
         })
         if (success) {
             const newPin = await bcrypt.hash(params.pin, 10)
+
+            // log
+            new UserHistoryModel({
+                key: crypto.randomBytes(16).toString('hex'),
+                userKey: user.key,
+                action: UserHistoryActions.ResetPin,
+                agent: options?.req.agent,
+                country: user.country,
+                ipAddress: options?.req.ip_address,
+                preData: {
+                    pin: user.pin
+                },
+                postData: {
+                    pin: newPin
+                }
+            }).save()
+
             user.set('pin', newPin, String)
             user.save()
 

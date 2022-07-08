@@ -25,7 +25,6 @@ export default class VerificationCodeController implements IController {
 
     private generateCode = async (req: Request, res: Response) => {
         const params: CreateCodeDto = req.body
-        console.log('params:', params)
 
         const allowTypes = [CodeType.EmailRegistration, CodeType.PhoneRegistration, CodeType.EmailUpdate, CodeType.PhoneUpdate]
         if (!allowTypes.includes(params.codeType)) {

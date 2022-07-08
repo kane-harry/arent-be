@@ -76,9 +76,9 @@ export default class AuthController implements IController {
         return res.send(data)
     }
 
-    private resetPassword = async (req: Request, res: Response) => {
+    private resetPassword = async (req: AuthenticationRequest, res: Response) => {
         const params: ResetPasswordDto = req.body
-        const data = await AuthService.resetPassword(params)
+        const data = await AuthService.resetPassword(params, { req })
 
         return res.send(data)
     }
@@ -92,7 +92,7 @@ export default class AuthController implements IController {
 
     private resetPin = async (req: AuthenticationRequest, res: Response) => {
         const params: ResetPinDto = req.body
-        const data = await AuthService.resetPin(params)
+        const data = await AuthService.resetPin(params, { req })
 
         return res.send(data)
     }
