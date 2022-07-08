@@ -127,7 +127,7 @@ export default class VerificationCodeService {
             )
         }
         const currentTs = moment().unix()
-        if (codeData.verified || codeData.expiryTimestamp < currentTs) {
+        if (codeData.expiryTimestamp < currentTs || codeData.verified) {
             throw new BizException(
                 VerificationCodeErrors.verification_code_invalid_error,
                 new ErrorContext('verification_code.service', 'generateCode', { code: params.code })
