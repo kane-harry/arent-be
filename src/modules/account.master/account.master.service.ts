@@ -8,6 +8,9 @@ import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import { MintDto } from '@modules/account/account.dto'
+import AdminLogModel from '@modules/admin_logs/admin_log.model'
+import { AdminLogsActions, AdminLogsSections } from '@modules/admin_logs/admin_log.interface'
+import { AuthenticationRequest } from '@middlewares/request.middleware'
 
 export default class AccountMasterService {
     static async initMasterAccounts() {
@@ -109,7 +112,7 @@ export default class AccountMasterService {
         return items
     }
 
-    static async mintMasterAccount(key: string, params: MintDto) {
+    static async mintMasterAccount(key: string, params: MintDto, options: { req: AuthenticationRequest }) {
         const account = await AccountModel.findOne({ key }).select('-keyStore -salt').exec()
         if (!account) {
             throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
@@ -123,7 +126,19 @@ export default class AccountMasterService {
             notes: params.notes,
             type: params.type || 'MINT'
         })
+
         // todo : mint log
+        new AdminLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            operator: {
+                key: options.req.user.key,
+                email: options.req.user.email
+            },
+            userKey: account.userKey,
+            action: AdminLogsActions.MintMasterAccount,
+            section: AdminLogsSections.Account
+        }).save()
+
         return data
     }
 }

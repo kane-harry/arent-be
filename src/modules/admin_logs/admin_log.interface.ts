@@ -6,12 +6,14 @@ export enum AdminLogsActions {
     UnlockUser = 'UnlockUser',
     RemoveUser = 'RemoveUser',
     ResetTOPTUser = 'ResetTOPTUser',
-    UpdateRoleUser = 'UpdateRoleUser'
+    UpdateRoleUser = 'UpdateRoleUser',
+    MintMasterAccount = 'MintMasterAccount'
 }
 
 export enum AdminLogsSections {
     User = 'User',
-    Transaction = 'Transaction'
+    Transaction = 'Transaction',
+    Account = 'Account'
 }
 
 export interface IAdminLog extends IBaseModel {

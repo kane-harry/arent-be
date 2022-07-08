@@ -6,6 +6,7 @@ import validationMiddleware from '@middlewares/validation.middleware'
 import AccountMasterService from './account.master.service'
 import { requireAuth } from '@utils/authCheck'
 import { requireAdmin } from '@config/role'
+import { AuthenticationRequest } from '@middlewares/request.middleware'
 
 class AccountController implements IController {
     public path = '/master/accounts'
@@ -31,10 +32,10 @@ class AccountController implements IController {
         return res.json(data)
     }
 
-    private async mintMasterAccount(req: Request, res: Response) {
+    private async mintMasterAccount(req: AuthenticationRequest, res: Response) {
         const key = req.params.key
         const params: MintDto = req.body
-        const data = await AccountMasterService.mintMasterAccount(key, params)
+        const data = await AccountMasterService.mintMasterAccount(key, params, { req })
         return res.json(data)
     }
 }
