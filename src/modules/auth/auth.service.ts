@@ -222,7 +222,7 @@ export default class AuthService {
         user.set('loginCount', 0, Number)
         user.set('lockedTimestamp', currentTimestamp, Number)
         user.set('tokenVersion', currentTimestamp, Number)
-        user.save()
+        await user.save()
 
         new UserSecurityModel({
             key: crypto.randomBytes(16).toString('hex'),
