@@ -28,6 +28,11 @@ import VerificationCodeService from '@modules/verification_code/code.service'
 import sendSms from '@utils/sms'
 import AuthService from '@modules/auth/auth.service'
 import EmailService from '@modules/emaill/email.service'
+import UserHistoryModel from '@modules/user_history/user_history.model'
+import { UserHistoryActions } from '@modules/user_history/user_history.interface'
+import AdminLogModel from '@modules/admin_logs/admin_log.model'
+import crypto from 'crypto'
+import { AdminLogsActions, AdminLogsSections } from '@modules/admin_logs/admin_log.interface'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -50,8 +55,8 @@ export default class UserService {
         return avatars
     }
 
-    public static updateProfile = async (key: string, params: UpdateProfileDto, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key }).exec()
+    public static updateProfile = async (params: UpdateProfileDto, options: { req: AuthenticationRequest }) => {
+        const user = await UserModel.findOne({ key: options.req.user.key }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
@@ -66,10 +71,33 @@ export default class UserService {
                 )
             }
         }
+
+        // create log
+        new UserHistoryModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            userKey: user.key,
+            action: UserHistoryActions.UpdateProfile,
+            agent: options?.req.agent,
+            country: user.country,
+            ipAddress: options?.req.ip_address,
+            preData: {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                chatName: user.chatName
+            },
+            postData: {
+                firstName: params.firstName,
+                lastName: params.lastName,
+                chatName: params.chatName
+            }
+        }).save()
+
+        // save
         user.set('firstName', params.firstName || user.firstName, String)
         user.set('lastName', params.lastName || user.lastName, String)
         user.set('chatName', params.chatName || user.chatName, String)
         user.save()
+
         return user
     }
 
@@ -103,12 +131,41 @@ export default class UserService {
                 throw new BizException(AuthErrors.registration_phone_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
             }
         }
+
+        // create log
+        new AdminLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            operator: {
+                key: options.req.user.key,
+                email: options.req.user.email
+            },
+            userKey: user.key,
+            action: AdminLogsActions.UpdateUser,
+            section: AdminLogsSections.User,
+            preData: {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                chatName: user.chatName,
+                phone: user.phone,
+                email: user.email
+            },
+            postData: {
+                firstName: params.firstName,
+                lastName: params.lastName,
+                chatName: params.chatName,
+                phone: phone || user.phone,
+                email: email || user.email
+            }
+        }).save()
+
+        // save
         user.set('firstName', params.firstName || user.firstName, String)
         user.set('lastName', params.lastName || user.lastName, String)
         user.set('chatName', params.chatName || user.chatName, String)
         user.set('phone', phone || user.phone, String)
         user.set('email', email || user.email, String)
         user.save()
+
         return user
     }
 
@@ -298,12 +355,30 @@ export default class UserService {
         return { success: true }
     }
 
-    static async updateUserStatus(userKey: string, params: UpdateUserStatusDto) {
+    static async updateUserStatus(userKey: string, params: UpdateUserStatusDto, options: { req: AuthenticationRequest }) {
         const user = await UserModel.findOne({ key: userKey }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'lockUser', {}))
         }
+
+        // create log
+        new AdminLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            operator: {
+                key: options.req.user.key,
+                email: options.req.user.email
+            },
+            userKey: user.key,
+            action: params.status + 'User',
+            section: AdminLogsSections.User,
+            preData: {
+                status: user.status
+            },
+            postData: {
+                status: params.status
+            }
+        }).save()
 
         user?.set('status', params.status, String)
         user?.save()
@@ -312,12 +387,30 @@ export default class UserService {
         return user
     }
 
-    static async removeUser(userKey: string) {
+    static async removeUser(userKey: string, options: { req: AuthenticationRequest }) {
         const user = await UserModel.findOne({ key: userKey }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'removeUser', {}))
         }
+
+        // create log
+        new AdminLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            operator: {
+                key: options.req.user.key,
+                email: options.req.user.email
+            },
+            userKey: user.key,
+            action: AdminLogsActions.RemoveUser,
+            section: AdminLogsSections.User,
+            preData: {
+                removed: user.removed
+            },
+            postData: {
+                removed: true
+            }
+        }).save()
 
         user?.set('removed', true, Boolean)
         user?.save()
@@ -326,7 +419,7 @@ export default class UserService {
         return user
     }
 
-    static async resetTotp(userKey: string) {
+    static async resetTotp(userKey: string, options: { req: AuthenticationRequest }) {
         const user = await UserModel.findOne({ key: userKey }).exec()
 
         if (!user) {
@@ -335,6 +428,27 @@ export default class UserService {
         if (user.mfaSettings.type === MFAType.TOTP) {
             user?.set('mfaSettings.type', MFAType.EMAIL, String)
         }
+
+        // create log
+        new AdminLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            operator: {
+                key: options.req.user.key,
+                email: options.req.user.email
+            },
+            userKey: user.key,
+            action: AdminLogsActions.ResetTOPTUser,
+            section: AdminLogsSections.User,
+            preData: {
+                totpSecret: user.totpSecret,
+                totpSetup: user.totpSetup
+            },
+            postData: {
+                totpSecret: null,
+                totpSetup: false
+            }
+        }).save()
+
         user?.set('totpSecret', null, null)
         user?.set('totpSetup', false, Boolean)
         user?.save()
@@ -343,12 +457,30 @@ export default class UserService {
         return user
     }
 
-    static async updateUserRole(userKey: string, params: UpdateUserRoleDto) {
+    static async updateUserRole(userKey: string, params: UpdateUserRoleDto, options: { req: AuthenticationRequest }) {
         const user = await UserModel.findOne({ key: userKey }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUserRole', {}))
         }
+
+        // create log
+        new AdminLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            operator: {
+                key: options.req.user.key,
+                email: options.req.user.email
+            },
+            userKey: user.key,
+            action: AdminLogsActions.UpdateRoleUser,
+            section: AdminLogsSections.User,
+            preData: {
+                role: user.role
+            },
+            postData: {
+                role: Number(params.role)
+            }
+        }).save()
 
         user?.set('role', Number(params.role), Number)
         user?.save()
@@ -370,8 +502,27 @@ export default class UserService {
             throw new BizException(AuthErrors.registration_phone_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
         }
         await VerificationCodeService.verifyCode({ code: params.code, codeType: CodeType.PhoneUpdate, owner: phone })
+
+        // create log
+        new UserHistoryModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            userKey: user.key,
+            action: UserHistoryActions.UpdatePhone,
+            agent: options?.req.agent,
+            country: user.country,
+            ipAddress: options?.req.ip_address,
+            preData: {
+                phone: user.phone
+            },
+            postData: {
+                phone: phone
+            }
+        }).save()
+
+        // save
         user?.set('phone', phone, String)
         user?.save()
+
         // logout & send sms notifications
         const subject = 'Welcome to LightLink'
         const html = 'You have successfully updated your phone!'
@@ -391,8 +542,27 @@ export default class UserService {
             throw new BizException(AuthErrors.registration_email_exists_error, new ErrorContext('user.service', 'updateEmail', { email }))
         }
         await VerificationCodeService.verifyCode({ code: params.code, codeType: CodeType.EmailUpdate, owner: email })
+
+        // create log
+        new UserHistoryModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            userKey: user.key,
+            action: UserHistoryActions.UpdateEmail,
+            agent: options?.req.agent,
+            country: user.country,
+            ipAddress: options?.req.ip_address,
+            preData: {
+                email: user.email
+            },
+            postData: {
+                email: email
+            }
+        }).save()
+
+        // save
         user?.set('email', email, String)
         user?.save()
+
         // logout & send email notifications
         await EmailService.sendEmailUpdateComplete({ address: email })
         await AuthService.updateTokenVersion(userKey)

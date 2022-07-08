@@ -10,8 +10,7 @@ import { VerificationCode } from '@modules/verification_code/code.model'
 import { CodeType } from '@modules/verification_code/code.interface'
 import { AuthErrors } from '@exceptions/custom.error'
 import VerificationCodeService from '@modules/verification_code/code.service'
-import UserLogModel from '@modules/user_logs/user_log.model'
-import { UserActions } from '@modules/user_logs/user_log.interface'
+import UserSecurityModel from '@modules/user_security/user_security.model'
 import AccountService from '@modules/account/account.service'
 import { AuthModel } from './auth.model'
 import { AuthTokenType, MFAType } from './auth.interface'
@@ -23,6 +22,9 @@ import { generateUnixTimestamp } from '@utils/utility'
 import { verifyToken } from '@utils/totp'
 import sendSms from '@utils/sms'
 import EmailService from '@modules/emaill/email.service'
+import { SecurityActions } from '@modules/user_security/user_security.interface'
+import UserHistoryModel from '@modules/user_history/user_history.model'
+import { UserHistoryActions } from '@modules/user_history/user_history.interface'
 
 export default class AuthService {
     static async verifyRegistration(userData: CreateUserDto, options?: any) {
@@ -97,6 +99,25 @@ export default class AuthService {
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)
+
+        // create log
+        new UserHistoryModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            userKey: mode.key,
+            action: UserHistoryActions.Register,
+            agent: options?.req.agent,
+            country: mode.country,
+            ipAddress: options?.req.ip_address,
+            preData: null,
+            postData: {
+                firstName: mode.firstName,
+                lastName: mode.lastName,
+                chatName: mode.chatName,
+                phone: mode.phone,
+                email: mode.email,
+                mfaSettings: mode.mfaSettings
+            }
+        }).save()
 
         options.forceLogin = true
         return this.logIn({ email: userData.email, password: userData.password, token: null }, options)
@@ -203,10 +224,10 @@ export default class AuthService {
         user.set('tokenVersion', currentTimestamp, Number)
         user.save()
 
-        new UserLogModel({
+        new UserSecurityModel({
             key: crypto.randomBytes(16).toString('hex'),
             userKey: user.key,
-            action: UserActions.Login,
+            action: SecurityActions.Login,
             agent: options?.req.agent,
             ipAddress: options?.req.ip_address
         }).save()

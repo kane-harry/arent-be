@@ -1,7 +1,7 @@
 import { Schema, model } from 'mongoose'
-import { IUserLog } from './user_log.interface'
+import { IUserHistory } from './user_history.interface'
 
-const userLogSchema = new Schema<IUserLog>(
+const userHistorySchema = new Schema<IUserHistory>(
     {
         key: { type: String, required: true, index: true, unique: true },
         userKey: {
@@ -11,6 +11,9 @@ const userLogSchema = new Schema<IUserLog>(
         ipAddress: {
             type: String,
             required: true
+        },
+        country: {
+            type: String
         },
         agent: {
             type: String,
@@ -32,4 +35,4 @@ const userLogSchema = new Schema<IUserLog>(
     }
 )
 
-export default model<IUserLog>('user_logs', userLogSchema)
+export default model<IUserHistory>('user_history', userHistorySchema)

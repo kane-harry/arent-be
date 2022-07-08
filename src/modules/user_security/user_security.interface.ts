@@ -1,6 +1,6 @@
 import IBaseModel from '@interfaces/base.model.interface'
 
-export enum UserActions {
+export enum SecurityActions {
     ResetPassword = 'ResetPassword',
     ForgotPassword = 'ForgotPassword',
     ResetPin = 'ResetPin',
@@ -10,12 +10,12 @@ export enum UserActions {
     UpdateUser = 'UpdateUser'
 }
 
-export interface IUserLog extends IBaseModel {
+export interface IUserSecurity extends IBaseModel {
     key: string
     userKey: string
     ipAddress: string
     agent: string
-    action: UserActions
+    action: SecurityActions
     preData: string
     postData: string
 }

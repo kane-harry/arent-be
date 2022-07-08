@@ -47,7 +47,7 @@ class UserController implements IController {
             asyncHandler(this.uploadAvatar)
         )
 
-        this.router.put(`${this.path}/:key/profile`, requireAuth, validationMiddleware(UpdateProfileDto), asyncHandler(this.updateProfile))
+        this.router.put(`${this.path}/profile`, requireAuth, validationMiddleware(UpdateProfileDto), asyncHandler(this.updateProfile))
         this.router.get(`${this.path}/:key/profile`, requireAuth, asyncHandler(this.getProfile))
         this.router.get(`${this.path}/:name/brief`, asyncHandler(this.getBriefByName)) // public route
         this.router.get(`${this.path}/:key/totp`, requireAuth, asyncHandler(this.getTotp))
@@ -89,9 +89,8 @@ class UserController implements IController {
     }
 
     private updateProfile = async (req: AuthenticationRequest, res: Response) => {
-        const key = req.params.key
         const userData: UpdateProfileDto = req.body
-        const data = await UserService.updateProfile(key, userData, { req })
+        const data = await UserService.updateProfile(userData, { req })
         return res.send(data)
     }
 
@@ -174,29 +173,29 @@ class UserController implements IController {
         return res.send(data)
     }
 
-    private async updateUserStatus(req: CustomRequest, res: Response) {
+    private async updateUserStatus(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
         const params: UpdateUserStatusDto = req.body
-        const data = await UserService.updateUserStatus(userKey, params)
+        const data = await UserService.updateUserStatus(userKey, params, { req })
         return res.json(data)
     }
 
-    private async removeUser(req: CustomRequest, res: Response) {
+    private async removeUser(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
-        const data = await UserService.removeUser(userKey)
+        const data = await UserService.removeUser(userKey, { req })
         return res.json(data)
     }
 
-    private async resetTotp(req: CustomRequest, res: Response) {
+    private async resetTotp(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
-        const data = await UserService.resetTotp(userKey)
+        const data = await UserService.resetTotp(userKey, { req })
         return res.json(data)
     }
 
-    private async updateUserRole(req: CustomRequest, res: Response) {
+    private async updateUserRole(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
         const params: UpdateUserRoleDto = req.body
-        const data = await UserService.updateUserRole(userKey, params)
+        const data = await UserService.updateUserRole(userKey, params, { req })
         return res.json(data)
     }
 
