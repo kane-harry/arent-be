@@ -295,7 +295,7 @@ export default class AuthService {
             codeType: params.type === 'email' ? CodeType.EmailForgotPassword : CodeType.SMSForgotPassword
         })
 
-        if (res.type === 'email') {
+        if (res.success) {
             await EmailService.sendPasswordResetCode({ address: params.owner, code: res.code })
         }
 
@@ -380,7 +380,7 @@ export default class AuthService {
             codeType: params.type === 'email' ? CodeType.EmailForgotPin : CodeType.SMSForgotPin
         })
 
-        if (res.type === 'email') {
+        if (res.success) {
             await EmailService.sendPinResetCode({ address: params.owner, code: res.code })
         }
 
