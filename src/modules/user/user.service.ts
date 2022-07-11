@@ -330,7 +330,7 @@ export default class UserService {
         user.set('changePasswordNextLoginCode', changePasswordNextLoginCode)
         user.set('changePasswordNextLoginTimestamp', changePasswordNextLoginTimestamp)
         user.set('tokenVersion', changePasswordNextLoginTimestamp)
-        user.set('mfaSettings.loginEnabled', false) // TODO : works ?
+        user.set('mfaSettings.loginEnabled', false)
         user.set('loginCount', 0)
         user.set('lockedTimestamp', 0)
         user.save()
@@ -345,7 +345,7 @@ export default class UserService {
         return { success: true }
     }
 
-    public static async setupCredentials(params: SetupCredentialsDto) {
+    public static async setupCredentials(params: SetupCredentialsDto, options: { req: AuthenticationRequest }) {
         const email = toLower(trim(params.email))
         const user = await UserModel.findOne({ email }).exec()
 
@@ -376,12 +376,26 @@ export default class UserService {
                 new ErrorContext('user.service', 'setupCredentials', { email })
             )
         }
+
+        // create log
+        new UserHistoryModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            userKey: user.key,
+            action: UserHistoryActions.SetupCredentials,
+            agent: options?.req.agent,
+            country: user.country,
+            ipAddress: options?.req.ip_address,
+            preData: {},
+            postData: {}
+        }).save()
+
         const newPassHashed = await bcrypt.hash(params.password, 10)
         user.set('password', newPassHashed, String)
 
         const newPinHashed = await bcrypt.hash(params.pin, 10)
         user.set('pin', newPinHashed, String)
         user.set('changePasswordNextLogin', false)
+        user.set('mfaSettings.loginEnabled', true)
         user.set('changePasswordNextLoginCode', '')
         user.set('changePasswordNextLoginTimestamp', 0)
         user.set('loginCount', 0)

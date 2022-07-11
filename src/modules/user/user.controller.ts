@@ -63,15 +63,8 @@ class UserController implements IController {
             asyncHandler(this.updateProfileByAdmin)
         )
 
-        // TODO - admin can reset password and pin , generate a temp password , then user can reset new password and new pin.
-        // - please check https://github.com/pellartech/pellar-federation/blob/xif_develop/server/services/user.service.js#L556
         this.router.post(`${this.path}/:key/credentials/reset`, requireAuth, requireAdmin(), asyncHandler(this.resetCredentials))
-        this.router.post(
-            `${this.path}/credentials/setup`,
-            requireAuth,
-            validationMiddleware(SetupCredentialsDto),
-            asyncHandler(this.setupCredentials)
-        )
+        this.router.post(`${this.path}/credentials/setup`, validationMiddleware(SetupCredentialsDto), asyncHandler(this.setupCredentials))
 
         this.router.post(`${this.path}/:key/status/update`, requireAuth, requireAdmin(), asyncHandler(this.updateUserStatus))
         this.router.post(`${this.path}/:key/remove`, requireAuth, requireAdmin(), asyncHandler(this.removeUser))
@@ -168,9 +161,9 @@ class UserController implements IController {
         return res.send(data)
     }
 
-    private setupCredentials = async (req: Request, res: Response) => {
+    private setupCredentials = async (req: AuthenticationRequest, res: Response) => {
         const params: SetupCredentialsDto = req.body
-        const data = await UserService.setupCredentials(params)
+        const data = await UserService.setupCredentials(params, { req })
         return res.send(data)
     }
 
