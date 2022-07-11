@@ -395,7 +395,6 @@ export default class UserService {
         const newPinHashed = await bcrypt.hash(params.pin, 10)
         user.set('pin', newPinHashed, String)
         user.set('changePasswordNextLogin', false)
-        user.set('mfaSettings.loginEnabled', true)
         user.set('changePasswordNextLoginCode', '')
         user.set('changePasswordNextLoginTimestamp', 0)
         user.set('loginCount', 0)
