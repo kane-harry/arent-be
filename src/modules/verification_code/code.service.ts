@@ -96,7 +96,7 @@ export default class VerificationCodeService {
             await sendSms(subject, html, html, owner)
             break
         default:
-            return { success: true, code: code, type: 'email' }
+            return { success: true }
         }
 
         if (process.env.NODE_ENV === 'development') {
@@ -127,7 +127,7 @@ export default class VerificationCodeService {
             )
         }
         const currentTs = moment().unix()
-        if (codeData.verified || codeData.expiryTimestamp < currentTs) {
+        if (codeData.expiryTimestamp < currentTs || codeData.verified) {
             throw new BizException(
                 VerificationCodeErrors.verification_code_invalid_error,
                 new ErrorContext('verification_code.service', 'generateCode', { code: params.code })
