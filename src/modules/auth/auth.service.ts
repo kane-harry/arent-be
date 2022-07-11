@@ -40,7 +40,7 @@ export default class AuthService {
                 )
             }
         }
-        const filter: any = { $or: [{ email: userData.email }] }
+        const filter: any = { $or: [{ email: userData.email }], removed: false }
         if (userData.phone) {
             filter.$or.push({ phone: userData.phone })
         }
@@ -238,7 +238,7 @@ export default class AuthService {
 
     static async refreshToken(options: { req: AuthenticationRequest }) {
         const currentTimestamp = generateUnixTimestamp()
-        const user = await UserModel.findOne({ key: options.req.user.key }).exec()
+        const user = await UserModel.findOne({ key: options.req.user.key, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'tokenVersion', {}))
         }
@@ -250,7 +250,7 @@ export default class AuthService {
     }
 
     static async updateTokenVersion(key: string, currentTimestamp: number) {
-        const user = await UserModel.findOne({ key }).exec()
+        const user = await UserModel.findOne({ key, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'tokenVersion', {}))
         }
@@ -260,7 +260,7 @@ export default class AuthService {
     }
 
     static async getCurrentUser(key: string) {
-        const user = await UserModel.findOne({ key }).exec()
+        const user = await UserModel.findOne({ key, removed: false }).exec()
         return user
     }
 
@@ -268,10 +268,10 @@ export default class AuthService {
         let user
         if (params.type === 'email') {
             const email = toLower(trim(params.owner))
-            user = await UserModel.findOne({ email }).select('key email phone').exec()
+            user = await UserModel.findOne({ email, removed: false }).select('key email phone').exec()
         } else if (params.type === 'phone') {
             const phone = await stripPhoneNumber(params.owner)
-            user = await UserModel.findOne({ phone }).select('key email phone').exec()
+            user = await UserModel.findOne({ phone, removed: false }).select('key email phone').exec()
         }
 
         if (!user) {
@@ -291,10 +291,10 @@ export default class AuthService {
         let user
         if (params.type === 'email') {
             const email = toLower(trim(params.owner))
-            user = await UserModel.findOne({ email }).select('key email phone pin password').exec()
+            user = await UserModel.findOne({ email, removed: false }).select('key email phone pin password').exec()
         } else if (params.type === 'phone') {
             const phone = await stripPhoneNumber(params.owner)
-            user = await UserModel.findOne({ phone }).select('key email phone pin password').exec()
+            user = await UserModel.findOne({ phone, removed: false }).select('key email phone pin password').exec()
         }
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'resetPassword', {}))
@@ -350,10 +350,10 @@ export default class AuthService {
         let user
         if (params.type === 'email') {
             const email = toLower(trim(params.owner))
-            user = await UserModel.findOne({ email }).select('key email phone').exec()
+            user = await UserModel.findOne({ email, removed: false }).select('key email phone').exec()
         } else if (params.type === 'phone') {
             const phone = await stripPhoneNumber(params.owner)
-            user = await UserModel.findOne({ phone }).select('key email phone').exec()
+            user = await UserModel.findOne({ phone, removed: false }).select('key email phone').exec()
         }
 
         if (!user) {
@@ -373,10 +373,10 @@ export default class AuthService {
         let user
         if (params.type === 'email') {
             const email = toLower(trim(params.owner))
-            user = await UserModel.findOne({ email }).select('key email phone password').exec()
+            user = await UserModel.findOne({ email, removed: false }).select('key email phone password').exec()
         } else if (params.type === 'phone') {
             const phone = await stripPhoneNumber(params.owner)
-            user = await UserModel.findOne({ phone }).select('key email phone password').exec()
+            user = await UserModel.findOne({ phone, removed: false }).select('key email phone password').exec()
         }
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'resetPin', {}))

@@ -14,8 +14,8 @@ export const config = {
         applicationName: String(process.env.APPLICATION_NAME || 'Pellar Federation'),
         defaultQueryPagesize: Number(process.env.DEFAULT_QUERY_PAGE_SIZE || 50),
         mongoUrl: String(process.env.MONGODB_URL),
-        primeToken: String(process.env.PRIME_TOKEN || 'LLA'),
-        primeTokens: String(process.env.PRIME_TOKENS || 'LLA,LLB'),
+        primeToken: String(process.env.PRIME_TOKEN || 'LL'),
+        primeTokens: String(process.env.PRIME_TOKENS || 'LL'),
         coinServerBaseUrl: String(process.env.COIN_SERVER_BASE_URL || 'http://localhost:3001'),
         coinServerSecrectKey: String(process.env.COIN_SERVER_SECRET_KEY || 'PELLAR-A5B57B456AC7A39E9EE24F353385C'),
         extTokens: [{ symbol: 'ETH', platform: 'ethereum' }],
@@ -46,7 +46,8 @@ export const config = {
     },
 
     emailNotification: {
-        EMAIL_PARAM_CLIENT_NAME: process.env.EMAIL_PARAM_CLIENT_NAME || 'ABC Inc',
+        EMAIL_PARAM_CLIENT_NAME: process.env.EMAIL_PARAM_CLIENT_NAME || 'LightLink Inc',
+        EMAIL_PARAM_SUPPORT_SITE_URL: process.env.EMAIL_PARAM_SUPPORT_SITE_URL,
         fromAddress: String(process.env.EMAIL_NOTIFICATION_FROM_ADDRESS || 'tech@pellartech.com'),
         toAddress: String(process.env.EMAIL_NOTIFICATION_TO_ADDRESS || 'tech@pellartech.com'),
         emailSendgridApiKey: String(process.env.EMAIL_SENDGRID_API_KEY)
