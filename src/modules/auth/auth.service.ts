@@ -290,14 +290,10 @@ export default class AuthService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPassword', {}))
         }
 
-        const res = await VerificationCodeService.generateCode({
+        await VerificationCodeService.generateCode({
             owner: params.owner,
             codeType: params.type === 'email' ? CodeType.EmailForgotPassword : CodeType.SMSForgotPassword
         })
-
-        if (res.success) {
-            await EmailService.sendPasswordResetCode({ address: params.owner, code: res.code })
-        }
 
         return { success: true }
     }
@@ -375,14 +371,10 @@ export default class AuthService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
         }
 
-        const res = await VerificationCodeService.generateCode({
+        await VerificationCodeService.generateCode({
             owner: params.owner,
             codeType: params.type === 'email' ? CodeType.EmailForgotPin : CodeType.SMSForgotPin
         })
-
-        if (res.success) {
-            await EmailService.sendPinResetCode({ address: params.owner, code: res.code })
-        }
 
         return { success: true }
     }
@@ -508,9 +500,6 @@ export default class AuthService {
         switch (user.mfaSettings.type) {
         case MFAType.EMAIL: {
             const data: any = await VerificationCodeService.generateCode({ codeType: CodeType.EmailLogIn, owner: user.email })
-            if (data.type === 'email') {
-                await EmailService.sendLoginVerificationCode({ address: user.email, code: data.code })
-            }
             data.message = 'Please check your email for login code'
             return data
         }

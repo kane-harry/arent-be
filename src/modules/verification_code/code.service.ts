@@ -3,7 +3,7 @@ import ErrorContext from '@exceptions/error.context'
 import { AuthErrors, VerificationCodeErrors } from '@exceptions/custom.error'
 import { toLower, trim } from 'lodash'
 import moment from 'moment'
-import { CreateCodeDto, VerifyCodeDto } from './code.dto'
+import { CreateCodeDto, SentCodeToEmailDto, VerifyCodeDto } from './code.dto'
 import { VerificationCode } from './code.model'
 import UserModel from '@modules/user/user.model'
 import { CodeType } from './code.interface'
@@ -11,6 +11,7 @@ import crypto from 'crypto'
 import sendEmail from '@utils/email'
 import sendSms from '@utils/sms'
 import { stripPhoneNumber } from '@utils/phone-helper'
+import EmailService from '@modules/emaill/email.service'
 
 export default class VerificationCodeService {
     static async generateCode(params: CreateCodeDto) {
@@ -96,13 +97,35 @@ export default class VerificationCodeService {
             await sendSms(subject, html, html, owner)
             break
         default:
-            return { success: true, code: code, type: 'email' }
+            this.sentMailByCodeType({ ...params, code })
+            return { success: true }
         }
 
         if (process.env.NODE_ENV === 'development') {
             return { success: true, code: code }
         }
         return { success: true }
+    }
+
+    static async sentMailByCodeType(params: SentCodeToEmailDto) {
+        switch (params.codeType) {
+        case CodeType.EmailLogIn:
+            await EmailService.sendLoginVerificationCode({ address: params.owner, code: params.code })
+            break
+        case CodeType.EmailForgotPassword:
+            await EmailService.sendPasswordResetCode({ address: params.owner, code: params.code })
+            break
+        case CodeType.EmailForgotPin:
+            await EmailService.sendPinResetCode({ address: params.owner, code: params.code })
+            break
+        case CodeType.EmailRegistration:
+            await EmailService.sendRegistrationVerificationCode({ address: params.owner, code: params.code })
+            break
+        case CodeType.EmailUpdate:
+            await EmailService.sendEmailUpdateCode({ address: params.owner, code: params.code })
+            break
+        default:
+        }
     }
 
     static async verifyCode(params: VerifyCodeDto) {

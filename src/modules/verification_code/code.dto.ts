@@ -26,3 +26,17 @@ export class VerifyCodeDto extends CreateCodeDto {
     @IsString()
     public owner: string
 }
+
+export class SentCodeToEmailDto {
+    @IsString()
+    @IsEnum(CodeType, {
+        message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
+    })
+    public codeType: CodeType
+
+    @IsString()
+    public owner: string
+
+    @IsString()
+    public code: string
+}
