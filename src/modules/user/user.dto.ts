@@ -3,6 +3,7 @@ import IFilterModel from '@interfaces/filter.model.interface'
 import { UserStatus } from '@modules/user/user.interface'
 import { map } from 'lodash'
 import { CodeType } from '@modules/verification_code/code.interface'
+import { MFAType } from '@modules/auth/auth.interface'
 
 export class CreateUserDto {
     @IsString()
@@ -96,6 +97,9 @@ export class SetupTotpDto {
 
 export class UpdateSecurityDto {
     @IsString()
+    @IsEnum(MFAType, {
+        message: `type must be one of ${map(MFAType, el => el).join(' ')}`
+    })
     public type: string
 
     @IsString()

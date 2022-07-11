@@ -6,7 +6,8 @@ export enum UserHistoryActions {
     UpdateEmail = 'UpdateEmail',
     UpdatePhone = 'UpdatePhone',
     ResetPassword = 'ResetPassword',
-    ResetPin = 'ResetPin'
+    ResetPin = 'ResetPin',
+    UpdateSecurity = 'UpdateSecurity'
 }
 
 export interface IUserHistory extends IBaseModel {

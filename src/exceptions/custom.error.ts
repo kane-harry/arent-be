@@ -27,7 +27,8 @@ export const AuthErrors = {
     invalid_pin_code_error: { message: 'Invalid pin code', status: 400, code: 2017 },
     user_locked_error: { message: 'Your account is locked, please contact customer service for help.', code: 2018, status: 400 },
     user_reset_credentials_incorrect_code_error: { message: 'code is incorrect.', code: 2019, status: 400 },
-    user_token_setup_error: { message: 'We could not verify your tokens, please try again', code: 2020, status: 400 }
+    user_token_setup_error: { message: 'We could not verify your tokens, please try again', code: 2020, status: 400 },
+    user_permission_error: { message: 'You do not have permission', code: 2021, status: 400 }
 }
 
 export const AccountErrors = {

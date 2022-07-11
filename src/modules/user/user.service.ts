@@ -33,6 +33,7 @@ import { UserHistoryActions } from '@modules/user_history/user_history.interface
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
 import crypto from 'crypto'
 import { AdminLogsActions, AdminLogsSections } from '@modules/admin_logs/admin_log.interface'
+import { role } from '@config/role'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -170,9 +171,14 @@ export default class UserService {
     }
 
     public static getProfile = async (key: string, options: { req: AuthenticationRequest }) => {
-        // TODO -  check permissions - user A can't get user B's profile, admin can get all fields
-        // for public info - call getBriefByName
         const user = await UserModel.findOne({ key }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'getProfile', {}))
+        }
+        // check permissions
+        if (options.req.user.role !== role.admin.id && options.req.user.key !== user.key) {
+            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('user.service', 'getProfile', { key: key }))
+        }
         return user
     }
 
@@ -208,13 +214,40 @@ export default class UserService {
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateSecurity', {}))
         }
-        // Check permission, only user can update this
-        if (user.key !== options?.req?.user?.key) {
-            // TODO - return 401 ?
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateSecurity', {}))
+        // Check permission
+        if (user.key !== options?.req?.user?.key && options.req.user.role !== role.admin.id) {
+            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('user.service', 'updateSecurity', {}))
         }
-        // TODO  - please check this logic in XIF
+        const type = params.type.toUpperCase()
+        const loginEnabled = params.loginEnabled.toLowerCase() === 'true'
+        const withdrawEnabled = params.withdrawEnabled.toLowerCase() === 'true'
 
+        // create log
+        new UserHistoryModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            userKey: user.key,
+            action: UserHistoryActions.UpdateSecurity,
+            agent: options?.req.agent,
+            country: user.country,
+            ipAddress: options?.req.ip_address,
+            preData: {
+                mfaSettings: user.mfaSettings
+            },
+            postData: {
+                mfaSettings: {
+                    type,
+                    loginEnabled,
+                    withdrawEnabled
+                }
+            }
+        }).save()
+
+        user.set('mfaSettings', {
+            type,
+            loginEnabled,
+            withdrawEnabled
+        })
+        user?.save()
         return user
     }
 
