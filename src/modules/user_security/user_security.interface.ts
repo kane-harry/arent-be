@@ -1,13 +1,7 @@
 import IBaseModel from '@interfaces/base.model.interface'
 
 export enum SecurityActions {
-    ResetPassword = 'ResetPassword',
-    ForgotPassword = 'ForgotPassword',
-    ResetPin = 'ResetPin',
-    ForgotPin = 'ForgotPin',
-    Login = 'Login',
-    UpdateAvatar = 'UpdateAvatar',
-    UpdateUser = 'UpdateUser'
+    Login = 'Login'
 }
 
 export interface IUserSecurity extends IBaseModel {
