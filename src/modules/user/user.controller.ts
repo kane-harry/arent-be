@@ -138,7 +138,8 @@ class UserController implements IController {
     }
 
     private exportAllUser = async (req: CustomRequest, res: Response) => {
-        const data = await UserService.getAllUser()
+        const filter = req.query as IUserQueryFilter
+        const data = await UserService.getUserList(filter)
         const fields = [
             { label: 'Key', value: 'key' },
             { label: 'First Name', value: 'firstName' },
@@ -158,7 +159,7 @@ class UserController implements IController {
             { label: 'Created', value: 'created' }
         ]
 
-        return downloadResource(res, 'export.csv', fields, data)
+        return downloadResource(res, 'export.csv', fields, data.items ?? data)
     }
 
     private resetCredentials = async (req: Request, res: Response) => {
