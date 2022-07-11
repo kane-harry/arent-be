@@ -236,32 +236,20 @@ export default class AuthService {
         return { user: user, token: accessToken }
     }
 
-    // static async refreshToken(user) {
-    //     const authData = await AuthModel.findOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
-    //     if (!authData) {
-    //         throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
-    //     }
-    //     try {
-    //         const payload = AuthModel.verifyRefreshToken(refreshTokenData.refreshToken) as any
-    //         const token = AuthModel.createAccessToken(payload.id)
-    //         return { token }
-    //     } catch (err) {
-    //         const error = err as any
-    //         switch (error?.name) {
-    //         case 'TokenExpiredError':
-    //             AuthModel.deleteOne({ token: refreshTokenData.refreshToken, type: AuthTokenType.RefreshToken }).exec()
-    //             throw new BizException(AuthErrors.session_expired, new ErrorContext('auth.service', 'refreshToken', {}))
-    //         case 'JsonWebTokenError':
-    //             throw new BizException(AuthErrors.invalid_refresh_token, new ErrorContext('auth.service', 'refreshToken', {}))
-
-    //         default:
-    //             throw new BizException(AuthErrors.invalid_refresh_token, new ErrorContext('auth.service', 'refreshToken', {}))
-    //         }
-    //     }
-    // }
-
-    static async updateTokenVersion(key: string) {
+    static async refreshToken(options: { req: AuthenticationRequest }) {
         const currentTimestamp = generateUnixTimestamp()
+        const user = await UserModel.findOne({ key: options.req.user.key }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'tokenVersion', {}))
+        }
+        const accessToken = AuthModel.createAccessToken(options.req.user._id, currentTimestamp)
+        await AuthService.updateTokenVersion(options.req.user.key, currentTimestamp)
+        return {
+            token: accessToken
+        }
+    }
+
+    static async updateTokenVersion(key: string, currentTimestamp: number) {
         const user = await UserModel.findOne({ key }).exec()
         if (!user) {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'tokenVersion', {}))
@@ -299,6 +287,7 @@ export default class AuthService {
     }
 
     static async resetPassword(params: ResetPasswordDto, options: { req: AuthenticationRequest }) {
+        const currentTimestamp = generateUnixTimestamp()
         let user
         if (params.type === 'email') {
             const email = toLower(trim(params.owner))
@@ -342,7 +331,7 @@ export default class AuthService {
             user.save()
 
             // logout
-            await AuthService.updateTokenVersion(user.key)
+            await AuthService.updateTokenVersion(user.key, currentTimestamp)
 
             const subject = 'Welcome to LightLink'
             const html = 'You have successfully reset your password!'
@@ -380,6 +369,7 @@ export default class AuthService {
     }
 
     static async resetPin(params: ResetPinDto, options: { req: AuthenticationRequest }) {
+        const currentTimestamp = generateUnixTimestamp()
         let user
         if (params.type === 'email') {
             const email = toLower(trim(params.owner))
@@ -424,7 +414,7 @@ export default class AuthService {
             user.save()
 
             // logout
-            await AuthService.updateTokenVersion(user.key)
+            await AuthService.updateTokenVersion(user.key, currentTimestamp)
 
             // send notifications user via email and phone
             const subject = 'Welcome to LightLink'

@@ -79,7 +79,7 @@ class UserController implements IController {
         this.router.post(`${this.path}/:key/role/update`, requireAuth, requireAdmin(), asyncHandler(this.updateUserRole))
         this.router.post(`${this.path}/:key/phone/update`, requireAuth, asyncHandler(this.updatePhone))
         this.router.post(`${this.path}/:key/email/update`, requireAuth, asyncHandler(this.updateEmail))
-        this.router.get(`${this.path}/list/export`, requireAuth, requireAdmin(), asyncHandler(this.exportAllUser))
+        this.router.get(`${this.path}/list/export`, requireAuth, asyncHandler(this.exportAllUser))
     }
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {

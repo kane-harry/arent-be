@@ -356,6 +356,7 @@ export default class UserService {
     }
 
     static async updateUserStatus(userKey: string, params: UpdateUserStatusDto, options: { req: AuthenticationRequest }) {
+        const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: userKey }).exec()
 
         if (!user) {
@@ -382,12 +383,13 @@ export default class UserService {
 
         user?.set('status', params.status, String)
         user?.save()
-        await AuthService.updateTokenVersion(userKey)
+        await AuthService.updateTokenVersion(userKey, currentTimestamp)
 
         return user
     }
 
     static async removeUser(userKey: string, options: { req: AuthenticationRequest }) {
+        const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: userKey }).exec()
 
         if (!user) {
@@ -414,12 +416,13 @@ export default class UserService {
 
         user?.set('removed', true, Boolean)
         user?.save()
-        await AuthService.updateTokenVersion(userKey)
+        await AuthService.updateTokenVersion(userKey, currentTimestamp)
 
         return user
     }
 
     static async resetTotp(userKey: string, options: { req: AuthenticationRequest }) {
+        const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: userKey }).exec()
 
         if (!user) {
@@ -452,12 +455,13 @@ export default class UserService {
         user?.set('totpSecret', null, null)
         user?.set('totpSetup', false, Boolean)
         user?.save()
-        await AuthService.updateTokenVersion(userKey)
+        await AuthService.updateTokenVersion(userKey, currentTimestamp)
 
         return user
     }
 
     static async updateUserRole(userKey: string, params: UpdateUserRoleDto, options: { req: AuthenticationRequest }) {
+        const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: userKey }).exec()
 
         if (!user) {
@@ -484,12 +488,13 @@ export default class UserService {
 
         user?.set('role', Number(params.role), Number)
         user?.save()
-        await AuthService.updateTokenVersion(userKey)
+        await AuthService.updateTokenVersion(userKey, currentTimestamp)
 
         return user
     }
 
     static async updatePhone(userKey: string, params: UpdatePhoneDto, options: { req: AuthenticationRequest }) {
+        const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: userKey }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
@@ -527,11 +532,12 @@ export default class UserService {
         const subject = 'Welcome to LightLink'
         const html = 'You have successfully updated your phone!'
         await sendSms(subject, html, html, phone)
-        await AuthService.updateTokenVersion(userKey)
+        await AuthService.updateTokenVersion(userKey, currentTimestamp)
         return { success: true }
     }
 
     static async updateEmail(userKey: string, params: UpdateEmailDto, options: { req: AuthenticationRequest }) {
+        const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: userKey }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateEmail', {}))
@@ -565,7 +571,7 @@ export default class UserService {
 
         // logout & send email notifications
         await EmailService.sendEmailUpdateComplete({ address: email })
-        await AuthService.updateTokenVersion(userKey)
+        await AuthService.updateTokenVersion(userKey, currentTimestamp)
         return { success: true }
     }
 }

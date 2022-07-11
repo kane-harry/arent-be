@@ -8,6 +8,7 @@ import { requireAuth } from '@utils/authCheck'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import AuthService from './auth.service'
 import { requireAdmin } from '@config/role'
+import { generateUnixTimestamp } from '@utils/utility'
 
 export default class AuthController implements IController {
     public path = '/auth'
@@ -54,12 +55,13 @@ export default class AuthController implements IController {
     }
 
     private logOut = async (req: AuthenticationRequest, res: Response) => {
-        const data = await AuthService.updateTokenVersion(req.user?.key)
+        const currentTimestamp = generateUnixTimestamp()
+        const data = await AuthService.updateTokenVersion(req.user?.key, currentTimestamp)
         return res.send(data)
     }
 
     private refreshToken = async (req: AuthenticationRequest, res: Response) => {
-        const data = await AuthService.updateTokenVersion(req.user?.key)
+        const data = await AuthService.refreshToken({ req })
         res.send(data)
     }
 
