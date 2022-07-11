@@ -36,7 +36,7 @@ export default class VerificationCodeController implements IController {
 
         const data = await VerificationCodeService.generateCode(params)
 
-        if (data.success) {
+        if (data.type === 'email') {
             switch (params.codeType) {
             case CodeType.EmailRegistration:
                 await EmailService.sendRegistrationVerificationCode({ address: params.owner, code: data.code })

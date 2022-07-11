@@ -96,7 +96,7 @@ export default class VerificationCodeService {
             await sendSms(subject, html, html, owner)
             break
         default:
-            return { success: true }
+            return { success: true, code: code, type: 'email' }
         }
 
         if (process.env.NODE_ENV === 'development') {
