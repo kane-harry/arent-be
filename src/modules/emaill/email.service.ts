@@ -5,10 +5,8 @@ const EmailTemplates = require('swig-email-templates')
 
 const defaultContext = {
     clientName: config.emailNotification.EMAIL_PARAM_CLIENT_NAME,
-    // clientName2: constants.email.template.EMAIL_PARAM_CLIENT_NAME2,
     // supportSiteUrl: constants.email.template.EMAIL_PARAM_SUPPORT_SITE_URL,
     supportSiteEmail: config.emailNotification.fromAddress
-    // verifyAccountUrl: constants.email.template.EMAIL_PARAM_VERIFY_ACCOUNT_URL
 }
 const templates = new EmailTemplates({ root: config.EMAIL_TEMPLATES_ROOT_PATH })
 

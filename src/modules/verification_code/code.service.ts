@@ -94,7 +94,7 @@ export default class VerificationCodeService {
         case CodeType.SMS:
         case CodeType.SMSForgotPassword:
         case CodeType.SMSForgotPin:
-            await sendSms(subject, html, html, owner)
+            sendSms(subject, html, html, owner)
             break
         default:
             this.sentMailByCodeType({ ...params, code })
@@ -110,19 +110,19 @@ export default class VerificationCodeService {
     static async sentMailByCodeType(params: SentCodeToEmailDto) {
         switch (params.codeType) {
         case CodeType.EmailLogIn:
-            await EmailService.sendLoginVerificationCode({ address: params.owner, code: params.code })
+            EmailService.sendLoginVerificationCode({ address: params.owner, code: params.code })
             break
         case CodeType.EmailForgotPassword:
-            await EmailService.sendPasswordResetCode({ address: params.owner, code: params.code })
+            EmailService.sendPasswordResetCode({ address: params.owner, code: params.code })
             break
         case CodeType.EmailForgotPin:
-            await EmailService.sendPinResetCode({ address: params.owner, code: params.code })
+            EmailService.sendPinResetCode({ address: params.owner, code: params.code })
             break
         case CodeType.EmailRegistration:
-            await EmailService.sendRegistrationVerificationCode({ address: params.owner, code: params.code })
+            EmailService.sendRegistrationVerificationCode({ address: params.owner, code: params.code })
             break
         case CodeType.EmailUpdate:
-            await EmailService.sendEmailUpdateCode({ address: params.owner, code: params.code })
+            EmailService.sendEmailUpdateCode({ address: params.owner, code: params.code })
             break
         default:
         }

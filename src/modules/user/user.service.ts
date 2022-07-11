@@ -18,7 +18,7 @@ import {
 import UserModel from './user.model'
 import { AuthTokenType, MFAType } from '@modules/auth/auth.interface'
 import * as bcrypt from 'bcrypt'
-import { unixTimestampToDate, generateRandomCode, generateUnixTimestamp, randomCode } from '@utils/utility'
+import { unixTimestampToDate, generateRandomCode, generateUnixTimestamp } from '@utils/utility'
 import { IUser, IUserQueryFilter, UserStatus } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
@@ -37,7 +37,7 @@ import { role } from '@config/role'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ email: options.req.user?.email }).exec()
+        const user = await UserModel.findOne({ email: options.req.user?.email, removed: false }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'uploadAvatar', {}))
@@ -57,7 +57,7 @@ export default class UserService {
     }
 
     public static updateProfile = async (params: UpdateProfileDto, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key: options.req.user.key }).exec()
+        const user = await UserModel.findOne({ key: options.req.user.key, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
@@ -103,7 +103,7 @@ export default class UserService {
     }
 
     public static updateProfileByAdmin = async (key: string, params: AdminUpdateProfileDto, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key }).exec()
+        const user = await UserModel.findOne({ key, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
@@ -171,7 +171,7 @@ export default class UserService {
     }
 
     public static getProfile = async (key: string, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key }).exec()
+        const user = await UserModel.findOne({ key, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'getProfile', {}))
         }
@@ -183,11 +183,11 @@ export default class UserService {
     }
 
     public static getBriefByName = async (chatName: string) => {
-        return await UserModel.findOne({ chatName: chatName }).select('key firstName lastName email chatName country').exec()
+        return await UserModel.findOne({ chatName: chatName, removed: false }).select('key firstName lastName email chatName country').exec()
     }
 
     public static getTotp = async (options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key: options?.req?.user?.key }).exec()
+        const user = await UserModel.findOne({ key: options?.req?.user?.key, removed: false }).exec()
         const totpTemp = await getNewSecret()
         user?.set('totpTempSecret', totpTemp.secret)
         user?.save()
@@ -195,7 +195,7 @@ export default class UserService {
     }
 
     public static setTotp = async (params: SetupTotpDto, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key: options?.req?.user?.key }).select('key totpTempSecret').exec()
+        const user = await UserModel.findOne({ key: options?.req?.user?.key, removed: false }).select('key totpTempSecret').exec()
         const secret = user?.totpTempSecret
         const verified = await verifyNewDevice(secret, params.token1, params.token2)
         if (!verified) {
@@ -210,7 +210,7 @@ export default class UserService {
     }
 
     public static updateSecurity = async (key: string, params: UpdateSecurityDto, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key }).exec()
+        const user = await UserModel.findOne({ key, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateSecurity', {}))
         }
@@ -256,7 +256,8 @@ export default class UserService {
         const reg = new RegExp(params.terms)
         const filter = {
             $or: [{ key: reg }, { email: reg }, { phone: reg }],
-            $and: [{ created: { $exists: true } }]
+            $and: [{ created: { $exists: true } }],
+            removed: false
         }
         if (params.datefrom) {
             const dateFrom = unixTimestampToDate(params.datefrom)
@@ -279,7 +280,7 @@ export default class UserService {
     }
 
     public static getAllUser = async () => {
-        const items = await UserModel.find<IUser>().exec()
+        const items = await UserModel.find<IUser>({ removed: false }).exec()
         return items
     }
 
@@ -307,7 +308,7 @@ export default class UserService {
     }
 
     public static async resetCredentials(key: string, options: { req: AuthenticationRequest }) {
-        const user = await UserModel.findOne({ key }).exec()
+        const user = await UserModel.findOne({ key, removed: false }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
@@ -324,7 +325,7 @@ export default class UserService {
             section: AdminLogsSections.User
         }).save()
 
-        const changePasswordNextLoginCode = randomCode(true, 8, 8)
+        const changePasswordNextLoginCode = generateRandomCode(8, 8, true)
         const changePasswordNextLoginTimestamp = generateUnixTimestamp()
         user.set('changePasswordNextLogin', true)
         user.set('changePasswordNextLoginCode', changePasswordNextLoginCode)
@@ -347,7 +348,7 @@ export default class UserService {
 
     public static async setupCredentials(params: SetupCredentialsDto, options: { req: AuthenticationRequest }) {
         const email = toLower(trim(params.email))
-        const user = await UserModel.findOne({ email }).exec()
+        const user = await UserModel.findOne({ email, removed: false }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'setupCredentials', { email }))
@@ -413,7 +414,7 @@ export default class UserService {
 
     static async updateUserStatus(userKey: string, params: UpdateUserStatusDto, options: { req: AuthenticationRequest }) {
         const currentTimestamp = generateUnixTimestamp()
-        const user = await UserModel.findOne({ key: userKey }).exec()
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'lockUser', {}))
@@ -446,7 +447,7 @@ export default class UserService {
 
     static async removeUser(userKey: string, options: { req: AuthenticationRequest }) {
         const currentTimestamp = generateUnixTimestamp()
-        const user = await UserModel.findOne({ key: userKey }).exec()
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'removeUser', {}))
@@ -479,7 +480,7 @@ export default class UserService {
 
     static async resetTotp(userKey: string, options: { req: AuthenticationRequest }) {
         const currentTimestamp = generateUnixTimestamp()
-        const user = await UserModel.findOne({ key: userKey }).exec()
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'resetTotp', {}))
@@ -518,7 +519,7 @@ export default class UserService {
 
     static async updateUserRole(userKey: string, params: UpdateUserRoleDto, options: { req: AuthenticationRequest }) {
         const currentTimestamp = generateUnixTimestamp()
-        const user = await UserModel.findOne({ key: userKey }).exec()
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUserRole', {}))
@@ -551,7 +552,7 @@ export default class UserService {
 
     static async updatePhone(userKey: string, params: UpdatePhoneDto, options: { req: AuthenticationRequest }) {
         const currentTimestamp = generateUnixTimestamp()
-        const user = await UserModel.findOne({ key: userKey }).exec()
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
         }
@@ -594,7 +595,7 @@ export default class UserService {
 
     static async updateEmail(userKey: string, params: UpdateEmailDto, options: { req: AuthenticationRequest }) {
         const currentTimestamp = generateUnixTimestamp()
-        const user = await UserModel.findOne({ key: userKey }).exec()
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateEmail', {}))
         }

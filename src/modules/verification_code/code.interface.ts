@@ -5,8 +5,6 @@ export enum CodeType {
     PhoneRegistration = 'PhoneRegistration',
     EmailUpdate = 'EmailUpdate',
     PhoneUpdate = 'PhoneUpdate',
-    VerifyEmail = 'VerifyEmail',
-    VerifyPhone = 'VerifyPhone',
     EmailForgotPassword = 'EmailForgotPassword',
     SMSForgotPassword = 'SMSForgotPassword',
     EmailForgotPin = 'EmailForgotPin',
