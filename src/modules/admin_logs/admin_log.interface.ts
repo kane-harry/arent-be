@@ -7,7 +7,8 @@ export enum AdminLogsActions {
     RemoveUser = 'RemoveUser',
     ResetTOPTUser = 'ResetTOPTUser',
     UpdateRoleUser = 'UpdateRoleUser',
-    MintMasterAccount = 'MintMasterAccount'
+    MintMasterAccount = 'MintMasterAccount',
+    ResetCredentialsUser = 'ResetCredentialsUser'
 }
 
 export enum AdminLogsSections {

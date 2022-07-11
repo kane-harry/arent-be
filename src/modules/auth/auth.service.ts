@@ -173,6 +173,10 @@ export default class AuthService {
             ) {
                 throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
             }
+            // const data: any = await this.verifyTwoFactor(user, logInData)
+            // if (data.requireMFACode) {
+            //     return data
+            // }
             return {
                 key: user.key,
                 email: user.email,
@@ -436,8 +440,6 @@ export default class AuthService {
             const result = { requireMFACode: true, type: user.mfaSettings.type, status: 'sent' }
             return result
         }
-
-        // TODO - refactor ???
 
         // @ts-ignore
         switch (user.mfaSettings.type) {

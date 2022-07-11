@@ -306,30 +306,41 @@ export default class UserService {
         return newName
     }
 
-    public static async resetCredentials(key: string) {
+    public static async resetCredentials(key: string, options: { req: AuthenticationRequest }) {
         const user = await UserModel.findOne({ key }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
         }
 
+        new AdminLogModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            operator: {
+                key: options.req.user.key,
+                email: options.req.user.email
+            },
+            userKey: user.key,
+            action: AdminLogsActions.ResetCredentialsUser,
+            section: AdminLogsSections.User
+        }).save()
+
         const changePasswordNextLoginCode = randomCode(true, 8, 8)
         const changePasswordNextLoginTimestamp = generateUnixTimestamp()
         user.set('changePasswordNextLogin', true)
         user.set('changePasswordNextLoginCode', changePasswordNextLoginCode)
         user.set('changePasswordNextLoginTimestamp', changePasswordNextLoginTimestamp)
+        user.set('tokenVersion', changePasswordNextLoginTimestamp)
         user.set('mfaSettings.loginEnabled', false) // TODO : works ?
         user.set('loginCount', 0)
         user.set('lockedTimestamp', 0)
         user.save()
 
-        // TODO - send code to user via email and phone
-        // Pseudocode
-        // if(user.email){
-        //     emailService.sendResetCredentialsNotificationEmail(context)
-        // }else if (user.phone) {
-        //     sms.send(sms_subject, sms_content, phone)
-        // }
+        if (user.email) {
+            await EmailService.sendResetCredentialsComplete({ address: user.email, code: changePasswordNextLoginCode })
+        } else if (user.phone) {
+            const text = `Your acount has been reset, please use ${changePasswordNextLoginCode} as your password to log in within the next 15 minutes.`
+            await sendSms('Reset credentials', text, text, user.phone)
+        }
 
         return { success: true }
     }
@@ -377,13 +388,12 @@ export default class UserService {
         user.set('lockedTimestamp', 0)
         user.save()
 
-        // TODO - send code to user via email and phone
-        // Pseudocode
-        // if(user.email){
-        //     emailService.sendResetCredentialsNotificationEmail(context)
-        // }else if (user.phone) {
-        //     sms.send(sms_subject, sms_content, phone)
-        // }
+        if (user.email) {
+            await EmailService.sendSetupCredentialsComplete({ address: user.email })
+        } else if (user.phone) {
+            const text = 'Your credentials have been setup'
+            await sendSms('Reset credentials', text, text, user.phone)
+        }
 
         return { success: true }
     }

@@ -161,9 +161,9 @@ class UserController implements IController {
         return downloadResource(res, 'export.csv', fields, data)
     }
 
-    private resetCredentials = async (req: Request, res: Response) => {
+    private resetCredentials = async (req: AuthenticationRequest, res: Response) => {
         const key: string = req.params.key
-        const data = await UserService.resetCredentials(key)
+        const data = await UserService.resetCredentials(key, { req })
         return res.send(data)
     }
 

@@ -55,8 +55,7 @@ const userSchema = new Schema<IUser>(
         changePasswordNextLogin: { type: Boolean, default: false },
         changePasswordNextLoginTimestamp: { type: Number, default: moment().unix() },
         changePasswordNextLoginCode: {
-            type: String,
-            get: (): undefined => undefined
+            type: String
         },
         changePasswordNextLoginAttempts: { type: Number, default: 0 },
         lockedTimestamp: { type: Number, default: 0 },

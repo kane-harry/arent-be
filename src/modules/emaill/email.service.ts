@@ -156,4 +156,40 @@ export default class EmailService {
             console.error('sendEmailUpdateComplete => ' + err.message)
         })
     }
+
+    static async sendResetCredentialsComplete(context: ContextMailDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('reset-credentials-complete.html', _context, function (err: any, html: string, text: string, subject: string) {
+                if (err) {
+                    console.error('sendResetCredentialsComplete => ' + err.message)
+                }
+                // Send email
+                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Reset Credentials`
+                sendEmail(subject, text, html, _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendResetCredentialsComplete => ' + err.message)
+        })
+    }
+
+    static async sendSetupCredentialsComplete(context: ContextMailDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('setup-credentials-complete.html', _context, function (err: any, html: string, text: string, subject: string) {
+                if (err) {
+                    console.error('sendSetupCredentialsComplete => ' + err.message)
+                }
+                // Send email
+                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Setup Credentials`
+                sendEmail(subject, text, html, _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendSetupCredentialsComplete => ' + err.message)
+        })
+    }
 }
