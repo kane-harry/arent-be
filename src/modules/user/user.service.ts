@@ -52,7 +52,7 @@ export default class UserService {
         })
 
         user?.set('avatar', avatars, Object)
-        user?.save()
+        await user?.save()
         return avatars
     }
 
@@ -74,7 +74,7 @@ export default class UserService {
         }
 
         // create log
-        new UserHistoryModel({
+        await new UserHistoryModel({
             key: crypto.randomBytes(16).toString('hex'),
             userKey: user.key,
             action: UserHistoryActions.UpdateProfile,
@@ -97,7 +97,7 @@ export default class UserService {
         user.set('firstName', params.firstName || user.firstName, String)
         user.set('lastName', params.lastName || user.lastName, String)
         user.set('chatName', params.chatName || user.chatName, String)
-        user.save()
+        await user.save()
 
         return user
     }
@@ -134,7 +134,7 @@ export default class UserService {
         }
 
         // create log
-        new AdminLogModel({
+        await new AdminLogModel({
             key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
@@ -165,7 +165,7 @@ export default class UserService {
         user.set('chatName', params.chatName || user.chatName, String)
         user.set('phone', phone || user.phone, String)
         user.set('email', email || user.email, String)
-        user.save()
+        await user.save()
 
         return user
     }
@@ -190,7 +190,7 @@ export default class UserService {
         const user = await UserModel.findOne({ key: options?.req?.user?.key, removed: false }).exec()
         const totpTemp = await getNewSecret()
         user?.set('totpTempSecret', totpTemp.secret)
-        user?.save()
+        await user?.save()
         return { totpTemp: totpTemp }
     }
 
@@ -205,7 +205,7 @@ export default class UserService {
         user?.set('totpSecret', secret)
         user?.set('totpSetup', true)
         user?.set('mfaSettings.type', MFAType.TOTP)
-        user?.save()
+        await user?.save()
         return user
     }
 
@@ -223,7 +223,7 @@ export default class UserService {
         const withdrawEnabled = params.withdrawEnabled.toLowerCase() === 'true'
 
         // create log
-        new UserHistoryModel({
+        await new UserHistoryModel({
             key: crypto.randomBytes(16).toString('hex'),
             userKey: user.key,
             action: UserHistoryActions.UpdateSecurity,
@@ -247,7 +247,7 @@ export default class UserService {
             loginEnabled,
             withdrawEnabled
         })
-        user?.save()
+        await user?.save()
         return user
     }
 
@@ -314,7 +314,7 @@ export default class UserService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
         }
 
-        new AdminLogModel({
+        await new AdminLogModel({
             key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
@@ -334,7 +334,7 @@ export default class UserService {
         user.set('mfaSettings.loginEnabled', false)
         user.set('loginCount', 0)
         user.set('lockedTimestamp', 0)
-        user.save()
+        await user.save()
 
         if (user.email) {
             await EmailService.sendResetCredentialsComplete({ address: user.email, code: changePasswordNextLoginCode })
@@ -365,7 +365,7 @@ export default class UserService {
         const currentTimestamp = generateUnixTimestamp()
         changePasswordNextLoginAttempts++
         user.set('changePasswordNextLoginAttempts', changePasswordNextLoginAttempts, Number)
-        user.save()
+        await user.save()
 
         if (
             !user.changePasswordNextLoginCode ||
@@ -379,7 +379,7 @@ export default class UserService {
         }
 
         // create log
-        new UserHistoryModel({
+        await new UserHistoryModel({
             key: crypto.randomBytes(16).toString('hex'),
             userKey: user.key,
             action: UserHistoryActions.SetupCredentials,
@@ -400,7 +400,7 @@ export default class UserService {
         user.set('changePasswordNextLoginTimestamp', 0)
         user.set('loginCount', 0)
         user.set('lockedTimestamp', 0)
-        user.save()
+        await user.save()
 
         if (user.email) {
             await EmailService.sendSetupCredentialsComplete({ address: user.email })
@@ -421,7 +421,7 @@ export default class UserService {
         }
 
         // create log
-        new AdminLogModel({
+        await new AdminLogModel({
             key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
@@ -439,7 +439,7 @@ export default class UserService {
         }).save()
 
         user?.set('status', params.status, String)
-        user?.save()
+        await user?.save()
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
 
         return user
@@ -454,7 +454,7 @@ export default class UserService {
         }
 
         // create log
-        new AdminLogModel({
+        await new AdminLogModel({
             key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
@@ -472,7 +472,7 @@ export default class UserService {
         }).save()
 
         user?.set('removed', true, Boolean)
-        user?.save()
+        await user?.save()
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
 
         return user
@@ -490,7 +490,7 @@ export default class UserService {
         }
 
         // create log
-        new AdminLogModel({
+        await new AdminLogModel({
             key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
@@ -511,7 +511,7 @@ export default class UserService {
 
         user?.set('totpSecret', null, null)
         user?.set('totpSetup', false, Boolean)
-        user?.save()
+        await user?.save()
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
 
         return user
@@ -526,7 +526,7 @@ export default class UserService {
         }
 
         // create log
-        new AdminLogModel({
+        await new AdminLogModel({
             key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
@@ -544,7 +544,7 @@ export default class UserService {
         }).save()
 
         user?.set('role', Number(params.role), Number)
-        user?.save()
+        await user?.save()
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
 
         return user
@@ -607,7 +607,7 @@ export default class UserService {
         await VerificationCodeService.verifyCode({ code: params.code, codeType: CodeType.EmailUpdate, owner: email })
 
         // create log
-        new UserHistoryModel({
+        await new UserHistoryModel({
             key: crypto.randomBytes(16).toString('hex'),
             userKey: user.key,
             action: UserHistoryActions.UpdateEmail,
@@ -624,7 +624,7 @@ export default class UserService {
 
         // save
         user?.set('email', email, String)
-        user?.save()
+        await user?.save()
 
         // logout & send email notifications
         await EmailService.sendEmailUpdateComplete({ address: email })

@@ -128,7 +128,7 @@ export default class AccountMasterService {
         })
 
         // todo : mint log
-        new AdminLogModel({
+        await new AdminLogModel({
             key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
