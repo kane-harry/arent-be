@@ -31,4 +31,6 @@ const AdminLogsSchema = new Schema<IAdminLog>(
     }
 )
 
-export default model<IAdminLog>('admin_logs', AdminLogsSchema)
+const AdminLogModel = model<IAdminLog>('admin_logs', AdminLogsSchema)
+
+export default AdminLogModel

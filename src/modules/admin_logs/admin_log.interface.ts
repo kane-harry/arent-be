@@ -1,4 +1,5 @@
 import IBaseModel from '@interfaces/base.model.interface'
+import IFilterModel from "@interfaces/filter.model.interface";
 
 export enum AdminLogsActions {
     UpdateUser = 'UpdateUser',
@@ -28,4 +29,8 @@ export interface IAdminLog extends IBaseModel {
     action: AdminLogsActions
     preData: Object
     postData: Object
+}
+
+export interface ILogFilter extends IFilterModel {
+
 }
