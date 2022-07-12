@@ -7,6 +7,14 @@ export default class AdminLogsService {
         const offset = (params.pageindex - 1) * params.pagesize
         const filter: any = {}
         const sorting: any = { _id: 1 }
+        if (params.terms) {
+            const reg = new RegExp(params.terms)
+            filter.$or = [
+                { key: reg },
+                { action: reg },
+                { section: reg },
+            ]
+        }
         if (params.sortby) {
             delete sorting._id
             sorting[`${params.sortby}`] = params.orderby === 'asc' ? 1 : -1

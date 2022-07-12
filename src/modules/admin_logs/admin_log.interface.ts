@@ -32,5 +32,5 @@ export interface IAdminLog extends IBaseModel {
 }
 
 export interface ILogFilter extends IFilterModel {
-
+    terms?: string
 }
