@@ -250,7 +250,7 @@ export default class AuthService {
     }
 
     static async updateTokenVersion(key: string, currentTimestamp: number) {
-        const user = await UserModel.findOne({ key, removed: false }).exec()
+        const user = await UserModel.findOne({ key }).exec()
         if (!user) {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'tokenVersion', {}))
         }
