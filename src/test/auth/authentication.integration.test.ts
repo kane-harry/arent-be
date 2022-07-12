@@ -34,7 +34,6 @@ describe('Authentication', () => {
         //Same
         expect(user?.firstName).equal(userData.firstName)
         expect(user?.lastName).equal(userData.lastName)
-        expect(user?.chatName).equal(userData.chatName)
         expect(user?.email).equal(userData.email)
         expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(userData.phone))
         //Different
@@ -43,32 +42,13 @@ describe('Authentication', () => {
     }).timeout(10000)
 
     it('Login', async () => {
-        const setting: any = await SettingService.getGlobalSetting()
-        const owner = setting.registrationRequireEmailVerified ? userData.email : userData.phone
-        const codeType = setting.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogin
-        const loginCode = await getVerificationCode(owner, codeType)
-        const res = await request(server.app).post('/auth/login').send({
-            email: userData.email,
-            password: userData.password,
-            token: loginCode
-        })
-
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        expect(res?.body?.user?.email).equal(userData.email)
-        expect(res?.body?.token).is.a('string')
-        expect(res?.body?.refreshToken).is.a('string')
-
-        shareData.user = res.body.user
-        shareData.token = res.body.token
-        shareData.refreshToken = res.body.refreshToken
+        expect(shareData.token.length).gt(0)
     }).timeout(10000)
 
     it('RefreshToken', async () => {
-        const res = await request(server.app).post('/auth/token/refresh').send({
-            refreshToken: shareData.refreshToken
-        })
-
+        const res = await request(server.app).post('/auth/token/refresh')
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send({refreshToken: shareData.refreshToken})
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res?.body?.token).exist
