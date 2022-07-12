@@ -39,7 +39,7 @@ export default class TransactionService {
             )
         }
         if (operator.key !== senderAccount?.userKey) {
-            if (senderAccount.userKey === 'MASTER' && isAdmin(operator.role)) {
+            if (senderAccount.type === 'MASTER' && isAdmin(operator.role)) {
                 // continue
             } else {
                 throw new BizException(
