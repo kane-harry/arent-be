@@ -52,7 +52,7 @@ export default class BlockchainService {
         }
         const mode = params.mode === 'exclusive' ? FeeMode.Exclusive : FeeMode.Inclusive
         params.mode = mode
-        const setting:any = await SettingService.getGlobalSetting()
+        const setting: any = await SettingService.getGlobalSetting()
         const fee = setting.primeTransferFee.toString() || 0
         const transferFee = parsePrimeAmount(fee)
         if (mode === FeeMode.Inclusive) {
@@ -106,6 +106,10 @@ export default class BlockchainService {
         })
     }
 
+    static async queryTxns(params: { filter: ITransactionFilter }) {
+        return await PrimeCoinProvider.queryPrimeTxns(params.filter)
+    }
+
     static async getAccountBySymbolAndAddress(symbol: string, address: string) {
         return await PrimeCoinProvider.getWalletBySymbolAndAddress(symbol, address)
     }
@@ -145,7 +149,7 @@ export default class BlockchainService {
         return await PrimeCoinProvider.getPrimeTransactionStats(key)
     }
 
-    static async increaseAmount(accountAddress:string, amount:string, type:string, notes:string) {
+    static async increaseAmount(accountAddress: string, amount: string, type: string, notes: string) {
         return await PrimeCoinProvider.mintPrimeCoins({
             key: accountAddress,
             amount: amount,

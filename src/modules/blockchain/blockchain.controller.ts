@@ -21,6 +21,7 @@ class BlockchainController implements IController {
         this.router.post(`${this.path}/signature`, validationMiddleware(CreateSignatureDto), asyncHandler(this.generateSignature))
         this.router.post(`${this.path}/send`, validationMiddleware(SendRawDto), asyncHandler(this.send))
         this.router.get(`${this.path}/:symbol/txns`, asyncHandler(this.queryPrimeTxns))
+        this.router.get(`${this.path}/txns`, asyncHandler(this.queryTxns))
         this.router.get(`${this.path}/:symbol/address/:address`, asyncHandler(this.getAccountBySymbolAndAddress))
         this.router.get(`${this.path}/transaction/:key`, asyncHandler(this.getTxnByKey))
         this.router.get(`${this.path}/account/:address/txns`, asyncHandler(this.queryAccountTxns))
@@ -62,6 +63,12 @@ class BlockchainController implements IController {
             symbol,
             filter
         })
+        return res.json(data)
+    }
+
+    private async queryTxns(req: CustomRequest, res: Response) {
+        const filter = req.query as ITransactionFilter
+        const data = await BlockchainService.queryTxns({ filter })
         return res.json(data)
     }
 
