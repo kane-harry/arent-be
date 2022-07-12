@@ -6,6 +6,7 @@ import BlockchainService from './blockchain.service'
 import { CreateRawWalletDto, CreateSignatureDto, SendRawDto } from './blockchain.dto'
 import { CustomRequest } from '@middlewares/request.middleware'
 import { ITransactionFilter } from '@modules/transaction/transaction.interface'
+import {downloadResource} from "@utils/utility";
 
 class BlockchainController implements IController {
     public path = '/blockchain'
@@ -22,6 +23,7 @@ class BlockchainController implements IController {
         this.router.post(`${this.path}/send`, validationMiddleware(SendRawDto), asyncHandler(this.send))
         this.router.get(`${this.path}/:symbol/txns`, asyncHandler(this.queryPrimeTxns))
         this.router.get(`${this.path}/txns`, asyncHandler(this.queryTxns))
+        this.router.get(`${this.path}/txns/export`, asyncHandler(this.exportTxns))
         this.router.get(`${this.path}/:symbol/address/:address`, asyncHandler(this.getAccountBySymbolAndAddress))
         this.router.get(`${this.path}/transaction/:key`, asyncHandler(this.getTxnByKey))
         this.router.get(`${this.path}/account/:address/txns`, asyncHandler(this.queryAccountTxns))
@@ -70,6 +72,29 @@ class BlockchainController implements IController {
         const filter = req.query as ITransactionFilter
         const data = await BlockchainService.queryTxns({ filter })
         return res.json(data)
+    }
+
+    private async exportTxns(req: CustomRequest, res: Response) {
+        const filter = req.query as ITransactionFilter
+        const data = await BlockchainService.queryTxns({ filter })
+
+        const fields = [
+            { label: 'Key', value: 'key' },
+            { label: 'Owner', value: 'owner' },
+            { label: 'Symbol', value: 'symbol' },
+            { label: 'Sender', value: 'sender' },
+            { label: 'Recipient', value: 'recipient' },
+            { label: 'Amount', value: 'amount' },
+            { label: 'Type', value: 'type' },
+            { label: 'Hash', value: 'hash' },
+            { label: 'Block', value: 'block' },
+            { label: 'Signature', value: 'signature' },
+            { label: 'Notes', value: 'notes' },
+            { label: 'Created', value: 'created' },
+            { label: 'Modified', value: 'modified' }
+        ]
+
+        return downloadResource(res, 'transactions.csv', fields, data.items)
     }
 
     private async getAccountBySymbolAndAddress(req: CustomRequest, res: Response) {
