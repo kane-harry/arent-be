@@ -108,7 +108,7 @@ function userCan(operation: string) {
 function requireAdmin() {
     return [
         function (req: any, res: any, next: any) {
-            if (req.user.role === roles.admin.id || req.user.role === roles.master_admin.id) {
+            if (req.user.role === roles.admin.id) {
                 next()
             } else {
                 return res.sendStatus(401)
