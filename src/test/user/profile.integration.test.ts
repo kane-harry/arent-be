@@ -13,7 +13,8 @@ chai.use(chaiAsPromised)
 const { expect, assert } = chai
 let shareData = {
     user: {
-        email: ''
+        email: '',
+        key: '',
     },
     token: '',
     refreshToken: '',
@@ -141,7 +142,7 @@ describe('Profile', () => {
     }).timeout(10000)
 
     it('GetPublicUserByChatName', async () => {
-        const updateRes = await request(server.app).get(`/users/info/${userData.chatName}`)
+        const updateRes = await request(server.app).get(`/users/${userData.chatName}/brief`)
 
         expect(updateRes.status).equal(200)
         validResponse(updateRes.body)
@@ -156,7 +157,7 @@ describe('Profile', () => {
 
     context('Test case for function updateUser', () => {
         it('updateUser should be throw without authenticate', async () => {
-            const res = await request(server.app).post('/users/info').send(updateData)
+            const res = await request(server.app).put('/users/profile').send(updateData)
             expect(res.status).equal(401)
             validResponse(res.body)
             expect(res.body).empty
@@ -166,7 +167,7 @@ describe('Profile', () => {
         it('updateUser should be success', async () => {
             updateData.newEmailCode = shareData.newEmailCode
             updateData.newPhoneCode = shareData.newPhoneCode
-            const updateRes = await request(server.app).post('/users/info').set('Authorization', `Bearer ${shareData.token}`).send(updateData)
+            const updateRes = await request(server.app).put('/users/profile').set('Authorization', `Bearer ${shareData.token}`).send(updateData)
 
             expect(updateRes.status).equal(200)
             validResponse(updateRes.body)
@@ -185,7 +186,7 @@ describe('Profile', () => {
         const pageIndex = 1
         const pageSize = 25
         const res = await request(server.app)
-            .get(`/users/list?pageindex=${pageIndex}&pagesize=${pageSize}`)
+            .get(`/users?pageindex=${pageIndex}&pagesize=${pageSize}`)
             .set('Authorization', `Bearer ${adminShareData.token}`)
             .send()
         expect(res.status).equal(200)
@@ -200,7 +201,7 @@ describe('Profile', () => {
     }).timeout(10000)
 
     it('GetProfile', async () => {
-        const res = await request(server.app).get(`/users/me`).set('Authorization', `Bearer ${shareData.token}`).send()
+        const res = await request(server.app).get(`/users/${shareData.user.key}/profile`).set('Authorization', `Bearer ${shareData.token}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
 

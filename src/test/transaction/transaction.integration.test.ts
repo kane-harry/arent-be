@@ -338,8 +338,8 @@ describe('Transaction', () => {
             mode: FeeMode.Exclusive
         })
         expect(res.status).equal(400)
-        expect(res.body.code).equal(TransactionErrors.sender_insufficient_balance_error.code)
-        expect(res.body.message).equal(TransactionErrors.sender_insufficient_balance_error.message)
+        expect(res.body.error.code).equal(TransactionErrors.sender_insufficient_balance_error.code)
+        expect(res.body.error.message).equal(TransactionErrors.sender_insufficient_balance_error.message)
     })
 
     it('Get Transactions by Account', async () => {
@@ -378,7 +378,7 @@ describe('Transaction', () => {
     it('Get Transaction Detail', async () => {
         const account = masterData.masterAccounts[0]
         const transaction = shareData1.transactions[0]
-        const res = await request(server.app).get(`/transactions/accounts/${account.key}/txn/${transaction.key}`).send()
+        const res = await request(server.app).get(`/transactions/txn/${transaction.key}`).send()
         expect(res.status).equal(200)
         expect(res.body.key).equal(transaction.key)
         expect(res.body.symbol).equal(symbol)

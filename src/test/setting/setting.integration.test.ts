@@ -44,7 +44,7 @@ describe('Setting', () => {
 
     it(`Create setting`, async () => {
         const res = await request(server.app)
-            .post('/settings')
+            .put('/settings')
             .set('Authorization', `Bearer ${adminShareData.token}`)
             .send(postData)
         expect(res.status).equal(200)
@@ -80,7 +80,7 @@ describe('Setting', () => {
 
     it(`Update setting`, async () => {
         const res = await request(server.app)
-            .post('/settings/update')
+            .put('/settings')
             .set('Authorization', `Bearer ${adminShareData.token}`)
             .send(updateData)
         expect(res.status).equal(200)
@@ -98,7 +98,7 @@ describe('Setting', () => {
 
     it(`401 Create setting`, async () => {
         const res = await request(server.app)
-            .post('/settings')
+            .put('/settings')
             .set('Authorization', `Bearer ${shareData.token}`)
             .send({})
         expect(res.status).equal(401)
@@ -114,7 +114,7 @@ describe('Setting', () => {
 
     it(`401 Update setting`, async () => {
         const res = await request(server.app)
-            .post('/settings/update')
+            .put('/settings')
             .set('Authorization', `Bearer ${shareData.token}`)
             .send({})
         expect(res.status).equal(401)
