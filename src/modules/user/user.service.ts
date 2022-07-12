@@ -201,6 +201,27 @@ export default class UserService {
         if (!verified) {
             throw new BizException(AuthErrors.user_token_setup_error, new ErrorContext('user.service', 'updateProfile', { email: user?.email }))
         }
+
+        // create log
+        await new UserHistoryModel({
+            key: crypto.randomBytes(16).toString('hex'),
+            userKey: options?.req?.user?.key,
+            action: UserHistoryActions.SetupTOTP,
+            agent: options?.req.agent,
+            country: options.req.user.country,
+            ipAddress: options?.req.ip_address,
+            preData: {
+                mfaSettings: options.req.user.mfaSettings
+            },
+            postData: {
+                mfaSettings: {
+                    type: MFAType.TOTP,
+                    loginEnabled: options.req.user.mfaSettings.loginEnabled,
+                    withdrawEnabled: options.req.user.mfaSettings.withdrawEnabled
+                }
+            }
+        }).save()
+
         user?.set('totpTempSecret', null)
         user?.set('totpSecret', secret)
         user?.set('totpSetup', true)

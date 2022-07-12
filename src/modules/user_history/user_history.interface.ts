@@ -8,7 +8,8 @@ export enum UserHistoryActions {
     ResetPassword = 'ResetPassword',
     ResetPin = 'ResetPin',
     UpdateSecurity = 'UpdateSecurity',
-    SetupCredentials = 'SetupCredentials'
+    SetupCredentials = 'SetupCredentials',
+    SetupTOTP = 'SetupTOTP'
 }
 
 export interface IUserHistory extends IBaseModel {
