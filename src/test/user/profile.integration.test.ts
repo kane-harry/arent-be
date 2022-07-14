@@ -155,7 +155,6 @@ describe('Profile', () => {
         expect(updateRes.body?.firstName).equal(shareData.user.firstName)
         expect(updateRes.body?.lastName).equal(shareData.user.lastName)
         expect(updateRes.body?.chatName).equal(shareData.user.chatName)
-        expect(await stripPhoneNumber(updateRes.body?.phone)).equal(await stripPhoneNumber(shareData.user.phone))
     })
 
     context('Test case for function updateUser', () => {
