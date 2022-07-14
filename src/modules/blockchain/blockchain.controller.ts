@@ -6,7 +6,7 @@ import BlockchainService from './blockchain.service'
 import { CreateRawWalletDto, CreateSignatureDto, SendRawDto } from './blockchain.dto'
 import { CustomRequest } from '@middlewares/request.middleware'
 import { ITransactionFilter } from '@modules/transaction/transaction.interface'
-import {downloadResource} from "@utils/utility";
+import { downloadResource } from '@utils/utility'
 
 class BlockchainController implements IController {
     public path = '/blockchain'

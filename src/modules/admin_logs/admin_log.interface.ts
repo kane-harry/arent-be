@@ -1,5 +1,5 @@
 import IBaseModel from '@interfaces/base.model.interface'
-import IFilterModel from "@interfaces/filter.model.interface";
+import IFilterModel from '@interfaces/filter.model.interface'
 
 export enum AdminLogsActions {
     UpdateUser = 'UpdateUser',
