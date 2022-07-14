@@ -46,9 +46,10 @@ describe('Authentication', () => {
     }).timeout(10000)
 
     it('RefreshToken', async () => {
-        const res = await request(server.app).post('/auth/token/refresh')
+        const res = await request(server.app)
+            .post('/auth/token/refresh')
             .set('Authorization', `Bearer ${shareData.token}`)
-            .send({refreshToken: shareData.refreshToken})
+            .send({ refreshToken: shareData.refreshToken })
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res?.body?.token).exist
@@ -89,14 +90,14 @@ describe('Authentication', () => {
 
     it('ForgotPassword', async () => {
         const res = await request(server.app).post('/verification/code/get').send({
-            codeType: CodeType.EmailForgotPassword,
+            codeType: CodeType.ForgotPassword,
             owner: userData.email
         })
         expect(res.status).equal(200)
         validResponse(res.body)
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
-                type: CodeType.EmailForgotPassword,
+                type: CodeType.ForgotPassword,
                 owner: userData.email
             },
             {},
@@ -114,14 +115,14 @@ describe('Authentication', () => {
 
     it('ForgotPin', async () => {
         const res = await request(server.app).post('/verification/code/get').send({
-            codeType: CodeType.EmailForgotPin,
+            codeType: CodeType.ForgotPin,
             owner: userData.email
         })
         expect(res.status).equal(200)
         validResponse(res.body)
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
-                type: CodeType.EmailForgotPin,
+                type: CodeType.ForgotPin,
                 owner: userData.email
             },
             {},

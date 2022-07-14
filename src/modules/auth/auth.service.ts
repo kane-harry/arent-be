@@ -26,6 +26,7 @@ import { SecurityActions } from '@modules/user_security/user_security.interface'
 import UserHistoryModel from '@modules/user_history/user_history.model'
 import { UserHistoryActions } from '@modules/user_history/user_history.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
+import SecurityService from '@modules/security/security.service'
 
 export default class AuthService {
     static async verifyRegistration(userData: CreateUserDto, options?: any) {
@@ -209,9 +210,9 @@ export default class AuthService {
 
         if (!options.forceLogin) {
             // @ts-ignore
-            if (user.mfaSettings.loginEnabled) {
-                const data: any = await this.verifyTwoFactor(user, logInData)
-                if (data.requireMFACode) {
+            if (user.MFASettings && user.mfaSettings.loginEnabled) {
+                const data = await SecurityService.validate2FA(user.key, CodeType.Login, logInData.token)
+                if (data.status !== 'verified') {
                     return data
                 }
             }
@@ -278,10 +279,22 @@ export default class AuthService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPassword', {}))
         }
 
-        await VerificationCodeService.generateCode({
-            owner: params.owner,
-            codeType: params.type === 'email' ? CodeType.EmailForgotPassword : CodeType.SMSForgotPassword
+        const codeRes = await VerificationCodeService.generateCode({
+            owner: user.key,
+            userKey: user.key,
+            codeType: CodeType.ForgotPassword
         })
+        if (codeRes.success && codeRes.code) {
+            if (params.type === 'email') {
+                EmailService.sendUserForgotPasswordEmail({ address: params.owner, code: codeRes.code })
+            } else {
+                sendSms(
+                    'LightLink',
+                    `[LightLink] You have recently requested a password reset, please enter this code ${codeRes.code} into your mobile APP.`,
+                    params.owner
+                )
+            }
+        }
 
         return { success: true }
     }
@@ -304,11 +317,12 @@ export default class AuthService {
             throw new BizException(AuthErrors.invalid_pin_code_error, new ErrorContext('auth.service', 'resetPassword', {}))
         }
         const { success } = await VerificationCodeService.verifyCode({
-            owner: params.owner,
+            owner: user.key,
             code: params.code,
-            codeType: params.type === 'email' ? CodeType.EmailForgotPassword : CodeType.SMSForgotPassword
+            codeType: CodeType.ForgotPassword
         })
         if (success) {
+            EmailService.sendUserPasswordResetCompletedEmail({ address: user.email })
             const newPassHashed = await bcrypt.hash(params.password, 10)
 
             // log
@@ -332,16 +346,6 @@ export default class AuthService {
 
             // logout
             await AuthService.updateTokenVersion(user.key, currentTimestamp)
-
-            const subject = 'Welcome to LightLink'
-            const html = 'You have successfully reset your password!'
-
-            // send notifications user via email and phone
-            if (params.type === 'email') {
-                await EmailService.sendPasswordResetComplete({ address: user.email })
-            } else if (params.type === 'phone') {
-                await sendSms(subject, html, html, user.phone)
-            }
         }
         return { success }
     }
@@ -360,11 +364,22 @@ export default class AuthService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
         }
 
-        await VerificationCodeService.generateCode({
-            owner: params.owner,
-            codeType: params.type === 'email' ? CodeType.EmailForgotPin : CodeType.SMSForgotPin
+        const codeRes = await VerificationCodeService.generateCode({
+            owner: user.key,
+            userKey: user.key,
+            codeType: CodeType.ForgotPin
         })
-
+        if (codeRes.success && codeRes.code) {
+            if (params.type === 'email') {
+                EmailService.sendUserForgotPinEmail({ address: params.owner, code: codeRes.code })
+            } else {
+                sendSms(
+                    'LightLink',
+                    `[LightLink] You have recently requested a PIN reset, please enter this code ${codeRes.code} into your mobile APP.`,
+                    params.owner
+                )
+            }
+        }
         return { success: true }
     }
 
@@ -387,13 +402,13 @@ export default class AuthService {
         }
 
         const { success } = await VerificationCodeService.verifyCode({
-            owner: params.owner,
+            owner: user.key,
             code: params.code,
-            codeType: params.type === 'email' ? CodeType.EmailForgotPin : CodeType.SMSForgotPin
+            codeType: CodeType.ForgotPin
         })
         if (success) {
             const newPin = await bcrypt.hash(params.pin, 10)
-
+            EmailService.sendUserPinResetCompletedEmail({ address: user.email })
             // log
             new UserHistoryModel({
                 key: crypto.randomBytes(16).toString('hex'),
@@ -415,97 +430,7 @@ export default class AuthService {
 
             // logout
             await AuthService.updateTokenVersion(user.key, currentTimestamp)
-
-            // send notifications user via email and phone
-            const subject = 'Welcome to LightLink'
-            const html = 'You have successfully reset your pin!'
-
-            if (params.type === 'email') {
-                await EmailService.sendPinResetComplete({ address: user.email })
-            } else if (params.type === 'phone') {
-                await sendSms(subject, html, html, user.phone)
-            }
         }
         return { success }
-    }
-
-    // TODO : RE
-    static async verifyTwoFactor(user: IUser, logInData: any, codeType: any = null) {
-        if (!logInData.token || !logInData.token.length || logInData.token === 'undefined') {
-            await this.sendMFACode(user)
-            const result = { requireMFACode: true, type: user.mfaSettings.type, status: 'sent' }
-            return result
-        }
-
-        // @ts-ignore
-        switch (user.mfaSettings.type) {
-        case MFAType.PIN:
-            // @ts-ignore
-            const pinHash = user.get('pin', null, { getters: false })
-            const isMatching = await bcrypt.compare(logInData.token, pinHash)
-            if (!isMatching) {
-                throw new BizException(AuthErrors.invalid_pin_code_error, new ErrorContext('auth.service', 'logIn', {}))
-            }
-            break
-        case MFAType.TOTP:
-            // @ts-ignore
-            const totpSecret = String(user?.get('totpSecret', null, { getters: false }))
-            if (!verifyToken(totpSecret, logInData.token)) {
-                throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
-            }
-            break
-        case MFAType.EMAIL: {
-            codeType = codeType ?? CodeType.EmailLogIn
-            const { success } = await VerificationCodeService.verifyCode({
-                codeType: codeType,
-                owner: user.email,
-                code: logInData.token
-            })
-            if (!success) {
-                throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
-            }
-            break
-        }
-        case MFAType.SMS: {
-            codeType = codeType ?? CodeType.SMSLogin
-            const { success } = await VerificationCodeService.verifyCode({
-                codeType: codeType,
-                owner: user.phone,
-                code: logInData.token
-            })
-            if (!success) {
-                throw new BizException(AuthErrors.token_error, new ErrorContext('auth.service', 'logIn', {}))
-            }
-            break
-        }
-        }
-        return { requireMFACode: false, type: user.mfaSettings.type, status: 'verified' }
-    }
-
-    // TODO - refactor
-    static async sendMFACode(user: IUser) {
-        // @ts-ignore
-        switch (user.mfaSettings.type) {
-        case MFAType.EMAIL: {
-            const data: any = await VerificationCodeService.generateCode({ codeType: CodeType.EmailLogIn, owner: user.email })
-            data.message = 'Please check your email for login code'
-            return data
-        }
-        case MFAType.SMS: {
-            const data: any = await VerificationCodeService.generateCode({ codeType: CodeType.SMSLogin, owner: user.phone })
-            data.message = 'Please check your phone for login code'
-            return data
-        }
-        case MFAType.PIN: {
-            const data: any = {}
-            data.message = 'Please enter your pin as login code'
-            return data
-        }
-        case MFAType.TOTP: {
-            const data: any = {}
-            data.message = 'Please check Google Authenticator for login code'
-            return data
-        }
-        }
     }
 }

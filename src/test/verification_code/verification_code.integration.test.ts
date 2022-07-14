@@ -34,9 +34,6 @@ describe('Verification Code', () => {
         if (key === CodeType.EmailRegistration) {
             return
         }
-        if (CodeType.SMS || key == CodeType.SMSLogin) {
-            return
-        }
         it(`GetVerificationCode ${key}`, async () => {
             const owner = shareData.user.email
             const res = await request(server.app).post('/verification/code/get').send({
@@ -57,7 +54,7 @@ describe('Verification Code', () => {
         }).timeout(10000)
 
         it(`VerifyCode ${key}`, async () => {
-            const owner = key == CodeType.SMS || key == CodeType.SMSLogin ? shareData.user.phone : shareData.user.email
+            const owner = shareData.user.email
             const verificationCode = await MODELS.VerificationCode.findOne(
                 {
                     type: key,

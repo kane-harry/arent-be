@@ -358,10 +358,10 @@ export default class UserService {
         await user.save()
 
         if (user.email) {
-            await EmailService.sendResetCredentialsComplete({ address: user.email, code: changePasswordNextLoginCode })
+            await EmailService.sendUserResetCredentialsNotification({ address: user.email, code: changePasswordNextLoginCode })
         } else if (user.phone) {
-            const text = `Your acount has been reset, please use ${changePasswordNextLoginCode} as your password to log in within the next 15 minutes.`
-            await sendSms('Reset credentials', text, text, user.phone)
+            const content = `[LightLink] Your acount has been reset, please use ${changePasswordNextLoginCode} as your password to log in within the next 15 minutes.`
+            await sendSms('LightLink', content, user.phone)
         }
 
         return { success: true }
@@ -424,10 +424,7 @@ export default class UserService {
         await user.save()
 
         if (user.email) {
-            await EmailService.sendSetupCredentialsComplete({ address: user.email })
-        } else if (user.phone) {
-            const text = 'Your credentials have been setup'
-            await sendSms('Reset credentials', text, text, user.phone)
+            EmailService.sendUserResetCredentialsCompletedNotification({ address: user.email })
         }
 
         return { success: true }
@@ -606,10 +603,6 @@ export default class UserService {
         user?.set('phone', phone, String)
         user?.save()
 
-        // logout & send sms notifications
-        const subject = 'Welcome to LightLink'
-        const html = 'You have successfully updated your phone!'
-        await sendSms(subject, html, html, phone)
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
         return { success: true }
     }
@@ -648,7 +641,7 @@ export default class UserService {
         await user?.save()
 
         // logout & send email notifications
-        await EmailService.sendEmailUpdateComplete({ address: email })
+        await EmailService.sendUserChangeEmailCompletedEmail({ address: email })
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
         return { success: true }
     }

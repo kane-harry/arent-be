@@ -46,8 +46,9 @@ export const config = {
     },
 
     emailNotification: {
-        EMAIL_PARAM_CLIENT_NAME: process.env.EMAIL_PARAM_CLIENT_NAME || 'LightLink Inc',
-        EMAIL_PARAM_SUPPORT_SITE_URL: process.env.EMAIL_PARAM_SUPPORT_SITE_URL,
+        EMAIL_PARAM_CLIENT_NAME: process.env.EMAIL_PARAM_CLIENT_NAME || 'LightLink',
+        EMAIL_PARAM_SUPPORT_SITE_URL: process.env.EMAIL_PARAM_SUPPORT_SITE_URL || 'lightlink.pellartech.io',
+        EMAIL_PARAM_SUPPORT_EMAIL: process.env.EMAIL_PARAM_SUPPORT_EMAIL || 'tech@pellartech.com',
         fromAddress: String(process.env.EMAIL_NOTIFICATION_FROM_ADDRESS || 'tech@pellartech.com'),
         toAddress: String(process.env.EMAIL_NOTIFICATION_TO_ADDRESS || 'tech@pellartech.com'),
         emailSendgridApiKey: String(process.env.EMAIL_SENDGRID_API_KEY)
