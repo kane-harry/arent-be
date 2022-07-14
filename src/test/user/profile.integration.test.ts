@@ -167,20 +167,18 @@ describe('Profile', () => {
         })
 
         it('updateUser should be success', async () => {
-            updateData.newEmailCode = shareData.newEmailCode
-            updateData.newPhoneCode = shareData.newPhoneCode
-            const updateRes = await request(server.app).put('/users/profile').set('Authorization', `Bearer ${shareData.token}`).send(updateData)
+            const updateRes = await request(server.app)
+                .put(`/users/profile`)
+                .set('Authorization', `Bearer ${shareData.token}`)
+                .send(updateData)
 
             expect(updateRes.status).equal(200)
             validResponse(updateRes.body)
 
-            const user = await MODELS.UserModel.findOne({ email: updateData.email }).exec()
-            expect(user?.email).equal(updateData.email)
+            const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
             expect(user?.firstName).equal(updateData.firstName)
             expect(user?.lastName).equal(updateData.lastName)
             expect(user?.chatName).equal(updateData.chatName)
-            expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(updateData.phone))
-            expect(user?.playerId).equal(updateData.playerId)
         })
     })
 

@@ -17,7 +17,6 @@ const userHistorySchema = new Schema<IUserHistory>(
         },
         agent: {
             type: String,
-            required: true
         },
         action: {
             type: String,
