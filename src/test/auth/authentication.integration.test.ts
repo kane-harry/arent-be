@@ -13,7 +13,7 @@ chai.use(chaiAsPromised)
 const { expect, assert } = chai
 const newPassword = 'Test1221!'
 const newPin = '2222'
-let shareData = { user: {}, token: '', refreshToken: '' }
+let shareData = { user: { key: '' }, token: '', refreshToken: '' }
 
 describe('Authentication', () => {
     before(async () => {
@@ -64,74 +64,63 @@ describe('Authentication', () => {
         validResponse(res.body)
     }).timeout(10000)
 
-    it('ResetPassword', async () => {
-        const res1 = await request(server.app).post('/auth/password/reset').set('Authorization', `Bearer ${shareData.token}`).send({
-            oldPassword: userData.password,
-            newPassword: newPassword,
-            newPasswordConfirmation: newPassword
-        })
-
-        expect(res1.status).equal(200)
-        validResponse(res1.body)
-        expect(res1.body.success).equal(true)
-    }).timeout(10000)
-
-    it('ResetPin', async () => {
-        const res1 = await request(server.app).post('/auth/pin/reset').set('Authorization', `Bearer ${shareData.token}`).send({
-            oldPin: userData.pin,
-            newPin: newPin,
-            newPinConfirmation: newPin
-        })
-
-        expect(res1.status).equal(200)
-        validResponse(res1.body)
-        expect(res1.body.success).equal(true)
-    }).timeout(10000)
-
     it('ForgotPassword', async () => {
-        const res = await request(server.app).post('/verification/code/get').send({
-            codeType: CodeType.ForgotPassword,
-            owner: userData.email
+        const res1 = await request(server.app).post('/auth/password/forgot').send({
+            owner: userData.email,
+            type: 'email'
         })
-        expect(res.status).equal(200)
-        validResponse(res.body)
+
+        expect(res1.status).equal(200)
+        expect(res1.body.success).equal(true)
+    }).timeout(10000)
+
+    it('ResetPassword', async () => {
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
                 type: CodeType.ForgotPassword,
-                owner: userData.email
+                owner: shareData.user.key
             },
             {},
             { sort: { created_at: -1 } }
         ).exec()
-        const res1 = await request(server.app).post('/auth/password/forgot').send({
+        const res1 = await request(server.app).post('/auth/password/reset').set('Authorization', `Bearer ${shareData.token}`).send({
+            owner: userData.email,
+            type: 'email',
+            pin: userData.pin,
             code: verificationCode?.code,
-            email: userData.email,
-            newPassword: newPassword
+            password: newPassword
         })
 
         expect(res1.status).equal(200)
+        validResponse(res1.body)
         expect(res1.body.success).equal(true)
     }).timeout(10000)
 
     it('ForgotPin', async () => {
-        const res = await request(server.app).post('/verification/code/get').send({
-            codeType: CodeType.ForgotPin,
-            owner: userData.email
+        const res1 = await request(server.app).post('/auth/pin/forgot').send({
+            owner: userData.email,
+            type: 'email'
         })
-        expect(res.status).equal(200)
-        validResponse(res.body)
+
+        expect(res1.status).equal(200)
+        expect(res1.body.success).equal(true)
+    }).timeout(10000)
+
+    it('ResetPin', async () => {
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
                 type: CodeType.ForgotPin,
-                owner: userData.email
+                owner: shareData.user.key
             },
             {},
             { sort: { created_at: -1 } }
         ).exec()
-        const res1 = await request(server.app).post('/auth/pin/forgot').send({
+        const res1 = await request(server.app).post('/auth/pin/reset').set('Authorization', `Bearer ${shareData.token}`).send({
+            owner: userData.email,
+            type: 'email',
+            password: newPassword,
             code: verificationCode?.code,
-            email: userData.email,
-            newPin: newPin
+            pin: newPin
         })
 
         expect(res1.status).equal(200)
