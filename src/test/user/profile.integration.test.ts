@@ -15,13 +15,17 @@ let shareData = {
     user: {
         email: '',
         key: '',
+        chatName: '',
+        firstName: '',
+        lastName: '',
+        phone: ''
     },
     token: '',
     refreshToken: '',
     newEmailCode: '',
     newPhoneCode: ''
 }
-let adminShareData = { user: { key: '' }, token: '', refreshToken: '', accounts: [] }
+let adminShareData = { user: { key: '', chatName: '' }, token: '', refreshToken: '', accounts: [] }
 
 const updateData = {
     email: 'new.email@gmail.com',
@@ -142,17 +146,15 @@ describe('Profile', () => {
     }).timeout(10000)
 
     it('GetPublicUserByChatName', async () => {
-        const updateRes = await request(server.app).get(`/users/${userData.chatName}/brief`)
+        const updateRes = await request(server.app).get(`/users/${shareData.user.chatName}/brief`)
 
         expect(updateRes.status).equal(200)
         validResponse(updateRes.body)
 
-        const user = await MODELS.UserModel.findOne({ chatName: userData.chatName }).exec()
-        expect(user?.email).equal(userData.email)
-        expect(user?.firstName).equal(userData.firstName)
-        expect(user?.lastName).equal(userData.lastName)
-        expect(user?.chatName).equal(userData.chatName)
-        expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(userData.phone))
+        expect(updateRes.body?.email).equal(shareData.user.email)
+        expect(updateRes.body?.firstName).equal(shareData.user.firstName)
+        expect(updateRes.body?.lastName).equal(shareData.user.lastName)
+        expect(updateRes.body?.chatName).equal(shareData.user.chatName)
     })
 
     context('Test case for function updateUser', () => {
@@ -165,20 +167,18 @@ describe('Profile', () => {
         })
 
         it('updateUser should be success', async () => {
-            updateData.newEmailCode = shareData.newEmailCode
-            updateData.newPhoneCode = shareData.newPhoneCode
-            const updateRes = await request(server.app).put('/users/profile').set('Authorization', `Bearer ${shareData.token}`).send(updateData)
+            const updateRes = await request(server.app)
+                .put(`/users/profile`)
+                .set('Authorization', `Bearer ${shareData.token}`)
+                .send(updateData)
 
             expect(updateRes.status).equal(200)
             validResponse(updateRes.body)
 
-            const user = await MODELS.UserModel.findOne({ email: updateData.email }).exec()
-            expect(user?.email).equal(updateData.email)
+            const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
             expect(user?.firstName).equal(updateData.firstName)
             expect(user?.lastName).equal(updateData.lastName)
             expect(user?.chatName).equal(updateData.chatName)
-            expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(updateData.phone))
-            expect(user?.playerId).equal(updateData.playerId)
         })
     })
 

@@ -1,17 +1,17 @@
 import { config } from '@config'
 import sendEmail from '@utils/email'
-import { ContextMailDto } from './email.dto'
+import { EmailContextDto } from './email.dto'
 const EmailTemplates = require('swig-email-templates')
 
 const defaultContext = {
     clientName: config.emailNotification.EMAIL_PARAM_CLIENT_NAME,
-    // supportSiteUrl: constants.email.template.EMAIL_PARAM_SUPPORT_SITE_URL,
-    supportSiteEmail: config.emailNotification.fromAddress
+    supportSiteEmail: config.emailNotification.EMAIL_PARAM_SUPPORT_EMAIL,
+    supportSiteUrl: config.emailNotification.EMAIL_PARAM_SUPPORT_SITE_URL
 }
 const templates = new EmailTemplates({ root: config.EMAIL_TEMPLATES_ROOT_PATH })
 
 export default class EmailService {
-    static async sendRegistrationVerificationCode(context: ContextMailDto) {
+    static async sendRegistrationVerificationCode(context: EmailContextDto) {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
@@ -29,13 +29,31 @@ export default class EmailService {
         })
     }
 
-    static async sendLoginVerificationCode(context: ContextMailDto) {
+    static async sendChangeEmailVerificationCode(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('user-change-email-verification-code.html', _context, function (err: any, html: string, text: string, subject: string) {
+                if (err) {
+                    console.error('sendChangeEmailVerificationCode => ' + err.message)
+                }
+                // Send email
+                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
+                sendEmail(subject, text, html, _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendChangeEmailVerificationCode => ' + err.message)
+        })
+    }
+
+    static async sendUserVerificationCodeEmail(context: EmailContextDto) {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
             templates.render('user-verification.html', _context, function (err: any, html: string, text: string, subject: string) {
                 if (err) {
-                    console.error('sendEmailUpdateComplete => ' + err.message)
+                    console.error('sendUserVerificationCodeEmail => ' + err.message)
                 }
                 // Send email
                 subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
@@ -43,17 +61,89 @@ export default class EmailService {
                 resolve('done')
             })
         }).catch(err => {
-            console.error('sendLoginVerificationCode => ' + err.message)
+            console.error('sendUserVerificationCodeEmail => ' + err.message)
         })
     }
 
-    static async sendPasswordResetCode(context: ContextMailDto) {
+    static async sendUserForgotPasswordEmail(context: EmailContextDto) {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('password-reset-request.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-password-reset-request.html', _context, function (err: any, html: string, text: string, subject: string) {
                 if (err) {
-                    console.error('sendEmailUpdateComplete => ' + err.message)
+                    console.error('sendUserForgotPasswordEmail => ' + err.message)
+                }
+                // Send email
+                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Password Reset Request`
+                sendEmail(subject, text, html, _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendUserForgotPasswordEmail => ' + err.message)
+        })
+    }
+
+    static async sendUserPasswordResetCompletedEmail(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('user-password-reset-completed.html', _context, function (err: any, html: string, text: string, subject: string) {
+                if (err) {
+                    console.error('sendUserPasswordResetCompletedEmail => ' + err.message)
+                }
+                // Send email
+                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Password Reset Completed`
+                sendEmail(subject, text, html, _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendUserPasswordResetCompletedEmail => ' + err.message)
+        })
+    }
+
+    static async sendUserForgotPinEmail(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('user-pin-reset-request.html', _context, function (err: any, html: string, text: string, subject: string) {
+                if (err) {
+                    console.error('sendUserForgotPinEmail => ' + err.message)
+                }
+                // Send email
+                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - PIN Reset Request`
+                sendEmail(subject, text, html, _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendUserForgotPinEmail => ' + err.message)
+        })
+    }
+
+    static async sendUserPinResetCompletedEmail(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('user-pin-reset-completed.html', _context, function (err: any, html: string, text: string, subject: string) {
+                if (err) {
+                    console.error('sendUserPinResetCompletedEmail => ' + err.message)
+                }
+                // Send email
+                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - PIN Reset Completed`
+                sendEmail(subject, text, html, _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendUserPinResetCompletedEmail => ' + err.message)
+        })
+    }
+
+    static async sendUserChangeEmailCompletedEmail(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('user-change-email-completed.html', _context, function (err: any, html: string, text: string, subject: string) {
+                if (err) {
+                    console.error('sendUserChangeEmailCompletedEmail => ' + err.message)
                 }
                 // Send email
                 subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
@@ -61,107 +151,17 @@ export default class EmailService {
                 resolve('done')
             })
         }).catch(err => {
-            console.error('sendPasswordResetCode => ' + err.message)
+            console.error('sendUserChangeEmailCompletedEmail => ' + err.message)
         })
     }
 
-    static async sendPasswordResetComplete(context: ContextMailDto) {
+    static async sendUserResetCredentialsNotification(context: EmailContextDto) {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('password-reset-complete.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-reset-credentials-request.html', _context, function (err: any, html: string, text: string, subject: string) {
                 if (err) {
-                    console.error('sendEmailUpdateComplete => ' + err.message)
-                }
-                // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
-                sendEmail(subject, text, html, _context.address)
-                resolve('done')
-            })
-        }).catch(err => {
-            console.error('sendPasswordResetComplete => ' + err.message)
-        })
-    }
-
-    static async sendPinResetCode(context: ContextMailDto) {
-        const _context = Object.assign({}, context, defaultContext)
-
-        await new Promise((resolve, reject) => {
-            templates.render('pin-reset-request.html', _context, function (err: any, html: string, text: string, subject: string) {
-                if (err) {
-                    console.error('sendEmailUpdateComplete => ' + err.message)
-                }
-                // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
-                sendEmail(subject, text, html, _context.address)
-                resolve('done')
-            })
-        }).catch(err => {
-            console.error('sendPinResetCode => ' + err.message)
-        })
-    }
-
-    static async sendPinResetComplete(context: ContextMailDto) {
-        const _context = Object.assign({}, context, defaultContext)
-
-        await new Promise((resolve, reject) => {
-            templates.render('pin-reset-complete.html', _context, function (err: any, html: string, text: string, subject: string) {
-                if (err) {
-                    console.error('sendEmailUpdateComplete => ' + err.message)
-                }
-                // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
-                sendEmail(subject, text, html, _context.address)
-                resolve('done')
-            })
-        }).catch(err => {
-            console.error('sendPinResetComplete => ' + err.message)
-        })
-    }
-
-    static async sendEmailUpdateCode(context: ContextMailDto) {
-        const _context = Object.assign({}, context, defaultContext)
-
-        await new Promise((resolve, reject) => {
-            templates.render('email-update-request.html', _context, function (err: any, html: string, text: string, subject: string) {
-                if (err) {
-                    console.error('sendEmailUpdateComplete => ' + err.message)
-                }
-                // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
-                sendEmail(subject, text, html, _context.address)
-                resolve('done')
-            })
-        }).catch(err => {
-            console.error('sendEmailUpdateCode => ' + err.message)
-        })
-    }
-
-    static async sendEmailUpdateComplete(context: ContextMailDto) {
-        const _context = Object.assign({}, context, defaultContext)
-
-        await new Promise((resolve, reject) => {
-            templates.render('email-update-complete.html', _context, function (err: any, html: string, text: string, subject: string) {
-                if (err) {
-                    console.error('sendEmailUpdateComplete => ' + err.message)
-                }
-                // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
-                sendEmail(subject, text, html, _context.address)
-                resolve('done')
-            })
-        }).catch(err => {
-            console.error('sendEmailUpdateComplete => ' + err.message)
-        })
-    }
-
-    static async sendResetCredentialsComplete(context: ContextMailDto) {
-        const _context = Object.assign({}, context, defaultContext)
-
-        await new Promise((resolve, reject) => {
-            templates.render('reset-credentials-complete.html', _context, function (err: any, html: string, text: string, subject: string) {
-                if (err) {
-                    console.error('sendResetCredentialsComplete => ' + err.message)
+                    console.error('sendUserResetCredentialsNotification => ' + err.message)
                 }
                 // Send email
                 subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Reset Credentials`
@@ -169,17 +169,17 @@ export default class EmailService {
                 resolve('done')
             })
         }).catch(err => {
-            console.error('sendResetCredentialsComplete => ' + err.message)
+            console.error('sendUserResetCredentialsNotification => ' + err.message)
         })
     }
 
-    static async sendSetupCredentialsComplete(context: ContextMailDto) {
+    static async sendUserResetCredentialsCompletedNotification(context: EmailContextDto) {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('setup-credentials-complete.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-reset-credentials-completed.html', _context, function (err: any, html: string, text: string, subject: string) {
                 if (err) {
-                    console.error('sendSetupCredentialsComplete => ' + err.message)
+                    console.error('sendUserResetCredentialsCompletedNotification => ' + err.message)
                 }
                 // Send email
                 subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Setup Credentials`
@@ -187,7 +187,7 @@ export default class EmailService {
                 resolve('done')
             })
         }).catch(err => {
-            console.error('sendSetupCredentialsComplete => ' + err.message)
+            console.error('sendUserResetCredentialsCompletedNotification => ' + err.message)
         })
     }
 }

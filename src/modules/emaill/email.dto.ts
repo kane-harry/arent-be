@@ -1,6 +1,6 @@
 import { IsOptional, IsString } from 'class-validator'
 
-export class ContextMailDto {
+export class EmailContextDto {
     @IsString()
     public address: string
 

@@ -180,7 +180,7 @@ export default class AccountService {
             throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { key }))
         }
 
-        await AuthService.verifyTwoFactor(operator, params, CodeType.Withdraw)
+        // await AuthService.verifyTwoFactor(operator, params, CodeType.Withdraw)
         // TODO
         throw new Error('Method not implemented.')
     }

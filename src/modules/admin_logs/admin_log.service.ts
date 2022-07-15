@@ -1,6 +1,6 @@
-import {IAdminLog, ILogFilter} from "@modules/admin_logs/admin_log.interface";
-import AdminLogModel from "@modules/admin_logs/admin_log.model";
-import {QueryRO} from "@interfaces/query.model";
+import { IAdminLog, ILogFilter } from '@modules/admin_logs/admin_log.interface'
+import AdminLogModel from '@modules/admin_logs/admin_log.model'
+import { QueryRO } from '@interfaces/query.model'
 
 export default class AdminLogsService {
     static async queryLogs(params: ILogFilter) {
@@ -9,11 +9,7 @@ export default class AdminLogsService {
         const sorting: any = { _id: 1 }
         if (params.terms) {
             const reg = new RegExp(params.terms)
-            filter.$or = [
-                { key: reg },
-                { action: reg },
-                { section: reg },
-            ]
+            filter.$or = [{ key: reg }, { action: reg }, { section: reg }]
         }
         if (params.sortby) {
             delete sorting._id

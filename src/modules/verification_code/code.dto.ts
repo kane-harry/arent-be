@@ -11,6 +11,9 @@ export class CreateCodeDto {
 
     @IsString()
     public owner: string
+
+    @IsOptional()
+    public userKey?: string | undefined
 }
 
 export class VerifyCodeDto extends CreateCodeDto {

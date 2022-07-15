@@ -13,6 +13,7 @@ const codeSchema = new Schema<IVerificationCode>(
             required: true,
             index: true
         },
+        userKey: String,
         type: {
             type: String,
             enum: CodeType,

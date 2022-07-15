@@ -1,12 +1,12 @@
 import asyncHandler from '@utils/asyncHandler'
-import {Router, Response} from 'express'
+import { Router, Response } from 'express'
 import IController from '@interfaces/controller.interface'
 import AdminLogService from './admin_log.service'
-import {CustomRequest} from '@middlewares/request.middleware'
-import {downloadResource} from "@utils/utility";
-import {requireAuth} from "@utils/authCheck";
-import {requireAdmin} from "@config/role";
-import {ILogFilter} from "@modules/admin_logs/admin_log.interface";
+import { CustomRequest } from '@middlewares/request.middleware'
+import { downloadResource } from '@utils/utility'
+import { requireAuth } from '@utils/authCheck'
+import { requireAdmin } from '@config/role'
+import { ILogFilter } from '@modules/admin_logs/admin_log.interface'
 
 class AdminLogController implements IController {
     public path = '/admin_logs'
@@ -33,15 +33,15 @@ class AdminLogController implements IController {
         const data = await AdminLogService.queryLogs(filter)
 
         const fields = [
-            {label: 'Key', value: 'key'},
-            {label: 'Operator', value: 'operator'},
-            {label: 'UserKey', value: 'userKey'},
-            {label: 'Section', value: 'section'},
-            {label: 'Action', value: 'action'},
-            {label: 'PreData', value: 'preData'},
-            {label: 'PostData', value: 'postData'},
-            {label: 'Created', value: 'created'},
-            {label: 'Modified', value: 'modified'}
+            { label: 'Key', value: 'key' },
+            { label: 'Operator', value: 'operator' },
+            { label: 'UserKey', value: 'userKey' },
+            { label: 'Section', value: 'section' },
+            { label: 'Action', value: 'action' },
+            { label: 'PreData', value: 'preData' },
+            { label: 'PostData', value: 'postData' },
+            { label: 'Created', value: 'created' },
+            { label: 'Modified', value: 'modified' }
         ]
 
         return downloadResource(res, 'transactions.csv', fields, data.items)

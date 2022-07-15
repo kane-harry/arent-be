@@ -4,7 +4,6 @@ import request from 'supertest'
 import { MODELS, validResponse } from '@app/test/init/db'
 import { CodeType } from '@modules/verification_code/code.interface'
 import chai from 'chai'
-import { config } from '@config'
 import { role } from '@config/role'
 import SettingService from '@modules/setting/setting.service'
 const { expect } = chai
@@ -26,9 +25,11 @@ export const initDataForUser = async (shareData: any, data: object = {}) => {
     validResponse(registerRes.body)
     expect(registerRes.status).equal(200)
 
-    await request(server.app).post('/auth/login').send({ email: formData.email, password: formData.password })
-    const loginCode = await getLoginCode(formData)
-    const loginRes = await request(server.app).post('/auth/login').send({ email: formData.email, password: formData.password, token: loginCode })
+    let loginRes = await request(server.app).post('/auth/login').send({ email: formData.email, password: formData.password })
+    if (!loginRes.body.token) {
+        const loginCode = await getLoginCode(formData)
+        loginRes = await request(server.app).post('/auth/login').send({ email: formData.email, password: formData.password, token: loginCode })
+    }
     validResponse(loginRes.body)
     expect(loginRes.status).equal(200)
 
@@ -119,7 +120,7 @@ export const makeUserSuspend = async (data: object = {}, status: string) => {
 
 export const getLoginCode = async (formData: any) => {
     const setting: any = await SettingService.getGlobalSetting()
-    const codeType = setting.registrationRequireEmailVerified ? CodeType.EmailLogIn : CodeType.SMSLogin
+    const codeType = setting.registrationRequireEmailVerified ? CodeType.Login : ''
     const owner = setting.registrationRequireEmailVerified ? formData.email : formData.phone
 
     const verificationCode = await MODELS.VerificationCode.findOne(

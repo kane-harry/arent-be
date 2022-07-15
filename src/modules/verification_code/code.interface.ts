@@ -5,19 +5,18 @@ export enum CodeType {
     PhoneRegistration = 'PhoneRegistration',
     EmailUpdate = 'EmailUpdate',
     PhoneUpdate = 'PhoneUpdate',
-    EmailForgotPassword = 'EmailForgotPassword',
-    SMSForgotPassword = 'SMSForgotPassword',
-    EmailForgotPin = 'EmailForgotPin',
-    SMSForgotPin = 'SMSForgotPin',
-    SMS = 'SMS',
-    SMSLogin = 'SMSLogin',
-    EmailLogIn = 'EmailLogin',
-    Withdraw = 'Withdraw'
+    ForgotPassword = 'ForgotPassword',
+    ForgotPin = 'ForgotPin',
+    Login = 'Login',
+    Withdraw = 'Withdraw',
+    Trade = 'Trade',
+    Security = 'Security'
 }
 
 export interface IVerificationCode extends IBaseModel {
     key: string
-    owner: string // email|phone|userkey
+    owner: string // email|phone
+    userKey: string | undefined | null
     type: CodeType
     code: string
     expiryTimestamp: number

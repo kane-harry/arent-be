@@ -9,7 +9,7 @@ import BlockchainController from '@modules/blockchain/blockchain.controller'
 import VerificationCodeController from '@modules/verification_code/code.controller'
 import SiteController from '@modules/site/site.controller'
 import SettingController from '@modules/setting/setting.controller'
-import AdminLogController from "@modules/admin_logs/admin_log.controller";
+import AdminLogController from '@modules/admin_logs/admin_log.controller'
 
 const app = new App([
     new VerificationCodeController(),

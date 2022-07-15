@@ -3,28 +3,16 @@ import ErrorContext from '@exceptions/error.context'
 import { AuthErrors, VerificationCodeErrors } from '@exceptions/custom.error'
 import { toLower, trim } from 'lodash'
 import moment from 'moment'
-import { CreateCodeDto, SentCodeToEmailDto, VerifyCodeDto } from './code.dto'
+import { CreateCodeDto, VerifyCodeDto } from './code.dto'
 import { VerificationCode } from './code.model'
 import UserModel from '@modules/user/user.model'
 import { CodeType } from './code.interface'
 import crypto from 'crypto'
-import sendEmail from '@utils/email'
-import sendSms from '@utils/sms'
 import { stripPhoneNumber } from '@utils/phone-helper'
-import EmailService from '@modules/emaill/email.service'
 
 export default class VerificationCodeService {
     static async generateCode(params: CreateCodeDto) {
-        if (
-            [
-                CodeType.PhoneRegistration,
-                CodeType.PhoneUpdate,
-                CodeType.SMS,
-                CodeType.SMSLogin,
-                CodeType.SMSForgotPassword,
-                CodeType.SMSForgotPin
-            ].includes(params.codeType)
-        ) {
+        if ([CodeType.PhoneRegistration, CodeType.PhoneUpdate].includes(params.codeType)) {
             params.owner = await stripPhoneNumber(params.owner)
         }
         const owner = toLower(trim(params.owner))
@@ -54,7 +42,7 @@ export default class VerificationCodeService {
         const codeData = await VerificationCode.findOne({ owner: owner, type: params.codeType }).exec()
         const currentTs = moment().unix()
         if (codeData) {
-            if (codeData.sentAttempts <= 5 && codeData.sentTimestamp > currentTs - 60 && process.env.NODE_ENV !== 'development') {
+            if (codeData.sentAttempts <= 5 && codeData.sentTimestamp > currentTs - 60) {
                 throw new BizException(
                     VerificationCodeErrors.verification_code_duplicate_request_in_minute_error,
                     new ErrorContext('verification_code.service', 'generateCode', { owner: owner })
@@ -71,6 +59,7 @@ export default class VerificationCodeService {
                 code: code,
                 expiryTimestamp: newExpireTimestamp,
                 sentAttempts: sentAttempts,
+                sentTimestamp: currentTs,
                 verified: false,
                 enabled: true
             }).exec()
@@ -78,6 +67,7 @@ export default class VerificationCodeService {
             const mode = new VerificationCode({
                 key: crypto.randomBytes(16).toString('hex'),
                 owner: owner,
+                userKey: params.userKey,
                 type: params.codeType,
                 code: code,
                 expiryTimestamp: moment().add(15, 'minutes').unix()
@@ -85,60 +75,11 @@ export default class VerificationCodeService {
             await mode.save()
         }
 
-        const subject = 'Welcome to LightLink'
-        const html = `This is your ${params.codeType} verification code: <b>${code}</b>`
-        switch (params.codeType) {
-        case CodeType.PhoneRegistration:
-        case CodeType.PhoneUpdate:
-        case CodeType.SMSLogin:
-        case CodeType.SMS:
-        case CodeType.SMSForgotPassword:
-        case CodeType.SMSForgotPin:
-            sendSms(subject, html, html, owner)
-            break
-        default:
-            this.sentMailByCodeType({ ...params, code })
-            return { success: true }
-        }
-
-        if (process.env.NODE_ENV === 'development') {
-            return { success: true, code: code }
-        }
-        return { success: true }
-    }
-
-    static async sentMailByCodeType(params: SentCodeToEmailDto) {
-        switch (params.codeType) {
-        case CodeType.EmailLogIn:
-            EmailService.sendLoginVerificationCode({ address: params.owner, code: params.code })
-            break
-        case CodeType.EmailForgotPassword:
-            EmailService.sendPasswordResetCode({ address: params.owner, code: params.code })
-            break
-        case CodeType.EmailForgotPin:
-            EmailService.sendPinResetCode({ address: params.owner, code: params.code })
-            break
-        case CodeType.EmailRegistration:
-            EmailService.sendRegistrationVerificationCode({ address: params.owner, code: params.code })
-            break
-        case CodeType.EmailUpdate:
-            EmailService.sendEmailUpdateCode({ address: params.owner, code: params.code })
-            break
-        default:
-        }
+        return { success: true, code: code, owner }
     }
 
     static async verifyCode(params: VerifyCodeDto) {
-        if (
-            [
-                CodeType.PhoneRegistration,
-                CodeType.PhoneUpdate,
-                CodeType.SMS,
-                CodeType.SMSLogin,
-                CodeType.SMSForgotPassword,
-                CodeType.SMSForgotPin
-            ].includes(params.codeType)
-        ) {
+        if ([CodeType.PhoneRegistration, CodeType.PhoneUpdate].includes(params.codeType)) {
             params.owner = await stripPhoneNumber(params.owner)
         }
         const codeData = await VerificationCode.findOne({ owner: params.owner, type: params.codeType, code: params.code }).exec()
@@ -146,14 +87,14 @@ export default class VerificationCodeService {
         if (!codeData) {
             throw new BizException(
                 VerificationCodeErrors.verification_code_invalid_error,
-                new ErrorContext('verification_code.service', 'generateCode', { code: params.code })
+                new ErrorContext('verification_code.service', 'verifyCode', { code: params.code })
             )
         }
         const currentTs = moment().unix()
         if (codeData.expiryTimestamp < currentTs || codeData.verified) {
             throw new BizException(
                 VerificationCodeErrors.verification_code_invalid_error,
-                new ErrorContext('verification_code.service', 'generateCode', { code: params.code })
+                new ErrorContext('verification_code.service', 'verifyCode', { code: params.code })
             )
         }
         const valid = codeData.code === params.code
@@ -165,7 +106,7 @@ export default class VerificationCodeService {
             await VerificationCode.findByIdAndUpdate(codeData._id, { enabled: codeEnabled }).exec()
             throw new BizException(
                 VerificationCodeErrors.verification_code_invalid_error,
-                new ErrorContext('verification_code.service', 'generateCode', { code: params.code })
+                new ErrorContext('verification_code.service', 'verifyCode', { code: params.code })
             )
         }
 
