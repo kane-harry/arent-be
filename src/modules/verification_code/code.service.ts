@@ -42,7 +42,7 @@ export default class VerificationCodeService {
         const codeData = await VerificationCode.findOne({ owner: owner, type: params.codeType }).exec()
         const currentTs = moment().unix()
         if (codeData) {
-            if (codeData.sentAttempts <= 5 && codeData.sentTimestamp > currentTs - 60 && process.env.NODE_ENV !== 'development') {
+            if (codeData.sentAttempts <= 5 && codeData.sentTimestamp > currentTs - 60) {
                 throw new BizException(
                     VerificationCodeErrors.verification_code_duplicate_request_in_minute_error,
                     new ErrorContext('verification_code.service', 'generateCode', { owner: owner })
@@ -59,6 +59,7 @@ export default class VerificationCodeService {
                 code: code,
                 expiryTimestamp: newExpireTimestamp,
                 sentAttempts: sentAttempts,
+                sentTimestamp: currentTs,
                 verified: false,
                 enabled: true
             }).exec()
