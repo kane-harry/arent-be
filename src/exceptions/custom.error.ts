@@ -7,7 +7,6 @@ export const CommonErrors = {
     coin_server_request_error: { code: 1005, status: 400, message: 'The request failed due to a coin server error.' },
     bad_request: { code: 1006, status: 400, message: 'Bad Request.' }
 }
-
 export const AuthErrors = {
     registration_info_exists_error: { code: 2001, status: 400, message: 'Info already exists.' },
     registration_email_exists_error: { code: 2002, status: 400, message: 'This email already exists.' },

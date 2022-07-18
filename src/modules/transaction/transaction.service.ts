@@ -1,4 +1,4 @@
-import { AccountService } from '@modules/account/account.service'
+import AccountService from '@modules/account/account.service'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { SendPrimeCoinsDto } from './transaction.dto'
@@ -23,7 +23,7 @@ export default class TransactionService {
         const amount = parsePrimeAmount(params.amount)
 
         // this should be store as a string in wei (big number - string)
-        const senderAccount = await AccountService.getAccountDetailByFields({ symbol, address: params.sender })
+        const senderAccount = await AccountService.getAccountBySymbolAndAddress(symbol, params.sender)
         // recipient can be raw wallet
         const recipientWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(symbol, params.recipient)
         if (!senderAccount) {
@@ -102,7 +102,7 @@ export default class TransactionService {
     }
 
     static async queryTxnsByAccount(key: string, filter: ITransactionFilter, operator: Express.User | undefined) {
-        const account = await AccountService.getAccountDetailByFields({ key })
+        const account = await AccountService.getAccountByKey(key)
         if (account) {
             filter.symbol = account.symbol
             filter.address = account.address
