@@ -7,7 +7,7 @@ import { createEtherWallet, signMessage } from '@utils/wallet'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import { FeeMode, ISendCoinDto, ITransactionFilter } from '@modules/transaction/transaction.interface'
 import { config } from '@config'
-import { AccountService } from '@modules/account/account.service'
+import AccountService from '@modules/account/account.service'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
 import SettingService from '@modules/setting/setting.service'
 

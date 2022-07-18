@@ -1,18 +1,9 @@
-import { randomBytes } from 'crypto'
 import { Schema, Types, model } from 'mongoose'
 import { IAccount } from './account.interface'
 
 const accountSchema = new Schema<IAccount>(
     {
-        key: {
-            type: String,
-            required: true,
-            index: true,
-            unique: true,
-            default: () => {
-                return randomBytes(16).toString('hex')
-            }
-        },
+        key: { type: String, required: true, index: true, unique: true },
         userKey: String,
         name: String,
         symbol: { type: String, uppercase: true, index: true },

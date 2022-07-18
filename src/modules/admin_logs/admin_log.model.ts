@@ -1,18 +1,9 @@
-import { randomBytes } from 'crypto'
 import { Schema, model } from 'mongoose'
 import { IAdminLog } from './admin_log.interface'
 
 const AdminLogsSchema = new Schema<IAdminLog>(
     {
-        key: {
-            type: String,
-            required: true,
-            index: true,
-            unique: true,
-            default: () => {
-                return randomBytes(16).toString('hex')
-            }
-        },
+        key: { type: String, required: true, index: true, unique: true },
         operator: {
             type: Object,
             required: true
