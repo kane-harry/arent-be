@@ -11,7 +11,7 @@ import { CodeType } from '@modules/verification_code/code.interface'
 import { AuthErrors } from '@exceptions/custom.error'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import UserSecurityModel from '@modules/user_security/user_security.model'
-import AccountService from '@modules/account/account.service'
+import { UserAccountService } from '@modules/account/account.service'
 import { AuthModel } from './auth.model'
 import { AuthTokenType, MFAType } from './auth.interface'
 import crypto from 'crypto'
@@ -100,7 +100,7 @@ export default class AuthService {
             tokenVersion: currentTimestamp
         })
         const savedData = await mode.save()
-        await AccountService.initUserAccounts(savedData.key)
+        await UserAccountService.initUserAccounts(savedData.key)
 
         // create log
         new UserHistoryModel({
