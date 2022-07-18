@@ -493,7 +493,7 @@ export default class UserService {
         await user?.save()
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
 
-        return user
+        return { success: true }
     }
 
     static async resetTotp(userKey: string, options: { req: AuthenticationRequest }) {
@@ -604,7 +604,7 @@ export default class UserService {
         user?.save()
 
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
-        return { success: true }
+        return user
     }
 
     static async updateEmail(userKey: string, params: UpdateEmailDto, options: { req: AuthenticationRequest }) {
@@ -643,6 +643,6 @@ export default class UserService {
         // logout & send email notifications
         await EmailService.sendUserChangeEmailCompletedEmail({ address: email })
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
-        return { success: true }
+        return user
     }
 }
