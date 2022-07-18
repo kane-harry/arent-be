@@ -13,6 +13,7 @@ export const config = {
     system: {
         applicationName: String(process.env.APPLICATION_NAME || 'Pellar Federation'),
         defaultQueryPagesize: Number(process.env.DEFAULT_QUERY_PAGE_SIZE || 50),
+        applicationEnableApiDoc: String(process.env.APPLICATION_OPENAPI_DOCS_ENABLED || false),
         mongoUrl: String(process.env.MONGODB_URL),
         primeToken: String(process.env.PRIME_TOKEN || 'LL'),
         primeTokens: String(process.env.PRIME_TOKENS || 'LL'),
