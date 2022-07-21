@@ -7,13 +7,13 @@ export class CreateCodeDto {
     @IsEnum(CodeType, {
         message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
     })
-    public codeType: CodeType
+    public code_type: CodeType
 
     @IsString()
     public owner: string
 
     @IsOptional()
-    public userKey?: string | undefined
+    public user_key?: string | undefined
 }
 
 export class VerifyCodeDto extends CreateCodeDto {
@@ -24,7 +24,7 @@ export class VerifyCodeDto extends CreateCodeDto {
     @IsEnum(CodeType, {
         message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
     })
-    public codeType: CodeType
+    public code_type: CodeType
 
     @IsString()
     public owner: string
@@ -35,7 +35,7 @@ export class SentCodeToEmailDto {
     @IsEnum(CodeType, {
         message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
     })
-    public codeType: CodeType
+    public code_type: CodeType
 
     @IsString()
     public owner: string

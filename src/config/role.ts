@@ -1,13 +1,17 @@
-// @ts-nocheck
 import { config } from '@config'
-const _ = require('lodash')
+import { find } from 'lodash'
 
 const role = {
     admin: { name: 'admin', id: 999 },
     user: { name: 'user', id: 0 }
 }
 
-const roles = {
+const roles: {
+    [key: string]: {
+        id: number
+        can: string[]
+    }
+} = {
     admin: {
         id: 999,
         can: []
@@ -64,27 +68,27 @@ const roles = {
 // roles.customer_service.can = roles.customer_service.can.concat(roles.customer_service_bank_verifier.can)
 // roles.customer_service.can = roles.customer_service.can.concat(roles.customer_service_bank_chat.can)
 
-function isAdmin(roleObj: any) {
+const isAdmin = (roleObj: any) => {
     return roleObj === roles.admin.id
 }
 
-function can(role: number, operation: string) {
+const can = (role: number, operation: string) => {
     if (isAdmin(role)) {
         return true
     }
 
-    const matchingRole = _.filter(roles, function (o: any) {
-        return o.id === role
+    const matchingRole = find(roles, el => {
+        return el.id === role
     })
 
-    return matchingRole[0] && matchingRole[0].can.indexOf(operation) !== -1
+    return matchingRole && matchingRole.can.includes(operation)
 }
 
-function userCan(operation: string) {
+const userCan = (operation: string) => {
     return [
-        function (req: any, res: any, next: any) {
+        (req: any, res: any, next: any) => {
             if (operation === config.operations.API_DOCUMENTATION) {
-                if (config.APPLICATION_OPENAPI_DOCS_ENABLED) {
+                if (config.system.applicationEnableApiDoc) {
                     return next()
                 }
                 return res.sendStatus(401)
@@ -105,9 +109,9 @@ function userCan(operation: string) {
     ]
 }
 
-function requireAdmin() {
+const requireAdmin = () => {
     return [
-        function (req: any, res: any, next: any) {
+        (req: any, res: any, next: any) => {
             if (req.user.role === roles.admin.id) {
                 next()
             } else {
@@ -117,9 +121,9 @@ function requireAdmin() {
     ]
 }
 
-function requireOwner(section: string) {
+const requireOwner = (section: string) => {
     return [
-        function (req: any, res: any, next: any) {
+        (req: any, res: any, next: any) => {
             if (req.user.role === roles.admin.id) {
                 return next()
             }
@@ -127,11 +131,13 @@ function requireOwner(section: string) {
                 if (req.user.key === req.params.key || can(req.user.role, config.operations.USERS_DETAIL)) {
                     return next()
                 }
-            } else if (section === 'logs') {
+            }
+            if (section === 'logs') {
                 if (req.user.key === req.params.key) {
                     return next()
                 }
-            } else if (section === 'accounts') {
+            }
+            if (section === 'accounts') {
                 if (req.user.key === req.params.key) {
                     return next()
                 }

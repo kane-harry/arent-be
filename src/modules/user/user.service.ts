@@ -61,8 +61,8 @@ export default class UserService {
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
-        const postChatName = trim(toLower(params.chatName))
-        const preChatName = trim(toLower(user.chatName))
+        const postChatName = trim(toLower(params.chat_name))
+        const preChatName = trim(toLower(user.chat_name))
         if (preChatName !== postChatName) {
             const existUser = await UserModel.findOne({ chatName: new RegExp(postChatName, 'i'), removed: false }).exec()
             if (existUser) {
@@ -75,28 +75,27 @@ export default class UserService {
 
         // create log
         await new UserHistoryModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userKey: user.key,
+            user_key: user.key,
             action: UserHistoryActions.UpdateProfile,
             agent: options?.req.agent,
             country: user.country,
-            ipAddress: options?.req.ip_address,
-            preData: {
-                firstName: user.firstName,
-                lastName: user.lastName,
-                chatName: user.chatName
+            ip_address: options?.req.ip_address,
+            pre_data: {
+                first_name: user.first_name,
+                last_name: user.last_name,
+                chat_name: user.chat_name
             },
-            postData: {
-                firstName: params.firstName,
-                lastName: params.lastName,
-                chatName: params.chatName
+            post_data: {
+                first_name: params.first_name,
+                last_name: params.last_name,
+                chat_name: params.chat_name
             }
         }).save()
 
         // save
-        user.set('firstName', params.firstName || user.firstName, String)
-        user.set('lastName', params.lastName || user.lastName, String)
-        user.set('chatName', params.chatName || user.chatName, String)
+        user.set('first_name', params.first_name || user.first_name, String)
+        user.set('last_name', params.last_name || user.last_name, String)
+        user.set('chat_name', params.chat_name || user.chat_name, String)
         await user.save()
 
         return user
@@ -107,8 +106,8 @@ export default class UserService {
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
-        const postChatName = trim(toLower(params.chatName))
-        const preChatName = trim(toLower(user.chatName))
+        const postChatName = trim(toLower(params.chat_name))
+        const preChatName = trim(toLower(user.chat_name))
         if (preChatName !== postChatName) {
             const existUser = await UserModel.findOne({ chatName: new RegExp(postChatName, 'i'), removed: false }).exec()
             if (existUser) {
@@ -135,34 +134,33 @@ export default class UserService {
 
         // create log
         await new AdminLogModel({
-            key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
                 email: options.req.user.email
             },
-            userKey: user.key,
+            user_key: user.key,
             action: AdminLogsActions.UpdateUser,
             section: AdminLogsSections.User,
-            preData: {
-                firstName: user.firstName,
-                lastName: user.lastName,
-                chatName: user.chatName,
+            pre_data: {
+                first_name: user.first_name,
+                last_name: user.last_name,
+                chat_name: user.chat_name,
                 phone: user.phone,
                 email: user.email
             },
-            postData: {
-                firstName: params.firstName,
-                lastName: params.lastName,
-                chatName: params.chatName,
+            post_data: {
+                first_name: params.first_name,
+                last_name: params.last_name,
+                chat_name: params.chat_name,
                 phone: phone || user.phone,
                 email: email || user.email
             }
         }).save()
 
         // save
-        user.set('firstName', params.firstName || user.firstName, String)
-        user.set('lastName', params.lastName || user.lastName, String)
-        user.set('chatName', params.chatName || user.chatName, String)
+        user.set('first_name', params.first_name || user.first_name, String)
+        user.set('last_name', params.last_name || user.last_name, String)
+        user.set('chat_name', params.chat_name || user.chat_name, String)
         user.set('phone', phone || user.phone, String)
         user.set('email', email || user.email, String)
         await user.save()
@@ -183,20 +181,20 @@ export default class UserService {
     }
 
     public static getBriefByName = async (chatName: string) => {
-        return await UserModel.findOne({ chatName: chatName, removed: false }).select('key firstName lastName email chatName country').exec()
+        return await UserModel.findOne({ chat_name: chatName, removed: false }).select('key first_name last_name email chat_name country').exec()
     }
 
     public static getTotp = async (options: { req: AuthenticationRequest }) => {
         const user = await UserModel.findOne({ key: options?.req?.user?.key, removed: false }).exec()
         const totpTemp = await getNewSecret()
-        user?.set('totpTempSecret', totpTemp.secret)
+        user?.set('totp_temp_secret', totpTemp.secret)
         await user?.save()
-        return { totpTemp: totpTemp }
+        return { totp_temp: totpTemp }
     }
 
     public static setTotp = async (params: SetupTotpDto, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key: options?.req?.user?.key, removed: false }).select('key totpTempSecret').exec()
-        const secret = user?.totpTempSecret
+        const user = await UserModel.findOne({ key: options?.req?.user?.key, removed: false }).select('key totp_temp_secret').exec()
+        const secret = user?.totp_temp_secret
         const verified = await verifyNewDevice(secret, params.token1, params.token2)
         if (!verified) {
             throw new BizException(AuthErrors.user_token_setup_error, new ErrorContext('user.service', 'updateProfile', { email: user?.email }))
@@ -204,28 +202,27 @@ export default class UserService {
 
         // create log
         await new UserHistoryModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userKey: options?.req?.user?.key,
+            user_key: options?.req?.user?.key,
             action: UserHistoryActions.SetupTOTP,
             agent: options?.req.agent,
             country: options.req.user.country,
-            ipAddress: options?.req.ip_address,
-            preData: {
-                mfaSettings: options.req.user.mfaSettings
+            ip_address: options?.req.ip_address,
+            pre_data: {
+                mfa_settings: options.req.user.mfa_settings
             },
-            postData: {
-                mfaSettings: {
+            post_data: {
+                mfa_settings: {
                     type: MFAType.TOTP,
-                    loginEnabled: options.req.user.mfaSettings.loginEnabled,
-                    withdrawEnabled: options.req.user.mfaSettings.withdrawEnabled
+                    login_enabled: options.req.user.mfa_settings.login_enabled,
+                    withdraw_enabled: options.req.user.mfa_settings.withdraw_enabled
                 }
             }
         }).save()
 
-        user?.set('totpTempSecret', null)
-        user?.set('totpSecret', secret)
-        user?.set('totpSetup', true)
-        user?.set('mfaSettings.type', MFAType.TOTP)
+        user?.set('totp_temp_secret', null)
+        user?.set('totp_secret', secret)
+        user?.set('totp_setup', true)
+        user?.set('mfa_settings.type', MFAType.TOTP)
         await user?.save()
         return user
     }
@@ -240,22 +237,21 @@ export default class UserService {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('user.service', 'updateSecurity', {}))
         }
         const type = params.type.toUpperCase()
-        const loginEnabled = params.loginEnabled.toLowerCase() === 'true'
-        const withdrawEnabled = params.withdrawEnabled.toLowerCase() === 'true'
+        const loginEnabled = String(params.login_enabled).toLowerCase() === 'true'
+        const withdrawEnabled = String(params.withdraw_enabled).toLowerCase() === 'true'
 
         // create log
         await new UserHistoryModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userKey: user.key,
+            user_key: user.key,
             action: UserHistoryActions.UpdateSecurity,
             agent: options?.req.agent,
             country: user.country,
-            ipAddress: options?.req.ip_address,
-            preData: {
-                mfaSettings: user.mfaSettings
+            ip_address: options?.req.ip_address,
+            pre_data: {
+                mfa_settings: user.mfa_settings
             },
-            postData: {
-                mfaSettings: {
+            post_data: {
+                mfa_settings: {
                     type,
                     loginEnabled,
                     withdrawEnabled
@@ -263,7 +259,7 @@ export default class UserService {
             }
         }).save()
 
-        user.set('mfaSettings', {
+        user.set('mfa_settings', {
             type,
             loginEnabled,
             withdrawEnabled
@@ -273,31 +269,29 @@ export default class UserService {
     }
 
     public static getUserList = async (params: IUserQueryFilter) => {
-        const offset = (params.pageindex - 1) * params.pagesize
+        const offset = (params.page_index - 1) * params.page_size
         const reg = new RegExp(params.terms)
-        const filter = {
+        const filter: { [key: string]: any } = {
             $or: [{ key: reg }, { email: reg }, { phone: reg }],
             $and: [{ created: { $exists: true } }],
             removed: false
         }
-        if (params.datefrom) {
-            const dateFrom = unixTimestampToDate(params.datefrom)
-            // @ts-ignore
+        if (params.date_from) {
+            const dateFrom = unixTimestampToDate(params.date_from)
             filter.$and.push({ created: { $gte: dateFrom } })
         }
-        if (params.dateto) {
-            const dateTo = unixTimestampToDate(params.dateto)
-            // @ts-ignore
+        if (params.date_to) {
+            const dateTo = unixTimestampToDate(params.date_to)
             filter.$and.push({ created: { $lt: dateTo } })
         }
         const sorting: any = { _id: 1 }
-        if (params.sortby) {
+        if (params.sort_by) {
             delete sorting._id
-            sorting[`${params.sortby}`] = params.orderby === 'asc' ? 1 : -1
+            sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1
         }
         const totalCount = await UserModel.countDocuments(filter)
-        const items = await UserModel.find<IUser>(filter).sort(sorting).skip(offset).limit(params.pagesize).exec()
-        return new QueryRO<IUser>(totalCount, params.pageindex, params.pagesize, items)
+        const items = await UserModel.find<IUser>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
+        return new QueryRO<IUser>(totalCount, params.page_index, params.page_size, items)
     }
 
     public static getAllUser = async () => {
@@ -316,14 +310,14 @@ export default class UserService {
         let newName = name_arr.join('-')
         let reg = new RegExp(name, 'i')
         const filter = { chatName: reg }
-        let referenceInDatabase = await UserModel.findOne(filter).select('key chatName').exec()
+        let referenceInDatabase = await UserModel.findOne(filter).select('key chat_name').exec()
 
         while (referenceInDatabase != null) {
             const proposedReference = generateRandomCode(2, 4, true)
             newName = newName + '-' + proposedReference
             reg = new RegExp(newName, 'i')
             filter.chatName = reg
-            referenceInDatabase = await UserModel.findOne(filter).select('key chatName').exec()
+            referenceInDatabase = await UserModel.findOne(filter).select('key chat_name').exec()
         }
         return newName
     }
@@ -336,25 +330,24 @@ export default class UserService {
         }
 
         await new AdminLogModel({
-            key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
                 email: options.req.user.email
             },
-            userKey: user.key,
+            user_key: user.key,
             action: AdminLogsActions.ResetCredentialsUser,
             section: AdminLogsSections.User
         }).save()
 
         const changePasswordNextLoginCode = generateRandomCode(8, 8, true)
         const changePasswordNextLoginTimestamp = generateUnixTimestamp()
-        user.set('changePasswordNextLogin', true)
-        user.set('changePasswordNextLoginCode', changePasswordNextLoginCode)
-        user.set('changePasswordNextLoginTimestamp', changePasswordNextLoginTimestamp)
-        user.set('tokenVersion', changePasswordNextLoginTimestamp)
-        user.set('mfaSettings.loginEnabled', false)
-        user.set('loginCount', 0)
-        user.set('lockedTimestamp', 0)
+        user.set('change_password_next_login', true)
+        user.set('change_password_next_login_code', changePasswordNextLoginCode)
+        user.set('change_password_next_login_timestamp', changePasswordNextLoginTimestamp)
+        user.set('token_version', changePasswordNextLoginTimestamp)
+        user.set('mfa_settings.login_enabled', false)
+        user.set('login_count', 0)
+        user.set('locked_timestamp', 0)
         await user.save()
 
         if (user.email) {
@@ -374,10 +367,10 @@ export default class UserService {
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'setupCredentials', { email }))
         }
-        if (!user.changePasswordNextLogin || user.changePasswordNextLogin !== true) {
+        if (!user.change_password_next_login || user.change_password_next_login !== true) {
             throw new BizException(CommonErrors.bad_request, new ErrorContext('user.service', 'setupCredentials', { email }))
         }
-        let changePasswordNextLoginAttempts = user.changePasswordNextLoginAttempts || 0
+        let changePasswordNextLoginAttempts = user.change_password_next_login_attempts || 0
         if (changePasswordNextLoginAttempts >= 5) {
             user.set('status', UserStatus.Locked, String)
             user.save()
@@ -385,13 +378,13 @@ export default class UserService {
         }
         const currentTimestamp = generateUnixTimestamp()
         changePasswordNextLoginAttempts++
-        user.set('changePasswordNextLoginAttempts', changePasswordNextLoginAttempts, Number)
+        user.set('change_password_next_login_attempts', changePasswordNextLoginAttempts, Number)
         await user.save()
 
         if (
-            !user.changePasswordNextLoginCode ||
-            toLower(user.changePasswordNextLoginCode.toLowerCase()) !== toLower(params.code) ||
-            user.changePasswordNextLoginTimestamp < currentTimestamp - 60 * 15
+            !user.change_password_next_login_code ||
+            toLower(user.change_password_next_login_code.toLowerCase()) !== toLower(params.code) ||
+            user.change_password_next_login_timestamp < currentTimestamp - 60 * 15
         ) {
             throw new BizException(
                 AuthErrors.user_reset_credentials_incorrect_code_error,
@@ -401,14 +394,13 @@ export default class UserService {
 
         // create log
         await new UserHistoryModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userKey: user.key,
+            user_key: user.key,
             action: UserHistoryActions.SetupCredentials,
             agent: options?.req.agent,
             country: user.country,
-            ipAddress: options?.req.ip_address,
-            preData: {},
-            postData: {}
+            ip_address: options?.req.ip_address,
+            pre_data: {},
+            post_data: {}
         }).save()
 
         const newPassHashed = await bcrypt.hash(params.password, 10)
@@ -416,11 +408,11 @@ export default class UserService {
 
         const newPinHashed = await bcrypt.hash(params.pin, 10)
         user.set('pin', newPinHashed, String)
-        user.set('changePasswordNextLogin', false)
-        user.set('changePasswordNextLoginCode', '')
-        user.set('changePasswordNextLoginTimestamp', 0)
-        user.set('loginCount', 0)
-        user.set('lockedTimestamp', 0)
+        user.set('change_password_next_login', false)
+        user.set('change_password_next_login_code', '')
+        user.set('change_password_next_login_timestamp', 0)
+        user.set('login_count', 0)
+        user.set('locked_timestamp', 0)
         await user.save()
 
         if (user.email) {
@@ -440,18 +432,17 @@ export default class UserService {
 
         // create log
         await new AdminLogModel({
-            key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
                 email: options.req.user.email
             },
-            userKey: user.key,
+            user_key: user.key,
             action: params.status + 'User',
             section: AdminLogsSections.User,
-            preData: {
+            pre_data: {
                 status: user.status
             },
-            postData: {
+            post_data: {
                 status: params.status
             }
         }).save()
@@ -473,18 +464,17 @@ export default class UserService {
 
         // create log
         await new AdminLogModel({
-            key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
                 email: options.req.user.email
             },
-            userKey: user.key,
+            user_key: user.key,
             action: AdminLogsActions.RemoveUser,
             section: AdminLogsSections.User,
-            preData: {
+            pre_data: {
                 removed: user.removed
             },
-            postData: {
+            post_data: {
                 removed: true
             }
         }).save()
@@ -503,32 +493,31 @@ export default class UserService {
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'resetTotp', {}))
         }
-        if (user.mfaSettings.type === MFAType.TOTP) {
-            user?.set('mfaSettings.type', MFAType.EMAIL, String)
+        if (user.mfa_settings.type === MFAType.TOTP) {
+            user?.set('mfa_settings.type', MFAType.EMAIL, String)
         }
 
         // create log
         await new AdminLogModel({
-            key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
                 email: options.req.user.email
             },
-            userKey: user.key,
+            user_key: user.key,
             action: AdminLogsActions.ResetTOPTUser,
             section: AdminLogsSections.User,
-            preData: {
-                totpSecret: user.totpSecret,
-                totpSetup: user.totpSetup
+            pre_data: {
+                totp_secret: user.totp_secret,
+                totp_setup: user.totp_setup
             },
-            postData: {
-                totpSecret: null,
-                totpSetup: false
+            post_data: {
+                totp_secret: null,
+                totp_setup: false
             }
         }).save()
 
-        user?.set('totpSecret', null, null)
-        user?.set('totpSetup', false, Boolean)
+        user?.set('totp_secret', null, null)
+        user?.set('totp_setup', false, Boolean)
         await user?.save()
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
 
@@ -545,18 +534,17 @@ export default class UserService {
 
         // create log
         await new AdminLogModel({
-            key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
                 email: options.req.user.email
             },
-            userKey: user.key,
+            user_key: user.key,
             action: AdminLogsActions.UpdateRoleUser,
             section: AdminLogsSections.User,
-            preData: {
+            pre_data: {
                 role: user.role
             },
-            postData: {
+            post_data: {
                 role: Number(params.role)
             }
         }).save()
@@ -581,20 +569,19 @@ export default class UserService {
         if (existingUser && existingUser.key !== user.key) {
             throw new BizException(AuthErrors.registration_phone_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
         }
-        await VerificationCodeService.verifyCode({ code: params.code, codeType: CodeType.PhoneUpdate, owner: phone })
+        await VerificationCodeService.verifyCode({ code: params.code, code_type: CodeType.PhoneUpdate, owner: phone })
 
         // create log
         new UserHistoryModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userKey: user.key,
+            user_key: user.key,
             action: UserHistoryActions.UpdatePhone,
             agent: options?.req.agent,
             country: user.country,
-            ipAddress: options?.req.ip_address,
-            preData: {
+            ip_address: options?.req.ip_address,
+            pre_data: {
                 phone: user.phone
             },
-            postData: {
+            post_data: {
                 phone: phone
             }
         }).save()
@@ -618,20 +605,19 @@ export default class UserService {
         if (existingUser && existingUser.key !== user.key) {
             throw new BizException(AuthErrors.registration_email_exists_error, new ErrorContext('user.service', 'updateEmail', { email }))
         }
-        await VerificationCodeService.verifyCode({ code: params.code, codeType: CodeType.EmailUpdate, owner: email })
+        await VerificationCodeService.verifyCode({ code: params.code, code_type: CodeType.EmailUpdate, owner: email })
 
         // create log
         await new UserHistoryModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userKey: user.key,
+            user_key: user.key,
             action: UserHistoryActions.UpdateEmail,
             agent: options?.req.agent,
             country: user.country,
-            ipAddress: options?.req.ip_address,
-            preData: {
+            ip_address: options?.req.ip_address,
+            pre_data: {
                 email: user.email
             },
-            postData: {
+            post_data: {
                 email: email
             }
         }).save()

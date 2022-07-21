@@ -14,11 +14,11 @@ function errorMiddleware(error: ApplicationException, req: CustomRequest, res: R
             status: error.status,
             code: error.code,
             message: error.message,
-            metaData: error.metaData,
-            context: error.errorContext,
+            meta_data: error.meta_data,
+            context: error.error_context,
             stack: error.stack
         }
-        : { status: error.status, code: error.code, message: error.message, metaData: error.metaData }
+        : { status: error.status, code: error.code, message: error.message, metaData: error.meta_data }
 
     // create log
     new ExceptionLogModel({

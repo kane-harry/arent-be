@@ -28,7 +28,7 @@ module.exports = {
         'no-multiple-empty-lines': 1,
         'space-before-function-paren': 0,
         'no-useless-constructor': 0,
-        indent: ['error', 4],
+        indent: ['error', 4, { SwitchCase: 1 }],
         'no-unused-vars': 'off',
         'no-case-declarations': 'off',
         'no-unused-expressions': 'off'

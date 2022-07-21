@@ -2,17 +2,17 @@ import { IsOptional } from 'class-validator'
 
 export class SettingDto {
     @IsOptional()
-    public registrationRequireEmailVerified: boolean
+    public registration_require_email_verified: boolean
 
     @IsOptional()
-    public registrationRequirePhoneVerified: boolean
+    public registration_require_phone_verified: boolean
 
     @IsOptional()
-    public loginRequireMFA: boolean
+    public login_require_mfa: boolean
 
     @IsOptional()
-    public withdrawRequireMFA: boolean
+    public withdraw_require_mfa: boolean
 
     @IsOptional()
-    public primeTransferFee: number
+    public prime_transfer_fee: number
 }

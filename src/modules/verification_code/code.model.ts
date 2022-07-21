@@ -2,10 +2,20 @@ import { Schema, model } from 'mongoose'
 import { IVerificationCode, CodeType } from './code.interface'
 import moment from 'moment'
 import { generate, GenerateOptions } from 'randomstring'
+import { config } from '@config'
+import { randomBytes } from 'crypto'
 
 const codeSchema = new Schema<IVerificationCode>(
     {
-        key: { type: String, required: true, index: true, unique: true },
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(16).toString('hex')
+            }
+        },
         owner: {
             type: String,
             trim: true,
@@ -13,16 +23,16 @@ const codeSchema = new Schema<IVerificationCode>(
             required: true,
             index: true
         },
-        userKey: String,
+        user_key: String,
         type: {
             type: String,
             enum: CodeType,
             required: true
         },
         code: String,
-        expiryTimestamp: { type: Number, default: moment().add(15, 'minutes').unix() },
-        sentTimestamp: { type: Number, default: moment().unix() },
-        sentAttempts: { type: Number, default: 1 },
+        expiry_timestamp: { type: Number, default: moment().add(15, 'minutes').unix() },
+        sent_timestamp: { type: Number, default: moment().unix() },
+        sent_attempts: { type: Number, default: 1 },
         verified: { type: Boolean, default: false },
         enabled: { type: Boolean, default: true }
     },
@@ -31,11 +41,12 @@ const codeSchema = new Schema<IVerificationCode>(
             createdAt: 'created',
             updatedAt: 'modified'
         },
-        versionKey: 'version'
+        versionKey: 'version',
+        collection: config.database.tables.verification_codes
     }
 )
 
-const VerificationCodeModel = model<IVerificationCode>('verification_codes', codeSchema)
+const VerificationCodeModel = model<IVerificationCode>(config.database.tables.verification_codes, codeSchema)
 
 export class VerificationCode extends VerificationCodeModel {
     public static generate(options: GenerateOptions | number = { length: 6, charset: 'numeric' }, owner: any) {

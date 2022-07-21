@@ -13,11 +13,11 @@ export const config = {
     system: {
         applicationName: String(process.env.APPLICATION_NAME || 'Pellar Federation'),
         defaultQueryPagesize: Number(process.env.DEFAULT_QUERY_PAGE_SIZE || 50),
-        mongoUrl: String(process.env.MONGODB_URL),
+        applicationEnableApiDoc: String(process.env.APPLICATION_OPEN_API_DOCS_ENABLED || false),
         primeToken: String(process.env.PRIME_TOKEN || 'LL'),
         primeTokens: String(process.env.PRIME_TOKENS || 'LL'),
         coinServerBaseUrl: String(process.env.COIN_SERVER_BASE_URL || 'http://localhost:3001'),
-        coinServerSecrectKey: String(process.env.COIN_SERVER_SECRET_KEY || 'PELLAR-A5B57B456AC7A39E9EE24F353385C'),
+        coinServerSecretKey: String(process.env.COIN_SERVER_SECRET_KEY || 'PELLAR-A5B57B456AC7A39E9EE24F353385C'),
         extTokens: [{ symbol: 'ETH', platform: 'ethereum' }],
         secret: String(process.env.SYSTEM_SECRET_KEY || 'PELLAR-7258EE75D288CFD621E9332255186'),
         primeDecimals: 8
@@ -35,26 +35,26 @@ export const config = {
         // ....
     ],
 
-    JWT_Access: {
+    jwtAccess: {
         secret: String(process.env.JWT_ACCESS_SECRET),
         tokenExpiresIn: String(process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '30m') // 30 mins
     },
 
-    JWT_Refresh: {
+    jwtRefresh: {
         secret: String(process.env.JWT_REFRESH_SECRET),
         tokenExpiresIn: String(process.env.JWT_REFRESH_TOKEN_EXPIRES_IN || '7d') // 7 days
     },
 
     emailNotification: {
-        EMAIL_PARAM_CLIENT_NAME: process.env.EMAIL_PARAM_CLIENT_NAME || 'LightLink',
-        EMAIL_PARAM_SUPPORT_SITE_URL: process.env.EMAIL_PARAM_SUPPORT_SITE_URL || 'lightlink.pellartech.io',
-        EMAIL_PARAM_SUPPORT_EMAIL: process.env.EMAIL_PARAM_SUPPORT_EMAIL || 'tech@pellartech.com',
+        emailParamClientName: String(process.env.EMAIL_PARAM_CLIENT_NAME || 'LightLink'),
+        emailParamSupportSiteUrl: String(process.env.EMAIL_PARAM_SUPPORT_SITE_URL || 'lightlink.pellartech.io'),
+        emailParamSupportEmail: String(process.env.EMAIL_PARAM_SUPPORT_EMAIL || 'tech@pellartech.com'),
         fromAddress: String(process.env.EMAIL_NOTIFICATION_FROM_ADDRESS || 'tech@pellartech.com'),
         toAddress: String(process.env.EMAIL_NOTIFICATION_TO_ADDRESS || 'tech@pellartech.com'),
         emailSendgridApiKey: String(process.env.EMAIL_SENDGRID_API_KEY)
     },
 
-    EMAIL_TEMPLATES_ROOT_PATH: 'src/templates',
+    emailTemplatesRootPath: 'src/templates',
 
     redis: {
         enabled: Boolean(process.env.REDIS_ENABLED || false),
@@ -104,5 +104,21 @@ export const config = {
         USER_LIST_EXPORT: 'users_export',
         VIEW_USER_DETAIL: 'view_user_detail',
         UPDATE_PHONE_STATUS: 'update_phone_status'
+    },
+
+    database: {
+        mongoUrl: String(process.env.MONGODB_URL),
+
+        tables: {
+            accounts: 'accounts',
+            admin_logs: 'admin_logs',
+            auth_tokens: 'auth_tokens',
+            exception_logs: 'exception_logs',
+            settings: 'settings',
+            users: 'users',
+            user_history: 'user_history',
+            user_security: 'user_security',
+            verification_codes: 'verification_codes'
+        }
     }
 }

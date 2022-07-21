@@ -30,17 +30,16 @@ export default class AccountMasterService {
         for (const coinWallet of coinWallets) {
             const accountName = `${coinWallet.symbol} MASTER`
             const account = new AccountModel({
-                key: crypto.randomBytes(16).toString('hex'),
-                userKey: userKey,
+                user_key: userKey,
                 name: accountName,
                 symbol: coinWallet.symbol,
                 type: AccountType.Master,
-                extType: AccountExtType.Prime,
+                ext_type: AccountExtType.Prime,
                 address: etherWallet.address,
                 platform: 'system',
                 salt: etherWallet.salt,
-                keyStore: etherWallet.keyStore,
-                extKey: coinWallet.key
+                key_store: etherWallet.key_store,
+                ext_key: coinWallet.key
             })
             accounts.push(account)
         }
@@ -50,16 +49,15 @@ export default class AccountMasterService {
             const accountName = `${token.symbol} MASTER`
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
-                    key: crypto.randomBytes(16).toString('hex'),
-                    userKey: userKey,
+                    user_key: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Master,
-                    extType: AccountExtType.Ext,
+                    ext_type: AccountExtType.Ext,
                     address: etherWallet.address,
                     platform: token.platform,
                     salt: etherWallet.salt,
-                    keyStore: etherWallet.keyStore
+                    key_store: etherWallet.key_store
                 })
                 accounts.push(account)
             } else {
@@ -72,17 +70,16 @@ export default class AccountMasterService {
             if (token.symbol) {
                 const accountName = `${token.symbol} MASTER`
                 const account = new AccountModel({
-                    key: crypto.randomBytes(16).toString('hex'),
-                    userKey: userKey,
+                    user_key: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Master,
-                    extType: AccountExtType.Ext,
+                    ext_type: AccountExtType.Ext,
                     address: etherWallet.address,
                     platform: 'ethereum',
                     salt: etherWallet.salt,
-                    keyStore: etherWallet.keyStore,
-                    metaData: {
+                    key_store: etherWallet.key_store,
+                    meta_data: {
                         contract: token.contract,
                         decimals: token.decimals
                     }
@@ -100,10 +97,10 @@ export default class AccountMasterService {
             type: AccountType.Master,
             removed: false
         }
-        const items = await AccountModel.find<IAccount>(filter).select('-keyStore -salt').exec()
+        const items = await AccountModel.find<IAccount>(filter).select('-key_store -salt').exec()
         for (const account of items) {
-            if (account.extType === AccountExtType.Prime) {
-                const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
+            if (account.ext_type === AccountExtType.Prime) {
+                const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_type)
                 account.amount = wallet.amount
                 account.nonce = wallet.nonce
             }
@@ -113,15 +110,15 @@ export default class AccountMasterService {
     }
 
     static async mintMasterAccount(key: string, params: MintDto, options: { req: AuthenticationRequest }) {
-        const account = await AccountModel.findOne({ key }).select('-keyStore -salt').exec()
+        const account = await AccountModel.findOne({ key }).select('-key_store -salt').exec()
         if (!account) {
             throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
         }
-        if (account.type !== AccountType.Master || account.extType !== AccountExtType.Prime) {
+        if (account.type !== AccountType.Master || account.ext_type !== AccountExtType.Prime) {
             throw new BizException(AccountErrors.account_mint_type_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
         }
         const data = await PrimeCoinProvider.mintPrimeCoins({
-            key: account.extKey,
+            key: account.ext_key,
             amount: params.amount,
             notes: params.notes,
             type: params.type || 'MINT'
@@ -129,12 +126,11 @@ export default class AccountMasterService {
 
         // todo : mint log
         await new AdminLogModel({
-            key: crypto.randomBytes(16).toString('hex'),
             operator: {
                 key: options.req.user.key,
                 email: options.req.user.email
             },
-            userKey: account.userKey,
+            user_key: account.user_key,
             action: AdminLogsActions.MintMasterAccount,
             section: AdminLogsSections.Account
         }).save()

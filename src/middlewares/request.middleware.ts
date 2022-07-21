@@ -15,10 +15,10 @@ export interface AuthenticationRequest extends CustomRequest {
 }
 
 const requestMiddleware = (req: CustomRequest, _: Response, next: NextFunction) => {
-    req.query.pageindex = Number(req.query.pageindex || 1)
-    req.query.pagesize = Number(req.query.pagesize || config.system.defaultQueryPagesize)
-    req.query.sortby = String(req.query.sortby || '_id')
-    req.query.orderby = String(req.query.orderby || 'desc')
+    req.query.page_index = Number(req.query.page_index || 1)
+    req.query.page_size = Number(req.query.page_size || config.system.defaultQueryPagesize)
+    req.query.sort_by = String(req.query.sort_by || '_id')
+    req.query.order_by = String(req.query.order_by || 'desc')
     req.agent = req.headers['user-agent']
     req.ip_address =
         String(req.headers['x-forwarded-for'] || '')

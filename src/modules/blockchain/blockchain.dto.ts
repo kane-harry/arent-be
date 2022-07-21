@@ -19,7 +19,7 @@ export class CreateSignatureDto {
     public amount: string
 
     @IsString({ message: 'privateKey is required.' })
-    public privateKey: string
+    public private_key: string
 
     @IsString({ message: 'nonce is required.' })
     public nonce: string

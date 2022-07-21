@@ -167,18 +167,15 @@ describe('Profile', () => {
         })
 
         it('updateUser should be success', async () => {
-            const updateRes = await request(server.app)
-                .put(`/users/profile`)
-                .set('Authorization', `Bearer ${shareData.token}`)
-                .send(updateData)
+            const updateRes = await request(server.app).put(`/users/profile`).set('Authorization', `Bearer ${shareData.token}`).send(updateData)
 
             expect(updateRes.status).equal(200)
             validResponse(updateRes.body)
 
             const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
-            expect(user?.firstName).equal(updateData.firstName)
-            expect(user?.lastName).equal(updateData.lastName)
-            expect(user?.chatName).equal(updateData.chatName)
+            expect(user?.first_name).equal(updateData.firstName)
+            expect(user?.last_name).equal(updateData.lastName)
+            expect(user?.chat_name).equal(updateData.chatName)
         })
     })
 
@@ -186,7 +183,7 @@ describe('Profile', () => {
         const pageIndex = 1
         const pageSize = 25
         const res = await request(server.app)
-            .get(`/users?pageindex=${pageIndex}&pagesize=${pageSize}`)
+            .get(`/users?page_index=${pageIndex}&page_size=${pageSize}`)
             .set('Authorization', `Bearer ${adminShareData.token}`)
             .send()
         expect(res.status).equal(200)
@@ -206,9 +203,9 @@ describe('Profile', () => {
         validResponse(res.body)
 
         const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
-        expect(user?.firstName).equal(res.body.firstName)
-        expect(user?.lastName).equal(res.body.lastName)
-        expect(user?.chatName).equal(res.body.chatName)
+        expect(user?.first_name).equal(res.body.firstName)
+        expect(user?.last_name).equal(res.body.lastName)
+        expect(user?.chat_name).equal(res.body.chatName)
         expect(user?.phone).equal(res.body.phone)
         expect(user?.country).equal(res.body.country)
     }).timeout(10000)

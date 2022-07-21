@@ -24,11 +24,11 @@ export interface IAdminLog extends IBaseModel {
         key: string
         email: string
     }
-    userKey: string
+    user_key: string
     section: AdminLogsSections
     action: AdminLogsActions
-    preData: Object
-    postData: Object
+    pre_data: Object
+    post_data: Object
 }
 
 export interface ILogFilter extends IFilterModel {

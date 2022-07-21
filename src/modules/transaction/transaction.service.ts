@@ -13,6 +13,7 @@ import { formatAmount, parsePrimeAmount } from '@utils/number'
 import { IUser, UserStatus } from '@modules/user/user.interface'
 import { isAdmin } from '@config/role'
 import SettingService from '@modules/setting/setting.service'
+import { ISetting } from '@modules/setting/setting.interface'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: IUser) {
@@ -38,7 +39,7 @@ export default class TransactionService {
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { recipient: params.recipient })
             )
         }
-        if (operator.key !== senderAccount?.userKey) {
+        if (operator.key !== senderAccount?.user_key) {
             if (senderAccount.type === 'MASTER' && isAdmin(operator.role)) {
                 // continue
             } else {
@@ -54,15 +55,15 @@ export default class TransactionService {
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
             )
         }
-        const senderBalance = parsePrimeAmount(senderAccount.amount).sub(parsePrimeAmount(senderAccount.amountLocked))
+        const senderBalance = parsePrimeAmount(senderAccount.amount).sub(parsePrimeAmount(senderAccount.amount_locked))
         if (senderBalance.lt(amount)) {
             throw new BizException(
                 TransactionErrors.sender_insufficient_balance_error,
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender, balance: senderAccount.amount, amount })
             )
         }
-        const setting: any = await SettingService.getGlobalSetting()
-        const transferFee = Number(setting.primeTransferFee || 0)
+        const setting: ISetting = await SettingService.getGlobalSetting()
+        const transferFee = Number(setting.prime_transfer_fee || 0)
         const transferFeeBig = parsePrimeAmount(transferFee)
 
         if (amount.lt(transferFeeBig)) {
@@ -72,7 +73,7 @@ export default class TransactionService {
             )
         }
         const senderKeyStore = await AccountService.getAccountKeyStore(senderAccount.key)
-        const privateKey = await decryptKeyWithSalt(senderKeyStore.keyStore, senderKeyStore.salt)
+        const privateKey = await decryptKeyWithSalt(senderKeyStore.key_store, senderKeyStore.salt)
         let nonce = senderAccount.nonce || 0
         nonce = nonce + 1
         const message = `${symbol}:${params.sender}:${params.recipient}:${params.amount}:${nonce}`
@@ -94,7 +95,7 @@ export default class TransactionService {
             signature: signature,
             notes: params.notes,
             details: {}, // addtional info
-            feeAddress: masterAccount.address,
+            fee_address: masterAccount.address,
             fee: String(transferFee),
             mode: params.mode
         }

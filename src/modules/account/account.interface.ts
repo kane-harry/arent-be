@@ -15,22 +15,22 @@ export enum AccountExtType {
 
 export interface IAccount extends IBaseModel {
     key: string
-    userKey: string
+    user_key: string
     name: string
     symbol: string
     type: string
-    extType: string
+    ext_type: string
     address: string
     platform: string
     amount: number | Types.Decimal128
-    amountLocked: number | Types.Decimal128
+    amount_locked: number | Types.Decimal128
     salt: string
-    keyStore: object
-    metaData: object
-    extKey: string
-    syncTimestamp?: number
+    key_store: object
+    meta_data: object
+    ext_key: string
+    sync_timestamp?: number
     deposited: number | Types.Decimal128
-    withdrawed: number | Types.Decimal128
+    withdrew: number | Types.Decimal128
     committed: number | Types.Decimal128
     nonce?: number
 }
@@ -38,7 +38,7 @@ export interface IAccount extends IBaseModel {
 export interface IAccountFilter extends IFilterModel {
     symbol?: string
     addresses?: string
-    userKey?: string
+    user_key?: string
 }
 
 export interface IMintToCoinDto {

@@ -39,7 +39,7 @@ export interface ISendCoinDto {
     signature: string
     type: string
     notes: string
-    feeAddress: string
+    fee_address: string
     fee: string
     mode?: string
     details?: object // addtional info

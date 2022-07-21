@@ -1,18 +1,18 @@
 export class QueryRO<T> {
-    totalCount: number
-    totalPages: number
-    pageIndex: number
-    pageSize: number
-    currentPage: number
-    hasNextPage: boolean
+    total_count: number
+    total_pages: number
+    page_index: number
+    page_size: number
+    current_page: number
+    has_next_page: boolean
     // items: any;
     items: Array<T>
     constructor(totalCount: number, pageIndex: number, pageSize: number, items: Array<T>) {
-        this.totalCount = totalCount
-        this.pageIndex = pageIndex
-        this.pageSize = pageSize
-        this.hasNextPage = totalCount > pageIndex * pageSize
-        this.totalPages = Math.ceil(totalCount / pageSize)
+        this.total_count = totalCount
+        this.page_index = pageIndex
+        this.page_size = pageSize
+        this.has_next_page = totalCount > pageIndex * pageSize
+        this.total_pages = Math.ceil(totalCount / pageSize)
         this.items = items
     }
 }
