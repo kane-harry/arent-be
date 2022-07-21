@@ -43,7 +43,7 @@ export default class SecurityService {
         }
 
         if (mfaType === MFAType.TOTP) {
-            const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
+            const twoFactorSecret = String(user?.get('two_factor_secret', null, { getters: false }))
             if (!verifyToken(twoFactorSecret, code)) {
                 throw new BizException(AuthErrors.token_error, new ErrorContext('security.service', 'validate2FA', {}))
             }

@@ -104,7 +104,6 @@ export default class AuthService {
 
         // create log
         new UserHistoryModel({
-            key: crypto.randomBytes(16).toString('hex'),
             user_key: mode.key,
             action: UserHistoryActions.Register,
             agent: options?.req.agent,

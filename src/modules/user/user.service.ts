@@ -253,16 +253,16 @@ export default class UserService {
             post_data: {
                 mfa_settings: {
                     type,
-                    loginEnabled,
-                    withdrawEnabled
+                    login_enabled: loginEnabled,
+                    withdraw_enabled: withdrawEnabled
                 }
             }
         }).save()
 
         user.set('mfa_settings', {
             type,
-            loginEnabled,
-            withdrawEnabled
+            login_enabled: loginEnabled,
+            withdraw_enabled: withdrawEnabled
         })
         await user?.save()
         return user
