@@ -1,25 +1,35 @@
+import { config } from '@config'
+import { randomBytes } from 'crypto'
 import { Schema, Types, model } from 'mongoose'
 import { IAccount } from './account.interface'
 
 const accountSchema = new Schema<IAccount>(
     {
-        key: { type: String, required: true, index: true, unique: true },
-        userKey: String,
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(16).toString('hex')
+            }
+        },
+        user_key: String,
         name: String,
         symbol: { type: String, uppercase: true, index: true },
         platform: String,
         type: { type: String, uppercase: true, default: 'EXT' },
-        extType: { type: String, uppercase: true, default: 'PRIME' },
+        ext_type: { type: String, uppercase: true, default: 'PRIME' },
         address: String,
         amount: { type: Types.Decimal128, default: new Types.Decimal128('0') },
-        amountLocked: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        amount_locked: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         salt: { type: String, select: false },
-        keyStore: { type: Object },
-        metaData: Object,
-        extKey: String,
-        syncTimestamp: { type: Number, default: 0, index: true },
+        key_store: { type: Object },
+        meta_data: Object,
+        ext_key: String,
+        sync_timestamp: { type: Number, default: 0, index: true },
         deposited: { type: Types.Decimal128, default: new Types.Decimal128('0') },
-        withdrawed: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        withdrew: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         committed: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         removed: { type: Boolean, default: false }
     },
@@ -40,10 +50,11 @@ const accountSchema = new Schema<IAccount>(
             createdAt: 'created',
             updatedAt: 'modified'
         },
-        versionKey: 'version'
+        versionKey: 'version',
+        collection: config.database.tables.accounts
     }
 )
 
-const AccountModel = model<IAccount>('accounts', accountSchema)
+const AccountModel = model<IAccount>(config.database.tables.accounts, accountSchema)
 
 export default AccountModel

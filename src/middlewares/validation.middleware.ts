@@ -17,7 +17,7 @@ function validationMiddleware(type: any, skipMissingProperties = false, position
                 })
                 //  message = constraints.map((error: ValidationError) => Object.values(error.constraints)).join(', ');
                 const error = CommonErrors.request_validation_error as IErrorModel
-                error.metaData = validationErrors
+                error.meta_data = validationErrors
                 next(new RequestException(error))
             } else {
                 next()

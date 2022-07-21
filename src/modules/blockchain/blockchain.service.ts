@@ -10,6 +10,7 @@ import { config } from '@config'
 import AccountService from '@modules/account/account.service'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
 import SettingService from '@modules/setting/setting.service'
+import { ISetting } from '@modules/setting/setting.interface'
 
 export default class BlockchainService {
     static async createRawWallet(params: CreateRawWalletDto) {
@@ -21,7 +22,7 @@ export default class BlockchainService {
             wallets.push({
                 symbol: wallet.symbol,
                 address: etherWallet.address,
-                privateKey: etherWallet.privateKey
+                privateKey: etherWallet.private_key
             })
         }
         return wallets
@@ -30,7 +31,7 @@ export default class BlockchainService {
     static async generateSignature(params: CreateSignatureDto) {
         const symbol = toUpper(trim(params.symbol))
         const message = `${symbol}:${params.sender}:${params.recipient}:${params.amount}:${params.nonce}`
-        const signature = await signMessage(params.privateKey, message)
+        const signature = await signMessage(params.private_key, message)
         return { signature }
     }
 
@@ -52,8 +53,8 @@ export default class BlockchainService {
         }
         const mode = params.mode === 'exclusive' ? FeeMode.Exclusive : FeeMode.Inclusive
         params.mode = mode
-        const setting: any = await SettingService.getGlobalSetting()
-        const fee = setting.primeTransferFee.toString() || 0
+        const setting: ISetting = await SettingService.getGlobalSetting()
+        const fee = setting.prime_transfer_fee.toString() || 0
         const transferFee = parsePrimeAmount(fee)
         if (mode === FeeMode.Inclusive) {
             const sendAmountWithFee = parsePrimeAmount(params.amount)
@@ -91,7 +92,7 @@ export default class BlockchainService {
             type: 'TRANSFER',
             signature: params.signature,
             notes: params.notes,
-            feeAddress: masterAccount.address,
+            fee_address: masterAccount.address,
             fee: String(fee),
             mode: mode
         }

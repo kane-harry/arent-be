@@ -68,8 +68,3 @@ export class ResetPinDto {
     @IsString()
     public pin: string
 }
-
-export class RefreshTokenDto {
-    @IsString()
-    public refreshToken: string
-}

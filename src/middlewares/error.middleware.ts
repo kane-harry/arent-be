@@ -14,17 +14,16 @@ function errorMiddleware(error: ApplicationException, req: CustomRequest, res: R
             status: error.status,
             code: error.code,
             message: error.message,
-            metaData: error.metaData,
-            context: error.errorContext,
+            meta_data: error.meta_data,
+            context: error.error_context,
             stack: error.stack
         }
-        : { status: error.status, code: error.code, message: error.message, metaData: error.metaData }
+        : { status: error.status, code: error.code, message: error.message, meta_data: error.meta_data }
 
     // create log
     new ExceptionLogModel({
-        key: crypto.randomBytes(16).toString('hex'),
         agent: req.agent,
-        ipAddress: req?.ip_address,
+        ip_address: req?.ip_address,
         exception: {
             ...errorDetail,
             stack: String(errorDetail.stack)?.slice(0, 200)

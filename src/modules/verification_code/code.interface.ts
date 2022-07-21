@@ -16,12 +16,12 @@ export enum CodeType {
 export interface IVerificationCode extends IBaseModel {
     key: string
     owner: string // email|phone
-    userKey: string | undefined | null
+    user_key: string | undefined | null
     type: CodeType
     code: string
-    expiryTimestamp: number
-    sentTimestamp: number
-    sentAttempts: number
+    expiry_timestamp: number
+    sent_timestamp: number
+    sent_attempts: number
     verified: boolean
     enabled: boolean
 }

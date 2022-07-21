@@ -3,17 +3,17 @@ import { Types } from 'mongoose'
 import { BigNumber } from 'ethers'
 
 export interface ISetting extends IBaseModel {
-    registrationRequireEmailVerified: boolean
-    registrationRequirePhoneVerified: boolean
-    loginRequireMFA: boolean
-    withdrawRequireMFA: boolean
-    primeTransferFee: number | Types.Decimal128 | string | BigNumber
+    registration_require_email_verified: boolean
+    registration_require_phone_verified: boolean
+    login_require_mfa: boolean
+    withdraw_require_mfa: boolean
+    prime_transfer_fee: number | Types.Decimal128 | string | BigNumber
 }
 
 export const defaultSetting = {
-    registrationRequireEmailVerified: true,
-    registrationRequirePhoneVerified: false,
-    loginRequireMFA: true,
-    withdrawRequireMFA: true,
-    primeTransferFee: 0.1
+    registration_require_email_verified: true,
+    registration_require_phone_verified: false,
+    login_require_mfa: true,
+    withdraw_require_mfa: true,
+    prime_transfer_fee: 0.1
 }

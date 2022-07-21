@@ -1,25 +1,26 @@
+import { config } from '@config'
 import { Schema, Types, model } from 'mongoose'
 import { ISetting } from './setting.interface'
 
 const settingSchema = new Schema<ISetting>(
     {
-        registrationRequireEmailVerified: {
+        registration_require_email_verified: {
             type: Boolean,
             required: true
         },
-        registrationRequirePhoneVerified: {
+        registration_require_phone_verified: {
             type: Boolean,
             required: true
         },
-        loginRequireMFA: {
+        login_require_mfa: {
             type: Boolean,
             required: true
         },
-        withdrawRequireMFA: {
+        withdraw_require_mfa: {
             type: Boolean,
             required: true
         },
-        primeTransferFee: { type: Types.Decimal128, default: new Types.Decimal128('0') }
+        prime_transfer_fee: { type: Types.Decimal128, default: new Types.Decimal128('0') }
     },
     {
         toJSON: {
@@ -34,8 +35,9 @@ const settingSchema = new Schema<ISetting>(
             createdAt: 'created',
             updatedAt: 'modified'
         },
-        versionKey: 'version'
+        versionKey: 'version',
+        collection: config.database.tables.settings
     }
 )
 
-export default model<ISetting>('settings', settingSchema)
+export default model<ISetting>(config.database.tables.settings, settingSchema)

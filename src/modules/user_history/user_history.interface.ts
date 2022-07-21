@@ -14,11 +14,11 @@ export enum UserHistoryActions {
 
 export interface IUserHistory extends IBaseModel {
     key: string
-    userKey: string
-    ipAddress: string
+    user_key: string
+    ip_address: string
     agent: string
     country: string
     action: UserHistoryActions
-    preData: Object
-    postData: Object
+    pre_data: Object
+    post_data: Object
 }

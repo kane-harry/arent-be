@@ -58,7 +58,7 @@ class App {
     }
 
     private connectToDb() {
-        mongoose.connect(config.system.mongoUrl)
+        mongoose.connect(config.database.mongoUrl)
         this.overwriteToJson()
     }
 

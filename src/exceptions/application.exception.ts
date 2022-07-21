@@ -5,9 +5,9 @@ import IErrorModel from '@interfaces/error.model.interface'
 class ApplicationException extends Error {
     status: number
     code: number
-    errorContext?: ErrorContext
+    error_context?: ErrorContext
     message: string
-    metaData?: string
+    meta_data?: string
 
     constructor(error?: IErrorModel, errorContext?: ErrorContext) {
         super(error?.message)
@@ -17,8 +17,8 @@ class ApplicationException extends Error {
         this.status = error?.status || 500
         this.code = error?.code || 0
         this.message = errorContext?.message || error?.message || STATUS_CODES[500]
-        this.metaData = error?.metaData
-        this.errorContext = errorContext
+        this.meta_data = error?.meta_data
+        this.error_context = errorContext
     }
 }
 export default ApplicationException

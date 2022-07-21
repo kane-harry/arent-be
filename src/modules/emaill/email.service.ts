@@ -4,11 +4,11 @@ import { EmailContextDto } from './email.dto'
 const EmailTemplates = require('swig-email-templates')
 
 const defaultContext = {
-    clientName: config.emailNotification.EMAIL_PARAM_CLIENT_NAME,
-    supportSiteEmail: config.emailNotification.EMAIL_PARAM_SUPPORT_EMAIL,
-    supportSiteUrl: config.emailNotification.EMAIL_PARAM_SUPPORT_SITE_URL
+    clientName: config.emailNotification.emailParamClientName,
+    supportSiteEmail: config.emailNotification.emailParamSupportEmail,
+    supportSiteUrl: config.emailNotification.emailParamSupportSiteUrl
 }
-const templates = new EmailTemplates({ root: config.EMAIL_TEMPLATES_ROOT_PATH })
+const templates = new EmailTemplates({ root: config.emailTemplatesRootPath })
 
 export default class EmailService {
     static async sendRegistrationVerificationCode(context: EmailContextDto) {
@@ -20,7 +20,7 @@ export default class EmailService {
                     console.error('sendEmailUpdateComplete => ' + err.message)
                 }
                 // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
+                subject = `${config.emailNotification.emailParamClientName} - Verification Code`
                 sendEmail(subject, text, html, _context.address)
                 resolve('done')
             })
@@ -38,7 +38,7 @@ export default class EmailService {
                     console.error('sendChangeEmailVerificationCode => ' + err.message)
                 }
                 // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
+                subject = `${config.emailNotification.emailParamClientName} - Verification Code`
                 sendEmail(subject, text, html, _context.address)
                 resolve('done')
             })
@@ -56,7 +56,7 @@ export default class EmailService {
                     console.error('sendUserVerificationCodeEmail => ' + err.message)
                 }
                 // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
+                subject = `${config.emailNotification.emailParamClientName} - Verification Code`
                 sendEmail(subject, text, html, _context.address)
                 resolve('done')
             })
@@ -74,7 +74,7 @@ export default class EmailService {
                     console.error('sendUserForgotPasswordEmail => ' + err.message)
                 }
                 // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Password Reset Request`
+                subject = `${config.emailNotification.emailParamClientName} - Password Reset Request`
                 sendEmail(subject, text, html, _context.address)
                 resolve('done')
             })
@@ -92,7 +92,7 @@ export default class EmailService {
                     console.error('sendUserPasswordResetCompletedEmail => ' + err.message)
                 }
                 // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Password Reset Completed`
+                subject = `${config.emailNotification.emailParamClientName} - Password Reset Completed`
                 sendEmail(subject, text, html, _context.address)
                 resolve('done')
             })
@@ -110,7 +110,7 @@ export default class EmailService {
                     console.error('sendUserForgotPinEmail => ' + err.message)
                 }
                 // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - PIN Reset Request`
+                subject = `${config.emailNotification.emailParamClientName} - PIN Reset Request`
                 sendEmail(subject, text, html, _context.address)
                 resolve('done')
             })
@@ -128,7 +128,7 @@ export default class EmailService {
                     console.error('sendUserPinResetCompletedEmail => ' + err.message)
                 }
                 // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - PIN Reset Completed`
+                subject = `${config.emailNotification.emailParamClientName} - PIN Reset Completed`
                 sendEmail(subject, text, html, _context.address)
                 resolve('done')
             })
@@ -146,7 +146,7 @@ export default class EmailService {
                     console.error('sendUserChangeEmailCompletedEmail => ' + err.message)
                 }
                 // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Verification Code`
+                subject = `${config.emailNotification.emailParamClientName} - Verification Code`
                 sendEmail(subject, text, html, _context.address)
                 resolve('done')
             })
@@ -164,7 +164,7 @@ export default class EmailService {
                     console.error('sendUserResetCredentialsNotification => ' + err.message)
                 }
                 // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Reset Credentials`
+                subject = `${config.emailNotification.emailParamClientName} - Reset Credentials`
                 sendEmail(subject, text, html, _context.address)
                 resolve('done')
             })
@@ -182,7 +182,7 @@ export default class EmailService {
                     console.error('sendUserResetCredentialsCompletedNotification => ' + err.message)
                 }
                 // Send email
-                subject = `${config.emailNotification.EMAIL_PARAM_CLIENT_NAME} - Setup Credentials`
+                subject = `${config.emailNotification.emailParamClientName} - Setup Credentials`
                 sendEmail(subject, text, html, _context.address)
                 resolve('done')
             })

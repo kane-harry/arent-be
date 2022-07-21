@@ -1,10 +1,20 @@
+import { config } from '@config'
+import { randomBytes } from 'crypto'
 import { Schema, model } from 'mongoose'
 import { IExceptionLog } from './exception_log.interface'
 
 const exceptionLogsSchema = new Schema<IExceptionLog>(
     {
-        key: { type: String, required: true, index: true, unique: true },
-        ipAddress: {
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(16).toString('hex')
+            }
+        },
+        ip_address: {
             type: String,
             required: true
         },
@@ -21,8 +31,9 @@ const exceptionLogsSchema = new Schema<IExceptionLog>(
             createdAt: 'created',
             updatedAt: 'modified'
         },
-        versionKey: 'version'
+        versionKey: 'version',
+        collection: config.database.tables.exception_logs
     }
 )
 
-export default model<IExceptionLog>('exception_logs', exceptionLogsSchema)
+export default model<IExceptionLog>(config.database.tables.exception_logs, exceptionLogsSchema)

@@ -34,17 +34,16 @@ export default class AccountService {
         for (const coinWallet of coinWallets) {
             const accountName = `${coinWallet.symbol} Account`
             const account = new AccountModel({
-                key: crypto.randomBytes(16).toString('hex'),
-                userKey: userKey,
+                user_key: userKey,
                 name: accountName,
                 symbol: coinWallet.symbol,
                 type: AccountType.Prime,
-                extType: AccountExtType.Prime,
+                ext_type: AccountExtType.Prime,
                 address: etherWallet.address,
                 platform: 'system',
                 salt: etherWallet.salt,
-                keyStore: etherWallet.keyStore,
-                extKey: coinWallet.key
+                key_store: etherWallet.key_store,
+                ext_key: coinWallet.key
             })
             accounts.push(account)
         }
@@ -54,16 +53,15 @@ export default class AccountService {
             const accountName = `${token.symbol} Account`
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
-                    key: crypto.randomBytes(16).toString('hex'),
-                    userKey: userKey,
+                    user_key: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Ext,
-                    extType: AccountExtType.Ext,
+                    ext_type: AccountExtType.Ext,
                     address: etherWallet.address,
                     platform: token.platform,
                     salt: etherWallet.salt,
-                    keyStore: etherWallet.keyStore
+                    key_store: etherWallet.key_store
                 })
                 accounts.push(account)
             } else {
@@ -76,17 +74,16 @@ export default class AccountService {
             if (token.symbol) {
                 const accountName = `${token.symbol} Account`
                 const account = new AccountModel({
-                    key: crypto.randomBytes(16).toString('hex'),
-                    userKey: userKey,
+                    user_key: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Ext,
-                    extType: AccountExtType.Ext,
+                    ext_type: AccountExtType.Ext,
                     address: etherWallet.address,
                     platform: 'ethereum',
                     salt: etherWallet.salt,
-                    keyStore: etherWallet.keyStore,
-                    metaData: {
+                    key_store: etherWallet.key_store,
+                    meta_data: {
                         contract: token.contract,
                         decimals: token.decimals
                     }
@@ -100,9 +97,9 @@ export default class AccountService {
     }
 
     static async getAccountByKey(key: string) {
-        const account = await AccountModel.findOne({ key }).select('-keyStore -salt').exec()
-        if (account?.extType === AccountExtType.Prime) {
-            const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
+        const account = await AccountModel.findOne({ key }).select('-key_store -salt').exec()
+        if (account?.ext_type === AccountExtType.Prime) {
+            const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
             account.amount = wallet.amount
             account.nonce = wallet.nonce
         }
@@ -111,9 +108,9 @@ export default class AccountService {
     }
 
     static async getAccountBySymbol(symbol: string, userKey: string) {
-        const account = await AccountModel.findOne({ symbol, userKey }).select('-keyStore -salt').exec()
-        if (account?.extType === AccountExtType.Prime) {
-            const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
+        const account = await AccountModel.findOne({ symbol, user_key: userKey }).select('-key_store -salt').exec()
+        if (account?.ext_type === AccountExtType.Prime) {
+            const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
             account.amount = wallet.amount
             account.nonce = wallet.nonce
         }
@@ -122,9 +119,9 @@ export default class AccountService {
     }
 
     static async getAccountBySymbolAndAddress(symbol: string, address: string) {
-        const account = await AccountModel.findOne({ symbol: symbol, address: address }).select('-keyStore -salt').exec()
-        if (account?.extType === AccountExtType.Prime) {
-            const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
+        const account = await AccountModel.findOne({ symbol: symbol, address: address }).select('-key_store -salt').exec()
+        if (account?.ext_type === AccountExtType.Prime) {
+            const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
             account.amount = wallet.amount
             account.nonce = wallet.nonce
         }
@@ -132,7 +129,7 @@ export default class AccountService {
     }
 
     static async getAccountKeyStore(key: string) {
-        const account = await AccountModel.findOne({ key }, { _id: 1, keyStore: 1, salt: 1 }).exec()
+        const account = await AccountModel.findOne({ key }, { _id: 1, key_store: 1, salt: 1 }).exec()
         if (!account) {
             throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.service', 'getAccountKeyStore', { key }))
         }
@@ -140,12 +137,12 @@ export default class AccountService {
     }
 
     static async getMasterAccountBriefBySymbol(symbol: string) {
-        const account = await AccountModel.findOne({ symbol: symbol, type: AccountType.Master }).select('-keyStore -salt').exec()
+        const account = await AccountModel.findOne({ symbol: symbol, type: AccountType.Master }).select('-key_store -salt').exec()
         return account
     }
 
     static async queryAccounts(params: IAccountFilter) {
-        const offset = (params.pageindex - 1) * params.pagesize
+        const offset = (params.page_index - 1) * params.page_size
         const filter: any = {
             removed: false
         }
@@ -158,16 +155,16 @@ export default class AccountService {
         }
         const totalCount = await AccountModel.countDocuments(filter).exec()
         const items = await AccountModel.find<IAccount>(filter)
-            .select('-keyStore -salt')
+            .select('-key_store -salt')
             .sort({ symbol: -1 })
             .skip(offset)
-            .limit(params.pagesize)
+            .limit(params.page_size)
             .exec()
-        return new QueryRO<IAccount>(totalCount, params.pageindex, params.pagesize, items)
+        return new QueryRO<IAccount>(totalCount, params.page_index, params.page_size, items)
     }
 
     static async getUserAccounts(userKey: any) {
-        const items = await AccountModel.find({ userKey: userKey }).select('-keyStore -salt').exec()
+        const items = await AccountModel.find({ user_key: userKey }).select('-key_store -salt').exec()
         return items
     }
 
@@ -176,7 +173,7 @@ export default class AccountService {
         if (account.type === AccountExtType.Prime) {
             throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { key }))
         }
-        if (account.userKey !== operator.key) {
+        if (account.user_key !== operator.key) {
             throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { key }))
         }
 
