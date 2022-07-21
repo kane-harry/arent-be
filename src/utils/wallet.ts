@@ -13,8 +13,8 @@ async function createEtherWallet() {
     return {
         address: wallet.address,
         salt: salt,
-        keyStore: JSON.parse(keyStore),
-        privateKey: wallet.privateKey
+        key_store: JSON.parse(keyStore),
+        private_key: wallet.privateKey
     }
 }
 

@@ -6,10 +6,10 @@ export enum SecurityActions {
 
 export interface IUserSecurity extends IBaseModel {
     key: string
-    userKey: string
-    ipAddress: string
+    user_key: string
+    ip_address: string
     agent: string
     action: SecurityActions
-    preData: string
-    postData: string
+    pre_data: string
+    post_data: string
 }

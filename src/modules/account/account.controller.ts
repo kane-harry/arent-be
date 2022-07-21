@@ -30,7 +30,7 @@ class AccountController implements IController {
         this.router.get(`${this.path}/:key`, requireAuth, asyncHandler(this.getAccountByKey))
         this.router.get(`${this.path}/symbol/:symbol`, requireAuth, asyncHandler(this.getAccountBySymbol))
         this.router.get(`${this.path}/:key/trx/export`, requireAuth, asyncHandler(this.getExportTransactionByAccountKey))
-        this.router.get(`${this.path}/user/:userKey`, requireAuth, asyncHandler(this.getUserAccounts))
+        this.router.get(`${this.path}/user/:user_key`, requireAuth, asyncHandler(this.getUserAccounts))
         this.router.post(`${this.path}/:key/withdraw`, requireAuth, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
     }
 
@@ -38,7 +38,7 @@ class AccountController implements IController {
         const key = req.params.key
         const data = await AccountService.getAccountByKey(key)
         if (data) {
-            AccountController.checkPermission(req, data.userKey)
+            AccountController.checkPermission(req, data.user_key)
         }
         return res.json(data)
     }
@@ -59,7 +59,7 @@ class AccountController implements IController {
     }
 
     private async getUserAccounts(req: CustomRequest, res: Response) {
-        const userKey = req.params.userKey
+        const userKey = req.params.user_key
         AccountController.checkPermission(req, userKey)
         const data = await AccountService.getUserAccounts(userKey)
         for (const account of data) {

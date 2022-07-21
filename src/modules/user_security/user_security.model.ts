@@ -1,14 +1,24 @@
+import { config } from '@config'
+import { randomBytes } from 'crypto'
 import { Schema, model } from 'mongoose'
 import { IUserSecurity } from './user_security.interface'
 
 const userSecuritySchema = new Schema<IUserSecurity>(
     {
-        key: { type: String, required: true, index: true, unique: true },
-        userKey: {
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(16).toString('hex')
+            }
+        },
+        user_key: {
             type: String,
             required: true
         },
-        ipAddress: {
+        ip_address: {
             type: String,
             required: true
         },
@@ -20,16 +30,17 @@ const userSecuritySchema = new Schema<IUserSecurity>(
             type: String,
             required: true
         },
-        preData: Object,
-        postData: Object
+        pre_data: Object,
+        post_data: Object
     },
     {
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'
         },
-        versionKey: 'version'
+        versionKey: 'version',
+        collection: config.database.tables.user_security
     }
 )
 
-export default model<IUserSecurity>('user_security', userSecuritySchema)
+export default model<IUserSecurity>(config.database.tables.user_security, userSecuritySchema)

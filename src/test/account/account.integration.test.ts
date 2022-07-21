@@ -34,7 +34,7 @@ describe('Account', () => {
         const pageIndex = 1
         const pageSize = 25
         const res = await request(server.app)
-            .get(`/accounts?pageindex=${pageIndex}&pagesize=${pageSize}`)
+            .get(`/accounts?page_index=${pageIndex}&page_size=${pageSize}`)
             .set('Authorization', `Bearer ${shareMasterData.token}`)
             .send()
         expect(res.status).equal(200)
@@ -56,7 +56,7 @@ describe('Account', () => {
         validResponse(res.body)
 
         expect(res.body.key).equal(account.key)
-        expect(res.body.userKey).equal(account.userKey)
+        expect(res.body.userKey).equal(account.user_key)
         expect(res.body.name).equal(account.name)
         expect(res.body.symbol).equal(account.symbol)
         expect(res.body.platform).equal(account.platform)

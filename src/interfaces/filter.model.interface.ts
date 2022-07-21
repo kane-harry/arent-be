@@ -1,8 +1,8 @@
 interface IFilterModel {
-    pageindex: number
-    pagesize: number
-    sortby?: string
-    orderby?: string
+    page_index: number
+    page_size: number
+    sort_by?: string
+    order_by?: string
 }
 
 export default IFilterModel

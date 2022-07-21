@@ -8,16 +8,16 @@ import { MFAType } from '@modules/auth/auth.interface'
 export class CreateUserDto {
     @IsString()
     @Length(2, 20)
-    public firstName: string
+    public first_name: string
 
     @IsString()
     @Length(2, 20)
-    public lastName: string
+    public last_name: string
 
     // TODO: check uniq nickname
     @IsOptional()
     @Length(2, 20)
-    public chatName: string
+    public chat_name: string
 
     @IsString()
     @IsEmail()
@@ -39,42 +39,42 @@ export class CreateUserDto {
     public country: string
 
     @IsOptional()
-    public playerId: string
+    public player_id: string
 }
 
 export class UpdateProfileDto {
     @IsOptional()
     @IsString()
     @Length(2, 18)
-    public firstName: string
+    public first_name: string
 
     @IsOptional()
     @IsString()
     @Length(2, 18)
-    public lastName: string
+    public last_name: string
 
     // TODO: check uniq nickname
     @IsOptional()
     @IsString()
     @Length(2, 8)
-    public chatName: string
+    public chat_name: string
 }
 
 export class AdminUpdateProfileDto {
     @IsOptional()
     @IsString()
     @Length(2, 18)
-    public firstName: string
+    public first_name: string
 
     @IsOptional()
     @IsString()
     @Length(2, 18)
-    public lastName: string
+    public last_name: string
 
     @IsOptional()
     @IsString()
     @Length(2, 8)
-    public chatName: string
+    public chat_name: string
 
     @IsOptional()
     public phone: string
@@ -103,10 +103,10 @@ export class UpdateSecurityDto {
     public type: string
 
     @IsString()
-    public loginEnabled: string
+    public login_enabled: string
 
     @IsString()
-    public withdrawEnabled: string
+    public withdraw_enabled: string
 
     @IsOptional()
     @IsString()

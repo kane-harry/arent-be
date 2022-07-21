@@ -9,38 +9,38 @@ export enum UserStatus {
 
 export interface IUser extends IBaseModel {
     key: string
-    firstName: string
-    lastName: string
-    chatName: string
+    first_name: string
+    last_name: string
+    chat_name: string
     email: string
     password: string
     pin: string
     phone: string
     country: string
     avatar: Object | null
-    playerId?: string
+    player_id?: string
     status: UserStatus
-    emailVerified: boolean
-    phoneVerified: boolean
-    kycVerified: boolean
+    email_verified: boolean
+    phone_verified: boolean
+    kyc_verified: boolean
     role: number | 0
-    loginCount: number | 0
-    lockedTimestamp: number | 0
-    mfaSettings: Object | any
-    changePasswordNextLogin: boolean
-    changePasswordNextLoginTimestamp: number
-    changePasswordNextLoginCode: string
-    changePasswordNextLoginAttempts: number
-    totpTempSecret: string
-    totpSecret: string
-    totpSetup: boolean
-    tokenVersion: number
+    login_count: number | 0
+    locked_timestamp: number | 0
+    mfa_settings: Object | any
+    change_password_next_login: boolean
+    change_password_next_login_timestamp: number
+    change_password_next_login_code: string
+    change_password_next_login_attempts: number
+    totp_temp_secret: string
+    totp_secret: string
+    totp_setup: boolean
+    token_version: number
 }
 
 export interface IUserQueryFilter extends IFilterModel {
     type: string
     status: string
     terms: string
-    datefrom: string
-    dateto: string
+    date_from: string
+    date_to: string
 }

@@ -11,24 +11,24 @@ import { verifyToken } from '@utils/totp'
 
 export default class SecurityService {
     public static async validate2FA(userKey: string, codeType: CodeType, code: string) {
-        const user = await UserModel.findOne({ key: userKey, removed: false }).select('key email phone MFASettings').exec()
+        const user = await UserModel.findOne({ key: userKey, removed: false }).select('key email phone mfa_settings').exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('security.service', 'validate2FA', { userKey }))
         }
         let mfaEnabled = false
-        if (user.mfaSettings) {
-            if (user.mfaSettings.loginEnabled && codeType === CodeType.Login) {
+        if (user.mfa_settings) {
+            if (user.mfa_settings.login_enabled && codeType === CodeType.Login) {
                 mfaEnabled = true
-            } else if (user.mfaSettings.withdrawEnabled && codeType === CodeType.Withdraw) {
+            } else if (user.mfa_settings.withdraw_enabled && codeType === CodeType.Withdraw) {
                 mfaEnabled = true
             }
         }
         if (!mfaEnabled) {
             return { status: 'verified' }
         }
-        const mfaType = user.mfaSettings.MFAType
+        const mfaType = user.mfa_settings.mfa_type
         if (!code || !code.length || code === 'undefined') {
-            const codeInfo = await VerificationCodeService.generateCode({ owner: user.key, userKey: user.key, codeType: codeType })
+            const codeInfo = await VerificationCodeService.generateCode({ owner: user.key, user_key: user.key, code_type: codeType })
             if (codeInfo.success) {
                 if (mfaType === MFAType.EMAIL) {
                     const context = { address: user.email, code: codeInfo.code }
@@ -39,18 +39,18 @@ export default class SecurityService {
                     // do nothing
                 }
             }
-            return { requireMFACode: true, type: mfaType, status: 'sent' }
+            return { require_mfa_code: true, type: mfaType, status: 'sent' }
         }
 
         if (mfaType === MFAType.TOTP) {
-            const twoFactorSecret = String(user?.get('twoFactorSecret', null, { getters: false }))
+            const twoFactorSecret = String(user?.get('two_factor_secret', null, { getters: false }))
             if (!verifyToken(twoFactorSecret, code)) {
                 throw new BizException(AuthErrors.token_error, new ErrorContext('security.service', 'validate2FA', {}))
             }
         } else {
-            await VerificationCodeService.verifyCode({ owner: user.key, code, codeType })
+            await VerificationCodeService.verifyCode({ owner: user.key, code, code_type: codeType })
         }
 
-        return { requireMFACode: true, type: mfaType, status: 'verified' }
+        return { require_mfa_code: true, type: mfaType, status: 'verified' }
     }
 }

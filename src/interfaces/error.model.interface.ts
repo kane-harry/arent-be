@@ -2,6 +2,6 @@ interface IErrorModel {
     code: number
     status: number
     message: string
-    metaData?: any
+    meta_data?: any
 }
 export default IErrorModel

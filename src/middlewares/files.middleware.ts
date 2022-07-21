@@ -41,7 +41,7 @@ export const handleFiles = (fields: multer.Field[]) => async (req: Request, res:
         next()
     } catch (err) {
         throw new ApplicationException(CommonErrors.request_validation_error, {
-            className: 'FileValidation',
+            class_name: 'FileValidation',
             method: 'handleFiles',
             details: String(err),
             message: null
@@ -114,7 +114,7 @@ export const resizeImages =
             } catch (err) {
                 console.log(err)
                 throw new ApplicationException(CommonErrors.internal_server_error, {
-                    className: 'FileValidation',
+                    class_name: 'FileValidation',
                     method: 'resizeImages',
                     details: String(err),
                     message: null
@@ -170,7 +170,7 @@ export const uploadFiles = (folder?: string) => async (req: Request, res: Respon
     } catch (err) {
         console.log(err)
         throw new ApplicationException(CommonErrors.internal_server_error, {
-            className: 'FileValidation',
+            class_name: 'FileValidation',
             method: 'uploadFiles',
             details: String(err),
             message: null

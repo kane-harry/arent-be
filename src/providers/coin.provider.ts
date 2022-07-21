@@ -38,7 +38,7 @@ _instance.interceptors.request.use(
         const time = Date.now().toString()
         const httpMethod = axiosConfig.method!.toUpperCase()
         const requestPath = axiosConfig.url!
-        const secret = config.system.coinServerSecrectKey
+        const secret = config.system.coinServerSecretKey
 
         let digest = generate(secret, 'sha256', time, httpMethod, requestPath, axiosConfig.data).digest('hex')
         if (httpMethod === 'GET') {
@@ -75,7 +75,7 @@ export class PrimeCoinProvider {
     public static requestErrorHandler(method: string, error: any) {
         console.log(error)
         const errorModel = CommonErrors.coin_server_request_error as IErrorModel
-        errorModel.metaData = { error: error?.message }
+        errorModel.meta_data = { error: error?.message }
         throw new BizException(errorModel, new ErrorContext('PrimeCoinProvider', method, error?.context?.details))
     }
 
@@ -158,7 +158,7 @@ export class PrimeCoinProvider {
 
     public static async queryPrimeTxns(filter: ITransactionFilter) {
         let path = '/transactions'
-        // ?symbol=${filter!.symbol}&keys=${filter!.keys}&owner=${filter!.owner}&pageindex=${filter.pageindex}&pagesize=${filter.pagesize}
+        // ?symbol=${filter!.symbol}&keys=${filter!.keys}&owner=${filter!.owner}&page_index=${filter.page_index}&page_size=${filter.page_size}
         const params = []
         for (const [key, value] of Object.entries(filter)) {
             params.push(`${key}=${value}`)

@@ -1,14 +1,24 @@
+import { config } from '@config'
+import { randomBytes } from 'crypto'
 import { Schema, model } from 'mongoose'
 import { IUserHistory } from './user_history.interface'
 
 const userHistorySchema = new Schema<IUserHistory>(
     {
-        key: { type: String, required: true, index: true, unique: true },
-        userKey: {
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(16).toString('hex')
+            }
+        },
+        user_key: {
             type: String,
             required: true
         },
-        ipAddress: {
+        ip_address: {
             type: String,
             required: true
         },
@@ -16,22 +26,23 @@ const userHistorySchema = new Schema<IUserHistory>(
             type: String
         },
         agent: {
-            type: String,
+            type: String
         },
         action: {
             type: String,
             required: true
         },
-        preData: Object,
-        postData: Object
+        pre_data: Object,
+        post_data: Object
     },
     {
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'
         },
-        versionKey: 'version'
+        versionKey: 'version',
+        collection: config.database.tables.user_history
     }
 )
 
-export default model<IUserHistory>('user_history', userHistorySchema)
+export default model<IUserHistory>(config.database.tables.user_history, userHistorySchema)

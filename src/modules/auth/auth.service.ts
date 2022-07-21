@@ -2,7 +2,7 @@ import * as bcrypt from 'bcrypt'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { CreateUserDto } from '@modules/user/user.dto'
-import { ForgotPasswordDto, ForgotPinDto, LogInDto, RefreshTokenDto, ResetPasswordDto, ResetPinDto } from './auth.dto'
+import { ForgotPasswordDto, ForgotPinDto, LogInDto, ResetPasswordDto, ResetPinDto } from './auth.dto'
 import { capitalize, escapeRegExp, toLower, trim } from 'lodash'
 import { IUser, UserStatus } from '@modules/user/user.interface'
 import UserModel from '@modules/user/user.model'
@@ -27,12 +27,13 @@ import UserHistoryModel from '@modules/user_history/user_history.model'
 import { UserHistoryActions } from '@modules/user_history/user_history.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import SecurityService from '@modules/security/security.service'
+import { ISetting } from '@modules/setting/setting.interface'
 
 export default class AuthService {
     static async verifyRegistration(userData: CreateUserDto, options?: any) {
         userData = await AuthService.formatCreateUserDto(userData)
-        const setting: any = await SettingService.getGlobalSetting()
-        if (setting.registrationRequireEmailVerified) {
+        const setting: ISetting = await SettingService.getGlobalSetting()
+        if (setting.registration_require_email_verified) {
             const codeData = await VerificationCode.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
             if (!codeData || !codeData.verified) {
                 throw new BizException(
@@ -67,15 +68,15 @@ export default class AuthService {
     static async register(userData: CreateUserDto, options?: any) {
         userData = await AuthService.formatCreateUserDto(userData)
         await this.verifyRegistration(userData, options)
-        const setting: any = await SettingService.getGlobalSetting()
-        const mfaSettings = { type: MFAType.EMAIL, loginEnabled: setting.loginRequireMFA, withdrawEnabled: setting.withdrawRequireMFA }
+        const setting: ISetting = await SettingService.getGlobalSetting()
+        const mfaSettings = { type: MFAType.EMAIL, login_enabled: setting.login_require_mfa, withdraw_enabled: setting.withdraw_require_mfa }
         let emailVerified = false
-        if (setting.registrationRequireEmailVerified) {
+        if (setting.registration_require_email_verified) {
             emailVerified = true
             mfaSettings.type = MFAType.EMAIL
         }
         let phoneVerified = false
-        if (setting.registrationRequirePhoneVerified) {
+        if (setting.registration_require_phone_verified) {
             const codeData = await VerificationCode.findOne({ owner: userData.phone, type: CodeType.PhoneRegistration }).exec()
             if (!codeData || codeData.enabled) {
                 throw new BizException(
@@ -89,46 +90,44 @@ export default class AuthService {
         const currentTimestamp = generateUnixTimestamp()
         const mode = new UserModel({
             ...userData,
-            key: crypto.randomBytes(16).toString('hex'),
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
             avatar: null,
             role: 0,
-            emailVerified,
-            phoneVerified,
-            mfaSettings,
-            tokenVersion: currentTimestamp
+            email_verified: emailVerified,
+            phone_verified: phoneVerified,
+            mfa_settings: mfaSettings,
+            token_version: currentTimestamp
         })
         const savedData = await mode.save()
         await AccountService.initUserAccounts(savedData.key)
 
         // create log
         new UserHistoryModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userKey: mode.key,
+            user_key: mode.key,
             action: UserHistoryActions.Register,
             agent: options?.req.agent,
             country: mode.country,
-            ipAddress: options?.req.ip_address,
-            preData: null,
-            postData: {
-                firstName: mode.firstName,
-                lastName: mode.lastName,
-                chatName: mode.chatName,
+            ip_address: options?.req.ip_address,
+            pre_data: null,
+            post_data: {
+                first_name: mode.first_name,
+                last_name: mode.last_name,
+                chat_name: mode.chat_name,
                 phone: mode.phone,
                 email: mode.email,
-                mfaSettings: mode.mfaSettings
+                mfa_settings: mode.mfa_settings
             }
         }).save()
 
-        options.forceLogin = true
+        options.force_login = true
         return this.logIn({ email: userData.email, password: userData.password, token: null }, options)
     }
 
     private static async formatCreateUserDto(userData: CreateUserDto) {
-        userData.firstName = capitalize(escapeRegExp(trim(userData.firstName)))
-        userData.lastName = capitalize(escapeRegExp(trim(userData.lastName)))
-        userData.chatName = await UserService.generateRandomName(userData.firstName)
+        userData.first_name = capitalize(escapeRegExp(trim(userData.first_name)))
+        userData.last_name = capitalize(escapeRegExp(trim(userData.last_name)))
+        userData.chat_name = await UserService.generateRandomName(userData.chat_name)
         userData.email = toLower(trim(userData.email))
         userData.password = trim(userData.password)
         userData.pin = trim(userData.pin)
@@ -153,24 +152,24 @@ export default class AuthService {
             throw new BizException(AuthErrors.user_locked_error, new ErrorContext('user.service', 'login', { email: logInData.email }))
         }
 
-        if (user.changePasswordNextLogin && user.changePasswordNextLogin === true) {
-            let changePasswordNextLoginAttempts = user.changePasswordNextLoginAttempts || 0
+        if (user.change_password_next_login && user.change_password_next_login === true) {
+            let changePasswordNextLoginAttempts = user.change_password_next_login_attempts || 0
             changePasswordNextLoginAttempts++
 
-            user.set('changePasswordNextLoginAttempts', changePasswordNextLoginAttempts, Number)
-            user.set('tokenVersion', currentTimestamp, Number)
+            user.set('change_password_next_login_attempts', changePasswordNextLoginAttempts, Number)
+            user.set('token_version', currentTimestamp, Number)
             user.save()
             if (changePasswordNextLoginAttempts >= 5) {
                 user.set('status', UserStatus.Locked, String)
-                user.set('loginCount', 0, Number)
+                user.set('login_count', 0, Number)
                 user.save()
                 throw new BizException(AuthErrors.user_locked_error, new ErrorContext('user.service', 'login', { email: logInData.email }))
             }
 
             if (
-                !user.changePasswordNextLoginCode ||
-                toLower(user.changePasswordNextLoginCode) !== toLower(logInData.password) ||
-                user.changePasswordNextLoginTimestamp < currentTimestamp - 60 * 15
+                !user.change_password_next_login_code ||
+                toLower(user.change_password_next_login_code) !== toLower(logInData.password) ||
+                user.change_password_next_login_timestamp < currentTimestamp - 60 * 15
             ) {
                 throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
             }
@@ -178,15 +177,15 @@ export default class AuthService {
                 key: user.key,
                 email: user.email,
                 phone: user.phone,
-                changePasswordNextLogin: true
+                change_password_next_login: true
             }
         }
 
-        let loginCount = user.loginCount || 0
-        if (loginCount >= 5 && user.lockedTimestamp > currentTimestamp - 60 * 60) {
-            const retryInMinutes = Math.ceil((user.lockedTimestamp - (currentTimestamp - 3600)) / 60)
-            user.set('tokenVersion', currentTimestamp, Number)
-            user.set('lockedTimestamp', currentTimestamp, Number)
+        let loginCount = user.login_count || 0
+        if (loginCount >= 5 && user.locked_timestamp > currentTimestamp - 60 * 60) {
+            const retryInMinutes = Math.ceil((user.locked_timestamp - (currentTimestamp - 3600)) / 60)
+            user.set('token_version', currentTimestamp, Number)
+            user.set('locked_timestamp', currentTimestamp, Number)
             user.save()
             throw new BizException(
                 {
@@ -201,16 +200,15 @@ export default class AuthService {
         const isPasswordMatching = await bcrypt.compare(logInData.password, user.get('password', null, { getters: false }))
         if (!isPasswordMatching) {
             loginCount = loginCount + 1
-            user.set('loginCount', loginCount, Number)
-            user.set('lockedTimestamp', currentTimestamp, Number)
-            user.set('tokenVersion', currentTimestamp, Number)
+            user.set('login_count', loginCount, Number)
+            user.set('locked_timestamp', currentTimestamp, Number)
+            user.set('token_version', currentTimestamp, Number)
             user.save()
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
         }
 
-        if (!options.forceLogin) {
-            // @ts-ignore
-            if (user.MFASettings && user.mfaSettings.loginEnabled) {
+        if (!options.force_login) {
+            if (user.mfa_settings && user.mfa_settings.login_enabled) {
                 const data = await SecurityService.validate2FA(user.key, CodeType.Login, logInData.token)
                 if (data.status !== 'verified') {
                     return data
@@ -221,17 +219,16 @@ export default class AuthService {
         // create token
         const accessToken = AuthModel.createAccessToken(user._id, currentTimestamp)
 
-        user.set('loginCount', 0, Number)
-        user.set('lockedTimestamp', currentTimestamp, Number)
-        user.set('tokenVersion', currentTimestamp, Number)
+        user.set('login_count', 0, Number)
+        user.set('locked_timestamp', currentTimestamp, Number)
+        user.set('token_version', currentTimestamp, Number)
         await user.save()
 
         new UserSecurityModel({
-            key: crypto.randomBytes(16).toString('hex'),
-            userKey: user.key,
+            user_key: user.key,
             action: SecurityActions.Login,
             agent: options?.req.agent,
-            ipAddress: options?.req.ip_address
+            ip_address: options?.req.ip_address
         }).save()
 
         return { user: user, token: accessToken }
@@ -241,7 +238,7 @@ export default class AuthService {
         const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: options.req.user.key, removed: false }).exec()
         if (!user) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'tokenVersion', {}))
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
         }
         const accessToken = AuthModel.createAccessToken(options.req.user._id, currentTimestamp)
         await AuthService.updateTokenVersion(options.req.user.key, currentTimestamp)
@@ -253,9 +250,9 @@ export default class AuthService {
     static async updateTokenVersion(key: string, currentTimestamp: number) {
         const user = await UserModel.findOne({ key }).exec()
         if (!user) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'tokenVersion', {}))
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'updateTokenVersion', {}))
         }
-        user.set('tokenVersion', currentTimestamp, Number)
+        user.set('token_version', currentTimestamp, Number)
         await user.save()
         return { success: true }
     }
@@ -281,8 +278,8 @@ export default class AuthService {
 
         const codeRes = await VerificationCodeService.generateCode({
             owner: user.key,
-            userKey: user.key,
-            codeType: CodeType.ForgotPassword
+            user_key: user.key,
+            code_type: CodeType.ForgotPassword
         })
         if (codeRes.success && codeRes.code) {
             if (params.type === 'email') {
@@ -319,7 +316,7 @@ export default class AuthService {
         const { success } = await VerificationCodeService.verifyCode({
             owner: user.key,
             code: params.code,
-            codeType: CodeType.ForgotPassword
+            code_type: CodeType.ForgotPassword
         })
         if (success) {
             EmailService.sendUserPasswordResetCompletedEmail({ address: user.email })
@@ -327,17 +324,16 @@ export default class AuthService {
 
             // log
             new UserHistoryModel({
-                key: crypto.randomBytes(16).toString('hex'),
-                userKey: user.key,
+                user_key: user.key,
                 action: UserHistoryActions.ResetPassword,
                 agent: options?.req.agent,
                 country: user.country,
-                ipAddress: options?.req.ip_address,
-                preData: {
+                ip_address: options?.req.ip_address,
+                pre_data: {
                     password: user.password
                 },
-                postData: {
-                    pasword: newPassHashed
+                post_data: {
+                    password: newPassHashed
                 }
             }).save()
 
@@ -366,8 +362,8 @@ export default class AuthService {
 
         const codeRes = await VerificationCodeService.generateCode({
             owner: user.key,
-            userKey: user.key,
-            codeType: CodeType.ForgotPin
+            user_key: user.key,
+            code_type: CodeType.ForgotPin
         })
         if (codeRes.success && codeRes.code) {
             if (params.type === 'email') {
@@ -404,23 +400,22 @@ export default class AuthService {
         const { success } = await VerificationCodeService.verifyCode({
             owner: user.key,
             code: params.code,
-            codeType: CodeType.ForgotPin
+            code_type: CodeType.ForgotPin
         })
         if (success) {
             const newPin = await bcrypt.hash(params.pin, 10)
             EmailService.sendUserPinResetCompletedEmail({ address: user.email })
             // log
             new UserHistoryModel({
-                key: crypto.randomBytes(16).toString('hex'),
-                userKey: user.key,
+                user_key: user.key,
                 action: UserHistoryActions.ResetPin,
                 agent: options?.req.agent,
                 country: user.country,
-                ipAddress: options?.req.ip_address,
-                preData: {
+                ip_address: options?.req.ip_address,
+                pre_data: {
                     pin: user.pin
                 },
-                postData: {
+                post_data: {
                     pin: newPin
                 }
             }).save()

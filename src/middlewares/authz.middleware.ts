@@ -7,14 +7,14 @@ const ExtractJwt = passportJWT.ExtractJwt
 
 const opts = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: config.JWT_Access.secret
+    secretOrKey: config.jwtAccess.secret
 }
 
 export default (passport: PassportStatic) => {
     passport.use(
         new JwtStrategy(opts, async (payload, done) => {
             const user = await UserModel.findById(payload.id || payload.key).exec()
-            if (!user || payload.tokenVersion !== user.tokenVersion) {
+            if (!user || payload.token_version !== user.token_version) {
                 return done(null, false)
             }
             return done(null, user)
