@@ -1,5 +1,5 @@
 import { config } from '@config'
-import { stripPhoneNumber } from '@utils/phone-helper'
+import { stripPhoneNumber } from '@utils/phoneNumber'
 
 async function sendSms(subject: string, contents: string, phoneNumber: string) {
     const AWS = require('aws-sdk')

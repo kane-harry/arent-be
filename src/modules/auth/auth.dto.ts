@@ -1,4 +1,3 @@
-import { CodeType } from '@modules/verification_code/code.interface'
 import { IsString, IsEmail, IsOptional, IsNotEmpty, ValidateIf } from 'class-validator'
 
 export class LogInDto {

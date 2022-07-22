@@ -6,8 +6,8 @@ import server from '@app/server'
 import AWS from 'aws-sdk'
 import sinon from 'sinon'
 import { adminData, initDataForUser, makeAdmin, userData } from '@app/test/init/authenticate'
-import { CodeType } from '@modules/verification_code/code.interface'
-import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@utils/phone-helper'
+import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@utils/phoneNumber'
+import { CodeType } from '@config/constants'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai

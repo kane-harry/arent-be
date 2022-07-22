@@ -2,10 +2,10 @@
 import server from '@app/server'
 import request from 'supertest'
 import { MODELS, validResponse } from '@app/test/init/db'
-import { CodeType } from '@modules/verification_code/code.interface'
 import chai from 'chai'
 import { role } from '@config/role'
 import SettingService from '@modules/setting/setting.service'
+import { CodeType } from '@config/constants'
 const { expect } = chai
 
 export const initDataForUser = async (shareData: any, data: object = {}) => {

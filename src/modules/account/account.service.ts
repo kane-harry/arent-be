@@ -12,7 +12,6 @@ import { PrimeCoinProvider } from '@providers/coin.provider'
 import crypto from 'crypto'
 import { IUser } from '@modules/user/user.interface'
 import VerificationCodeService from '@modules/verification_code/code.service'
-import { CodeType } from '@modules/verification_code/code.interface'
 import AuthService from '@modules/auth/auth.service'
 
 export default class AccountService {
