@@ -1,4 +1,4 @@
-export enum CODE_TYPE {
+export enum CodeType {
     EmailRegistration = 'EmailRegistration',
     PhoneRegistration = 'PhoneRegistration',
     EmailUpdate = 'EmailUpdate',

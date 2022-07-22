@@ -27,14 +27,14 @@ import { UserHistoryActions } from '@modules/user_history/user_history.interface
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import SecurityService from '@modules/security/security.service'
 import { ISetting } from '@modules/setting/setting.interface'
-import { CODE_TYPE } from '@config/constants'
+import { CodeType } from '@config/constants'
 
 export default class AuthService {
     static async verifyRegistration(userData: CreateUserDto, options?: any) {
         userData = await AuthService.formatCreateUserDto(userData)
         const setting: ISetting = await SettingService.getGlobalSetting()
         if (setting.registration_require_email_verified) {
-            const codeData = await VerificationCode.findOne({ owner: userData.email, type: CODE_TYPE.EmailRegistration }).exec()
+            const codeData = await VerificationCode.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
             if (!codeData || !codeData.verified) {
                 throw new BizException(
                     AuthErrors.registration_email_not_verified_error,
@@ -77,7 +77,7 @@ export default class AuthService {
         }
         let phoneVerified = false
         if (setting.registration_require_phone_verified) {
-            const codeData = await VerificationCode.findOne({ owner: userData.phone, type: CODE_TYPE.PhoneRegistration }).exec()
+            const codeData = await VerificationCode.findOne({ owner: userData.phone, type: CodeType.PhoneRegistration }).exec()
             if (!codeData || codeData.enabled) {
                 throw new BizException(
                     AuthErrors.registration_phone_not_verified_error,
@@ -209,7 +209,7 @@ export default class AuthService {
 
         if (!options.force_login) {
             if (user.mfa_settings && user.mfa_settings.login_enabled) {
-                const data = await SecurityService.validate2FA(user.key, CODE_TYPE.Login, logInData.token)
+                const data = await SecurityService.validate2FA(user.key, CodeType.Login, logInData.token)
                 if (data.status !== 'verified') {
                     return data
                 }
@@ -291,7 +291,7 @@ export default class AuthService {
             {
                 owner: params.owner,
                 user_key: user.key,
-                code_type: CODE_TYPE.ForgotPassword
+                code_type: CodeType.ForgotPassword
             },
             deliveryMethod
         )
@@ -317,9 +317,9 @@ export default class AuthService {
             throw new BizException(AuthErrors.invalid_pin_code_error, new ErrorContext('auth.service', 'resetPassword', {}))
         }
         const { success } = await VerificationCodeService.verifyCode({
-            owner: user.key,
+            owner: params.owner,
             code: params.code,
-            code_type: CODE_TYPE.ForgotPassword
+            code_type: CodeType.ForgotPassword
         })
         if (success) {
             EmailService.sendUserPasswordResetCompletedEmail({ address: user.email })
@@ -378,7 +378,7 @@ export default class AuthService {
             {
                 owner: user.key,
                 user_key: user.key,
-                code_type: CODE_TYPE.ForgotPin
+                code_type: CodeType.ForgotPin
             },
             deliveryMethod
         )
@@ -406,7 +406,7 @@ export default class AuthService {
         const { success } = await VerificationCodeService.verifyCode({
             owner: user.key,
             code: params.code,
-            code_type: CODE_TYPE.ForgotPin
+            code_type: CodeType.ForgotPin
         })
         if (success) {
             const newPin = await bcrypt.hash(params.pin, 10)

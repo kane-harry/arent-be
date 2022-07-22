@@ -7,7 +7,7 @@ import AWS from 'aws-sdk'
 import sinon from 'sinon'
 import { adminData, initDataForUser, makeAdmin, userData } from '@app/test/init/authenticate'
 import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@utils/phoneNumber'
-import { CODE_TYPE } from '@config/constants'
+import { CodeType } from '@config/constants'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -103,7 +103,7 @@ describe('Profile', () => {
 
     it(`GetVerificationCode EmailUpdate`, async () => {
         const owner = updateData.email
-        const codeType = CODE_TYPE.EmailUpdate
+        const codeType = CodeType.EmailUpdate
         const res = await request(server.app).post('/verification/code/get').send({
             codeType: codeType,
             owner: owner
@@ -125,7 +125,7 @@ describe('Profile', () => {
 
     it(`GetVerificationCode PhoneUpdate`, async () => {
         const owner = await stripPhoneNumber(updateData.phone)
-        const codeType = CODE_TYPE.PhoneUpdate
+        const codeType = CodeType.PhoneUpdate
         const res = await request(server.app).post('/verification/code/get').send({
             codeType: codeType,
             owner: owner

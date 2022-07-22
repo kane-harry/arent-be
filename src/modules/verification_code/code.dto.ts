@@ -1,12 +1,12 @@
 import { map } from 'lodash'
 import { IsString, IsEmail, IsEnum, IsOptional } from 'class-validator'
-import { CODE_TYPE } from '@config/constants'
+import { CodeType } from '@config/constants'
 
 const verificationCodeSupported = [
-    CODE_TYPE.EmailRegistration, //
-    CODE_TYPE.PhoneRegistration,
-    CODE_TYPE.EmailUpdate,
-    CODE_TYPE.PhoneUpdate
+    CodeType.EmailRegistration, //
+    CodeType.PhoneRegistration,
+    CodeType.EmailUpdate,
+    CodeType.PhoneUpdate
 ]
 
 export class CreateCodeDto {
@@ -14,7 +14,7 @@ export class CreateCodeDto {
     @IsEnum(verificationCodeSupported, {
         message: `codeType must be one of ${map(verificationCodeSupported, el => el).join(' ')}`
     })
-    public code_type: CODE_TYPE
+    public code_type: CodeType
 
     @IsString()
     public owner: string

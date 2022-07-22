@@ -4,7 +4,7 @@ import moment from 'moment'
 import { generate, GenerateOptions } from 'randomstring'
 import { config } from '@config'
 import { randomBytes } from 'crypto'
-import { CODE_TYPE } from '@config/constants'
+import { CodeType } from '@config/constants'
 
 const codeSchema = new Schema<IVerificationCode>(
     {
@@ -27,7 +27,7 @@ const codeSchema = new Schema<IVerificationCode>(
         user_key: String,
         type: {
             type: String,
-            enum: CODE_TYPE,
+            enum: CodeType,
             required: true
         },
         code: String,

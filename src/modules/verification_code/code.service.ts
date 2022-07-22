@@ -6,12 +6,12 @@ import { CreateCodeDto, VerifyCodeDto } from './code.dto'
 import { VerificationCode } from './code.model'
 import UserModel from '@modules/user/user.model'
 import { stripPhoneNumber } from '@utils/phoneNumber'
-import { CODE_TYPE } from '@config/constants'
+import { CodeType } from '@config/constants'
 import EmailService from '@modules/emaill/email.service'
 import sendSms from '@utils/sms'
 
 export default class VerificationCodeService {
-    static async storeCodeByActorAndType(owner: string, userKey: string | undefined, type: CODE_TYPE) {
+    static async storeCodeByActorAndType(owner: string, userKey: string | undefined, type: CodeType) {
         const code = VerificationCode.generate({ length: 6, charset: 'numeric' }, owner)
         const codeData = await VerificationCode.findOne({ owner, type }).exec()
         const currentTs = moment().unix()
@@ -59,13 +59,13 @@ export default class VerificationCodeService {
     static async generateCode(params: CreateCodeDto, deliveryMethod?: (owner: any, code: string) => void) {
         params.owner = String(params.owner).trim().toLowerCase()
         switch (params.code_type) {
-            case CODE_TYPE.PhoneRegistration:
-            case CODE_TYPE.PhoneUpdate:
+            case CodeType.PhoneRegistration:
+            case CodeType.PhoneUpdate:
                 params.owner = stripPhoneNumber(params.owner)
 
             // eslint-disable-next-line no-fallthrough
-            case CODE_TYPE.EmailRegistration:
-            case CODE_TYPE.EmailUpdate:
+            case CodeType.EmailRegistration:
+            case CodeType.EmailUpdate:
                 // check duplicate user for registration and update email/phone
                 const filter = {
                     $or: [{ email: params.owner }, { phone: params.owner }]
@@ -75,7 +75,7 @@ export default class VerificationCodeService {
                     break
                 }
                 throw new BizException(
-                    [CODE_TYPE.EmailRegistration, CODE_TYPE.EmailUpdate].includes(params.code_type)
+                    [CodeType.EmailRegistration, CodeType.EmailUpdate].includes(params.code_type)
                         ? AuthErrors.registration_email_exists_error
                         : AuthErrors.registration_phone_exists_error,
                     new ErrorContext('auth.service', 'generateCode', { owner: params.owner })
@@ -85,19 +85,19 @@ export default class VerificationCodeService {
         const { code } = await this.storeCodeByActorAndType(params.owner, params.user_key, params.code_type)
 
         switch (params.code_type) {
-            case CODE_TYPE.EmailRegistration:
+            case CodeType.EmailRegistration:
                 EmailService.sendRegistrationVerificationCode({ address: params.owner, code })
                 break
 
-            case CODE_TYPE.EmailUpdate:
+            case CodeType.EmailUpdate:
                 EmailService.sendChangeEmailVerificationCode({ address: params.owner, code })
                 break
 
-            case CODE_TYPE.PhoneRegistration:
+            case CodeType.PhoneRegistration:
                 sendSms('LightLink', `[LightLink] Please use this verification code: ${code} to complete registration in 15 minutes.`, params.owner)
                 break
 
-            case CODE_TYPE.PhoneUpdate:
+            case CodeType.PhoneUpdate:
                 sendSms(
                     'LightLink',
                     `[LightLink] Please use this verification code: ${code} to update your phone number in 15 minutes.`,
@@ -116,7 +116,7 @@ export default class VerificationCodeService {
     }
 
     static async verifyCode(params: VerifyCodeDto) {
-        if ([CODE_TYPE.PhoneRegistration, CODE_TYPE.PhoneUpdate].includes(params.code_type)) {
+        if ([CodeType.PhoneRegistration, CodeType.PhoneUpdate].includes(params.code_type)) {
             params.owner = stripPhoneNumber(params.owner)
         }
         params.owner = String(params.owner).trim().toLowerCase()
@@ -152,7 +152,7 @@ export default class VerificationCodeService {
             )
         }
 
-        await VerificationCode.findByIdAndUpdate(codeData._id, { verified: true }).exec()
+        await VerificationCode.findByIdAndUpdate(codeData._id, { verified: true, sent_attempts: 0 }).exec()
         return { success: true }
     }
 }

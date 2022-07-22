@@ -7,7 +7,7 @@ import { getVerificationCode, initDataForUser, userData } from '@app/test/init/a
 import { config } from '@config'
 import SettingService from '@modules/setting/setting.service'
 import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@utils/phoneNumber'
-import { CODE_TYPE } from '@config/constants'
+import { CodeType } from '@config/constants'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -77,7 +77,7 @@ describe('Authentication', () => {
     it('ResetPassword', async () => {
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
-                type: CODE_TYPE.ForgotPassword,
+                type: CodeType.ForgotPassword,
                 owner: shareData.user.key
             },
             {},
@@ -109,7 +109,7 @@ describe('Authentication', () => {
     it('ResetPin', async () => {
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
-                type: CODE_TYPE.ForgotPin,
+                type: CodeType.ForgotPin,
                 owner: shareData.user.key
             },
             {},
