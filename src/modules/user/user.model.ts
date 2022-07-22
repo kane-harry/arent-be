@@ -86,8 +86,8 @@ const userSchema = new Schema<IUser>(
     }
 )
 
-userSchema.virtual('fullName').get(function (this: { firstName: string; lastName: string }) {
-    return `${this.firstName} ${this.lastName}`
+userSchema.virtual('full_name').get(function (this: { first_name: string; last_name: string }) {
+    return `${this.first_name} ${this.last_name}`
 })
 
 const UserModel = model<IUser>(config.database.tables.users, userSchema)

@@ -2,23 +2,23 @@
 import server from '@app/server'
 import request from 'supertest'
 import { MODELS, validResponse } from '@app/test/init/db'
-import { CodeType } from '@modules/verification_code/code.interface'
 import chai from 'chai'
 import { role } from '@config/role'
 import SettingService from '@modules/setting/setting.service'
+import { CODE_TYPE } from '@config/constants'
 const { expect } = chai
 
 export const initDataForUser = async (shareData: any, data: object = {}) => {
     const formData = { ...userData, ...data }
     const setting: any = await SettingService.getGlobalSetting()
     if (setting.registrationRequireEmailVerified) {
-        const code = await getVerificationCode(formData.email, CodeType.EmailRegistration)
-        await verifyCode(formData.email, CodeType.EmailRegistration, code)
+        const code = await getVerificationCode(formData.email, CODE_TYPE.EmailRegistration)
+        await verifyCode(formData.email, CODE_TYPE.EmailRegistration, code)
     }
 
     if (setting.registrationRequirePhoneVerified) {
-        const code = await getVerificationCode(formData.phone, CodeType.PhoneRegistration)
-        await verifyCode(formData.phone, CodeType.PhoneRegistration, code)
+        const code = await getVerificationCode(formData.phone, CODE_TYPE.PhoneRegistration)
+        await verifyCode(formData.phone, CODE_TYPE.PhoneRegistration, code)
     }
 
     const registerRes = await request(server.app).post('/auth/register').send(formData)
@@ -120,7 +120,7 @@ export const makeUserSuspend = async (data: object = {}, status: string) => {
 
 export const getLoginCode = async (formData: any) => {
     const setting: any = await SettingService.getGlobalSetting()
-    const codeType = setting.registrationRequireEmailVerified ? CodeType.Login : ''
+    const codeType = setting.registrationRequireEmailVerified ? CODE_TYPE.Login : ''
     const owner = setting.registrationRequireEmailVerified ? formData.email : formData.phone
 
     const verificationCode = await MODELS.VerificationCode.findOne(

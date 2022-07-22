@@ -1,9 +1,10 @@
 import { Schema, model } from 'mongoose'
-import { IVerificationCode, CodeType } from './code.interface'
+import { IVerificationCode } from './code.interface'
 import moment from 'moment'
 import { generate, GenerateOptions } from 'randomstring'
 import { config } from '@config'
 import { randomBytes } from 'crypto'
+import { CODE_TYPE } from '@config/constants'
 
 const codeSchema = new Schema<IVerificationCode>(
     {
@@ -26,15 +27,24 @@ const codeSchema = new Schema<IVerificationCode>(
         user_key: String,
         type: {
             type: String,
-            enum: CodeType,
+            enum: CODE_TYPE,
             required: true
         },
         code: String,
-        expiry_timestamp: { type: Number, default: moment().add(15, 'minutes').unix() },
-        sent_timestamp: { type: Number, default: moment().unix() },
-        sent_attempts: { type: Number, default: 1 },
-        verified: { type: Boolean, default: false },
-        enabled: { type: Boolean, default: true }
+        expiry_timestamp: {
+            type: Number,
+            default: () => {
+                return moment().add(15, 'minutes').unix()
+            }
+        },
+        sent_timestamp: {
+            type: Number,
+            default: () => {
+                return moment().unix()
+            }
+        },
+        sent_attempts: { type: Number, default: 0 },
+        verified: { type: Boolean, default: false }
     },
     {
         timestamps: {

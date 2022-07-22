@@ -7,7 +7,6 @@ import { capitalize, escapeRegExp, toLower, trim } from 'lodash'
 import { IUser, UserStatus } from '@modules/user/user.interface'
 import UserModel from '@modules/user/user.model'
 import { VerificationCode } from '@modules/verification_code/code.model'
-import { CodeType } from '@modules/verification_code/code.interface'
 import { AuthErrors } from '@exceptions/custom.error'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import UserSecurityModel from '@modules/user_security/user_security.model'
@@ -16,7 +15,7 @@ import { AuthModel } from './auth.model'
 import { AuthTokenType, MFAType } from './auth.interface'
 import crypto from 'crypto'
 import SettingService from '@modules/setting/setting.service'
-import { getPhoneInfo, stripPhoneNumber } from '@utils/phone-helper'
+import { getPhoneInfo, stripPhoneNumber } from '@utils/phoneNumber'
 import UserService from '@modules/user/user.service'
 import { generateUnixTimestamp } from '@utils/utility'
 import { verifyToken } from '@utils/totp'
@@ -28,13 +27,14 @@ import { UserHistoryActions } from '@modules/user_history/user_history.interface
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import SecurityService from '@modules/security/security.service'
 import { ISetting } from '@modules/setting/setting.interface'
+import { CODE_TYPE } from '@config/constants'
 
 export default class AuthService {
     static async verifyRegistration(userData: CreateUserDto, options?: any) {
         userData = await AuthService.formatCreateUserDto(userData)
         const setting: ISetting = await SettingService.getGlobalSetting()
         if (setting.registration_require_email_verified) {
-            const codeData = await VerificationCode.findOne({ owner: userData.email, type: CodeType.EmailRegistration }).exec()
+            const codeData = await VerificationCode.findOne({ owner: userData.email, type: CODE_TYPE.EmailRegistration }).exec()
             if (!codeData || !codeData.verified) {
                 throw new BizException(
                     AuthErrors.registration_email_not_verified_error,
@@ -77,7 +77,7 @@ export default class AuthService {
         }
         let phoneVerified = false
         if (setting.registration_require_phone_verified) {
-            const codeData = await VerificationCode.findOne({ owner: userData.phone, type: CodeType.PhoneRegistration }).exec()
+            const codeData = await VerificationCode.findOne({ owner: userData.phone, type: CODE_TYPE.PhoneRegistration }).exec()
             if (!codeData || codeData.enabled) {
                 throw new BizException(
                     AuthErrors.registration_phone_not_verified_error,
@@ -127,16 +127,16 @@ export default class AuthService {
     private static async formatCreateUserDto(userData: CreateUserDto) {
         userData.first_name = capitalize(escapeRegExp(trim(userData.first_name)))
         userData.last_name = capitalize(escapeRegExp(trim(userData.last_name)))
-        userData.chat_name = await UserService.generateRandomName(userData.chat_name)
+        userData.chat_name = await UserService.generateRandomName(userData.first_name)
         userData.email = toLower(trim(userData.email))
         userData.password = trim(userData.password)
         userData.pin = trim(userData.pin)
         if (userData.phone) {
-            const phoneInfo: any = await getPhoneInfo(userData.phone)
-            if (!phoneInfo.isValid) {
+            const phoneInfo = getPhoneInfo(userData.phone)
+            if (!phoneInfo.is_valid) {
                 throw new BizException(AuthErrors.invalid_phone, new ErrorContext('auth.service', 'register', { phone: userData.phone }))
             }
-            userData.phone = phoneInfo.number
+            userData.phone = phoneInfo.phone
             userData.country = phoneInfo.country
         }
         return userData
@@ -209,7 +209,7 @@ export default class AuthService {
 
         if (!options.force_login) {
             if (user.mfa_settings && user.mfa_settings.login_enabled) {
-                const data = await SecurityService.validate2FA(user.key, CodeType.Login, logInData.token)
+                const data = await SecurityService.validate2FA(user.key, CODE_TYPE.Login, logInData.token)
                 if (data.status !== 'verified') {
                     return data
                 }
@@ -276,22 +276,25 @@ export default class AuthService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPassword', {}))
         }
 
-        const codeRes = await VerificationCodeService.generateCode({
-            owner: user.key,
-            user_key: user.key,
-            code_type: CodeType.ForgotPassword
-        })
-        if (codeRes.success && codeRes.code) {
+        const deliveryMethod = (owner: any, code: string) => {
             if (params.type === 'email') {
-                EmailService.sendUserForgotPasswordEmail({ address: params.owner, code: codeRes.code })
+                EmailService.sendUserForgotPasswordEmail({ address: owner, code: code })
             } else {
                 sendSms(
                     'LightLink',
-                    `[LightLink] You have recently requested a password reset, please enter this code ${codeRes.code} into your mobile APP.`,
-                    params.owner
+                    `[LightLink] You have recently requested a password reset, please enter this code ${code} into your mobile APP.`,
+                    owner
                 )
             }
         }
+        await VerificationCodeService.generateCode(
+            {
+                owner: params.owner,
+                user_key: user.key,
+                code_type: CODE_TYPE.ForgotPassword
+            },
+            deliveryMethod
+        )
 
         return { success: true }
     }
@@ -316,7 +319,7 @@ export default class AuthService {
         const { success } = await VerificationCodeService.verifyCode({
             owner: user.key,
             code: params.code,
-            code_type: CodeType.ForgotPassword
+            code_type: CODE_TYPE.ForgotPassword
         })
         if (success) {
             EmailService.sendUserPasswordResetCompletedEmail({ address: user.email })
@@ -360,22 +363,25 @@ export default class AuthService {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
         }
 
-        const codeRes = await VerificationCodeService.generateCode({
-            owner: user.key,
-            user_key: user.key,
-            code_type: CodeType.ForgotPin
-        })
-        if (codeRes.success && codeRes.code) {
+        const deliveryMethod = (owner: any, code: string) => {
             if (params.type === 'email') {
-                EmailService.sendUserForgotPinEmail({ address: params.owner, code: codeRes.code })
+                EmailService.sendUserForgotPinEmail({ address: owner, code: code })
             } else {
                 sendSms(
                     'LightLink',
-                    `[LightLink] You have recently requested a PIN reset, please enter this code ${codeRes.code} into your mobile APP.`,
-                    params.owner
+                    `[LightLink] You have recently requested a PIN reset, please enter this code ${code} into your mobile APP.`,
+                    owner
                 )
             }
         }
+        await VerificationCodeService.generateCode(
+            {
+                owner: user.key,
+                user_key: user.key,
+                code_type: CODE_TYPE.ForgotPin
+            },
+            deliveryMethod
+        )
         return { success: true }
     }
 
@@ -400,7 +406,7 @@ export default class AuthService {
         const { success } = await VerificationCodeService.verifyCode({
             owner: user.key,
             code: params.code,
-            code_type: CodeType.ForgotPin
+            code_type: CODE_TYPE.ForgotPin
         })
         if (success) {
             const newPin = await bcrypt.hash(params.pin, 10)

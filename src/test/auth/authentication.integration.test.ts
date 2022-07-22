@@ -3,11 +3,11 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
-import { CodeType } from '@modules/verification_code/code.interface'
 import { getVerificationCode, initDataForUser, userData } from '@app/test/init/authenticate'
 import { config } from '@config'
 import SettingService from '@modules/setting/setting.service'
-import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@utils/phone-helper'
+import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@utils/phoneNumber'
+import { CODE_TYPE } from '@config/constants'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -77,7 +77,7 @@ describe('Authentication', () => {
     it('ResetPassword', async () => {
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
-                type: CodeType.ForgotPassword,
+                type: CODE_TYPE.ForgotPassword,
                 owner: shareData.user.key
             },
             {},
@@ -109,7 +109,7 @@ describe('Authentication', () => {
     it('ResetPin', async () => {
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
-                type: CodeType.ForgotPin,
+                type: CODE_TYPE.ForgotPin,
                 owner: shareData.user.key
             },
             {},

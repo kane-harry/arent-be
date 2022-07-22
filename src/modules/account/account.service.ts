@@ -12,7 +12,6 @@ import { PrimeCoinProvider } from '@providers/coin.provider'
 import crypto from 'crypto'
 import { IUser } from '@modules/user/user.interface'
 import VerificationCodeService from '@modules/verification_code/code.service'
-import { CodeType } from '@modules/verification_code/code.interface'
 import AuthService from '@modules/auth/auth.service'
 
 export default class AccountService {
@@ -177,7 +176,7 @@ export default class AccountService {
             throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { key }))
         }
 
-        // await AuthService.verifyTwoFactor(operator, params, CodeType.Withdraw)
+        // await AuthService.verifyTwoFactor(operator, params, CODE_TYPE.Withdraw)
         // TODO
         throw new Error('Method not implemented.')
     }

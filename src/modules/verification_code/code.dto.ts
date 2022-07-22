@@ -1,13 +1,20 @@
-import { IsString, IsEmail, IsEnum, IsOptional } from 'class-validator'
 import { map } from 'lodash'
-import { CodeType } from './code.interface'
+import { IsString, IsEmail, IsEnum, IsOptional } from 'class-validator'
+import { CODE_TYPE } from '@config/constants'
+
+const verificationCodeSupported = [
+    CODE_TYPE.EmailRegistration, //
+    CODE_TYPE.PhoneRegistration,
+    CODE_TYPE.EmailUpdate,
+    CODE_TYPE.PhoneUpdate
+]
 
 export class CreateCodeDto {
     @IsString()
-    @IsEnum(CodeType, {
-        message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
+    @IsEnum(verificationCodeSupported, {
+        message: `codeType must be one of ${map(verificationCodeSupported, el => el).join(' ')}`
     })
-    public code_type: CodeType
+    public code_type: CODE_TYPE
 
     @IsString()
     public owner: string
@@ -21,25 +28,5 @@ export class VerifyCodeDto extends CreateCodeDto {
     public code: string
 
     @IsString()
-    @IsEnum(CodeType, {
-        message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
-    })
-    public code_type: CodeType
-
-    @IsString()
     public owner: string
-}
-
-export class SentCodeToEmailDto {
-    @IsString()
-    @IsEnum(CodeType, {
-        message: `codeType must be one of ${map(CodeType, el => el).join(' ')}`
-    })
-    public code_type: CodeType
-
-    @IsString()
-    public owner: string
-
-    @IsString()
-    public code: string
 }

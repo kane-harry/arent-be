@@ -22,8 +22,7 @@ import { unixTimestampToDate, generateRandomCode, generateUnixTimestamp } from '
 import { IUser, IUserQueryFilter, UserStatus } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
-import { CodeType } from '@modules/verification_code/code.interface'
-import { stripPhoneNumber } from '@utils/phone-helper'
+import { stripPhoneNumber } from '@utils/phoneNumber'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import sendSms from '@utils/sms'
 import AuthService from '@modules/auth/auth.service'
@@ -34,6 +33,7 @@ import AdminLogModel from '@modules/admin_logs/admin_log.model'
 import crypto from 'crypto'
 import { AdminLogsActions, AdminLogsSections } from '@modules/admin_logs/admin_log.interface'
 import { role } from '@config/role'
+import { CODE_TYPE } from '@config/constants'
 
 export default class UserService {
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
@@ -569,7 +569,7 @@ export default class UserService {
         if (existingUser && existingUser.key !== user.key) {
             throw new BizException(AuthErrors.registration_phone_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
         }
-        await VerificationCodeService.verifyCode({ code: params.code, code_type: CodeType.PhoneUpdate, owner: phone })
+        await VerificationCodeService.verifyCode({ code: params.code, code_type: CODE_TYPE.PhoneUpdate, owner: phone })
 
         // create log
         new UserHistoryModel({
@@ -605,7 +605,7 @@ export default class UserService {
         if (existingUser && existingUser.key !== user.key) {
             throw new BizException(AuthErrors.registration_email_exists_error, new ErrorContext('user.service', 'updateEmail', { email }))
         }
-        await VerificationCodeService.verifyCode({ code: params.code, code_type: CodeType.EmailUpdate, owner: email })
+        await VerificationCodeService.verifyCode({ code: params.code, code_type: CODE_TYPE.EmailUpdate, owner: email })
 
         // create log
         await new UserHistoryModel({
