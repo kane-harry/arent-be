@@ -7,8 +7,6 @@ import { VerificationCode } from './code.model'
 import UserModel from '@modules/user/user.model'
 import { stripPhoneNumber } from '@utils/phoneNumber'
 import { CodeType } from '@config/constants'
-import EmailService from '@modules/emaill/email.service'
-import sendSms from '@utils/sms'
 
 export default class VerificationCodeService {
     static async storeCodeByActorAndType(owner: string, userKey: string | undefined, type: CodeType) {
@@ -84,32 +82,8 @@ export default class VerificationCodeService {
 
         const { code } = await this.storeCodeByActorAndType(params.owner, params.user_key, params.code_type)
 
-        switch (params.code_type) {
-            case CodeType.EmailRegistration:
-                EmailService.sendRegistrationVerificationCode({ address: params.owner, code })
-                break
-
-            case CodeType.EmailUpdate:
-                EmailService.sendChangeEmailVerificationCode({ address: params.owner, code })
-                break
-
-            case CodeType.PhoneRegistration:
-                sendSms('LightLink', `[LightLink] Please use this verification code: ${code} to complete registration in 15 minutes.`, params.owner)
-                break
-
-            case CodeType.PhoneUpdate:
-                sendSms(
-                    'LightLink',
-                    `[LightLink] Please use this verification code: ${code} to update your phone number in 15 minutes.`,
-                    params.owner
-                )
-                break
-
-            default:
-                if (deliveryMethod) {
-                    deliveryMethod(params.owner, code)
-                }
-                break
+        if (deliveryMethod) {
+            deliveryMethod(params.owner, code)
         }
 
         return { success: true }
