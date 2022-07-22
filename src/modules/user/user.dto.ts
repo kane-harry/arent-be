@@ -2,7 +2,6 @@ import { IsOptional, IsString, Length, IsEmail, MinLength, Matches, IsEnum } fro
 import IFilterModel from '@interfaces/filter.model.interface'
 import { UserStatus } from '@modules/user/user.interface'
 import { map } from 'lodash'
-import { CodeType } from '@modules/verification_code/code.interface'
 import { MFAType } from '@modules/auth/auth.interface'
 
 export class CreateUserDto {

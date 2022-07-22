@@ -3,11 +3,11 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
-import { CodeType } from '@modules/verification_code/code.interface'
 import { getVerificationCode, initDataForUser, userData } from '@app/test/init/authenticate'
 import { config } from '@config'
 import SettingService from '@modules/setting/setting.service'
-import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@utils/phone-helper'
+import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@utils/phoneNumber'
+import { CodeType } from '@config/constants'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai

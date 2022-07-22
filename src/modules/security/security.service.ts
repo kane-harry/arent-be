@@ -1,10 +1,10 @@
+import { CodeType } from '@config/constants'
 import BizException from '@exceptions/biz.exception'
 import { AuthErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { MFAType } from '@modules/auth/auth.interface'
 import EmailService from '@modules/emaill/email.service'
 import UserModel from '@modules/user/user.model'
-import { CodeType } from '@modules/verification_code/code.interface'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import sendSms from '@utils/sms'
 import { verifyToken } from '@utils/totp'
@@ -28,17 +28,18 @@ export default class SecurityService {
         }
         const mfaType = user.mfa_settings.mfa_type
         if (!code || !code.length || code === 'undefined') {
-            const codeInfo = await VerificationCodeService.generateCode({ owner: user.key, user_key: user.key, code_type: codeType })
-            if (codeInfo.success) {
+            const deliveryMethod = (owner: any, code: string) => {
                 if (mfaType === MFAType.EMAIL) {
-                    const context = { address: user.email, code: codeInfo.code }
+                    const context = { address: user.email, code }
                     EmailService.sendUserVerificationCodeEmail(context)
                 } else if (mfaType === MFAType.SMS) {
-                    sendSms('Verification', `Verification code - ${codeInfo.code}`, user.phone)
+                    sendSms('Verification', `Verification code - ${code}`, user.phone)
                 } else if (mfaType === MFAType.TOTP) {
                     // do nothing
                 }
             }
+
+            await VerificationCodeService.generateCode({ owner: user.key, user_key: user.key, code_type: codeType }, deliveryMethod)
             return { require_mfa_code: true, type: mfaType, status: 'sent' }
         }
 

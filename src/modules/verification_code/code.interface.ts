@@ -1,17 +1,5 @@
+import { CodeType } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
-
-export enum CodeType {
-    EmailRegistration = 'EmailRegistration',
-    PhoneRegistration = 'PhoneRegistration',
-    EmailUpdate = 'EmailUpdate',
-    PhoneUpdate = 'PhoneUpdate',
-    ForgotPassword = 'ForgotPassword',
-    ForgotPin = 'ForgotPin',
-    Login = 'Login',
-    Withdraw = 'Withdraw',
-    Trade = 'Trade',
-    Security = 'Security'
-}
 
 export interface IVerificationCode extends IBaseModel {
     key: string
