@@ -113,19 +113,23 @@ const requireAdmin = () => {
     return [
         (req: any, res: any, next: any) => {
             if (req.user.role === roles.admin.id) {
-                next()
-            } else {
-                return res.sendStatus(401)
+                return next()
             }
+            return res.sendStatus(401)
         }
     ]
 }
 
-const requireOwner = (section: string) => {
+const requireOwner = (section: 'users' | 'logs' | 'accounts' | 'resources') => {
     return [
         (req: any, res: any, next: any) => {
             if (req.user.role === roles.admin.id) {
                 return next()
+            }
+            if (section === 'resources') {
+                if (req.user.key === req.params.key) {
+                    return next()
+                }
             }
             if (section === 'users') {
                 if (req.user.key === req.params.key || can(req.user.role, config.operations.USERS_DETAIL)) {

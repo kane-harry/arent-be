@@ -10,7 +10,7 @@ import { CodeType } from '@config/constants'
 
 export default class VerificationCodeService {
     static async storeCodeByActorAndType(owner: string, userKey: string | undefined, type: CodeType) {
-        const code = VerificationCode.generate({ length: 6, charset: 'numeric' }, owner)
+        const code = VerificationCode.generate({ length: 6, charset: 'numeric' })
         const codeData = await VerificationCode.findOne({ owner, type }).exec()
         const currentTs = moment().unix()
 

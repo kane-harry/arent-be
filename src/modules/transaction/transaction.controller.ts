@@ -10,9 +10,6 @@ import { downloadResource } from '@utils/utility'
 import { requireAuth } from '@utils/authCheck'
 import UserModel from '@modules/user/user.model'
 import { requireAdmin } from '@config/role'
-import BizException from '@exceptions/biz.exception'
-import { TransactionErrors } from '@exceptions/custom.error'
-import ErrorContext from '@exceptions/error.context'
 import { IUser } from '@modules/user/user.interface'
 
 class TransactionController implements IController {
@@ -24,10 +21,10 @@ class TransactionController implements IController {
     }
 
     private initRoutes() {
-        this.router.post(`${this.path}/send`, requireAuth, validationMiddleware(SendPrimeCoinsDto), asyncHandler(this.sendPrimeCoins))
-        this.router.get(`${this.path}`, asyncHandler(this.queryTxnsByAccount))
+        this.router.post(`${this.path}`, requireAuth, validationMiddleware(SendPrimeCoinsDto), asyncHandler(this.sendPrimeCoins))
+        this.router.get(`${this.path}`, asyncHandler(this.queryTxns)) // get recently txns
         this.router.get(`${this.path}/accounts/:key`, asyncHandler(this.queryTxnsByAccount))
-        this.router.get(`${this.path}/txn/:id`, asyncHandler(this.getTxnDetails))
+        this.router.get(`${this.path}/:key`, asyncHandler(this.getTxnDetails))
         this.router.get(`${this.path}/export`, requireAuth, requireAdmin(), asyncHandler(this.exportTxnsByAccount))
     }
 
@@ -48,17 +45,22 @@ class TransactionController implements IController {
         }
     }
 
+    private async queryTxns(req: CustomRequest, res: Response) {
+        const filter = req.query as ITransactionFilter
+        const data = await TransactionService.queryTxns(filter)
+        return res.json(data)
+    }
+
     private async queryTxnsByAccount(req: CustomRequest, res: Response) {
         const key: string = req.params.key
         const filter = req.query as ITransactionFilter
-        const operator = req.user
-        const data = await TransactionService.queryTxnsByAccount(key, filter, operator)
+        const data = await TransactionService.queryTxnsByAccount(key, filter)
         return res.json(data)
     }
 
     private async getTxnDetails(req: Request, res: Response) {
-        const id: string = req.params.id
-        const data = await TransactionService.getTxnDetails(id)
+        const key: string = req.params.key
+        const data = await TransactionService.getTxnDetails(key)
 
         return res.json(data)
     }
@@ -66,8 +68,7 @@ class TransactionController implements IController {
     private async exportTxnsByAccount(req: CustomRequest, res: Response) {
         const key: string = req.query.key
         const filter = req.query as ITransactionFilter
-        const operator = req.user
-        const data = await TransactionService.queryTxnsByAccount(key, filter, operator)
+        const data = await TransactionService.queryTxnsByAccount(key, filter)
 
         const fields = [
             { label: 'Key', value: 'key' },

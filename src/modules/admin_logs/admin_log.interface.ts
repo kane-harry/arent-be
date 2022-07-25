@@ -1,22 +1,6 @@
+import { AdminLogsActions, AdminLogsSections } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
 import IFilterModel from '@interfaces/filter.model.interface'
-
-export enum AdminLogsActions {
-    UpdateUser = 'UpdateUser',
-    LockUser = 'LockUser',
-    UnlockUser = 'UnlockUser',
-    RemoveUser = 'RemoveUser',
-    ResetTOPTUser = 'ResetTOPTUser',
-    UpdateRoleUser = 'UpdateRoleUser',
-    MintMasterAccount = 'MintMasterAccount',
-    ResetCredentialsUser = 'ResetCredentialsUser'
-}
-
-export enum AdminLogsSections {
-    User = 'User',
-    Transaction = 'Transaction',
-    Account = 'Account'
-}
 
 export interface IAdminLog extends IBaseModel {
     key: string

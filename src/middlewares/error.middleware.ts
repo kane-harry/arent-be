@@ -1,7 +1,6 @@
-import { NextFunction, Request, Response } from 'express'
+import { NextFunction, Response } from 'express'
 import ApplicationException from '@exceptions/application.exception'
 import ExceptionLogModel from '@modules/exception_logs/exception_log.model'
-import crypto from 'crypto'
 import { CustomRequest } from './request.middleware'
 
 function errorMiddleware(error: ApplicationException, req: CustomRequest, res: Response, next: NextFunction) {

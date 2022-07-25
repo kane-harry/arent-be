@@ -1,13 +1,12 @@
 import asyncHandler from '@utils/asyncHandler'
-import { Router, Request, Response } from 'express'
+import { Router, Response } from 'express'
 import IController from '@interfaces/controller.interface'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { CreateUserDto } from '@modules/user/user.dto'
-import { ForgotPasswordDto, ForgotPinDto, LogInDto, ResetPasswordDto, ResetPinDto } from './auth.dto'
+import { LogInDto } from './auth.dto'
 import { requireAuth } from '@utils/authCheck'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import AuthService from './auth.service'
-import { requireAdmin } from '@config/role'
 import { generateUnixTimestamp } from '@utils/utility'
 
 export default class AuthController implements IController {
@@ -20,29 +19,14 @@ export default class AuthController implements IController {
 
     private initializeRoutes() {
         this.router.post(`${this.path}/registration/verify`, validationMiddleware(CreateUserDto), asyncHandler(this.verifyRegistration))
-        this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), asyncHandler(this.register))
         this.router.post(`${this.path}/login`, validationMiddleware(LogInDto), asyncHandler(this.logIn))
         this.router.post(`${this.path}/token/refresh`, requireAuth, asyncHandler(this.refreshToken))
         this.router.post(`${this.path}/logout`, requireAuth, asyncHandler(this.logOut))
-        this.router.get(`${this.path}/current`, requireAuth, asyncHandler(this.getCurrentUser))
-
-        this.router.post(`${this.path}/password/forgot`, validationMiddleware(ForgotPasswordDto), asyncHandler(this.forgotPassword))
-        this.router.post(`${this.path}/password/reset`, validationMiddleware(ResetPasswordDto), asyncHandler(this.resetPassword))
-
-        this.router.post(`${this.path}/pin/forgot`, validationMiddleware(ForgotPinDto), asyncHandler(this.forgotPin))
-        this.router.post(`${this.path}/pin/reset`, validationMiddleware(ResetPinDto), asyncHandler(this.resetPin))
     }
 
     private verifyRegistration = async (req: CustomRequest, res: Response) => {
         const userData: CreateUserDto = req.body
-        const data = await AuthService.verifyRegistration(userData, { req })
-
-        return res.send(data)
-    }
-
-    private register = async (req: CustomRequest, res: Response) => {
-        const userData: CreateUserDto = req.body
-        const data = await AuthService.register(userData, { req })
+        const data = await AuthService.verifyRegistration(userData)
 
         return res.send(data)
     }
@@ -61,41 +45,7 @@ export default class AuthController implements IController {
     }
 
     private refreshToken = async (req: AuthenticationRequest, res: Response) => {
-        const data = await AuthService.refreshToken({ req })
+        const data = await AuthService.refreshToken(req.user.key)
         res.send(data)
-    }
-
-    private getCurrentUser = async (req: AuthenticationRequest, res: Response) => {
-        const userKey = req.user.key
-        const data = await AuthService.getCurrentUser(userKey)
-        return res.send(data)
-    }
-
-    private forgotPassword = async (req: Request, res: Response) => {
-        const params: ForgotPasswordDto = req.body
-        const data = await AuthService.forgotPassword(params)
-
-        return res.send(data)
-    }
-
-    private resetPassword = async (req: AuthenticationRequest, res: Response) => {
-        const params: ResetPasswordDto = req.body
-        const data = await AuthService.resetPassword(params, { req })
-
-        return res.send(data)
-    }
-
-    private forgotPin = async (req: AuthenticationRequest, res: Response) => {
-        const params: ForgotPinDto = req.body
-        const data = await AuthService.forgotPin(params)
-
-        return res.send(data)
-    }
-
-    private resetPin = async (req: AuthenticationRequest, res: Response) => {
-        const params: ResetPinDto = req.body
-        const data = await AuthService.resetPin(params, { req })
-
-        return res.send(data)
     }
 }

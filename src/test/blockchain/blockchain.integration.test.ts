@@ -6,7 +6,7 @@ import { dbTest, validResponse } from '../init/db'
 import server from '@app/server'
 import { config } from '@config'
 import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authenticate'
-import { FeeMode } from '@modules/transaction/transaction.interface'
+import { FeeMode } from '@config/constants'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
