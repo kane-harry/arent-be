@@ -2,20 +2,12 @@ import asyncHandler from '@utils/asyncHandler'
 import { Router, Request, Response } from 'express'
 import IController from '@interfaces/controller.interface'
 import validationMiddleware from '@middlewares/validation.middleware'
-import { CustomRequest } from '@middlewares/request.middleware'
-import { WithdrawDto } from './account.dto'
-import { IAccountFilter } from './account.interface'
+import { AuthenticationRequest } from '@middlewares/request.middleware'
+import { MintDto, WithdrawDto } from './account.dto'
+import { IAdminAccountsFilter, IUserAccountsFilter } from './account.interface'
 import AccountService from './account.service'
-import { PrimeCoinProvider } from '@providers/coin.provider'
-import { ITransactionFilter } from '@modules/transaction/transaction.interface'
-import TransactionService from '@modules/transaction/transaction.service'
-import { downloadResource } from '@utils/utility'
 import { requireAuth } from '@utils/authCheck'
-import UserModel from '@modules/user/user.model'
-import BizException from '@exceptions/biz.exception'
-import { AccountErrors } from '@exceptions/custom.error'
-import ErrorContext from '@exceptions/error.context'
-import { isAdmin, requireAdmin } from '@config/role'
+import { requireAdmin, requireOwner } from '@config/role'
 
 class AccountController implements IController {
     public path = '/accounts'
@@ -26,96 +18,86 @@ class AccountController implements IController {
     }
 
     private initRoutes() {
+        /** MASTER */
+        this.router.post(`${this.path}/master`, requireAuth, requireAdmin(), asyncHandler(this.initMasterAccounts))
+        this.router.post(`${this.path}/:key/mint`, requireAuth, requireAdmin(), validationMiddleware(MintDto), asyncHandler(this.mintMasterAccount))
+
         this.router.get(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(this.queryAccounts))
-        this.router.get(`${this.path}/:key`, requireAuth, asyncHandler(this.getAccountByKey))
-        this.router.get(`${this.path}/symbol/:symbol`, requireAuth, asyncHandler(this.getAccountBySymbol))
-        this.router.get(`${this.path}/:key/trx/export`, requireAuth, asyncHandler(this.getExportTransactionByAccountKey))
-        this.router.get(`${this.path}/user/:user_key`, requireAuth, asyncHandler(this.getUserAccounts))
-        this.router.post(`${this.path}/:key/withdraw`, requireAuth, validationMiddleware(WithdrawDto), asyncHandler(this.withdraw))
+        this.router.get(`${this.path}/users/me`, requireAuth, asyncHandler(this.getAccountsByOwner))
+        this.router.get(`${this.path}/:key`, asyncHandler(this.getAccountByKey))
+        this.router.post(
+            `${this.path}/:key/withdraw`,
+            requireAuth,
+            requireOwner('resources'),
+            validationMiddleware(WithdrawDto),
+            asyncHandler(this.withdraw)
+        )
     }
 
+    /** MASTER */
+    private async initMasterAccounts(req: Request, res: Response) {
+        const data = await AccountService.initMasterAccounts()
+        return res.json(data)
+    }
+
+    private async mintMasterAccount(req: AuthenticationRequest, res: Response) {
+        const key = req.params.key
+        const params: MintDto = req.body
+        const data = await AccountService.mintMasterAccount(key, params, { email: req.user?.email, userKey: req.user?.key })
+        return res.json(data)
+    }
+
+    private async queryAccounts(req: AuthenticationRequest, res: Response) {
+        const { addresses, key, keys, removed, symbol, symbols, user_key, type, page_index, page_size } = req.query as IAdminAccountsFilter
+        const data = await AccountService.queryAccounts(
+            {
+                addresses,
+                key,
+                keys,
+                removed,
+                symbol,
+                symbols,
+                user_key,
+                type
+            },
+            {
+                page_index,
+                page_size
+            }
+        )
+        return res.json(data)
+    }
+
+    /** NORMAL */
     private async getAccountByKey(req: Request, res: Response) {
         const key = req.params.key
-        const data = await AccountService.getAccountByKey(key)
-        if (data) {
-            AccountController.checkPermission(req, data.user_key)
-        }
+        const data = await AccountService.getAccountDetailByFields({ key })
         return res.json(data)
     }
 
-    private async getAccountBySymbol(req: Request, res: Response) {
-        const symbol = req.params.symbol
-        // @ts-ignore
-        const userKey = req.user ? req.user.key : ''
-        AccountController.checkPermission(req, userKey)
-        const data = await AccountService.getAccountBySymbol(symbol, userKey)
-        return res.json(data)
-    }
-
-    private async queryAccounts(req: CustomRequest, res: Response) {
-        const filter = req.query as IAccountFilter
-        const data = await AccountService.queryAccounts(filter)
-        return res.json(data)
-    }
-
-    private async getUserAccounts(req: CustomRequest, res: Response) {
-        const userKey = req.params.user_key
-        AccountController.checkPermission(req, userKey)
-        const data = await AccountService.getUserAccounts(userKey)
-        for (const account of data) {
-            const coinAccount = await PrimeCoinProvider.getWalletBySymbolAndAddress(account.symbol, account.address)
-            if (coinAccount) {
-                account.amount = coinAccount.amount
+    private async getAccountsByOwner(req: AuthenticationRequest, res: Response) {
+        const { addresses, key, keys, symbols, page_index, page_size } = req.query as IUserAccountsFilter
+        const data = await AccountService.queryAccounts(
+            {
+                key,
+                addresses,
+                keys,
+                symbols,
+                user_key: req.user.key
+            },
+            {
+                page_index,
+                page_size
             }
-        }
+        )
         return res.json(data)
     }
 
-    private async withdraw(req: CustomRequest, res: Response) {
+    private async withdraw(req: AuthenticationRequest, res: Response) {
         const key = req.params.key
         const params: WithdrawDto = req.body
-        // @ts-ignore
-        const operator = await UserModel.findOne({ email: req.user?.email }).exec()
-        if (!operator) {
-            throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.controller', 'withdraw', { key }))
-        }
-        AccountController.checkPermission(req, operator.key)
-        const data = await AccountService.withdraw(key, params, operator)
+        const data = await AccountService.withdraw(key, params, req.user)
         return res.json(data)
-    }
-
-    private async getExportTransactionByAccountKey(req: CustomRequest, res: Response) {
-        const key = req.params.key
-        const filter = req.query as ITransactionFilter
-        const operator = req.user
-        // @ts-ignore
-        AccountController.checkPermission(req, operator?.key)
-        const data = await TransactionService.queryTxnsByAccount(key, filter, operator)
-
-        const fields = [
-            { label: 'Key', value: 'key' },
-            { label: 'Owner', value: 'owner' },
-            { label: 'Symbol', value: 'symbol' },
-            { label: 'Sender', value: 'sender' },
-            { label: 'Recipient', value: 'recipient' },
-            { label: 'Amount', value: 'amount' },
-            { label: 'Type', value: 'type' },
-            { label: 'Hash', value: 'hash' },
-            { label: 'Block', value: 'block' },
-            { label: 'Signature', value: 'signature' },
-            { label: 'Notes', value: 'notes' },
-            { label: 'Created', value: 'created' },
-            { label: 'Modified', value: 'modified' }
-        ]
-
-        return downloadResource(res, 'transactions.csv', fields, data.txns.items)
-    }
-
-    static checkPermission(req: CustomRequest, userKey: any) {
-        // @ts-ignore
-        if (userKey !== req.user?.key && !isAdmin(req.user?.role)) {
-            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.controller', 'withdraw', { userKey }))
-        }
     }
 }
 

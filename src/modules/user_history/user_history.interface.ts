@@ -1,16 +1,5 @@
+import { UserHistoryActions } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
-
-export enum UserHistoryActions {
-    UpdateProfile = 'UpdateProfile',
-    Register = 'Register',
-    UpdateEmail = 'UpdateEmail',
-    UpdatePhone = 'UpdatePhone',
-    ResetPassword = 'ResetPassword',
-    ResetPin = 'ResetPin',
-    UpdateSecurity = 'UpdateSecurity',
-    SetupCredentials = 'SetupCredentials',
-    SetupTOTP = 'SetupTOTP'
-}
 
 export interface IUserHistory extends IBaseModel {
     key: string

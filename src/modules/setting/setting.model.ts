@@ -4,6 +4,12 @@ import { ISetting } from './setting.interface'
 
 const settingSchema = new Schema<ISetting>(
     {
+        nav_key: {
+            type: String,
+            required: true,
+            trim: true,
+            unique: true
+        },
         registration_require_email_verified: {
             type: Boolean,
             required: true

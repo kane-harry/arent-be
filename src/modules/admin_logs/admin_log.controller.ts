@@ -9,7 +9,7 @@ import { requireAdmin } from '@config/role'
 import { ILogFilter } from '@modules/admin_logs/admin_log.interface'
 
 class AdminLogController implements IController {
-    public path = '/admin_logs'
+    public path = '/admin-logs'
     public router = Router()
 
     constructor() {
