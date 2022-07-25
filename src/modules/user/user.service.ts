@@ -3,9 +3,10 @@ import { AuthErrors, CommonErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
-import { forEach, toLower, escapeRegExp, filter as lodashFilter, trim } from 'lodash'
+import { forEach, toLower, trim } from 'lodash'
 import {
     AdminUpdateProfileDto,
+    CreateUserDto,
     SetupCredentialsDto,
     SetupTotpDto,
     UpdateEmailDto,
@@ -13,13 +14,17 @@ import {
     UpdateProfileDto,
     UpdateSecurityDto,
     UpdateUserRoleDto,
-    UpdateUserStatusDto
+    UpdateUserStatusDto,
+    ForgotPasswordDto,
+    ForgotPinDto,
+    ResetPasswordDto,
+    ResetPinDto
 } from './user.dto'
 import UserModel from './user.model'
-import { AuthTokenType, MFAType } from '@modules/auth/auth.interface'
+import { MFAType } from '@modules/auth/auth.interface'
 import * as bcrypt from 'bcrypt'
 import { unixTimestampToDate, generateRandomCode, generateUnixTimestamp } from '@utils/utility'
-import { IUser, IUserQueryFilter, UserStatus } from '@modules/user/user.interface'
+import { IUser, IUserQueryFilter } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
 import { stripPhoneNumber } from '@utils/phoneNumber'
@@ -30,12 +35,70 @@ import EmailService from '@modules/emaill/email.service'
 import UserHistoryModel from '@modules/user_history/user_history.model'
 import { UserHistoryActions } from '@modules/user_history/user_history.interface'
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
-import crypto from 'crypto'
 import { AdminLogsActions, AdminLogsSections } from '@modules/admin_logs/admin_log.interface'
 import { role } from '@config/role'
-import { CodeType } from '@config/constants'
+import { CodeType, UserStatus } from '@config/constants'
+import SettingService from '@modules/setting/setting.service'
+import { ISetting } from '@modules/setting/setting.interface'
+import AccountService from '@modules/account/account.service'
 
-export default class UserService {
+export default class UserService extends AuthService {
+    public static async register(userData: CreateUserDto, options?: any) {
+        userData = await this.formatCreateUserDto(userData)
+        await this.verifyRegistration(userData)
+        const setting: ISetting = await SettingService.getGlobalSetting()
+        const mfaSettings = { type: MFAType.EMAIL, login_enabled: setting.login_require_mfa, withdraw_enabled: setting.withdraw_require_mfa }
+        let emailVerified = false
+        if (setting.registration_require_email_verified) {
+            emailVerified = true
+            mfaSettings.type = MFAType.EMAIL
+        }
+        let phoneVerified = false
+        if (setting.registration_require_phone_verified) {
+            phoneVerified = true
+            mfaSettings.type = MFAType.SMS
+        }
+        const currentTimestamp = generateUnixTimestamp()
+
+        const mode = new UserModel({
+            ...userData,
+            password: await bcrypt.hash(userData.password, 10),
+            pin: await bcrypt.hash(userData.pin, 10),
+            avatar: null,
+            role: 0,
+            email_verified: emailVerified,
+            phone_verified: phoneVerified,
+            mfa_settings: mfaSettings,
+            token_version: currentTimestamp
+        })
+
+        // create accounts before save data
+        await AccountService.initUserAccounts(mode.key)
+
+        await mode.save()
+
+        // create log
+        new UserHistoryModel({
+            user_key: mode.key,
+            action: UserHistoryActions.Register,
+            agent: options?.req.agent,
+            country: mode.country,
+            ip_address: options?.req.ip_address,
+            pre_data: null,
+            post_data: {
+                first_name: mode.first_name,
+                last_name: mode.last_name,
+                chat_name: mode.chat_name,
+                phone: mode.phone,
+                email: mode.email,
+                mfa_settings: mode.mfa_settings
+            }
+        }).save()
+
+        options.force_login = true
+        return this.logIn({ email: userData.email, password: userData.password, token: null }, options)
+    }
+
     public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
         const user = await UserModel.findOne({ email: options.req.user?.email, removed: false }).exec()
 
@@ -168,15 +231,181 @@ export default class UserService {
         return user
     }
 
-    public static getProfile = async (key: string, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key, removed: false }).exec()
+    static async forgotPassword(params: ForgotPasswordDto) {
+        let user
+        if (params.type === 'email') {
+            const email = toLower(trim(params.owner))
+            user = await UserModel.findOne({ email, removed: false }).select('key email phone').exec()
+        } else if (params.type === 'phone') {
+            const phone = await stripPhoneNumber(params.owner)
+            user = await UserModel.findOne({ phone, removed: false }).select('key email phone').exec()
+        }
+
         if (!user) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'getProfile', {}))
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPassword', {}))
         }
-        // check permissions
-        if (options.req.user.role !== role.admin.id && options.req.user.key !== user.key) {
-            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('user.service', 'getProfile', { key: key }))
+
+        const deliveryMethod = (owner: any, code: string) => {
+            if (params.type === 'email') {
+                EmailService.sendUserForgotPasswordEmail({ address: owner, code: code })
+            } else {
+                sendSms(
+                    'LightLink',
+                    `[LightLink] You have recently requested a password reset, please enter this code ${code} into your mobile APP.`,
+                    owner
+                )
+            }
         }
+        await VerificationCodeService.generateCode(
+            {
+                owner: params.owner,
+                user_key: user.key,
+                code_type: CodeType.ForgotPassword
+            },
+            deliveryMethod
+        )
+
+        return { success: true }
+    }
+
+    static async resetPassword(params: ResetPasswordDto, options: { req: AuthenticationRequest }) {
+        const currentTimestamp = generateUnixTimestamp()
+        let user
+        if (params.type === 'email') {
+            const email = toLower(trim(params.owner))
+            user = await UserModel.findOne({ email, removed: false }).select('key email phone pin password').exec()
+        } else if (params.type === 'phone') {
+            const phone = await stripPhoneNumber(params.owner)
+            user = await UserModel.findOne({ phone, removed: false }).select('key email phone pin password').exec()
+        }
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'resetPassword', {}))
+        }
+        const isPinCodeMatching = await bcrypt.compare(params.pin, user.get('pin', null, { getters: false }))
+        if (!isPinCodeMatching) {
+            throw new BizException(AuthErrors.invalid_pin_code_error, new ErrorContext('auth.service', 'resetPassword', {}))
+        }
+        const { success } = await VerificationCodeService.verifyCode({
+            owner: params.owner,
+            code: params.code,
+            code_type: CodeType.ForgotPassword
+        })
+        if (success) {
+            EmailService.sendUserPasswordResetCompletedEmail({ address: user.email })
+            const newPassHashed = await bcrypt.hash(params.password, 10)
+
+            // log
+            new UserHistoryModel({
+                user_key: user.key,
+                action: UserHistoryActions.ResetPassword,
+                agent: options?.req.agent,
+                country: user.country,
+                ip_address: options?.req.ip_address,
+                pre_data: {
+                    password: user.password
+                },
+                post_data: {
+                    password: newPassHashed
+                }
+            }).save()
+
+            user.set('password', newPassHashed, String)
+            user.save()
+
+            // logout
+            await AuthService.updateTokenVersion(user.key, currentTimestamp)
+        }
+        return { success }
+    }
+
+    static async forgotPin(params: ForgotPinDto) {
+        let user
+        if (params.type === 'email') {
+            const email = toLower(trim(params.owner))
+            user = await UserModel.findOne({ email, removed: false }).select('key email phone').exec()
+        } else if (params.type === 'phone') {
+            const phone = await stripPhoneNumber(params.owner)
+            user = await UserModel.findOne({ phone, removed: false }).select('key email phone').exec()
+        }
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
+        }
+
+        const deliveryMethod = (owner: any, code: string) => {
+            if (params.type === 'email') {
+                EmailService.sendUserForgotPinEmail({ address: owner, code: code })
+            } else {
+                sendSms(
+                    'LightLink',
+                    `[LightLink] You have recently requested a PIN reset, please enter this code ${code} into your mobile APP.`,
+                    owner
+                )
+            }
+        }
+        await VerificationCodeService.generateCode(
+            {
+                owner: user.key,
+                user_key: user.key,
+                code_type: CodeType.ForgotPin
+            },
+            deliveryMethod
+        )
+        return { success: true }
+    }
+
+    static async resetPin(params: ResetPinDto, options: { req: AuthenticationRequest }) {
+        const currentTimestamp = generateUnixTimestamp()
+        let user
+        if (params.type === 'email') {
+            const email = toLower(trim(params.owner))
+            user = await UserModel.findOne({ email, removed: false }).select('key email phone password').exec()
+        } else if (params.type === 'phone') {
+            const phone = await stripPhoneNumber(params.owner)
+            user = await UserModel.findOne({ phone, removed: false }).select('key email phone password').exec()
+        }
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'resetPin', {}))
+        }
+        const isPasswordMatching = await bcrypt.compare(params.password, user.get('password', null, { getters: false }))
+        if (!isPasswordMatching) {
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'resetPin', {}))
+        }
+
+        const { success } = await VerificationCodeService.verifyCode({
+            owner: user.key,
+            code: params.code,
+            code_type: CodeType.ForgotPin
+        })
+        if (success) {
+            const newPin = await bcrypt.hash(params.pin, 10)
+            EmailService.sendUserPinResetCompletedEmail({ address: user.email })
+            // log
+            new UserHistoryModel({
+                user_key: user.key,
+                action: UserHistoryActions.ResetPin,
+                agent: options?.req.agent,
+                country: user.country,
+                ip_address: options?.req.ip_address,
+                pre_data: {
+                    pin: user.pin
+                },
+                post_data: {
+                    pin: newPin
+                }
+            }).save()
+
+            user.set('pin', newPin, String)
+            user.save()
+
+            // logout
+            await AuthService.updateTokenVersion(user.key, currentTimestamp)
+        }
+        return { success }
+    }
+
+    public static getProfile = async (key: string) => {
+        const user = await UserModel.findOne({ key, removed: false }).exec()
         return user
     }
 
@@ -186,7 +415,7 @@ export default class UserService {
 
     public static getTotp = async (options: { req: AuthenticationRequest }) => {
         const user = await UserModel.findOne({ key: options?.req?.user?.key, removed: false }).exec()
-        const totpTemp = await getNewSecret()
+        const totpTemp = getNewSecret()
         user?.set('totp_temp_secret', totpTemp.secret)
         await user?.save()
         return { totp_temp: totpTemp }
@@ -299,29 +528,6 @@ export default class UserService {
         return items
     }
 
-    public static async generateRandomName(name: string) {
-        name = toLower(escapeRegExp(name))
-        let name_arr: any = name.split(' ')
-        name_arr = lodashFilter(name_arr, function (o) {
-            if (o.trim().length > 0) {
-                return o
-            }
-        })
-        let newName = name_arr.join('-')
-        let reg = new RegExp(name, 'i')
-        const filter = { chatName: reg }
-        let referenceInDatabase = await UserModel.findOne(filter).select('key chat_name').exec()
-
-        while (referenceInDatabase != null) {
-            const proposedReference = generateRandomCode(2, 4, true)
-            newName = newName + '-' + proposedReference
-            reg = new RegExp(newName, 'i')
-            filter.chatName = reg
-            referenceInDatabase = await UserModel.findOne(filter).select('key chat_name').exec()
-        }
-        return newName
-    }
-
     public static async resetCredentials(key: string, options: { req: AuthenticationRequest }) {
         const user = await UserModel.findOne({ key, removed: false }).exec()
 
@@ -351,10 +557,10 @@ export default class UserService {
         await user.save()
 
         if (user.email) {
-            await EmailService.sendUserResetCredentialsNotification({ address: user.email, code: changePasswordNextLoginCode })
+            EmailService.sendUserResetCredentialsNotification({ address: user.email, code: changePasswordNextLoginCode })
         } else if (user.phone) {
             const content = `[LightLink] Your acount has been reset, please use ${changePasswordNextLoginCode} as your password to log in within the next 15 minutes.`
-            await sendSms('LightLink', content, user.phone)
+            sendSms('LightLink', content, user.phone)
         }
 
         return { success: true }
@@ -627,7 +833,7 @@ export default class UserService {
         await user?.save()
 
         // logout & send email notifications
-        await EmailService.sendUserChangeEmailCompletedEmail({ address: email })
+        EmailService.sendUserChangeEmailCompletedEmail({ address: email })
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
         return user
     }

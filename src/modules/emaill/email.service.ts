@@ -1,7 +1,7 @@
 import { config } from '@config'
 import sendEmail from '@utils/email'
 import { EmailContextDto } from './email.dto'
-const EmailTemplates = require('swig-email-templates')
+import EmailTemplates from 'swig-email-templates'
 
 const defaultContext = {
     clientName: config.emailNotification.emailParamClientName,
@@ -15,13 +15,13 @@ export default class EmailService {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('user-registration-verification-code.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-registration-verification-code.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
                 if (err) {
-                    console.error('sendEmailUpdateComplete => ' + err.message)
+                    reject(err)
                 }
                 // Send email
                 subject = `${config.emailNotification.emailParamClientName} - Verification Code`
-                sendEmail(subject, text, html, _context.address)
+                sendEmail(subject, String(text), String(html), _context.address)
                 resolve('done')
             })
         }).catch(err => {
@@ -33,13 +33,13 @@ export default class EmailService {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('user-change-email-verification-code.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-change-email-verification-code.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
                 if (err) {
-                    console.error('sendChangeEmailVerificationCode => ' + err.message)
+                    reject(err)
                 }
                 // Send email
                 subject = `${config.emailNotification.emailParamClientName} - Verification Code`
-                sendEmail(subject, text, html, _context.address)
+                sendEmail(subject, String(text), String(html), _context.address)
                 resolve('done')
             })
         }).catch(err => {
@@ -51,13 +51,13 @@ export default class EmailService {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('user-verification.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-verification.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
                 if (err) {
-                    console.error('sendUserVerificationCodeEmail => ' + err.message)
+                    reject(err)
                 }
                 // Send email
                 subject = `${config.emailNotification.emailParamClientName} - Verification Code`
-                sendEmail(subject, text, html, _context.address)
+                sendEmail(subject, String(text), String(html), _context.address)
                 resolve('done')
             })
         }).catch(err => {
@@ -69,13 +69,13 @@ export default class EmailService {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('user-password-reset-request.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-password-reset-request.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
                 if (err) {
-                    console.error('sendUserForgotPasswordEmail => ' + err.message)
+                    reject(err)
                 }
                 // Send email
                 subject = `${config.emailNotification.emailParamClientName} - Password Reset Request`
-                sendEmail(subject, text, html, _context.address)
+                sendEmail(subject, String(text), String(html), _context.address)
                 resolve('done')
             })
         }).catch(err => {
@@ -87,13 +87,13 @@ export default class EmailService {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('user-password-reset-completed.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-password-reset-completed.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
                 if (err) {
-                    console.error('sendUserPasswordResetCompletedEmail => ' + err.message)
+                    reject(err)
                 }
                 // Send email
                 subject = `${config.emailNotification.emailParamClientName} - Password Reset Completed`
-                sendEmail(subject, text, html, _context.address)
+                sendEmail(subject, String(text), String(html), _context.address)
                 resolve('done')
             })
         }).catch(err => {
@@ -105,13 +105,13 @@ export default class EmailService {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('user-pin-reset-request.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-pin-reset-request.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
                 if (err) {
-                    console.error('sendUserForgotPinEmail => ' + err.message)
+                    reject(err)
                 }
                 // Send email
                 subject = `${config.emailNotification.emailParamClientName} - PIN Reset Request`
-                sendEmail(subject, text, html, _context.address)
+                sendEmail(subject, String(text), String(html), _context.address)
                 resolve('done')
             })
         }).catch(err => {
@@ -123,13 +123,13 @@ export default class EmailService {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('user-pin-reset-completed.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-pin-reset-completed.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
                 if (err) {
-                    console.error('sendUserPinResetCompletedEmail => ' + err.message)
+                    reject(err)
                 }
                 // Send email
                 subject = `${config.emailNotification.emailParamClientName} - PIN Reset Completed`
-                sendEmail(subject, text, html, _context.address)
+                sendEmail(subject, String(text), String(html), _context.address)
                 resolve('done')
             })
         }).catch(err => {
@@ -141,13 +141,13 @@ export default class EmailService {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('user-change-email-completed.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-change-email-completed.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
                 if (err) {
-                    console.error('sendUserChangeEmailCompletedEmail => ' + err.message)
+                    reject(err)
                 }
                 // Send email
                 subject = `${config.emailNotification.emailParamClientName} - Verification Code`
-                sendEmail(subject, text, html, _context.address)
+                sendEmail(subject, String(text), String(html), _context.address)
                 resolve('done')
             })
         }).catch(err => {
@@ -159,13 +159,13 @@ export default class EmailService {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('user-reset-credentials-request.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-reset-credentials-request.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
                 if (err) {
-                    console.error('sendUserResetCredentialsNotification => ' + err.message)
+                    reject(err)
                 }
                 // Send email
                 subject = `${config.emailNotification.emailParamClientName} - Reset Credentials`
-                sendEmail(subject, text, html, _context.address)
+                sendEmail(subject, String(text), String(html), _context.address)
                 resolve('done')
             })
         }).catch(err => {
@@ -177,13 +177,13 @@ export default class EmailService {
         const _context = Object.assign({}, context, defaultContext)
 
         await new Promise((resolve, reject) => {
-            templates.render('user-reset-credentials-completed.html', _context, function (err: any, html: string, text: string, subject: string) {
+            templates.render('user-reset-credentials-completed.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
                 if (err) {
-                    console.error('sendUserResetCredentialsCompletedNotification => ' + err.message)
+                    reject(err)
                 }
                 // Send email
                 subject = `${config.emailNotification.emailParamClientName} - Setup Credentials`
-                sendEmail(subject, text, html, _context.address)
+                sendEmail(subject, String(text), String(html), _context.address)
                 resolve('done')
             })
         }).catch(err => {

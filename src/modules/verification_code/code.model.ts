@@ -59,10 +59,7 @@ const codeSchema = new Schema<IVerificationCode>(
 const VerificationCodeModel = model<IVerificationCode>(config.database.tables.verification_codes, codeSchema)
 
 export class VerificationCode extends VerificationCodeModel {
-    public static generate(options: GenerateOptions | number = { length: 6, charset: 'numeric' }, owner: any) {
-        if (owner && owner.endsWith('test@pellartech.com')) {
-            return '123654'
-        }
+    public static generate(options: GenerateOptions | number = { length: 6, charset: 'numeric' }) {
         return generate(options)
     }
 }

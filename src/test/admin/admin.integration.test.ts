@@ -1,11 +1,10 @@
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
-import {dbTest, MODELS, validResponse} from '../init/db'
+import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
-import {adminData, initDataForUser, makeAdmin, userData} from '@app/test/init/authenticate'
-import {UserStatus} from "@modules/user/user.interface";
-import UserModel from "@modules/user/user.model";
+import { adminData, initDataForUser, makeAdmin, userData } from '@app/test/init/authenticate'
+import UserModel from '@modules/user/user.model'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -72,7 +71,7 @@ describe('Admin', () => {
     }).timeout(10000)
 
     it('Disable Login After Removed User', async () => {
-        const response = await request(server.app).post('/auth/login').send({email: userData.email, password: userData.password, token: '123456'})
+        const response = await request(server.app).post('/auth/login').send({ email: userData.email, password: userData.password, token: '123456' })
         validResponse(response.body)
         expect(response.status).equal(400)
     }).timeout(10000)

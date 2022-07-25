@@ -1,11 +1,6 @@
+import { UserStatus } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
 import IFilterModel from '@interfaces/filter.model.interface'
-
-export enum UserStatus {
-    Normal = 'Normal',
-    Locked = 'Locked',
-    Suspend = 'Suspend'
-}
 
 export interface IUser extends IBaseModel {
     key: string

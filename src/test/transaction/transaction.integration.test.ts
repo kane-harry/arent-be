@@ -9,7 +9,7 @@ import { config } from '@config'
 import { FeeMode } from '@modules/transaction/transaction.interface'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
 import AccountService from '@modules/account/account.service'
-import { UserStatus } from '@modules/user/user.interface'
+import { UserStatus } from '@config/constants'
 import { TransactionErrors } from '@exceptions/custom.error'
 import SettingService from '@modules/setting/setting.service'
 

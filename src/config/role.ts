@@ -113,15 +113,14 @@ const requireAdmin = () => {
     return [
         (req: any, res: any, next: any) => {
             if (req.user.role === roles.admin.id) {
-                next()
-            } else {
-                return res.sendStatus(401)
+                return next()
             }
+            return res.sendStatus(401)
         }
     ]
 }
 
-const requireOwner = (section: string) => {
+const requireOwner = (section: 'users' | 'logs' | 'accounts') => {
     return [
         (req: any, res: any, next: any) => {
             if (req.user.role === roles.admin.id) {
