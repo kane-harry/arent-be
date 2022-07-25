@@ -1,8 +1,5 @@
+import { AuthTokenType } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
-
-export enum AuthTokenType {
-    RefreshToken = 'RefreshToken'
-}
 
 export interface IAuthToken extends IBaseModel {
     key: string
@@ -11,11 +8,4 @@ export interface IAuthToken extends IBaseModel {
     // device: string
     // ipAddress: string
     token: string
-}
-
-export enum MFAType {
-    TOTP = 'TOTP',
-    PIN = 'PIN',
-    SMS = 'SMS',
-    EMAIL = 'EMAIL'
 }

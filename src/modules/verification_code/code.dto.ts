@@ -1,5 +1,5 @@
 import { map } from 'lodash'
-import { IsString, IsEmail, IsEnum, IsOptional } from 'class-validator'
+import { IsString, IsEnum, IsOptional } from 'class-validator'
 import { CodeType } from '@config/constants'
 
 const verificationCodeSupported = [

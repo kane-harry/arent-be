@@ -7,9 +7,7 @@ import { AccountErrors, TransactionErrors } from '@exceptions/custom.error'
 import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import { ISendCoinDto, ITransactionFilter } from './transaction.interface'
-import { AccountExtType } from '@modules/account/account.interface'
-import { config } from '@config'
-import { formatAmount, parsePrimeAmount } from '@utils/number'
+import { parsePrimeAmount } from '@utils/number'
 import { IUser } from '@modules/user/user.interface'
 import { isAdmin } from '@config/role'
 import SettingService from '@modules/setting/setting.service'
@@ -25,7 +23,7 @@ export default class TransactionService {
         const amount = parsePrimeAmount(params.amount)
 
         // this should be store as a string in wei (big number - string)
-        const senderAccount = await AccountService.getAccountBySymbolAndAddress(symbol, params.sender)
+        const senderAccount = await AccountService.getAccountDetailByFields({ symbol, address: params.sender })
         // recipient can be raw wallet
         const recipientWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(symbol, params.recipient)
         if (!senderAccount) {
@@ -103,8 +101,12 @@ export default class TransactionService {
         return await PrimeCoinProvider.sendPrimeCoins(sendData)
     }
 
-    static async queryTxnsByAccount(key: string, filter: ITransactionFilter, operator: Express.User | undefined) {
-        const account = await AccountService.getAccountByKey(key)
+    static async queryTxns(filter: ITransactionFilter) {
+        return await PrimeCoinProvider.queryPrimeTxns(filter)
+    }
+
+    static async queryTxnsByAccount(key: string, filter: ITransactionFilter) {
+        const account = await AccountService.getAccountDetailByFields({ key })
         if (account) {
             filter.symbol = account.symbol
             filter.address = account.address
@@ -113,10 +115,10 @@ export default class TransactionService {
         return { account, txns }
     }
 
-    static async getTxnDetails(id: string) {
-        let txn = await TransactionService.getLocalTxnByKey(id)
+    static async getTxnDetails(key: string) {
+        let txn = await TransactionService.getLocalTxnByKey(key)
         if (!txn) {
-            txn = await PrimeCoinProvider.getPrimeTxnByKey(id)
+            txn = await PrimeCoinProvider.getPrimeTxnByKey(key)
         }
         return txn
     }

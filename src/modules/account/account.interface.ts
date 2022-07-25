@@ -1,17 +1,7 @@
+import { AccountType } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
 import IFilterModel from '@interfaces/filter.model.interface'
 import { Types } from 'mongoose'
-
-export enum AccountType {
-    Master = 'MASTER',
-    Prime = 'PRIME',
-    Ext = 'EXT'
-}
-
-export enum AccountExtType {
-    Prime = 'PRIME',
-    Ext = 'EXT'
-}
 
 export interface IAccount extends IBaseModel {
     key: string
@@ -35,10 +25,22 @@ export interface IAccount extends IBaseModel {
     nonce?: number
 }
 
-export interface IAccountFilter extends IFilterModel {
-    symbol?: string
+export interface IUserAccountsFilter extends IFilterModel {
+    key?: string
+    keys?: string
+    symbols?: string
     addresses?: string
+}
+
+export interface IAdminAccountsFilter extends IFilterModel {
+    key?: string
+    symbol?: string
     user_key?: string
+    keys?: string
+    symbols?: string
+    addresses?: string
+    removed?: string
+    type?: AccountType
 }
 
 export interface IMintToCoinDto {

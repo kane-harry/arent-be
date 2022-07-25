@@ -1,8 +1,5 @@
+import { SecurityActions } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
-
-export enum SecurityActions {
-    Login = 'Login'
-}
 
 export interface IUserSecurity extends IBaseModel {
     key: string

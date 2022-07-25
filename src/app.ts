@@ -11,6 +11,7 @@ import requestMiddleware from '@middlewares/request.middleware'
 import passport from 'passport'
 import authz from '@middlewares/authz.middleware'
 import { config } from '@config'
+import SettingService from '@modules/setting/setting.service'
 
 class App {
     public app: express.Application
@@ -58,7 +59,9 @@ class App {
     }
 
     private connectToDb() {
-        mongoose.connect(config.database.mongoUrl)
+        mongoose.connect(config.database.mongoUrl).then(() => {
+            SettingService.initGlobalSetting()
+        })
         this.overwriteToJson()
     }
 
@@ -67,7 +70,6 @@ class App {
             virtuals: true,
             transform: (doc, converted) => {
                 if (converted._id) {
-                    converted.id = converted._id
                     delete converted._id
                 }
                 return converted

@@ -1,8 +1,9 @@
 import { config } from '@config'
 import { Schema, model } from 'mongoose'
-import { AuthTokenType, IAuthToken } from './auth.interface'
+import { IAuthToken } from './auth.interface'
 import * as jwt from 'jsonwebtoken'
 import { randomBytes } from 'crypto'
+import { AuthTokenType } from '@config/constants'
 
 const authSchema = new Schema<IAuthToken>(
     {

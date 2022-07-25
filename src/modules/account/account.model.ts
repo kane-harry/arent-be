@@ -38,9 +38,9 @@ const accountSchema = new Schema<IAccount>(
             transform: (doc, ret) => {
                 delete ret._id
                 ret.amount = Number(ret.amount)
-                ret.amountLocked = Number(ret.amountLocked)
+                ret.amount_locked = Number(ret.amount_locked)
                 ret.deposited = Number(ret.deposited)
-                ret.withdrawed = Number(ret.withdrawed)
+                ret.withdrew = Number(ret.withdrew)
                 ret.committed = Number(ret.committed)
                 return ret
             }

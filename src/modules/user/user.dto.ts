@@ -1,8 +1,6 @@
 import { IsOptional, IsString, Length, IsEmail, MinLength, Matches, IsEnum, IsNotEmpty } from 'class-validator'
-import IFilterModel from '@interfaces/filter.model.interface'
-import { UserStatus } from '@config/constants'
+import { MFAType, UserStatus } from '@config/constants'
 import { map } from 'lodash'
-import { MFAType } from '@modules/auth/auth.interface'
 
 export class CreateUserDto {
     @IsString()

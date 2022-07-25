@@ -2,11 +2,6 @@ import IBaseModel from '@interfaces/base.model.interface'
 import IFilterModel from '@interfaces/filter.model.interface'
 import { Types } from 'mongoose'
 
-export enum FeeMode {
-    Inclusive = 'inclusive',
-    Exclusive = 'exclusive'
-}
-
 export interface ITransaction extends IBaseModel {
     key?: string
     owner: string

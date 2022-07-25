@@ -1,24 +1,20 @@
-import { AccountExtType, AccountType, IAccount, IAccountFilter } from './account.interface'
+import { IAccount } from './account.interface'
 import AccountModel from './account.model'
 import { createEtherWallet } from '@utils/wallet'
 import { QueryRO } from '@interfaces/query.model'
 import { config } from '@config'
-import { toUpper, trim } from 'lodash'
-import { WithdrawDto } from './account.dto'
+import { filter, map, split } from 'lodash'
+import { MintDto, WithdrawDto } from './account.dto'
 import { AccountErrors, AuthErrors } from '@exceptions/custom.error'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { PrimeCoinProvider } from '@providers/coin.provider'
-import crypto from 'crypto'
 import { IUser } from '@modules/user/user.interface'
-import VerificationCodeService from '@modules/verification_code/code.service'
-import AuthService from '@modules/auth/auth.service'
+import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections } from '@config/constants'
+import AdminLogModel from '@modules/admin_logs/admin_log.model'
 
 export default class AccountService {
-    static async initUserAccounts(userKey: string) {
-        if (userKey === 'MASTER') {
-            throw new BizException(AuthErrors.invalid_user_id, new ErrorContext('account.service', 'initUserAccounts', {}))
-        }
+    private static async initAccounts(userKey: string, accountNameSuffix = 'Account') {
         const accounts: any[] = []
         // const primeTokens = config.system.primeTokens.split(',')
         const primeTokens = config.system.primeTokens
@@ -27,40 +23,41 @@ export default class AccountService {
         if (coinWallets.length !== config.system.primeTokens.split(',').length) {
             throw new BizException(
                 AccountErrors.account_init_prime_accounts_error,
-                new ErrorContext('account.service', 'initUserAccounts', { primeTokens })
+                new ErrorContext('account.service', 'initAccounts', { primeTokens })
             )
         }
+
         for (const coinWallet of coinWallets) {
-            const accountName = `${coinWallet.symbol} Account`
+            const accountName = `${coinWallet.symbol} ${accountNameSuffix}`
             const account = new AccountModel({
-                user_key: userKey,
+                userKey: userKey,
                 name: accountName,
                 symbol: coinWallet.symbol,
                 type: AccountType.Prime,
-                ext_type: AccountExtType.Prime,
+                extType: AccountExtType.Prime,
                 address: etherWallet.address,
                 platform: 'system',
                 salt: etherWallet.salt,
-                key_store: etherWallet.key_store,
-                ext_key: coinWallet.key
+                keyStore: etherWallet.key_store,
+                extKey: coinWallet.key
             })
             accounts.push(account)
         }
 
         const extTokens = config.system.extTokens
         for (const token of extTokens) {
-            const accountName = `${token.symbol} Account`
+            const accountName = `${token.symbol} ${accountNameSuffix}`
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
-                    user_key: userKey,
+                    userKey: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Ext,
-                    ext_type: AccountExtType.Ext,
+                    extType: AccountExtType.Ext,
                     address: etherWallet.address,
                     platform: token.platform,
                     salt: etherWallet.salt,
-                    key_store: etherWallet.key_store
+                    keyStore: etherWallet.key_store
                 })
                 accounts.push(account)
             } else {
@@ -68,21 +65,22 @@ export default class AccountService {
                 // const btcWallet = await createBtcWallet()
             }
         }
+
         const erc20Tokens = config.erc20Tokens
         for (const token of erc20Tokens) {
             if (token.symbol) {
-                const accountName = `${token.symbol} Account`
+                const accountName = `${token.symbol} ${accountNameSuffix}`
                 const account = new AccountModel({
-                    user_key: userKey,
+                    userKey: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Ext,
-                    ext_type: AccountExtType.Ext,
+                    extType: AccountExtType.Ext,
                     address: etherWallet.address,
                     platform: 'ethereum',
                     salt: etherWallet.salt,
-                    key_store: etherWallet.key_store,
-                    meta_data: {
+                    keyStore: etherWallet.key_store,
+                    metaData: {
                         contract: token.contract,
                         decimals: token.decimals
                     }
@@ -90,41 +88,76 @@ export default class AccountService {
                 accounts.push(account)
             }
         }
-
         const data = await AccountModel.bulkSave(accounts)
         return data
     }
 
-    static async getAccountByKey(key: string) {
-        const account = await AccountModel.findOne({ key }).select('-key_store -salt').exec()
-        if (account?.ext_type === AccountExtType.Prime) {
-            const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
-            account.amount = wallet.amount
-            account.nonce = wallet.nonce
+    protected static async bindingAccountBalance(account: any) {
+        if (account?.extType === AccountExtType.Prime) {
+            const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
+            return {
+                ...(account?.toJSON() || account),
+                amount: wallet.amount,
+                nonce: wallet.nonce
+            }
         }
 
         return account
     }
 
-    static async getAccountBySymbol(symbol: string, userKey: string) {
-        const account = await AccountModel.findOne({ symbol, user_key: userKey }).select('-key_store -salt').exec()
-        if (account?.ext_type === AccountExtType.Prime) {
-            const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
-            account.amount = wallet.amount
-            account.nonce = wallet.nonce
-        }
+    protected static mapConditions(fields: { [key: string]: any }) {
+        const conditions: { [key: string]: any } = { $and: [{ removed: false }] }
 
-        return account
+        conditions.$and = filter(
+            map(fields, (value, key) => {
+                switch (key) {
+                    case 'key':
+                    case 'user_key':
+                    case 'symbol':
+                    case 'address': {
+                        return {
+                            [key]: value
+                        }
+                    }
+                    case 'keys': {
+                        return {
+                            key: { $in: split(value, ',') }
+                        }
+                    }
+                    case 'symbols': {
+                        return {
+                            symbol: { $in: split(value, ',') }
+                        }
+                    }
+                    case 'addresses': {
+                        return {
+                            address: { $in: split(value, ',') }
+                        }
+                    }
+                    default: {
+                        return undefined // not allow filter by other fields except above
+                    }
+                }
+            }),
+            el => !!el
+        ).concat(conditions.$and)
+        return conditions
     }
 
-    static async getAccountBySymbolAndAddress(symbol: string, address: string) {
-        const account = await AccountModel.findOne({ symbol: symbol, address: address }).select('-key_store -salt').exec()
-        if (account?.ext_type === AccountExtType.Prime) {
-            const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
-            account.amount = wallet.amount
-            account.nonce = wallet.nonce
+    static async getAccountDetailByFields(fields: { [key: string]: any }) {
+        const conditions = this.mapConditions(fields)
+
+        const account = await AccountModel.findOne(conditions).select('-keyStore -salt').exec()
+
+        return await this.bindingAccountBalance(account)
+    }
+
+    static async initUserAccounts(userKey: string) {
+        if (userKey === 'MASTER') {
+            throw new BizException(AuthErrors.invalid_user_id, new ErrorContext('account.service', 'initUserAccounts', {}))
         }
-        return account
+
+        return await this.initAccounts(userKey)
     }
 
     static async getAccountKeyStore(key: string) {
@@ -140,31 +173,24 @@ export default class AccountService {
         return account
     }
 
-    static async queryAccounts(params: IAccountFilter) {
-        const offset = (params.page_index - 1) * params.page_size
-        const filter: any = {
-            removed: false
-        }
-        if (params.addresses) {
-            const addressList = params.addresses.split(',')
-            filter.address = { $in: addressList }
-        }
-        if (params.symbol) {
-            filter.symbol = toUpper(trim(params.symbol))
-        }
-        const totalCount = await AccountModel.countDocuments(filter).exec()
-        const items = await AccountModel.find<IAccount>(filter)
-            .select('-key_store -salt')
+    static async queryAccounts(fields: { [key: string]: any }, paginate: { page_index: number; page_size: number }) {
+        const offset = Math.max(paginate.page_index - 1, 0) * paginate.page_size
+
+        const conditions = this.mapConditions(fields)
+        const totalCount = await AccountModel.countDocuments(conditions).exec()
+        const items = await AccountModel.find<IAccount>(conditions)
+            .select('-keyStore -salt')
             .sort({ symbol: -1 })
             .skip(offset)
-            .limit(params.page_size)
+            .limit(paginate.page_size)
             .exec()
-        return new QueryRO<IAccount>(totalCount, params.page_index, params.page_size, items)
-    }
 
-    static async getUserAccounts(userKey: any) {
-        const items = await AccountModel.find({ user_key: userKey }).select('-key_store -salt').exec()
-        return items
+        const data = await Promise.all(
+            map(items, async el => {
+                return this.bindingAccountBalance(el)
+            })
+        )
+        return new QueryRO<IAccount>(totalCount, paginate.page_index, paginate.page_size, data)
     }
 
     static async withdraw(key: string, params: WithdrawDto, operator: IUser) {
@@ -179,5 +205,50 @@ export default class AccountService {
         // await AuthService.verifyTwoFactor(operator, params, CodeType.Withdraw)
         // TODO
         throw new Error('Method not implemented.')
+    }
+
+    /** MASTER */
+    static async initMasterAccounts() {
+        const masterAccounts = await this.getAccountDetailByFields({
+            type: AccountType.Master,
+            removed: false
+        })
+        if (masterAccounts) {
+            throw new BizException(
+                AccountErrors.master_accounts_initialized_error,
+                new ErrorContext('account.master.service', 'initMasterAccounts', {})
+            )
+        }
+
+        return await this.initAccounts('MASTER', 'MASTER')
+    }
+
+    static async mintMasterAccount(key: string, params: MintDto, options: { userKey: string; email: string }) {
+        const account = await AccountModel.findOne({ key }).select('-keyStore -salt').exec()
+        if (!account) {
+            throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
+        }
+        if (account.type !== AccountType.Master || account.ext_type !== AccountExtType.Prime) {
+            throw new BizException(AccountErrors.account_mint_type_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
+        }
+        const data = await PrimeCoinProvider.mintPrimeCoins({
+            key: account.ext_key,
+            amount: params.amount,
+            notes: params.notes,
+            type: params.type || 'MINT'
+        })
+
+        // todo : mint log
+        await new AdminLogModel({
+            operator: {
+                key: options.userKey,
+                email: options.email
+            },
+            userKey: account.user_key,
+            action: AdminLogsActions.MintMasterAccount,
+            section: AdminLogsSections.Account
+        }).save()
+
+        return data
     }
 }

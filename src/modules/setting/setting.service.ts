@@ -1,40 +1,69 @@
 import SettingModel from '@modules/setting/setting.model'
 import { SettingDto } from '@modules/setting/setting.dto'
-import { defaultSetting } from '@modules/setting/setting.interface'
+import { DEFAULT_SETTING, SETTINGS_TYPE } from '@config/constants'
+import { ISetting } from './setting.interface'
 
 export default class SettingService {
+    public static initGlobalSetting = async () => {
+        const setting = await SettingModel.findOne({
+            nav_key: SETTINGS_TYPE.global_federation_settings
+        }).exec()
+        if (setting) return
+        await SettingModel.updateOne(
+            {
+                nav_key: SETTINGS_TYPE.global_federation_settings
+            },
+            {
+                $set: {
+                    registration_require_email_verified: DEFAULT_SETTING.registration_require_email_verified,
+                    registration_require_phone_verified: DEFAULT_SETTING.registration_require_phone_verified,
+                    login_require_mfa: DEFAULT_SETTING.login_require_mfa,
+                    prime_transfer_fee: DEFAULT_SETTING.prime_transfer_fee,
+                    withdraw_require_mfa: DEFAULT_SETTING.withdraw_require_mfa
+                }
+            },
+            {
+                upsert: true
+            }
+        ).exec()
+    }
+
     public static getGlobalSetting = async () => {
-        const setting = await SettingModel.findOne({}).exec()
-        return setting ?? (await SettingService.newGlobalSetting(defaultSetting))
+        const setting = await SettingModel.findOne({
+            nav_key: SETTINGS_TYPE.global_federation_settings
+        }).exec()
+        return (setting || {
+            ...DEFAULT_SETTING,
+            nav_key: SETTINGS_TYPE.global_federation_settings
+        }) as ISetting
     }
 
-    public static newGlobalSetting = async (params: SettingDto) => {
-        const existSetting = await SettingModel.findOne({}).exec()
-        if (existSetting) {
-            return existSetting
-        }
-        const setting = new SettingModel(params)
-        const savedData = await setting.save()
-        return savedData
-    }
-
-    public static updateGlobalSetting = async (data: object) => {
-        let setting = await SettingModel.findOne({}).exec()
-        if (!setting) {
-            await SettingService.newGlobalSetting(defaultSetting)
-        }
-        setting = await SettingModel.findOne({}).exec()
-        if (!setting) {
-            return
-        }
-        const keys = Object.keys(data)
-        for (const index in keys) {
-            const field = keys[index]
-            // @ts-ignore
-            setting.set(field, data[field])
-        }
-        await setting.save()
-
+    public static getSettingByNavKey = async (navKey: string) => {
+        const setting = await SettingModel.findOne<ISetting>({
+            nav_key: navKey
+        }).exec()
         return setting
+    }
+
+    public static updateSettingByNavKey = async (navKey: string, data: SettingDto) => {
+        await SettingModel.updateOne(
+            {
+                nav_key: navKey
+            },
+            {
+                $set: {
+                    registration_require_email_verified: data.registration_require_email_verified,
+                    registration_require_phone_verified: data.registration_require_phone_verified,
+                    login_require_mfa: data.login_require_mfa,
+                    prime_transfer_fee: data.prime_transfer_fee,
+                    withdraw_require_mfa: data.withdraw_require_mfa
+                }
+            },
+            {
+                upsert: true
+            }
+        ).exec()
+
+        return { success: true }
     }
 }

@@ -12,10 +12,12 @@ import { AuthModel } from './auth.model'
 import SettingService from '@modules/setting/setting.service'
 import { getPhoneInfo } from '@utils/phoneNumber'
 import { generateUnixTimestamp } from '@utils/utility'
-import { SecurityActions } from '@modules/user_security/user_security.interface'
-import SecurityService from '@modules/security/security.service'
 import { ISetting } from '@modules/setting/setting.interface'
-import { CodeType, UserStatus } from '@config/constants'
+import { CodeType, UserStatus, SecurityActions, MFAType } from '@config/constants'
+import EmailService from '@modules/emaill/email.service'
+import sendSms from '@utils/sms'
+import VerificationCodeService from '@modules/verification_code/code.service'
+import { verifyToken } from '@utils/totp'
 
 export default class AuthService {
     protected static async formatCreateUserDto(userData: CreateUserDto) {
@@ -34,6 +36,51 @@ export default class AuthService {
             userData.country = phoneInfo.country
         }
         return userData
+    }
+
+    public static async validate2FA(userKey: string, codeType: CodeType, code: string) {
+        const user = await UserModel.findOne({ key: userKey, removed: false }).select('key email phone mfa_settings').exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('security.service', 'validate2FA', { userKey }))
+        }
+        let mfaEnabled = false
+        if (user.mfa_settings) {
+            if (user.mfa_settings.login_enabled && codeType === CodeType.Login) {
+                mfaEnabled = true
+            } else if (user.mfa_settings.withdraw_enabled && codeType === CodeType.Withdraw) {
+                mfaEnabled = true
+            }
+        }
+        if (!mfaEnabled) {
+            return { status: 'verified' }
+        }
+        const mfaType = user.mfa_settings.mfa_type
+        if (!code || !code.length || code === 'undefined') {
+            const deliveryMethod = (owner: any, code: string) => {
+                if (mfaType === MFAType.EMAIL) {
+                    const context = { address: user.email, code }
+                    EmailService.sendUserVerificationCodeEmail(context)
+                } else if (mfaType === MFAType.SMS) {
+                    sendSms('Verification', `Verification code - ${code}`, user.phone)
+                } else if (mfaType === MFAType.TOTP) {
+                    // do nothing
+                }
+            }
+
+            await VerificationCodeService.generateCode({ owner: user.key, user_key: user.key, code_type: codeType }, deliveryMethod)
+            return { require_mfa_code: true, type: mfaType, status: 'sent' }
+        }
+
+        if (mfaType === MFAType.TOTP) {
+            const twoFactorSecret = String(user?.get('two_factor_secret', null, { getters: false }))
+            if (!verifyToken(twoFactorSecret, code)) {
+                throw new BizException(AuthErrors.token_error, new ErrorContext('security.service', 'validate2FA', {}))
+            }
+        } else {
+            await VerificationCodeService.verifyCode({ owner: user.key, code, code_type: codeType })
+        }
+
+        return { require_mfa_code: true, type: mfaType, status: 'verified' }
     }
 
     static async verifyRegistration(userData: CreateUserDto) {
@@ -155,7 +202,7 @@ export default class AuthService {
 
         if (!options.force_login) {
             if (user.mfa_settings && user.mfa_settings.login_enabled) {
-                const data = await SecurityService.validate2FA(user.key, CodeType.Login, logInData.token)
+                const data = await this.validate2FA(user.key, CodeType.Login, logInData.token)
                 if (data.status !== 'verified') {
                     return data
                 }
