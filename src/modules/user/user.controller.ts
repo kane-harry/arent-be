@@ -7,6 +7,7 @@ import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import {
     AdminUpdateProfileDto,
+    CreateUserDto,
     SetupCredentialsDto,
     SetupTotpDto,
     UpdateEmailDto,
@@ -14,9 +15,13 @@ import {
     UpdateProfileDto,
     UpdateSecurityDto,
     UpdateUserRoleDto,
-    UpdateUserStatusDto
+    UpdateUserStatusDto,
+    ForgotPasswordDto,
+    ForgotPinDto,
+    ResetPasswordDto,
+    ResetPinDto
 } from './user.dto'
-import { requireAdmin } from '@config/role'
+import { requireAdmin, requireOwner } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUserQueryFilter } from './user.interface'
 import { downloadResource } from '@utils/utility'
@@ -30,6 +35,14 @@ class UserController implements IController {
     }
 
     private initRoutes() {
+        this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), asyncHandler(this.register))
+
+        this.router.post(`${this.path}/password/forgot`, validationMiddleware(ForgotPasswordDto), asyncHandler(this.forgotPassword))
+        this.router.post(`${this.path}/password/reset`, validationMiddleware(ResetPasswordDto), asyncHandler(this.resetPassword))
+
+        this.router.post(`${this.path}/pin/forgot`, validationMiddleware(ForgotPinDto), asyncHandler(this.forgotPin))
+        this.router.post(`${this.path}/pin/reset`, validationMiddleware(ResetPinDto), asyncHandler(this.resetPin))
+
         this.router.post(
             `${this.path}/avatar`,
             requireAuth,
@@ -48,7 +61,7 @@ class UserController implements IController {
         )
 
         this.router.put(`${this.path}/profile`, requireAuth, validationMiddleware(UpdateProfileDto), asyncHandler(this.updateProfile))
-        this.router.get(`${this.path}/:key/profile`, requireAuth, asyncHandler(this.getProfile))
+        this.router.get(`${this.path}/:key/profile`, requireAuth, requireOwner('users'), asyncHandler(this.getProfile))
         this.router.get(`${this.path}/:name/brief`, asyncHandler(this.getBriefByName)) // public route
         this.router.get(`${this.path}/:key/totp`, requireAuth, asyncHandler(this.getTotp))
         this.router.post(`${this.path}/:key/totp`, requireAuth, validationMiddleware(SetupTotpDto), asyncHandler(this.setTotp))
@@ -70,9 +83,44 @@ class UserController implements IController {
         this.router.post(`${this.path}/:key/remove`, requireAuth, requireAdmin(), asyncHandler(this.removeUser))
         this.router.post(`${this.path}/:key/totp/reset`, requireAuth, requireAdmin(), asyncHandler(this.resetTotp))
         this.router.post(`${this.path}/:key/role/update`, requireAuth, requireAdmin(), asyncHandler(this.updateUserRole))
-        this.router.post(`${this.path}/:key/phone/update`, requireAuth, asyncHandler(this.updatePhone))
-        this.router.post(`${this.path}/:key/email/update`, requireAuth, asyncHandler(this.updateEmail))
+        this.router.post(`${this.path}/:key/phone/update`, requireAuth, requireOwner('users'), asyncHandler(this.updatePhone))
+        this.router.post(`${this.path}/:key/email/update`, requireAuth, requireOwner('users'), asyncHandler(this.updateEmail))
         this.router.get(`${this.path}/list/export`, requireAuth, requireAdmin(), asyncHandler(this.exportAllUser))
+    }
+
+    private register = async (req: CustomRequest, res: Response) => {
+        const userData: CreateUserDto = req.body
+        const data = await UserService.register(userData, { req })
+
+        return res.send(data)
+    }
+
+    private forgotPassword = async (req: Request, res: Response) => {
+        const params: ForgotPasswordDto = req.body
+        const data = await UserService.forgotPassword(params)
+
+        return res.send(data)
+    }
+
+    private resetPassword = async (req: AuthenticationRequest, res: Response) => {
+        const params: ResetPasswordDto = req.body
+        const data = await UserService.resetPassword(params, { req })
+
+        return res.send(data)
+    }
+
+    private forgotPin = async (req: AuthenticationRequest, res: Response) => {
+        const params: ForgotPinDto = req.body
+        const data = await UserService.forgotPin(params)
+
+        return res.send(data)
+    }
+
+    private resetPin = async (req: AuthenticationRequest, res: Response) => {
+        const params: ResetPinDto = req.body
+        const data = await UserService.resetPin(params, { req })
+
+        return res.send(data)
     }
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {
@@ -96,7 +144,7 @@ class UserController implements IController {
 
     private getProfile = async (req: AuthenticationRequest, res: Response) => {
         const key = req.params.key
-        const data = await UserService.getProfile(key, { req })
+        const data = await UserService.getProfile(key)
         return res.send(data)
     }
 

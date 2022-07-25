@@ -10,10 +10,11 @@ import { ISendCoinDto, ITransactionFilter } from './transaction.interface'
 import { AccountExtType } from '@modules/account/account.interface'
 import { config } from '@config'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
-import { IUser, UserStatus } from '@modules/user/user.interface'
+import { IUser } from '@modules/user/user.interface'
 import { isAdmin } from '@config/role'
 import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
+import { UserStatus } from '@config/constants'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: IUser) {

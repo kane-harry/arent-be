@@ -10,3 +10,9 @@ export enum CodeType {
     Trade = 'Trade',
     Security = 'Security'
 }
+
+export enum UserStatus {
+    Normal = 'Normal',
+    Locked = 'Locked',
+    Suspend = 'Suspend'
+}
