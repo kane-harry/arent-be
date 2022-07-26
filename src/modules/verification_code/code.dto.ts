@@ -26,7 +26,4 @@ export class CreateCodeDto {
 export class VerifyCodeDto extends CreateCodeDto {
     @IsString()
     public code: string
-
-    @IsString()
-    public owner: string
 }

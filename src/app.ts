@@ -12,6 +12,8 @@ import passport from 'passport'
 import authz from '@middlewares/authz.middleware'
 import { config } from '@config'
 import SettingService from '@modules/setting/setting.service'
+import swaggerUI from 'swagger-ui-express'
+import openapiDocument from './docs/openapi.json'
 
 class App {
     public app: express.Application
@@ -22,6 +24,7 @@ class App {
         this.initMiddlewares()
         this.initControllers(controllers)
         this.initErrorHandling()
+        this.initSwaggerDocs()
     }
 
     public listen() {
@@ -54,7 +57,7 @@ class App {
 
     private initControllers(controllers: IController[]) {
         controllers.forEach(controller => {
-            this.app.use('/', controller.router)
+            this.app.use('/api/v1', controller.router)
         })
     }
 
@@ -75,6 +78,10 @@ class App {
                 return converted
             }
         })
+    }
+
+    private initSwaggerDocs() {
+        this.app.use('/api-docs/v1', swaggerUI.serve, swaggerUI.setup(openapiDocument))
     }
 }
 

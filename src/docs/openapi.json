@@ -1,0 +1,256 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Lightlink Federation Open API",
+    "description": "Lightlink server apis documentation.",
+    "version": "1.0.0",
+    "contact": {
+      "email": "tech@pellar.com"
+    },
+    "license": {
+      "name": "Pellar-Lightlink",
+      "url": "https://pellar.io/"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:{port}/api/v1",
+      "variables": {
+        "port": {
+          "default": "5000"
+        }
+      },
+      "description": "Local server"
+    },
+    {
+      "url": "http://lightlink-federation-dev.ap-southeast-1.elasticbeanstalk.com/api/v1",
+      "description": "Dev server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Verification Code",
+      "description": ""
+    }
+  ],
+  "paths": {
+    "/verification/code/generate": {
+      "post": {
+        "tags": [
+          "Verification Code"
+        ],
+        "summary": "Get a new verification code",
+        "description": "",
+        "operationId": "generateCode",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "$ref": "#/components/requestBodies/CreateCodeDto"
+        },
+        "responses": {
+          "200": {
+            "description": "Succeed",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/422"
+          }
+        }
+      }
+    },
+    "/verification/code/verify": {
+      "post": {
+        "tags": [
+          "Verification Code"
+        ],
+        "summary": "Verify code",
+        "description": "",
+        "operationId": "verifyCode",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "$ref": "#/components/requestBodies/VerifyCodeDto"
+        },
+        "responses": {
+          "200": {
+            "description": "Succeed",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/422"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {},
+    "requestBodies": {
+      "CreateCodeDto": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code_type": {
+                  "type": "string",
+                  "enum": [
+                    "EmailRegistration",
+                    "PhoneRegistration",
+                    "EmailUpdate",
+                    "PhoneUpdate"
+                  ]
+                },
+                "owner": {
+                  "type": "string",
+                  "example": "test-admin@test.com"
+                },
+                "user_key": {
+                  "type": "string",
+                  "additionalProperties": true
+                }
+              },
+              "required": [
+                "code_type",
+                "owner"
+              ]
+            },
+            "examples": {
+              "Get Register Email Code": {
+                "value": {
+                  "code_type": "EmailRegistration",
+                  "owner": "test-admin@test.com"
+                }
+              },
+              "Get Update Email Code": {
+                "value": {
+                  "code_type": "EmailUpdate",
+                  "owner": "test-admin@test.com"
+                }
+              }
+            }
+          }
+        }
+      },
+      "VerifyCodeDto": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code_type": {
+                  "type": "string",
+                  "enum": [
+                    "EmailRegistration",
+                    "PhoneRegistration",
+                    "EmailUpdate",
+                    "PhoneUpdate"
+                  ]
+                },
+                "owner": {
+                  "type": "string",
+                  "example": "test-admin@test.com"
+                },
+                "user_key": {
+                  "type": "string",
+                  "additionalProperties": true
+                },
+                "code": {
+                  "type": "number",
+                  "example": 100562
+                }
+              },
+              "required": [
+                "code_type",
+                "owner",
+                "code"
+              ]
+            },
+            "examples": {
+              "Verify Register Email Code": {
+                "value": {
+                  "code_type": "EmailRegistration",
+                  "owner": "test-admin@test.com",
+                  "code": 120765
+                }
+              },
+              "Verify Update Email Code": {
+                "value": {
+                  "code_type": "EmailUpdate",
+                  "owner": "test-admin@test.com",
+                  "code": 120765
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "422": {
+        "description": "Unprocessable Entity Error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "number",
+                      "default": 422
+                    },
+                    "code": {
+                      "type": "number",
+                      "example": 1001
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "The request failed due to a validation error."
+                    },
+                    "meta_data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string",
+                            "example": "field_1"
+                          },
+                          "message": {
+                            "type": "string",
+                            "example": "field_1 invalid"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
