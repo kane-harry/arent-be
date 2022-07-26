@@ -13,7 +13,8 @@ import authz from '@middlewares/authz.middleware'
 import { config } from '@config'
 import SettingService from '@modules/setting/setting.service'
 import swaggerUI from 'swagger-ui-express'
-import openapiDocument from './docs/openapi.json'
+import { openApiOptions } from './docs/openApiOptions'
+import swaggerJSDoc from 'swagger-jsdoc'
 
 class App {
     public app: express.Application
@@ -81,7 +82,13 @@ class App {
     }
 
     private initSwaggerDocs() {
-        this.app.use('/api-docs/v1', swaggerUI.serve, swaggerUI.setup(openapiDocument))
+        // https://github.com/Surnet/swagger-jsdoc
+        const apiSpecification = swaggerJSDoc(openApiOptions)
+        this.app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(apiSpecification))
+        // this.app.get('/api-docs', (req, res) => {
+        //     res.setHeader('Content-Type', 'application/json')
+        //     res.send(apiSpecification)
+        // })
     }
 }
 

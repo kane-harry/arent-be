@@ -17,7 +17,7 @@
       "url": "http://localhost:{port}/api/v1",
       "variables": {
         "port": {
-          "default": "5000"
+          "default": "3000"
         }
       },
       "description": "Local server"
@@ -34,6 +34,10 @@
     },
     {
       "name": "User",
+      "description": ""
+    },
+    {
+      "name": "Auth",
       "description": ""
     }
   ],
@@ -110,6 +114,86 @@
         "requestBody": {
           "required": true,
           "$ref": "#/components/requestBodies/CreateUserDto"
+        },
+        "responses": {
+          "422": {
+            "$ref": "#/components/responses/422"
+          }
+        }
+      }
+    },
+    "/users/password/forgot": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Forgot Password",
+        "description": "",
+        "operationId": "forgotPassword",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "$ref": "#/components/requestBodies/ForgotPasswordDto"
+        },
+        "responses": {
+          "422": {
+            "$ref": "#/components/responses/422"
+          }
+        }
+      }
+    },
+    "/users/password/reset": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Reset Password",
+        "description": "",
+        "operationId": "resetPassword",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "$ref": "#/components/requestBodies/ResetPasswordDto"
+        },
+        "responses": {
+          "422": {
+            "$ref": "#/components/responses/422"
+          }
+        }
+      }
+    },
+    "/users/pin/forgot": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Forgot Pin",
+        "description": "",
+        "operationId": "forgotPin",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "$ref": "#/components/requestBodies/ForgotPinDto"
+        },
+        "responses": {
+          "422": {
+            "$ref": "#/components/responses/422"
+          }
+        }
+      }
+    },
+    "/users/pin/reset": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Reset Pin",
+        "description": "",
+        "operationId": "resetPin",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "$ref": "#/components/requestBodies/ResetPinDto"
         },
         "responses": {
           "422": {
@@ -280,6 +364,182 @@
               "email": "test-admin@test.com",
               "password": "Test123!",
               "pin": "1111"
+            }
+          }
+        }
+      },
+      "ForgotPasswordDto": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "owner": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "owner",
+                "type"
+              ]
+            },
+            "examples": {
+              "Forgot Password Type Email": {
+                "value": {
+                  "owner": "test-admin@test.com",
+                  "type": "email"
+                }
+              },
+              "Forgot Password Type Phone": {
+                "value": {
+                  "owner": "84987654321",
+                  "type": "phone"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ResetPasswordDto": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "owner": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                },
+                "pin": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "owner",
+                "type",
+                "code",
+                "password",
+                "pin"
+              ]
+            },
+            "examples": {
+              "Reset Password Type Email": {
+                "value": {
+                  "owner": "test-admin@test.com",
+                  "type": "email",
+                  "code": "012345",
+                  "password": "Test123!",
+                  "pin": "1111"
+                }
+              },
+              "Reset Password Type Phone": {
+                "value": {
+                  "owner": "84987654321",
+                  "type": "phone",
+                  "code": "012345",
+                  "password": "Test123!",
+                  "pin": "1111"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ForgotPinDto": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "owner": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "owner",
+                "type"
+              ]
+            },
+            "examples": {
+              "Forgot Pin Type Email": {
+                "value": {
+                  "owner": "test-admin@test.com",
+                  "type": "email"
+                }
+              },
+              "Forgot Pin Type Phone": {
+                "value": {
+                  "owner": "84987654321",
+                  "type": "phone"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ResetPinDto": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "owner": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                },
+                "pin": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "owner",
+                "type",
+                "code",
+                "password",
+                "pin"
+              ]
+            },
+            "examples": {
+              "Reset Pin Type Email": {
+                "value": {
+                  "owner": "test-admin@test.com",
+                  "type": "email",
+                  "code": "012345",
+                  "password": "Test123!",
+                  "pin": "1111"
+                }
+              },
+              "Reset Pin Type Phone": {
+                "value": {
+                  "owner": "84987654321",
+                  "type": "phone",
+                  "code": "012345",
+                  "password": "Test123!",
+                  "pin": "1111"
+                }
+              }
             }
           }
         }

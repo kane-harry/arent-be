@@ -1,0 +1,29 @@
+paths:
+  /verification/code/generate:
+    post:
+      summary: Get a new verification code
+      tags: 
+        - Verification Code
+      description: Request to get a verification code for update email/phone via your email address
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCodeDto'
+      responses:
+        '200':
+          description: OK
+          content: 
+            application/json:
+              example:
+                success: true
+        '400':
+          description: The request failed due to a validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError' 
+
+
+
+        
