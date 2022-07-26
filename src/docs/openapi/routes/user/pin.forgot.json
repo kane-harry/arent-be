@@ -1,0 +1,18 @@
+{
+  "tags": [
+    "User"
+  ],
+  "summary": "Forgot Pin",
+  "description": "",
+  "operationId": "forgotPin",
+  "security": [],
+  "requestBody": {
+    "required": true,
+    "$ref": "#/components/requestBodies/ForgotPinDto"
+  },
+  "responses": {
+    "422": {
+      "$ref": "#/components/responses/422"
+    }
+  }
+}

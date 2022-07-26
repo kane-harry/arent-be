@@ -13,7 +13,7 @@ import authz from '@middlewares/authz.middleware'
 import { config } from '@config'
 import SettingService from '@modules/setting/setting.service'
 import swaggerUI from 'swagger-ui-express'
-import docs from './docs'
+import { openApiV1Documents } from '@docs/openApiGenerator'
 
 class App {
     public app: express.Application
@@ -81,7 +81,7 @@ class App {
     }
 
     private initSwaggerDocs() {
-        this.app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(docs))
+        this.app.use('/api-v1-docs', swaggerUI.serve, swaggerUI.setup(openApiV1Documents))
     }
 }
 

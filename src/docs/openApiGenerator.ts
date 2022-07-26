@@ -1,10 +1,17 @@
 import { config } from '@config'
 
-import commons from './openapi/commons.json'
-import verificationCodeApis from './openapi/apis/v1/verification.code.json'
-import userApis from './openapi/apis/v1/user.json'
+/** DTO interfaces */
+import verificationCodeDtos from './openapi/dtos/verification.code'
+import userDtos from './openapi/dtos/user'
 
-export const openApiDocuments = {
+/** ROUTES */
+import verificationCodeRoutes from './openapi/routes/verification.code'
+import userRoutes from './openapi/routes/user'
+
+/** RESPONSES */
+import responses from './openapi/responses'
+
+export const openApiV1Documents = {
     openapi: '3.0.3',
     info: {
         title: `${config.system.applicationName}`,
@@ -18,16 +25,45 @@ export const openApiDocuments = {
             url: 'https://pellar.io/'
         }
     },
-    tags: commons.tags,
-    components: commons.components,
     servers: [
         {
             url: `${config.system.applicationApiRootURL}/api/v1`,
             description: ''
         }
     ],
+    tags: [
+        {
+            name: 'Verification Code',
+            description: ''
+        },
+        {
+            name: 'User',
+            description: ''
+        },
+        {
+            name: 'Auth',
+            description: ''
+        }
+    ],
+    components: {
+        securitySchemes: {
+            BearerAuth: {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT'
+            }
+        },
+        schemas: {},
+        requestBodies: {
+            ...verificationCodeDtos,
+            ...userDtos
+        },
+        responses: {
+            ...responses
+        }
+    },
     paths: {
-        ...verificationCodeApis,
-        ...userApis
+        ...verificationCodeRoutes,
+        ...userRoutes
     }
 }

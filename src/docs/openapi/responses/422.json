@@ -1,0 +1,42 @@
+{
+  "description": "The request failed due to a validation error",
+  "content": {
+    "application/json": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "description": "The basic error object",
+            "properties": {
+              "variable_name": {
+                "type": "object",
+                "description": "The name of this key will be the property that failed validation",
+                "properties": {
+                  "message": {
+                    "type": "string",
+                    "description": "The validation error message."
+                  }
+                }
+              }
+            }
+          },
+          "error_detail": {
+            "type": "object",
+            "description": "Provides more detailed error information",
+            "properties": {
+              "message": {
+                "type": "string",
+                "description": "The detailed error message",
+                "code": {
+                  "type": "integer",
+                  "description": "The unique application error code associated with the error message"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
