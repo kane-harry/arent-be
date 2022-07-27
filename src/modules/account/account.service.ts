@@ -39,7 +39,7 @@ export default class AccountService {
                 platform: 'system',
                 salt: etherWallet.salt,
                 keyStore: etherWallet.key_store,
-                extKey: coinWallet.key
+                ext_key: coinWallet.key
             })
             accounts.push(account)
         }
