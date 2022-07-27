@@ -63,7 +63,7 @@ describe('Admin', () => {
             .set('Authorization', `Bearer ${adminShareData.token}`)
             .send()
         expect(response.status).equal(200)
-        expect(response.body.key).equal(shareData.user.key)
+        expect(response.body.success).equal(true)
 
         const user = await UserModel.findOne({ key: shareData.user.key }).exec()
         let removed = String(user?.get('removed', null, { getters: false }))
