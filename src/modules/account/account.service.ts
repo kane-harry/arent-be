@@ -227,7 +227,7 @@ export default class AccountService {
             )
         }
 
-        return await this.initAccounts('MASTER', AccountType.Master)
+        return await this.initAccounts('MASTER', AccountType.Master, 'Master')
     }
 
     static async mintMasterAccount(key: string, params: MintDto, options: { userKey: string; email: string }) {
