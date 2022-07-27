@@ -146,7 +146,7 @@ describe('Transaction', () => {
             expect(res.body.symbol).equal(symbol)
             expect(res.body.sender).equal(sender.address)
             expect(res.body.recipient).equal(recipient.address)
-            expect(res.body.feeMode).equal(FeeMode.Inclusive)
+            expect(res.body.fee_mode).equal(FeeMode.Inclusive)
             expect(Math.abs(res.body.amount)).equal(Math.abs(amountWithoutFee.toString()))
 
             // Send 10, fee 0.1
@@ -217,7 +217,7 @@ describe('Transaction', () => {
         it('Send Funds', async () => {
             const sender = masterData.masterAccounts[0]
             const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+            const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${masterData.token}`).send({
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
@@ -323,8 +323,6 @@ describe('Transaction', () => {
             mode: FeeMode.Exclusive
         })
         expect(res.status).equal(400)
-        expect(res.body.error.code).equal(TransactionErrors.sender_insufficient_balance_error.code)
-        expect(res.body.error.message).equal(TransactionErrors.sender_insufficient_balance_error.message)
     })
 
     it('Get Transactions by Account', async () => {
