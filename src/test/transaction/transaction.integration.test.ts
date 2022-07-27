@@ -59,7 +59,7 @@ describe('Transaction', () => {
             .send()
         expect(res2.status).equal(200)
         expect(res2.body.items).be.an('array')
-        shareData2.accounts = res2.body.items
+        shareData2.accounts = res2.body.items.filter(item => item.symbol === symbol)
     }).timeout(10000)
 
     it('InitMasterAccounts', async () => {
