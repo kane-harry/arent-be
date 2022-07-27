@@ -88,7 +88,7 @@ describe('Blockchain', () => {
         const amount = '10000'
         const sender = shareMasterData.masterAccounts[0]
         const recipient = shareData.accounts[0]
-        const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${shareMasterData.token}`).send({
+        const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${shareMasterData.token}`).send({
             symbol: symbol,
             sender: sender.address,
             recipient: recipient.address,
@@ -98,7 +98,7 @@ describe('Blockchain', () => {
         })
         expect(res.status).equal(200)
         validResponse(res.body)
-        expect(res.body.blockTime).be.an('number')
+        expect(res.body.block_time).be.an('number')
         expect(res.body.signature).be.an('string')
         expect(res.body.hash).be.an('string')
         expect(res.body.symbol).equal(symbol)
@@ -119,7 +119,7 @@ describe('Blockchain', () => {
         })
         expect(res.status).equal(200)
         validResponse(res.body)
-        expect(res.body.blockTime).be.an('number')
+        expect(res.body.block_time).be.an('number')
         expect(res.body.signature).be.an('string')
         expect(res.body.hash).be.an('string')
         expect(res.body.symbol).equal(symbol)

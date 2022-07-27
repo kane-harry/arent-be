@@ -38,7 +38,7 @@ export default class AccountService {
                 address: etherWallet.address,
                 platform: 'system',
                 salt: etherWallet.salt,
-                keyStore: etherWallet.key_store,
+                key_store: etherWallet.key_store,
                 ext_key: coinWallet.key
             })
             accounts.push(account)
@@ -57,7 +57,7 @@ export default class AccountService {
                     address: etherWallet.address,
                     platform: token.platform,
                     salt: etherWallet.salt,
-                    keyStore: etherWallet.key_store
+                    key_store: etherWallet.key_store
                 })
                 accounts.push(account)
             } else {
@@ -79,7 +79,7 @@ export default class AccountService {
                     address: etherWallet.address,
                     platform: 'ethereum',
                     salt: etherWallet.salt,
-                    keyStore: etherWallet.key_store,
+                    key_store: etherWallet.key_store,
                     metaData: {
                         contract: token.contract,
                         decimals: token.decimals
