@@ -140,7 +140,7 @@ describe('Transaction', () => {
                 mode: FeeMode.Inclusive
             })
             expect(res.status).equal(200)
-            expect(res.body.blockTime).be.an('number')
+            expect(res.body.block_time).be.an('number')
             expect(res.body.signature).be.an('string')
             expect(res.body.hash).be.an('string')
             expect(res.body.symbol).equal(symbol)
@@ -352,12 +352,12 @@ describe('Transaction', () => {
         const res = await request(server.app).get(`/api/v1/transactions?page_index=${page_index}&page_size=${page_size}&terms=l`).send()
         expect(res.status).equal(200)
         // expect(res.body.account).be.an('object')
-        expect(res.body.txns.items).be.an('array')
-        expect(res.body.txns.total_count).exist
-        expect(res.body.txns.has_next_page).exist
-        expect(res.body.txns.total_pages).exist
-        expect(res.body.txns.page_index).equal(page_index)
-        expect(res.body.txns.page_size).equal(page_size)
+        expect(res.body.items).be.an('array')
+        expect(res.body.total_count).exist
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
     }).timeout(10000)
 
     it('Get Transaction Detail', async () => {
