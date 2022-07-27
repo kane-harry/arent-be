@@ -27,7 +27,7 @@ describe('Transaction', () => {
     before(async () => {
         await dbTest.connect()
         const setting: any = await SettingService.getGlobalSetting()
-        feeConfig = setting.primeTransferFee.toString()
+        feeConfig = setting.prime_transfer_fee.toString()
     })
 
     after(async () => {

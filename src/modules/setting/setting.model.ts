@@ -32,7 +32,7 @@ const settingSchema = new Schema<ISetting>(
         toJSON: {
             transform: (doc, ret) => {
                 delete ret._id
-                ret.primeTransferFee = ret.primeTransferFee.toString()
+                ret.prime_transfer_fee = ret.prime_transfer_fee.toString()
                 return ret
             }
             // getters: true

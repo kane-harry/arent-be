@@ -133,7 +133,7 @@ describe('Blockchain', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
+        expect(res.body.total_count).exist
         expect(res.body.has_next_page).exist
         expect(res.body.total_pages).exist
         expect(res.body.page_index).equal(page_index)
@@ -164,36 +164,6 @@ describe('Blockchain', () => {
         const res = await request(server.app)
             .get(`/api/v1/blockchain/account/${account.address}/txns?page_index=${page_index}&page_size=${page_size}`)
             .send()
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
-        expect(res.body.has_next_page).exist
-        expect(res.body.total_pages).exist
-        expect(res.body.page_index).equal(page_index)
-        expect(res.body.page_size).equal(page_size)
-    }).timeout(10000)
-
-    it('Get Prime Account List', async () => {
-        const page_index = 1
-        const page_size = 20
-        const res = await request(server.app)
-            .get(`/api/v1/blockchain/${symbol}/accounts/prime/list?page_index=${page_index}&page_size=${page_size}`)
-            .send()
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
-        expect(res.body.has_next_page).exist
-        expect(res.body.total_pages).exist
-        expect(res.body.page_index).equal(page_index)
-        expect(res.body.page_size).equal(page_size)
-    }).timeout(10000)
-
-    it('Get All Prime Account List', async () => {
-        const page_index = 1
-        const page_size = 20
-        const res = await request(server.app).get(`/api/v1/blockchain/accounts/prime/list?page_index=${page_index}&page_size=${page_size}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
