@@ -59,21 +59,21 @@ describe('Blockchain', () => {
     }).timeout(10000)
 
     it('InitMasterAccounts', async () => {
-        const res1 = await request(server.app).post(`/api/v1/master/accounts/`).set('Authorization', `Bearer ${shareMasterData.token}`).send()
+        const res1 = await request(server.app).post(`/api/v1/accounts/master`).set('Authorization', `Bearer ${shareMasterData.token}`).send()
         expect(res1.status).equal(200)
     }).timeout(10000)
 
     it('GetMasterAccounts', async () => {
-        const res1 = await request(server.app).get(`/api/v1/master/accounts/`).set('Authorization', `Bearer ${shareMasterData.token}`).send()
+        const res1 = await request(server.app).get(`/api/v1/accounts/`).set('Authorization', `Bearer ${shareMasterData.token}`).send()
         expect(res1.status).equal(200)
         validResponse(res1.body)
-        shareMasterData.masterAccounts = res1.body.filter(item => item.symbol === symbol)
+        shareMasterData.masterAccounts = res1.body.items.filter(item => item.symbol === symbol && item.user_key === 'MASTER')
     }).timeout(10000)
 
     it('MintMasterAccount', async () => {
         const sender = shareMasterData.masterAccounts[0]
         const res1 = await request(server.app)
-            .post(`/api/v1/master/accounts/${sender.key}/mint`)
+            .post(`/api/v1/accounts/${sender.key}/mint`)
             .set('Authorization', `Bearer ${shareMasterData.token}`)
             .send({
                 amount: 40996.3,
