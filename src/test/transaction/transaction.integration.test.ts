@@ -70,7 +70,7 @@ describe('Transaction', () => {
     it('GetMasterAccounts', async () => {
         const res1 = await request(server.app).get(`/api/v1/accounts`).set('Authorization', `Bearer ${masterData.token}`).send()
         expect(res1.status).equal(200)
-        masterData.masterAccounts = res1.body.filter(item => item.symbol === symbol && item.user_key === 'MASTER')
+        masterData.masterAccounts = res1.body.items.filter(item => item.symbol === symbol && item.user_key === 'MASTER')
     }).timeout(10000)
 
     it('MintMasterAccount', async () => {
