@@ -56,10 +56,10 @@ export default class TransactionService {
         }
         const senderBalance = parsePrimeAmount(senderAccount.amount).sub(parsePrimeAmount(senderAccount.amount_locked))
         if (senderBalance.lt(amount)) {
-            // throw new BizException(
-            //     TransactionErrors.sender_insufficient_balance_error,
-            //     new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender, balance: senderAccount.amount, amount })
-            // )
+            throw new BizException(
+                TransactionErrors.sender_insufficient_balance_error,
+                new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender, balance: senderAccount.amount, amount })
+            )
         }
         const setting: ISetting = await SettingService.getGlobalSetting()
         const transferFee = Number(setting.prime_transfer_fee || 0)
