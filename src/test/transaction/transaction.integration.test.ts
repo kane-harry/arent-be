@@ -95,188 +95,184 @@ describe('Transaction', () => {
         expect(res.body.amount).equal(mintValue)
     }).timeout(10000)
 
-    context('Test case for FeeMode.Inclusive', () => {
-        it('Send Funds 401', async () => {
-            const sender = masterData.masterAccounts[0]
-            const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/api/v1/transactions`).send({
-                symbol: symbol,
-                sender: sender.address,
-                recipient: recipient.address,
-                amount: amountSend.toString(),
-                nonce: '1',
-                notes: 'test notes',
-                mode: FeeMode.Inclusive
-            })
-            expect(res.status).equal(401)
+    it('Send Funds 401', async () => {
+        const sender = masterData.masterAccounts[0]
+        const recipient = shareData2.accounts[0]
+        const res = await request(server.app).post(`/api/v1/transactions`).send({
+            symbol: symbol,
+            sender: sender.address,
+            recipient: recipient.address,
+            amount: amountSend.toString(),
+            nonce: '1',
+            notes: 'test notes',
+            mode: FeeMode.Inclusive
         })
-
-        it('Send Funds Wrong Sender', async () => {
-            const sender = masterData.masterAccounts[0]
-            const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${shareData2.token}`).send({
-                symbol: symbol,
-                sender: sender.address,
-                recipient: recipient.address,
-                amount: amountSend.toString(),
-                nonce: '1',
-                notes: 'test notes',
-                mode: FeeMode.Inclusive
-            })
-            expect(res.status).equal(400)
-        })
-
-        it('Send Funds', async () => {
-            const amountWithoutFee = parseFloat(amountSend) - feeConfig
-            const sender = masterData.masterAccounts[0]
-            const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${masterData.token}`).send({
-                symbol: symbol,
-                sender: sender.address,
-                recipient: recipient.address,
-                amount: amountSend.toString(),
-                nonce: '1',
-                notes: 'test notes',
-                mode: FeeMode.Inclusive
-            })
-            expect(res.status).equal(200)
-            expect(res.body.block_time).be.an('number')
-            expect(res.body.signature).be.an('string')
-            expect(res.body.hash).be.an('string')
-            expect(res.body.symbol).equal(symbol)
-            expect(res.body.sender).equal(sender.address)
-            expect(res.body.recipient).equal(recipient.address)
-            expect(res.body.fee_mode).equal(FeeMode.Inclusive)
-            expect(Math.abs(res.body.amount)).equal(Math.abs(amountWithoutFee.toString()))
-
-            // Send 10, fee 0.1
-            // Inclusive:
-            //      - Sender: -10
-            //      - Recipient: +9.9
-            //      - Fee: +0.1
-            // If sender was admin (fee == sender):
-            //      - Sender: -9.9
-            const amountBigNumber = parsePrimeAmount(amountSend)
-            const fee = parsePrimeAmount(feeConfig)
-            const amountForSender = parsePrimeAmount(res.body.senderWallet.preBalance).sub(parsePrimeAmount(res.body.senderWallet.postBalance))
-            const amountForRecipient = parsePrimeAmount(res.body.recipientWallet.postBalance).sub(
-                parsePrimeAmount(res.body.recipientWallet.preBalance)
-            )
-            expect(amountForRecipient.toString()).equal(amountBigNumber.sub(fee).toString())
-
-            const feeAccount = await AccountService.getMasterAccountBriefBySymbol(symbol)
-            if (feeAccount.address === sender.address) {
-                expect(amountForSender.toString()).equal(amountBigNumber.sub(fee).toString())
-            } else {
-                expect(amountForSender.toString()).equal(amountBigNumber.toString())
-            }
-            currentSenderAmount = res.body.senderWallet.postBalance
-            currentRecipientAmount = res.body.recipientWallet.postBalance
-        }).timeout(10000)
-
-        it('Validate Sender Amount After Send', async () => {
-            const account = masterData.masterAccounts[0]
-            const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
-            expect(res.status).equal(200)
-            validResponse(res.body)
-            expect(res.body.amount.toString()).equal(currentSenderAmount.toString())
-        }).timeout(10000)
-
-        it('Validate Recipient Amount After Send', async () => {
-            const account = shareData2.accounts[0]
-            const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${shareData2.token}`).send()
-            expect(res.status).equal(200)
-            validResponse(res.body)
-            expect(res.body.amount.toString()).equal(currentRecipientAmount.toString())
-        }).timeout(10000)
-
-        it('Validate Transaction Exist After Send', async () => {
-            const account = masterData.masterAccounts[0]
-            const res = await request(server.app)
-                .get(`/api/v1/transactions/accounts/${account.key}`)
-                .set('Authorization', `Bearer ${masterData.token}`)
-                .send()
-            expect(res.status).equal(200)
-            validResponse(res.body)
-            expect(res.body.txns.items.length).gt(0)
-        }).timeout(10000)
-
-        it('Validate Transaction Exist After Send', async () => {
-            const account = shareData2.accounts[0]
-            const res = await request(server.app)
-                .get(`/api/v1/transactions/accounts/${account.key}`)
-                .set('Authorization', `Bearer ${shareData2.token}`)
-                .send()
-            expect(res.status).equal(200)
-            validResponse(res.body)
-            expect(res.body.txns.items.length).gt(0)
-        }).timeout(10000)
+        expect(res.status).equal(401)
     })
 
-    context('Test case for FeeMode.Exclusive', () => {
-        it('Send Funds', async () => {
-            const sender = masterData.masterAccounts[0]
-            const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${masterData.token}`).send({
-                symbol: symbol,
-                sender: sender.address,
-                recipient: recipient.address,
-                amount: amountSend.toString(),
-                nonce: '1',
-                notes: 'test notes',
-                mode: FeeMode.Exclusive
-            })
-            expect(res.status).equal(200)
-            expect(res.body.block_time).be.an('number')
-            expect(res.body.signature).be.an('string')
-            expect(res.body.hash).be.an('string')
-            expect(res.body.symbol).equal(symbol)
-            expect(res.body.sender).equal(sender.address)
-            expect(res.body.recipient).equal(recipient.address)
-            expect(res.body.fee_mode).equal(FeeMode.Exclusive)
-            expect(Math.abs(res.body.amount)).equal(Math.abs(amountSend.toString()))
-
-            // Send 10, fee 0.1
-            // Exclusive:
-            //     - Sender: -10.1
-            //     - Recipient: +10
-            //     - Fee: +0.1
-            // If sender was admin (fee == sender):
-            //     - Sender: -10
-            const amountBigNumber = parsePrimeAmount(amountSend)
-            const fee = parsePrimeAmount(feeConfig)
-            const amountForSender = parsePrimeAmount(res.body.senderWallet.preBalance).sub(parsePrimeAmount(res.body.senderWallet.postBalance))
-            const amountForRecipient = parsePrimeAmount(res.body.recipientWallet.postBalance).sub(
-                parsePrimeAmount(res.body.recipientWallet.preBalance)
-            )
-            expect(amountForRecipient.toString()).equal(amountBigNumber.toString())
-
-            const feeAccount = await AccountService.getMasterAccountBriefBySymbol(symbol)
-            if (feeAccount.address === sender.address) {
-                expect(amountForSender.toString()).equal(amountBigNumber.toString())
-            } else {
-                expect(amountForSender.toString()).equal(amountBigNumber.add(fee).toString())
-            }
-            currentSenderAmount = res.body.senderWallet.postBalance
-            currentRecipientAmount = res.body.recipientWallet.postBalance
-        }).timeout(10000)
-
-        it('Validate Sender Amount After Send', async () => {
-            const account = masterData.masterAccounts[0]
-            const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
-            expect(res.status).equal(200)
-            validResponse(res.body)
-            expect(res.body.amount.toString()).equal(currentSenderAmount.toString())
-        }).timeout(10000)
-
-        it('Validate Recipient Amount After Send', async () => {
-            const account = shareData2.accounts[0]
-            const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
-            expect(res.status).equal(200)
-            validResponse(res.body)
-            expect(res.body.amount.toString()).equal(currentRecipientAmount.toString())
-        }).timeout(10000)
+    it('Send Funds Wrong Sender', async () => {
+        const sender = masterData.masterAccounts[0]
+        const recipient = shareData2.accounts[0]
+        const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${shareData2.token}`).send({
+            symbol: symbol,
+            sender: sender.address,
+            recipient: recipient.address,
+            amount: amountSend.toString(),
+            nonce: '1',
+            notes: 'test notes',
+            mode: FeeMode.Inclusive
+        })
+        expect(res.status).equal(400)
     })
+
+    it('Send Funds', async () => {
+        const amountWithoutFee = parseFloat(amountSend) - feeConfig
+        const sender = masterData.masterAccounts[0]
+        const recipient = shareData2.accounts[0]
+        const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${masterData.token}`).send({
+            symbol: symbol,
+            sender: sender.address,
+            recipient: recipient.address,
+            amount: amountSend.toString(),
+            nonce: '1',
+            notes: 'test notes',
+            mode: FeeMode.Inclusive
+        })
+        expect(res.status).equal(200)
+        expect(res.body.block_time).be.an('number')
+        expect(res.body.signature).be.an('string')
+        expect(res.body.hash).be.an('string')
+        expect(res.body.symbol).equal(symbol)
+        expect(res.body.sender).equal(sender.address)
+        expect(res.body.recipient).equal(recipient.address)
+        expect(res.body.fee_mode).equal(FeeMode.Inclusive)
+        expect(Math.abs(res.body.amount)).equal(Math.abs(amountWithoutFee.toString()))
+
+        // Send 10, fee 0.1
+        // Inclusive:
+        //      - Sender: -10
+        //      - Recipient: +9.9
+        //      - Fee: +0.1
+        // If sender was admin (fee == sender):
+        //      - Sender: -9.9
+        const amountBigNumber = parsePrimeAmount(amountSend)
+        const fee = parsePrimeAmount(feeConfig)
+        const amountForSender = parsePrimeAmount(res.body.sender_wallet.pre_balance).sub(parsePrimeAmount(res.body.sender_wallet.post_balance))
+        const amountForRecipient = parsePrimeAmount(res.body.recipient_wallet.post_balance).sub(
+          parsePrimeAmount(res.body.recipient_wallet.pre_balance)
+        )
+        expect(amountForRecipient.toString()).equal(amountBigNumber.sub(fee).toString())
+
+        const feeAccount = await AccountService.getMasterAccountBriefBySymbol(symbol)
+        if (feeAccount.address === sender.address) {
+            expect(amountForSender.toString()).equal(amountBigNumber.sub(fee).toString())
+        } else {
+            expect(amountForSender.toString()).equal(amountBigNumber.toString())
+        }
+        currentSenderAmount = res.body.sender_wallet.post_balance
+        currentRecipientAmount = res.body.recipient_wallet.post_balance
+    }).timeout(10000)
+
+    it('Validate Sender Amount After Send', async () => {
+        const account = masterData.masterAccounts[0]
+        const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.amount.toString()).equal(currentSenderAmount.toString())
+    }).timeout(10000)
+
+    it('Validate Recipient Amount After Send', async () => {
+        const account = shareData2.accounts[0]
+        const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${shareData2.token}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.amount.toString()).equal(currentRecipientAmount.toString())
+    }).timeout(10000)
+
+    it('Validate Transaction Exist After Send', async () => {
+        const account = masterData.masterAccounts[0]
+        const res = await request(server.app)
+          .get(`/api/v1/transactions/accounts/${account.key}`)
+          .set('Authorization', `Bearer ${masterData.token}`)
+          .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.txns.items.length).gt(0)
+    }).timeout(10000)
+
+    it('Validate Transaction Exist After Send', async () => {
+        const account = shareData2.accounts[0]
+        const res = await request(server.app)
+          .get(`/api/v1/transactions/accounts/${account.key}`)
+          .set('Authorization', `Bearer ${shareData2.token}`)
+          .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.txns.items.length).gt(0)
+    }).timeout(10000)
+
+    it('Send Funds', async () => {
+        const sender = masterData.masterAccounts[0]
+        const recipient = shareData2.accounts[0]
+        const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${masterData.token}`).send({
+            symbol: symbol,
+            sender: sender.address,
+            recipient: recipient.address,
+            amount: amountSend.toString(),
+            nonce: '1',
+            notes: 'test notes',
+            mode: FeeMode.Exclusive
+        })
+        expect(res.status).equal(200)
+        expect(res.body.block_time).be.an('number')
+        expect(res.body.signature).be.an('string')
+        expect(res.body.hash).be.an('string')
+        expect(res.body.symbol).equal(symbol)
+        expect(res.body.sender).equal(sender.address)
+        expect(res.body.recipient).equal(recipient.address)
+        expect(res.body.fee_mode).equal(FeeMode.Exclusive)
+        expect(Math.abs(res.body.amount)).equal(Math.abs(amountSend.toString()))
+
+        // Send 10, fee 0.1
+        // Exclusive:
+        //     - Sender: -10.1
+        //     - Recipient: +10
+        //     - Fee: +0.1
+        // If sender was admin (fee == sender):
+        //     - Sender: -10
+        const amountBigNumber = parsePrimeAmount(amountSend)
+        const fee = parsePrimeAmount(feeConfig)
+        const amountForSender = parsePrimeAmount(res.body.sender_wallet.pre_balance).sub(parsePrimeAmount(res.body.sender_wallet.post_balance))
+        const amountForRecipient = parsePrimeAmount(res.body.recipient_wallet.post_balance).sub(
+          parsePrimeAmount(res.body.recipient_wallet.pre_balance)
+        )
+        expect(amountForRecipient.toString()).equal(amountBigNumber.toString())
+
+        const feeAccount = await AccountService.getMasterAccountBriefBySymbol(symbol)
+        if (feeAccount.address === sender.address) {
+            expect(amountForSender.toString()).equal(amountBigNumber.toString())
+        } else {
+            expect(amountForSender.toString()).equal(amountBigNumber.add(fee).toString())
+        }
+        currentSenderAmount = res.body.sender_wallet.post_balance
+        currentRecipientAmount = res.body.recipient_wallet.post_balance
+    }).timeout(10000)
+
+    it('Validate Sender Amount After Send', async () => {
+        const account = masterData.masterAccounts[0]
+        const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.amount.toString()).equal(currentSenderAmount.toString())
+    }).timeout(10000)
+
+    it('Validate Recipient Amount After Send', async () => {
+        const account = shareData2.accounts[0]
+        const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.amount.toString()).equal(currentRecipientAmount.toString())
+    }).timeout(10000)
 
     it('Send Funds User Suspend', async () => {
         await makeUserSuspend(adminData, UserStatus.Suspend)
