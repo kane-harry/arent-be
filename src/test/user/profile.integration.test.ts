@@ -15,9 +15,9 @@ let shareData = {
     user: {
         email: '',
         key: '',
-        chatName: '',
-        firstName: '',
-        lastName: '',
+        chat_name: '',
+        first_name: '',
+        last_name: '',
         phone: ''
     },
     token: '',
@@ -25,7 +25,7 @@ let shareData = {
     newEmailCode: '',
     newPhoneCode: ''
 }
-let adminShareData = { user: { key: '', chatName: '' }, token: '', refreshToken: '', accounts: [] }
+let adminShareData = { user: { key: '', chat_name: '' }, token: '', refreshToken: '', accounts: [] }
 
 const updateData = {
     email: 'new.email@gmail.com',
@@ -146,15 +146,15 @@ describe('Profile', () => {
     }).timeout(10000)
 
     it('GetPublicUserByChatName', async () => {
-        const updateRes = await request(server.app).get(`/api/v1/users/${shareData.user.chatName}/brief`)
+        const updateRes = await request(server.app).get(`/api/v1/users/${shareData.user.chat_name}/brief`)
 
         expect(updateRes.status).equal(200)
         validResponse(updateRes.body)
 
         expect(updateRes.body?.email).equal(shareData.user.email)
-        expect(updateRes.body?.firstName).equal(shareData.user.firstName)
-        expect(updateRes.body?.lastName).equal(shareData.user.lastName)
-        expect(updateRes.body?.chatName).equal(shareData.user.chatName)
+        expect(updateRes.body?.first_name).equal(shareData.user.first_name)
+        expect(updateRes.body?.last_name).equal(shareData.user.last_name)
+        expect(updateRes.body?.chat_name).equal(shareData.user.chat_name)
     })
 
     context('Test case for function updateUser', () => {

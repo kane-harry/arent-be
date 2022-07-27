@@ -227,7 +227,7 @@ describe('Transaction', () => {
                 mode: FeeMode.Exclusive
             })
             expect(res.status).equal(200)
-            expect(res.body.blockTime).be.an('number')
+            expect(res.body.block_time).be.an('number')
             expect(res.body.signature).be.an('string')
             expect(res.body.hash).be.an('string')
             expect(res.body.symbol).equal(symbol)
