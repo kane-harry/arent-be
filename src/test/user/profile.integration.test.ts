@@ -29,9 +29,9 @@ let adminShareData = { user: { key: '', chatName: '' }, token: '', refreshToken:
 
 const updateData = {
     email: 'new.email@gmail.com',
-    firstName: 'firstName',
-    lastName: 'lastName',
-    chatName: 'chatName',
+    first_name: 'firstName',
+    last_name: 'lastName',
+    chat_name: 'chatName',
     phone: '+972552992022',
     country: 'country',
     playerId: 'playerId',
@@ -105,7 +105,7 @@ describe('Profile', () => {
         const owner = updateData.email
         const codeType = CodeType.EmailUpdate
         const res = await request(server.app).post('/api/v1/verification/code/generate').send({
-            codeType: codeType,
+            code_type: codeType,
             owner: owner
         })
         expect(res.status).equal(200)
@@ -173,9 +173,9 @@ describe('Profile', () => {
             validResponse(updateRes.body)
 
             const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
-            expect(user?.first_name).equal(updateData.firstName)
-            expect(user?.last_name).equal(updateData.lastName)
-            expect(user?.chat_name).equal(updateData.chatName)
+            expect(user?.first_name).equal(updateData.first_name)
+            expect(user?.last_name).equal(updateData.last_name)
+            expect(user?.chat_name).equal(updateData.chat_name)
         })
     })
 
@@ -203,9 +203,9 @@ describe('Profile', () => {
         validResponse(res.body)
 
         const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
-        expect(user?.first_name).equal(res.body.firstName)
-        expect(user?.last_name).equal(res.body.lastName)
-        expect(user?.chat_name).equal(res.body.chatName)
+        expect(user?.first_name).equal(res.body.first_name)
+        expect(user?.last_name).equal(res.body.last_name)
+        expect(user?.chat_name).equal(res.body.chat_name)
         expect(user?.phone).equal(res.body.phone)
         expect(user?.country).equal(res.body.country)
     }).timeout(10000)

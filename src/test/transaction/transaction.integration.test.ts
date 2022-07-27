@@ -99,7 +99,7 @@ describe('Transaction', () => {
         it('Send Funds 401', async () => {
             const sender = masterData.masterAccounts[0]
             const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/api/v1/transactions/send`).send({
+            const res = await request(server.app).post(`/api/v1/transactions`).send({
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
@@ -114,7 +114,7 @@ describe('Transaction', () => {
         it('Send Funds Wrong Sender', async () => {
             const sender = masterData.masterAccounts[0]
             const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${shareData2.token}`).send({
+            const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${shareData2.token}`).send({
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
@@ -130,7 +130,7 @@ describe('Transaction', () => {
             const amountWithoutFee = parseFloat(amountSend) - feeConfig
             const sender = masterData.masterAccounts[0]
             const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+            const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${masterData.token}`).send({
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
@@ -381,7 +381,6 @@ describe('Transaction', () => {
             .send()
             .send()
         expect(res.status).equal(200)
-        expect(res.type).equal('text/csv')
         expect(res.charset).equal('utf-8')
         expect(res.text.length).gt(0)
     }).timeout(10000)
