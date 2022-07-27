@@ -43,7 +43,7 @@ describe('Setting', () => {
     }).timeout(10000)
 
     it(`Create setting`, async () => {
-        const res = await request(server.app).put('/settings').set('Authorization', `Bearer ${adminShareData.token}`).send(postData)
+        const res = await request(server.app).put('/api/v1/settings').set('Authorization', `Bearer ${adminShareData.token}`).send(postData)
         expect(res.status).equal(200)
         validResponse(res.body)
         const setting = await MODELS.SettingModel.findOne({}, {}, { sort: { created_at: -1 } }).exec()
@@ -58,7 +58,7 @@ describe('Setting', () => {
     }).timeout(10000)
 
     it(`Get setting`, async () => {
-        const res = await request(server.app).get('/settings').set('Authorization', `Bearer ${adminShareData.token}`).send()
+        const res = await request(server.app).get('/api/v1/settings').set('Authorization', `Bearer ${adminShareData.token}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         const setting = await MODELS.SettingModel.findOne({}, {}, { sort: { created_at: -1 } }).exec()
@@ -73,7 +73,7 @@ describe('Setting', () => {
     }).timeout(10000)
 
     it(`Update setting`, async () => {
-        const res = await request(server.app).put('/settings').set('Authorization', `Bearer ${adminShareData.token}`).send(updateData)
+        const res = await request(server.app).put('/api/v1/settings').set('Authorization', `Bearer ${adminShareData.token}`).send(updateData)
         expect(res.status).equal(200)
         validResponse(res.body)
         const setting = await MODELS.SettingModel.findOne({}, {}, { sort: { created_at: -1 } }).exec()
@@ -88,17 +88,17 @@ describe('Setting', () => {
     }).timeout(10000)
 
     it(`401 Create setting`, async () => {
-        const res = await request(server.app).put('/settings').set('Authorization', `Bearer ${shareData.token}`).send({})
+        const res = await request(server.app).put('/api/v1/settings').set('Authorization', `Bearer ${shareData.token}`).send({})
         expect(res.status).equal(401)
     }).timeout(10000)
 
     it(`401 Get setting`, async () => {
-        const res = await request(server.app).get('/settings').set('Authorization', `Bearer ${shareData.token}`).send()
+        const res = await request(server.app).get('/api/v1/settings').set('Authorization', `Bearer ${shareData.token}`).send()
         expect(res.status).equal(401)
     }).timeout(10000)
 
     it(`401 Update setting`, async () => {
-        const res = await request(server.app).put('/settings').set('Authorization', `Bearer ${shareData.token}`).send({})
+        const res = await request(server.app).put('/api/v1/settings').set('Authorization', `Bearer ${shareData.token}`).send({})
         expect(res.status).equal(401)
     }).timeout(10000)
 })

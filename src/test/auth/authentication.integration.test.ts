@@ -32,8 +32,8 @@ describe('Authentication', () => {
         const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
 
         //Same
-        expect(user?.first_name).equal(userData.firstName)
-        expect(user?.last_name).equal(userData.lastName)
+        expect(user?.first_name).equal(userData.first_name)
+        expect(user?.last_name).equal(userData.last_name)
         expect(user?.email).equal(userData.email)
         expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(userData.phone))
         //Different

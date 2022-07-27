@@ -45,42 +45,51 @@ describe('Transaction', () => {
     }).timeout(10000)
 
     it('GetAccountsByUser', async () => {
-        const res1 = await request(server.app).get(`/accounts/user/${shareData1.user?.key}`).set('Authorization', `Bearer ${shareData1.token}`).send()
+        const res1 = await request(server.app)
+            .get(`/api/v1/accounts/user/${shareData1.user?.key}`)
+            .set('Authorization', `Bearer ${shareData1.token}`)
+            .send()
         expect(res1.status).equal(200)
         expect(res1.body).be.an('array')
         shareData1.accounts = res1.body
 
-        const res2 = await request(server.app).get(`/accounts/user/${shareData2.user?.key}`).set('Authorization', `Bearer ${shareData2.token}`).send()
+        const res2 = await request(server.app)
+            .get(`/api/v1/accounts/user/${shareData2.user?.key}`)
+            .set('Authorization', `Bearer ${shareData2.token}`)
+            .send()
         expect(res2.status).equal(200)
         expect(res2.body).be.an('array')
         shareData2.accounts = res2.body
     }).timeout(10000)
 
     it('InitMasterAccounts', async () => {
-        const res1 = await request(server.app).post(`/master/accounts/`).set('Authorization', `Bearer ${masterData.token}`).send()
+        const res1 = await request(server.app).post(`/api/v1/master/accounts/`).set('Authorization', `Bearer ${masterData.token}`).send()
         expect(res1.status).equal(200)
     }).timeout(10000)
 
     it('GetMasterAccounts', async () => {
-        const res1 = await request(server.app).get(`/master/accounts/`).set('Authorization', `Bearer ${masterData.token}`).send()
+        const res1 = await request(server.app).get(`/api/v1/master/accounts/`).set('Authorization', `Bearer ${masterData.token}`).send()
         expect(res1.status).equal(200)
         masterData.masterAccounts = res1.body.filter(item => item.symbol === symbol)
     }).timeout(10000)
 
     it('MintMasterAccount', async () => {
         const sender = masterData.masterAccounts[0]
-        const res1 = await request(server.app).post(`/master/accounts/${sender.key}/mint`).set('Authorization', `Bearer ${masterData.token}`).send({
-            amount: mintValue,
-            notes: 'mint master account',
-            type: 'mint'
-        })
+        const res1 = await request(server.app)
+            .post(`/api/v1/master/accounts/${sender.key}/mint`)
+            .set('Authorization', `Bearer ${masterData.token}`)
+            .send({
+                amount: mintValue,
+                notes: 'mint master account',
+                type: 'mint'
+            })
         expect(res1.status).equal(200)
         currentSenderAmount = mintValue
     }).timeout(10000)
 
     it('Validate Sender Amount After Mint', async () => {
         const account = masterData.masterAccounts[0]
-        const res = await request(server.app).get(`/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
+        const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.amount).equal(mintValue)
@@ -90,7 +99,7 @@ describe('Transaction', () => {
         it('Send Funds 401', async () => {
             const sender = masterData.masterAccounts[0]
             const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/transactions/send`).send({
+            const res = await request(server.app).post(`/api/v1/transactions/send`).send({
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
@@ -105,7 +114,7 @@ describe('Transaction', () => {
         it('Send Funds Wrong Sender', async () => {
             const sender = masterData.masterAccounts[0]
             const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/transactions/send`).set('Authorization', `Bearer ${shareData2.token}`).send({
+            const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${shareData2.token}`).send({
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
@@ -121,7 +130,7 @@ describe('Transaction', () => {
             const amountWithoutFee = parseFloat(amountSend) - feeConfig
             const sender = masterData.masterAccounts[0]
             const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+            const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
@@ -167,7 +176,7 @@ describe('Transaction', () => {
 
         it('Validate Sender Amount After Send', async () => {
             const account = masterData.masterAccounts[0]
-            const res = await request(server.app).get(`/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
+            const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
             expect(res.status).equal(200)
             validResponse(res.body)
             expect(res.body.amount.toString()).equal(currentSenderAmount.toString())
@@ -175,7 +184,7 @@ describe('Transaction', () => {
 
         it('Validate Recipient Amount After Send', async () => {
             const account = shareData2.accounts[0]
-            const res = await request(server.app).get(`/accounts/${account.key}`).set('Authorization', `Bearer ${shareData2.token}`).send()
+            const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${shareData2.token}`).send()
             expect(res.status).equal(200)
             validResponse(res.body)
             expect(res.body.amount.toString()).equal(currentRecipientAmount.toString())
@@ -184,7 +193,7 @@ describe('Transaction', () => {
         it('Validate Transaction Exist After Send', async () => {
             const account = masterData.masterAccounts[0]
             const res = await request(server.app)
-                .get(`/transactions/accounts/${account.key}`)
+                .get(`/api/v1/transactions/accounts/${account.key}`)
                 .set('Authorization', `Bearer ${masterData.token}`)
                 .send()
             expect(res.status).equal(200)
@@ -195,7 +204,7 @@ describe('Transaction', () => {
         it('Validate Transaction Exist After Send', async () => {
             const account = shareData2.accounts[0]
             const res = await request(server.app)
-                .get(`/transactions/accounts/${account.key}`)
+                .get(`/api/v1/transactions/accounts/${account.key}`)
                 .set('Authorization', `Bearer ${shareData2.token}`)
                 .send()
             expect(res.status).equal(200)
@@ -208,7 +217,7 @@ describe('Transaction', () => {
         it('Send Funds', async () => {
             const sender = masterData.masterAccounts[0]
             const recipient = shareData2.accounts[0]
-            const res = await request(server.app).post(`/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+            const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
                 symbol: symbol,
                 sender: sender.address,
                 recipient: recipient.address,
@@ -254,7 +263,7 @@ describe('Transaction', () => {
 
         it('Validate Sender Amount After Send', async () => {
             const account = masterData.masterAccounts[0]
-            const res = await request(server.app).get(`/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
+            const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
             expect(res.status).equal(200)
             validResponse(res.body)
             expect(res.body.amount.toString()).equal(currentSenderAmount.toString())
@@ -262,7 +271,7 @@ describe('Transaction', () => {
 
         it('Validate Recipient Amount After Send', async () => {
             const account = shareData2.accounts[0]
-            const res = await request(server.app).get(`/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
+            const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${masterData.token}`).send()
             expect(res.status).equal(200)
             validResponse(res.body)
             expect(res.body.amount.toString()).equal(currentRecipientAmount.toString())
@@ -273,7 +282,7 @@ describe('Transaction', () => {
         await makeUserSuspend(adminData, UserStatus.Suspend)
         const sender = masterData.masterAccounts[0]
         const recipient = shareData2.accounts[0]
-        const res = await request(server.app).post(`/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+        const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
             symbol: symbol,
             sender: sender.address,
             recipient: recipient.address,
@@ -289,7 +298,7 @@ describe('Transaction', () => {
     it('Send Funds Wrong Balance', async () => {
         const sender = masterData.masterAccounts[0]
         const recipient = shareData2.accounts[0]
-        const res = await request(server.app).post(`/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+        const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
             symbol: symbol,
             sender: sender.address,
             recipient: recipient.address,
@@ -304,7 +313,7 @@ describe('Transaction', () => {
     it('Send Funds Out Of Balance', async () => {
         const sender = masterData.masterAccounts[0]
         const recipient = shareData2.accounts[0]
-        const res = await request(server.app).post(`/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+        const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
             symbol: symbol,
             sender: sender.address,
             recipient: recipient.address,
@@ -323,7 +332,7 @@ describe('Transaction', () => {
         const pageSize = 25
         const account = masterData.masterAccounts[0]
         const res = await request(server.app)
-            .get(`/transactions/accounts/${account.key}?page_index=${pageIndex}&page_size=${pageSize}`)
+            .get(`/api/v1/transactions/accounts/${account.key}?page_index=${pageIndex}&page_size=${pageSize}`)
             .set('Authorization', `Bearer ${masterData.token}`)
             .send()
         expect(res.status).equal(200)
@@ -340,7 +349,7 @@ describe('Transaction', () => {
     it('Get Transactions', async () => {
         const pageIndex = 1
         const pageSize = 25
-        const res = await request(server.app).get(`/transactions?page_index=${pageIndex}&page_size=${pageSize}&terms=l`).send()
+        const res = await request(server.app).get(`/api/v1/transactions?page_index=${pageIndex}&page_size=${pageSize}&terms=l`).send()
         expect(res.status).equal(200)
         // expect(res.body.account).be.an('object')
         expect(res.body.txns.items).be.an('array')
@@ -354,7 +363,7 @@ describe('Transaction', () => {
     it('Get Transaction Detail', async () => {
         const account = masterData.masterAccounts[0]
         const transaction = shareData1.transactions[0]
-        const res = await request(server.app).get(`/transactions/txn/${transaction.key}`).send()
+        const res = await request(server.app).get(`/api/v1/transactions/txn/${transaction.key}`).send()
         expect(res.status).equal(200)
         expect(res.body.key).equal(transaction.key)
         expect(res.body.symbol).equal(symbol)
@@ -367,7 +376,7 @@ describe('Transaction', () => {
         const pageSize = 25
         const account = masterData.masterAccounts[0]
         const res = await request(server.app)
-            .get(`/transactions/export?symbol=${symbol}&key=${account.key}&page_index=${pageIndex}&page_size=${pageSize}`)
+            .get(`/api/v1/transactions/export?symbol=${symbol}&key=${account.key}&page_index=${pageIndex}&page_size=${pageSize}`)
             .set('Authorization', `Bearer ${masterData.token}`)
             .send()
             .send()

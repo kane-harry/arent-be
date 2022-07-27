@@ -30,7 +30,7 @@ export default class AccountService {
         for (const coinWallet of coinWallets) {
             const accountName = `${coinWallet.symbol} ${accountNameSuffix}`
             const account = new AccountModel({
-                userKey: userKey,
+                user_key: userKey,
                 name: accountName,
                 symbol: coinWallet.symbol,
                 type: AccountType.Prime,
@@ -49,7 +49,7 @@ export default class AccountService {
             const accountName = `${token.symbol} ${accountNameSuffix}`
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
-                    userKey: userKey,
+                    user_key: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Ext,
@@ -71,7 +71,7 @@ export default class AccountService {
             if (token.symbol) {
                 const accountName = `${token.symbol} ${accountNameSuffix}`
                 const account = new AccountModel({
-                    userKey: userKey,
+                    user_key: userKey,
                     name: accountName,
                     symbol: token.symbol,
                     type: AccountType.Ext,
@@ -209,11 +209,13 @@ export default class AccountService {
 
     /** MASTER */
     static async initMasterAccounts() {
-        const masterAccounts = await this.getAccountDetailByFields({
-            type: AccountType.Master,
+        const masterAccounts = await AccountModel.find({
+            user_key: AccountType.Master,
             removed: false
         })
-        if (masterAccounts) {
+            .select('-keyStore -salt')
+            .exec()
+        if (masterAccounts && masterAccounts.length) {
             throw new BizException(
                 AccountErrors.master_accounts_initialized_error,
                 new ErrorContext('account.master.service', 'initMasterAccounts', {})

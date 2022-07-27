@@ -34,7 +34,7 @@ describe('Account', () => {
         const pageIndex = 1
         const pageSize = 25
         const res = await request(server.app)
-            .get(`/accounts?page_index=${pageIndex}&page_size=${pageSize}`)
+            .get(`/api/v1/accounts?page_index=${pageIndex}&page_size=${pageSize}`)
             .set('Authorization', `Bearer ${shareMasterData.token}`)
             .send()
         expect(res.status).equal(200)
@@ -51,7 +51,7 @@ describe('Account', () => {
 
     it('GetAccountDetail', async () => {
         const account: IAccount = shareData.accounts[0]
-        const res = await request(server.app).get(`/accounts/${account.key}`).set('Authorization', `Bearer ${shareData.token}`).send()
+        const res = await request(server.app).get(`/api/v1/accounts/${account.key}`).set('Authorization', `Bearer ${shareData.token}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
 
@@ -65,7 +65,7 @@ describe('Account', () => {
     }).timeout(10000)
 
     it('GetMyAccountsBySymbol', async () => {
-        const res = await request(server.app).get(`/accounts/symbol/${symbol}`).set('Authorization', `Bearer ${shareData.token}`).send()
+        const res = await request(server.app).get(`/api/v1/accounts/symbol/${symbol}`).set('Authorization', `Bearer ${shareData.token}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
 
@@ -88,7 +88,10 @@ describe('Account', () => {
     // }).timeout(10000)
 
     it('GetAccountsByUser', async () => {
-        const res = await request(server.app).get(`/accounts/user/${shareData.user?.key}`).set('Authorization', `Bearer ${shareData.token}`).send()
+        const res = await request(server.app)
+            .get(`/api/v1/accounts/user/${shareData.user?.key}`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
 

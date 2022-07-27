@@ -31,7 +31,7 @@ describe('Admin', () => {
 
     it('401 Reset TOTP', async () => {
         const response = await request(server.app)
-            .post(`/users/${shareData.user.key}/totp/reset`)
+            .post(`/api/v1/users/${shareData.user.key}/totp/reset`)
             .set('Authorization', `Bearer ${shareData.token}`)
             .send()
         expect(response.status).equal(401)
@@ -39,7 +39,7 @@ describe('Admin', () => {
 
     it('Reset TOTP', async () => {
         const response = await request(server.app)
-            .post(`/users/${shareData.user.key}/totp/reset`)
+            .post(`/api/v1/users/${shareData.user.key}/totp/reset`)
             .set('Authorization', `Bearer ${adminShareData.token}`)
             .send()
         expect(response.status).equal(200)
@@ -51,7 +51,7 @@ describe('Admin', () => {
 
     it('401 RemoveUser', async () => {
         const response = await request(server.app)
-            .post(`/users/${shareData.user.key}/remove`)
+            .post(`/api/v1/users/${shareData.user.key}/remove`)
             .set('Authorization', `Bearer ${shareData.token}`)
             .send()
         expect(response.status).equal(401)
@@ -59,7 +59,7 @@ describe('Admin', () => {
 
     it('RemoveUser', async () => {
         const response = await request(server.app)
-            .post(`/users/${shareData.user.key}/remove`)
+            .post(`/api/v1/users/${shareData.user.key}/remove`)
             .set('Authorization', `Bearer ${adminShareData.token}`)
             .send()
         expect(response.status).equal(200)
@@ -71,7 +71,9 @@ describe('Admin', () => {
     }).timeout(10000)
 
     it('Disable Login After Removed User', async () => {
-        const response = await request(server.app).post('/auth/login').send({ email: userData.email, password: userData.password, token: '123456' })
+        const response = await request(server.app)
+            .post('/api/v1/auth/login')
+            .send({ email: userData.email, password: userData.password, token: '123456' })
         validResponse(response.body)
         expect(response.status).equal(400)
     }).timeout(10000)
