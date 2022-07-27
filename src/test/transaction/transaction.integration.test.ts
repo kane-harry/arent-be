@@ -46,31 +46,31 @@ describe('Transaction', () => {
 
     it('GetAccountsByUser', async () => {
         const res1 = await request(server.app)
-            .get(`/api/v1/accounts/user/${shareData1.user?.key}`)
+            .get(`/api/v1/accounts/users/me`)
             .set('Authorization', `Bearer ${shareData1.token}`)
             .send()
         expect(res1.status).equal(200)
-        expect(res1.body).be.an('array')
-        shareData1.accounts = res1.body
+        expect(res1.body.items).be.an('array')
+        shareData1.accounts = res1.body.items
 
         const res2 = await request(server.app)
-            .get(`/api/v1/accounts/user/${shareData2.user?.key}`)
+            .get(`/api/v1/accounts/users/me`)
             .set('Authorization', `Bearer ${shareData2.token}`)
             .send()
         expect(res2.status).equal(200)
-        expect(res2.body).be.an('array')
-        shareData2.accounts = res2.body
+        expect(res2.body.items).be.an('array')
+        shareData2.accounts = res2.body.items
     }).timeout(10000)
 
     it('InitMasterAccounts', async () => {
-        const res1 = await request(server.app).post(`/api/v1/master/accounts/`).set('Authorization', `Bearer ${masterData.token}`).send()
+        const res1 = await request(server.app).post(`/api/v1/accounts/master`).set('Authorization', `Bearer ${masterData.token}`).send()
         expect(res1.status).equal(200)
     }).timeout(10000)
 
     it('GetMasterAccounts', async () => {
-        const res1 = await request(server.app).get(`/api/v1/master/accounts/`).set('Authorization', `Bearer ${masterData.token}`).send()
+        const res1 = await request(server.app).get(`/api/v1/accounts`).set('Authorization', `Bearer ${masterData.token}`).send()
         expect(res1.status).equal(200)
-        masterData.masterAccounts = res1.body.filter(item => item.symbol === symbol)
+        masterData.masterAccounts = res1.body.filter(item => item.symbol === symbol && item.user_key === 'MASTER')
     }).timeout(10000)
 
     it('MintMasterAccount', async () => {
@@ -338,7 +338,7 @@ describe('Transaction', () => {
         expect(res.status).equal(200)
         expect(res.body.account).be.an('object')
         expect(res.body.txns.items).be.an('array')
-        expect(res.body.txns.totalCount).exist
+        expect(res.body.txns.total_count).exist
         expect(res.body.txns.has_next_page).exist
         expect(res.body.txns.total_pages).exist
         expect(res.body.txns.page_index).equal(page_index)
@@ -353,7 +353,7 @@ describe('Transaction', () => {
         expect(res.status).equal(200)
         // expect(res.body.account).be.an('object')
         expect(res.body.txns.items).be.an('array')
-        expect(res.body.txns.totalCount).exist
+        expect(res.body.txns.total_count).exist
         expect(res.body.txns.has_next_page).exist
         expect(res.body.txns.total_pages).exist
         expect(res.body.txns.page_index).equal(page_index)

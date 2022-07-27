@@ -59,7 +59,7 @@ describe('Profile', () => {
 
     context('Test case for function uploadAvatar', () => {
         it('uploadAvatar should be throw without authenticate', async () => {
-            const res = await request(server.app).post('/users/avatar').attach('avatar', './src/test/init/test.jpeg')
+            const res = await request(server.app).post('/api/v1/users/avatar').attach('avatar', './src/test/init/test.jpeg')
             expect(res.status).equal(401)
             expect(res.body).empty
             expect(res.text).equal('Unauthorized')
@@ -80,7 +80,7 @@ describe('Profile', () => {
                 return { upload }
             })
             const res = await request(server.app)
-                .post('/users/avatar')
+                .post('/api/v1/users/avatar')
                 .set('Authorization', `Bearer ${shareData.token}`)
                 .attach('avatar', './src/test/init/test.jpeg')
 
@@ -104,7 +104,7 @@ describe('Profile', () => {
     it(`GetVerificationCode EmailUpdate`, async () => {
         const owner = updateData.email
         const codeType = CodeType.EmailUpdate
-        const res = await request(server.app).post('/verification/code/get').send({
+        const res = await request(server.app).post('/api/v1/verification/code/generate').send({
             codeType: codeType,
             owner: owner
         })
@@ -126,8 +126,8 @@ describe('Profile', () => {
     it(`GetVerificationCode PhoneUpdate`, async () => {
         const owner = await stripPhoneNumber(updateData.phone)
         const codeType = CodeType.PhoneUpdate
-        const res = await request(server.app).post('/verification/code/get').send({
-            codeType: codeType,
+        const res = await request(server.app).post('/api/v1/verification/code/generate').send({
+            code_type: codeType,
             owner: owner
         })
         expect(res.status).equal(200)
@@ -146,7 +146,7 @@ describe('Profile', () => {
     }).timeout(10000)
 
     it('GetPublicUserByChatName', async () => {
-        const updateRes = await request(server.app).get(`/users/${shareData.user.chatName}/brief`)
+        const updateRes = await request(server.app).get(`/api/v1/users/${shareData.user.chatName}/brief`)
 
         expect(updateRes.status).equal(200)
         validResponse(updateRes.body)
@@ -159,7 +159,7 @@ describe('Profile', () => {
 
     context('Test case for function updateUser', () => {
         it('updateUser should be throw without authenticate', async () => {
-            const res = await request(server.app).put('/users/profile').send(updateData)
+            const res = await request(server.app).put('/api/v1/users/profile').send(updateData)
             expect(res.status).equal(401)
             validResponse(res.body)
             expect(res.body).empty
@@ -167,7 +167,7 @@ describe('Profile', () => {
         })
 
         it('updateUser should be success', async () => {
-            const updateRes = await request(server.app).put(`/users/profile`).set('Authorization', `Bearer ${shareData.token}`).send(updateData)
+            const updateRes = await request(server.app).put(`/api/v1/users/profile`).set('Authorization', `Bearer ${shareData.token}`).send(updateData)
 
             expect(updateRes.status).equal(200)
             validResponse(updateRes.body)
@@ -183,14 +183,14 @@ describe('Profile', () => {
         const page_index = 1
         const page_size = 25
         const res = await request(server.app)
-            .get(`/users?page_index=${page_index}&page_size=${page_size}`)
+            .get(`/api/v1/users?page_index=${page_index}&page_size=${page_size}`)
             .set('Authorization', `Bearer ${adminShareData.token}`)
             .send()
         expect(res.status).equal(200)
         validResponse(res.body)
 
         expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
+        expect(res.body.total_count).exist
         expect(res.body.has_next_page).exist
         expect(res.body.total_pages).exist
         expect(res.body.page_index).equal(page_index)
@@ -198,7 +198,7 @@ describe('Profile', () => {
     }).timeout(10000)
 
     it('GetProfile', async () => {
-        const res = await request(server.app).get(`/users/${shareData.user.key}/profile`).set('Authorization', `Bearer ${shareData.token}`).send()
+        const res = await request(server.app).get(`/api/v1/users/${shareData.user.key}/profile`).set('Authorization', `Bearer ${shareData.token}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
 

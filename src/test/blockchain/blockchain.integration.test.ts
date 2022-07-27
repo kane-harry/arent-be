@@ -167,7 +167,7 @@ describe('Blockchain', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
+        expect(res.body.total_count).exist
         expect(res.body.has_next_page).exist
         expect(res.body.total_pages).exist
         expect(res.body.page_index).equal(page_index)
@@ -183,7 +183,7 @@ describe('Blockchain', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
+        expect(res.body.total_count).exist
         expect(res.body.has_next_page).exist
         expect(res.body.total_pages).exist
         expect(res.body.page_index).equal(page_index)
@@ -197,7 +197,7 @@ describe('Blockchain', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
+        expect(res.body.total_count).exist
         expect(res.body.has_next_page).exist
         expect(res.body.total_pages).exist
         expect(res.body.page_index).equal(page_index)
@@ -210,7 +210,7 @@ describe('Blockchain', () => {
         validResponse(res.body)
         expect(res.body.stats).be.an('object')
         expect(res.body.stats.totalVolume).be.an('number')
-        expect(res.body.stats.totalCount).be.an('number')
+        expect(res.body.stats.total_count).be.an('number')
         expect(res.body.stats.lastDayVolume).be.an('number')
         expect(res.body.stats.lastDayCount).be.an('number')
         expect(res.body.stats.volumes).be.an('array')
@@ -222,7 +222,7 @@ describe('Blockchain', () => {
         validResponse(res.body)
         expect(res.body.stats).be.an('object')
         expect(res.body.stats.totalVolume).be.an('number')
-        expect(res.body.stats.totalCount).be.an('number')
+        expect(res.body.stats.total_count).be.an('number')
         expect(res.body.stats.lastDayVolume).be.an('number')
         expect(res.body.stats.lastDayCount).be.an('number')
         expect(res.body.stats.volumes).be.an('array')
