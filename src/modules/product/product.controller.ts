@@ -20,7 +20,7 @@ class SiteController implements IController {
     }
 
     private async importProduct(req: Request, res: Response) {
-        const payload: ImportProductDto = req.body
+        const payload: ImportProductDto = req.body // should be an arrary since we support bulk import
         const operator = req.user as IUser
         const data = await ProductService.importProduct(payload, operator)
         return res.send(data)

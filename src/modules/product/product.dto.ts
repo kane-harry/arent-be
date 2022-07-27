@@ -10,8 +10,13 @@ export class ImportProductDto {
     @IsOptional()
     public type: string
 
+    // ethereum, polygon
     @IsNotEmpty()
     public platform: string
+
+    // admin can import nfts for user, if not admin and no user_key, get user key from token
+    @IsOptional()
+    public user_key: string
 }
 
 export class CreateProductDto {

@@ -6,7 +6,8 @@ import { ProductImportLogModel, ProductModel } from './product.model'
 export default class ProductService {
     static async importProduct(payload: ImportProductDto, operator: IUser) {
         const model = new ProductImportLogModel({
-            ...payload
+            ...payload,
+            creator: operator.key
         })
         await model.save()
     }
