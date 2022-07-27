@@ -43,7 +43,7 @@ describe('Blockchain', () => {
             sender: sender.address,
             recipient: recipient.address,
             amount: amount,
-            privateKey: sender.privateKey,
+            private_key: sender.privateKey,
             nonce: '1',
             notes: 'test notes'
         })
