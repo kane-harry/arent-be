@@ -215,7 +215,7 @@ export default class AccountService {
     /** MASTER */
     static async initMasterAccounts() {
         const masterAccounts = await AccountModel.find({
-            user_key: AccountType.Master,
+            type: AccountType.Master,
             removed: false
         })
             .select('-keyStore -salt')
