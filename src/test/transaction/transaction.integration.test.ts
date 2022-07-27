@@ -363,7 +363,7 @@ describe('Transaction', () => {
     it('Get Transaction Detail', async () => {
         const account = masterData.masterAccounts[0]
         const transaction = shareData1.transactions[0]
-        const res = await request(server.app).get(`/api/v1/transactions/txn/${transaction.key}`).send()
+        const res = await request(server.app).get(`/api/v1/transactions/${transaction.key}`).send()
         expect(res.status).equal(200)
         expect(res.body.key).equal(transaction.key)
         expect(res.body.symbol).equal(symbol)

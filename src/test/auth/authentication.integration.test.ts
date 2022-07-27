@@ -78,7 +78,7 @@ describe('Authentication', () => {
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
                 type: CodeType.ForgotPassword,
-                owner: shareData.user.key
+                owner: userData.email
             },
             {},
             { sort: { created_at: -1 } }
