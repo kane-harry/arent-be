@@ -14,7 +14,7 @@ import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections } from
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
 
 export default class AccountService {
-    private static async initAccounts(userKey: string, accountNameSuffix = 'Account') {
+    private static async initAccounts(userKey: string, type: string, accountNameSuffix = 'Account') {
         const accounts: any[] = []
         // const primeTokens = config.system.primeTokens.split(',')
         const primeTokens = config.system.primeTokens
@@ -33,7 +33,7 @@ export default class AccountService {
                 user_key: userKey,
                 name: accountName,
                 symbol: coinWallet.symbol,
-                type: AccountType.Master,
+                type: type,
                 extType: AccountExtType.Prime,
                 address: etherWallet.address,
                 platform: 'system',
@@ -162,7 +162,7 @@ export default class AccountService {
             throw new BizException(AuthErrors.invalid_user_id, new ErrorContext('account.service', 'initUserAccounts', {}))
         }
 
-        return await this.initAccounts(userKey)
+        return await this.initAccounts(userKey, AccountType.Prime)
     }
 
     static async getAccountKeyStore(key: string) {
@@ -227,7 +227,7 @@ export default class AccountService {
             )
         }
 
-        return await this.initAccounts('MASTER', 'MASTER')
+        return await this.initAccounts('MASTER', AccountType.Master)
     }
 
     static async mintMasterAccount(key: string, params: MintDto, options: { userKey: string; email: string }) {
