@@ -93,12 +93,14 @@ export default class AccountService {
     }
 
     protected static async bindingAccountBalance(account: any) {
-        if (account?.extType === AccountExtType.Prime) {
-            const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
-            return {
-                ...(account?.toJSON() || account),
-                amount: wallet.amount,
-                nonce: wallet.nonce
+        if (account?.ext_type === AccountExtType.Prime) {
+            const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
+            if (wallet) {
+                return {
+                    ...(account?.toJSON() || account),
+                    amount: wallet.amount,
+                    nonce: wallet.nonce
+                }
             }
         }
 
