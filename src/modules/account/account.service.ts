@@ -110,6 +110,9 @@ export default class AccountService {
 
         conditions.$and = filter(
             map(fields, (value, key) => {
+                if (!value) {
+                    return undefined
+                }
                 switch (key) {
                     case 'key':
                     case 'user_key':

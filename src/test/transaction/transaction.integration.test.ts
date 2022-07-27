@@ -328,36 +328,36 @@ describe('Transaction', () => {
     })
 
     it('Get Transactions by Account', async () => {
-        const pageIndex = 1
-        const pageSize = 25
+        const page_index = 1
+        const page_size = 25
         const account = masterData.masterAccounts[0]
         const res = await request(server.app)
-            .get(`/api/v1/transactions/accounts/${account.key}?page_index=${pageIndex}&page_size=${pageSize}`)
+            .get(`/api/v1/transactions/accounts/${account.key}?page_index=${page_index}&page_size=${page_size}`)
             .set('Authorization', `Bearer ${masterData.token}`)
             .send()
         expect(res.status).equal(200)
         expect(res.body.account).be.an('object')
         expect(res.body.txns.items).be.an('array')
         expect(res.body.txns.totalCount).exist
-        expect(res.body.txns.hasNextPage).exist
-        expect(res.body.txns.totalPages).exist
-        expect(res.body.txns.pageIndex).equal(pageIndex)
-        expect(res.body.txns.pageSize).equal(pageSize)
+        expect(res.body.txns.has_next_page).exist
+        expect(res.body.txns.total_pages).exist
+        expect(res.body.txns.page_index).equal(page_index)
+        expect(res.body.txns.page_size).equal(page_size)
         shareData1.transactions = res.body.txns.items
     }).timeout(10000)
 
     it('Get Transactions', async () => {
-        const pageIndex = 1
-        const pageSize = 25
-        const res = await request(server.app).get(`/api/v1/transactions?page_index=${pageIndex}&page_size=${pageSize}&terms=l`).send()
+        const page_index = 1
+        const page_size = 25
+        const res = await request(server.app).get(`/api/v1/transactions?page_index=${page_index}&page_size=${page_size}&terms=l`).send()
         expect(res.status).equal(200)
         // expect(res.body.account).be.an('object')
         expect(res.body.txns.items).be.an('array')
         expect(res.body.txns.totalCount).exist
-        expect(res.body.txns.hasNextPage).exist
-        expect(res.body.txns.totalPages).exist
-        expect(res.body.txns.pageIndex).equal(pageIndex)
-        expect(res.body.txns.pageSize).equal(pageSize)
+        expect(res.body.txns.has_next_page).exist
+        expect(res.body.txns.total_pages).exist
+        expect(res.body.txns.page_index).equal(page_index)
+        expect(res.body.txns.page_size).equal(page_size)
     }).timeout(10000)
 
     it('Get Transaction Detail', async () => {
@@ -372,11 +372,11 @@ describe('Transaction', () => {
     }).timeout(10000)
 
     it('Export Transactions by Account', async () => {
-        const pageIndex = 1
-        const pageSize = 25
+        const page_index = 1
+        const page_size = 25
         const account = masterData.masterAccounts[0]
         const res = await request(server.app)
-            .get(`/api/v1/transactions/export?symbol=${symbol}&key=${account.key}&page_index=${pageIndex}&page_size=${pageSize}`)
+            .get(`/api/v1/transactions/export?symbol=${symbol}&key=${account.key}&page_index=${page_index}&page_size=${page_size}`)
             .set('Authorization', `Bearer ${masterData.token}`)
             .send()
             .send()

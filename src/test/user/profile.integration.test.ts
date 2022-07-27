@@ -180,10 +180,10 @@ describe('Profile', () => {
     })
 
     it('GetUserList', async () => {
-        const pageIndex = 1
-        const pageSize = 25
+        const page_index = 1
+        const page_size = 25
         const res = await request(server.app)
-            .get(`/users?page_index=${pageIndex}&page_size=${pageSize}`)
+            .get(`/users?page_index=${page_index}&page_size=${page_size}`)
             .set('Authorization', `Bearer ${adminShareData.token}`)
             .send()
         expect(res.status).equal(200)
@@ -191,10 +191,10 @@ describe('Profile', () => {
 
         expect(res.body.items).be.an('array')
         expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
     }).timeout(10000)
 
     it('GetProfile', async () => {

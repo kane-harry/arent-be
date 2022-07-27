@@ -127,17 +127,17 @@ describe('Blockchain', () => {
     }).timeout(10000)
 
     it('Get Transactions by Symbol', async () => {
-        const pageIndex = 1
-        const pageSize = 25
-        const res = await request(server.app).get(`/api/v1/blockchain/${symbol}/txns?page_index=${pageIndex}&page_size=${pageSize}`).send()
+        const page_index = 1
+        const page_size = 25
+        const res = await request(server.app).get(`/api/v1/blockchain/${symbol}/txns?page_index=${page_index}&page_size=${page_size}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
         expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
         shareData.transactions = res.body.items
     }).timeout(10000)
 
@@ -158,80 +158,80 @@ describe('Blockchain', () => {
     }).timeout(10000)
 
     it('Get Transactions by Account', async () => {
-        const pageIndex = 1
-        const pageSize = 25
+        const page_index = 1
+        const page_size = 25
         const account = shareData.accounts[0]
         const res = await request(server.app)
-            .get(`/api/v1/blockchain/account/${account.address}/txns?page_index=${pageIndex}&page_size=${pageSize}`)
+            .get(`/api/v1/blockchain/account/${account.address}/txns?page_index=${page_index}&page_size=${page_size}`)
             .send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
         expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
     }).timeout(10000)
 
     it('Get Prime Account List', async () => {
-        const pageIndex = 1
-        const pageSize = 20
+        const page_index = 1
+        const page_size = 20
         const res = await request(server.app)
-            .get(`/api/v1/blockchain/${symbol}/accounts/prime/list?page_index=${pageIndex}&page_size=${pageSize}`)
+            .get(`/api/v1/blockchain/${symbol}/accounts/prime/list?page_index=${page_index}&page_size=${page_size}`)
             .send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
         expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
     }).timeout(10000)
 
     it('Get All Prime Account List', async () => {
-        const pageIndex = 1
-        const pageSize = 20
-        const res = await request(server.app).get(`/api/v1/blockchain/accounts/prime/list?page_index=${pageIndex}&page_size=${pageSize}`).send()
+        const page_index = 1
+        const page_size = 20
+        const res = await request(server.app).get(`/api/v1/blockchain/accounts/prime/list?page_index=${page_index}&page_size=${page_size}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
         expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
     }).timeout(10000)
 
     it('Get Prime Transaction List', async () => {
-        const pageIndex = 1
-        const pageSize = 20
+        const page_index = 1
+        const page_size = 20
         const res = await request(server.app)
-            .get(`/api/v1/blockchain/${symbol}/transactions/prime/list?page_index=${pageIndex}&page_size=${pageSize}`)
+            .get(`/api/v1/blockchain/${symbol}/transactions/prime/list?page_index=${page_index}&page_size=${page_size}`)
             .send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
         expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
     }).timeout(10000)
 
     it('Get All Prime Transaction List', async () => {
-        const pageIndex = 1
-        const pageSize = 20
-        const res = await request(server.app).get(`/api/v1/blockchain/transactions/prime/list?page_index=${pageIndex}&page_size=${pageSize}`).send()
+        const page_index = 1
+        const page_size = 20
+        const res = await request(server.app).get(`/api/v1/blockchain/transactions/prime/list?page_index=${page_index}&page_size=${page_size}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
         expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
     }).timeout(10000)
 
     it('Get Prime Transaction Stats', async () => {
