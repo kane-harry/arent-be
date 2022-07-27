@@ -76,7 +76,7 @@ describe('Transaction', () => {
     it('MintMasterAccount', async () => {
         const sender = masterData.masterAccounts[0]
         const res1 = await request(server.app)
-            .post(`/api/v1/master/accounts/${sender.key}/mint`)
+            .post(`/api/v1/accounts/${sender.key}/mint`)
             .set('Authorization', `Bearer ${masterData.token}`)
             .send({
                 amount: mintValue,
@@ -282,7 +282,7 @@ describe('Transaction', () => {
         await makeUserSuspend(adminData, UserStatus.Suspend)
         const sender = masterData.masterAccounts[0]
         const recipient = shareData2.accounts[0]
-        const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+        const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${masterData.token}`).send({
             symbol: symbol,
             sender: sender.address,
             recipient: recipient.address,
@@ -298,7 +298,7 @@ describe('Transaction', () => {
     it('Send Funds Wrong Balance', async () => {
         const sender = masterData.masterAccounts[0]
         const recipient = shareData2.accounts[0]
-        const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+        const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${masterData.token}`).send({
             symbol: symbol,
             sender: sender.address,
             recipient: recipient.address,
@@ -313,7 +313,7 @@ describe('Transaction', () => {
     it('Send Funds Out Of Balance', async () => {
         const sender = masterData.masterAccounts[0]
         const recipient = shareData2.accounts[0]
-        const res = await request(server.app).post(`/api/v1/transactions/send`).set('Authorization', `Bearer ${masterData.token}`).send({
+        const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${masterData.token}`).send({
             symbol: symbol,
             sender: sender.address,
             recipient: recipient.address,

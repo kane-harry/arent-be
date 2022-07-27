@@ -47,7 +47,7 @@ describe('Authentication', () => {
 
     it('RefreshToken', async () => {
         const res = await request(server.app)
-            .post('/auth/token/refresh')
+            .post('/api/v1/auth/token/refresh')
             .set('Authorization', `Bearer ${shareData.token}`)
             .send({ refreshToken: shareData.refreshToken })
         expect(res.status).equal(200)
@@ -56,7 +56,7 @@ describe('Authentication', () => {
     }).timeout(10000)
 
     it('Logout', async () => {
-        const res = await request(server.app).post('/auth/logout').set('Authorization', `Bearer ${shareData.token}`).send({
+        const res = await request(server.app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${shareData.token}`).send({
             refreshToken: shareData.refreshToken
         })
 
@@ -65,7 +65,7 @@ describe('Authentication', () => {
     }).timeout(10000)
 
     it('ForgotPassword', async () => {
-        const res1 = await request(server.app).post('/auth/password/forgot').send({
+        const res1 = await request(server.app).post('/api/v1/users/password/forgot').send({
             owner: userData.email,
             type: 'email'
         })
@@ -83,7 +83,7 @@ describe('Authentication', () => {
             {},
             { sort: { created_at: -1 } }
         ).exec()
-        const res1 = await request(server.app).post('/auth/password/reset').set('Authorization', `Bearer ${shareData.token}`).send({
+        const res1 = await request(server.app).post('/api/v1/users/password/reset').set('Authorization', `Bearer ${shareData.token}`).send({
             owner: userData.email,
             type: 'email',
             pin: userData.pin,
@@ -97,7 +97,7 @@ describe('Authentication', () => {
     }).timeout(10000)
 
     it('ForgotPin', async () => {
-        const res1 = await request(server.app).post('/auth/pin/forgot').send({
+        const res1 = await request(server.app).post('/api/v1/users/pin/forgot').send({
             owner: userData.email,
             type: 'email'
         })
@@ -115,7 +115,7 @@ describe('Authentication', () => {
             {},
             { sort: { created_at: -1 } }
         ).exec()
-        const res1 = await request(server.app).post('/auth/pin/reset').set('Authorization', `Bearer ${shareData.token}`).send({
+        const res1 = await request(server.app).post('/api/v1/users/pin/reset').set('Authorization', `Bearer ${shareData.token}`).send({
             owner: userData.email,
             type: 'email',
             password: newPassword,
