@@ -25,7 +25,7 @@ describe('Blockchain', () => {
 
     it('Create Account (Raw Account)', async () => {
         for (let i = 0; i < 3; i++) {
-            const res = await request(server.app).post(`/blockchain/new`).send({
+            const res = await request(server.app).post(`/api/v1/blockchain/new`).send({
                 symbol: symbol
             })
             expect(res.status).equal(200)
@@ -38,12 +38,12 @@ describe('Blockchain', () => {
     it('Generate signature', async () => {
         const sender = shareData.accounts[0]
         const recipient = shareData.accounts[1]
-        const res = await request(server.app).post(`/blockchain/signature`).send({
+        const res = await request(server.app).post(`/api/v1/blockchain/signature`).send({
             symbol: symbol,
             sender: sender.address,
             recipient: recipient.address,
             amount: amount,
-            privateKey: sender.privateKey,
+            private_key: sender.privateKey,
             nonce: '1',
             notes: 'test notes'
         })
@@ -59,21 +59,21 @@ describe('Blockchain', () => {
     }).timeout(10000)
 
     it('InitMasterAccounts', async () => {
-        const res1 = await request(server.app).post(`/master/accounts/`).set('Authorization', `Bearer ${shareMasterData.token}`).send()
+        const res1 = await request(server.app).post(`/api/v1/accounts/master`).set('Authorization', `Bearer ${shareMasterData.token}`).send()
         expect(res1.status).equal(200)
     }).timeout(10000)
 
     it('GetMasterAccounts', async () => {
-        const res1 = await request(server.app).get(`/master/accounts/`).set('Authorization', `Bearer ${shareMasterData.token}`).send()
+        const res1 = await request(server.app).get(`/api/v1/accounts/`).set('Authorization', `Bearer ${shareMasterData.token}`).send()
         expect(res1.status).equal(200)
         validResponse(res1.body)
-        shareMasterData.masterAccounts = res1.body.filter(item => item.symbol === symbol)
+        shareMasterData.masterAccounts = res1.body.items.filter(item => item.symbol === symbol && item.user_key === 'MASTER')
     }).timeout(10000)
 
     it('MintMasterAccount', async () => {
         const sender = shareMasterData.masterAccounts[0]
         const res1 = await request(server.app)
-            .post(`/master/accounts/${sender.key}/mint`)
+            .post(`/api/v1/accounts/${sender.key}/mint`)
             .set('Authorization', `Bearer ${shareMasterData.token}`)
             .send({
                 amount: 40996.3,
@@ -88,7 +88,7 @@ describe('Blockchain', () => {
         const amount = '10000'
         const sender = shareMasterData.masterAccounts[0]
         const recipient = shareData.accounts[0]
-        const res = await request(server.app).post(`/transactions/send`).set('Authorization', `Bearer ${shareMasterData.token}`).send({
+        const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${shareMasterData.token}`).send({
             symbol: symbol,
             sender: sender.address,
             recipient: recipient.address,
@@ -98,7 +98,7 @@ describe('Blockchain', () => {
         })
         expect(res.status).equal(200)
         validResponse(res.body)
-        expect(res.body.blockTime).be.an('number')
+        expect(res.body.block_time).be.an('number')
         expect(res.body.signature).be.an('string')
         expect(res.body.hash).be.an('string')
         expect(res.body.symbol).equal(symbol)
@@ -107,7 +107,7 @@ describe('Blockchain', () => {
     it('Broadcast Transaction', async () => {
         const sender = shareData.accounts[0]
         const recipient = shareData.accounts[1]
-        const res = await request(server.app).post(`/blockchain/send`).send({
+        const res = await request(server.app).post(`/api/v1/blockchain/send`).send({
             symbol: symbol,
             sender: sender.address,
             recipient: recipient.address,
@@ -119,7 +119,7 @@ describe('Blockchain', () => {
         })
         expect(res.status).equal(200)
         validResponse(res.body)
-        expect(res.body.blockTime).be.an('number')
+        expect(res.body.block_time).be.an('number')
         expect(res.body.signature).be.an('string')
         expect(res.body.hash).be.an('string')
         expect(res.body.symbol).equal(symbol)
@@ -127,23 +127,23 @@ describe('Blockchain', () => {
     }).timeout(10000)
 
     it('Get Transactions by Symbol', async () => {
-        const pageIndex = 1
-        const pageSize = 25
-        const res = await request(server.app).get(`/blockchain/${symbol}/txns?page_index=${pageIndex}&page_size=${pageSize}`).send()
+        const page_index = 1
+        const page_size = 25
+        const res = await request(server.app).get(`/api/v1/blockchain/${symbol}/txns?page_index=${page_index}&page_size=${page_size}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
+        expect(res.body.total_count).exist
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
         shareData.transactions = res.body.items
     }).timeout(10000)
 
     it('Get Account Detail', async () => {
         const account = shareData.accounts[0]
-        const res = await request(server.app).get(`/blockchain/${symbol}/address/${account.address}`).send()
+        const res = await request(server.app).get(`/api/v1/blockchain/${symbol}/address/${account.address}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.address).equal(account.address)
@@ -151,87 +151,61 @@ describe('Blockchain', () => {
 
     it('Get Transaction Detail', async () => {
         const transaction = shareData.transactions[0]
-        const res = await request(server.app).get(`/blockchain/transaction/${transaction.key}`).send()
+        const res = await request(server.app).get(`/api/v1/blockchain/transaction/${transaction.key}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.key).equal(transaction.key)
     }).timeout(10000)
 
     it('Get Transactions by Account', async () => {
-        const pageIndex = 1
-        const pageSize = 25
+        const page_index = 1
+        const page_size = 25
         const account = shareData.accounts[0]
-        const res = await request(server.app).get(`/blockchain/account/${account.address}/txns?page_index=${pageIndex}&page_size=${pageSize}`).send()
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
-    }).timeout(10000)
-
-    it('Get Prime Account List', async () => {
-        const pageIndex = 1
-        const pageSize = 20
-        const res = await request(server.app).get(`/blockchain/${symbol}/accounts/prime/list?page_index=${pageIndex}&page_size=${pageSize}`).send()
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
-    }).timeout(10000)
-
-    it('Get All Prime Account List', async () => {
-        const pageIndex = 1
-        const pageSize = 20
-        const res = await request(server.app).get(`/blockchain/accounts/prime/list?page_index=${pageIndex}&page_size=${pageSize}`).send()
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
-    }).timeout(10000)
-
-    it('Get Prime Transaction List', async () => {
-        const pageIndex = 1
-        const pageSize = 20
         const res = await request(server.app)
-            .get(`/blockchain/${symbol}/transactions/prime/list?page_index=${pageIndex}&page_size=${pageSize}`)
+            .get(`/api/v1/blockchain/account/${account.address}/txns?page_index=${page_index}&page_size=${page_size}`)
             .send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
+        expect(res.body.total_count).exist
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
     }).timeout(10000)
 
-    it('Get All Prime Transaction List', async () => {
-        const pageIndex = 1
-        const pageSize = 20
-        const res = await request(server.app).get(`/blockchain/transactions/prime/list?page_index=${pageIndex}&page_size=${pageSize}`).send()
+    it('Get Prime Transaction List', async () => {
+        const page_index = 1
+        const page_size = 20
+        const res = await request(server.app)
+            .get(`/api/v1/blockchain/${symbol}/transactions/prime/list?page_index=${page_index}&page_size=${page_size}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
+        expect(res.body.total_count).exist
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
+    }).timeout(10000)
+
+    it('Get All Prime Transaction List', async () => {
+        const page_index = 1
+        const page_size = 20
+        const res = await request(server.app).get(`/api/v1/blockchain/transactions/prime/list?page_index=${page_index}&page_size=${page_size}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items).be.an('array')
+        expect(res.body.total_count).exist
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
     }).timeout(10000)
 
     it('Get Prime Transaction Stats', async () => {
-        const res = await request(server.app).get(`/blockchain/${symbol}/transactions/prime/stats`).send()
+        const res = await request(server.app).get(`/api/v1/blockchain/${symbol}/transactions/prime/stats`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.stats).be.an('object')
@@ -243,7 +217,7 @@ describe('Blockchain', () => {
     }).timeout(10000)
 
     it('Get All Prime Transaction Stats', async () => {
-        const res = await request(server.app).get(`/blockchain/transactions/prime/stats`).send()
+        const res = await request(server.app).get(`/api/v1/blockchain/transactions/prime/stats`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.stats).be.an('object')
