@@ -14,6 +14,7 @@ export const config = {
         applicationName: String(process.env.APPLICATION_NAME || 'Pellar Federation'),
         defaultQueryPagesize: Number(process.env.DEFAULT_QUERY_PAGE_SIZE || 50),
         applicationEnableApiDoc: String(process.env.APPLICATION_OPEN_API_DOCS_ENABLED || false),
+        applicationApiRootURL: String(process.env.APPLICATION_API_ROOT_URL || `http://localhost:${process.env.PORT}`),
         primeToken: String(process.env.PRIME_TOKEN || 'LL'),
         primeTokens: String(process.env.PRIME_TOKENS || 'LL'),
         coinServerBaseUrl: String(process.env.COIN_SERVER_BASE_URL || 'http://localhost:3001'),

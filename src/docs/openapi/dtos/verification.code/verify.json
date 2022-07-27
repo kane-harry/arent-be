@@ -1,0 +1,53 @@
+{
+  "content": {
+    "application/json": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "code_type": {
+            "type": "string",
+            "enum": [
+              "EmailRegistration",
+              "PhoneRegistration",
+              "EmailUpdate",
+              "PhoneUpdate"
+            ]
+          },
+          "owner": {
+            "type": "string",
+            "example": "test-admin@test.com"
+          },
+          "user_key": {
+            "type": "string",
+            "additionalProperties": true
+          },
+          "code": {
+            "type": "number",
+            "example": 100562
+          }
+        },
+        "required": [
+          "code_type",
+          "owner",
+          "code"
+        ]
+      },
+      "examples": {
+        "Verify Register Email Code": {
+          "value": {
+            "code_type": "EmailRegistration",
+            "owner": "test-admin@test.com",
+            "code": 120765
+          }
+        },
+        "Verify Update Email Code": {
+          "value": {
+            "code_type": "EmailUpdate",
+            "owner": "test-admin@test.com",
+            "code": 120765
+          }
+        }
+      }
+    }
+  }
+}

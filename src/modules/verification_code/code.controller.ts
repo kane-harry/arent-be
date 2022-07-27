@@ -17,7 +17,7 @@ export default class VerificationCodeController implements IController {
     }
 
     private initializeRoutes() {
-        this.router.post(`${this.path}/code/get`, validationMiddleware(CreateCodeDto), asyncHandler(this.generateCode))
+        this.router.post(`${this.path}/code/generate`, validationMiddleware(CreateCodeDto), asyncHandler(this.generateCode))
         this.router.post(`${this.path}/code/verify`, validationMiddleware(VerifyCodeDto), asyncHandler(this.verifyCode))
     }
 
