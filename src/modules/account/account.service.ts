@@ -33,7 +33,7 @@ export default class AccountService {
                 user_key: userKey,
                 name: accountName,
                 symbol: coinWallet.symbol,
-                type: AccountType.Prime,
+                type: AccountType.Master,
                 extType: AccountExtType.Prime,
                 address: etherWallet.address,
                 platform: 'system',
