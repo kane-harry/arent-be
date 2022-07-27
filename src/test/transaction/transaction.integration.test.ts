@@ -233,7 +233,7 @@ describe('Transaction', () => {
             expect(res.body.symbol).equal(symbol)
             expect(res.body.sender).equal(sender.address)
             expect(res.body.recipient).equal(recipient.address)
-            expect(res.body.feeMode).equal(FeeMode.Exclusive)
+            expect(res.body.fee_mode).equal(FeeMode.Exclusive)
             expect(Math.abs(res.body.amount)).equal(Math.abs(amountSend.toString()))
 
             // Send 10, fee 0.1

@@ -124,7 +124,7 @@ export default class UserService extends AuthService {
         const postChatName = trim(toLower(params.chat_name))
         const preChatName = trim(toLower(user.chat_name))
         if (preChatName !== postChatName) {
-            const existUser = await UserModel.findOne({ chatName: new RegExp(postChatName, 'i'), removed: false }).exec()
+            const existUser = await UserModel.findOne({ chat_name: new RegExp(postChatName, 'i'), removed: false }).exec()
             if (existUser) {
                 throw new BizException(
                     AuthErrors.registration_chatname_exist_error,
