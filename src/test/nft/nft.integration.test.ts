@@ -231,27 +231,6 @@ describe('NFT', () => {
         expect(nft.owner).equal(res.body.owner)
     }).timeout(10000)
 
-    it(`Export NFT`, async () => {
-        const res = await request(server.app).post(`/api/v1/nfts/${shareData.nfts[0].key}/export`).set('Authorization', `Bearer ${shareData.token}`)
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        // TODO I don't known what logic for export nft, add later
-    }).timeout(10000)
-
-    it(`Import NFT`, async () => {
-        const res = await request(server.app)
-            .post(`/api/v1/nfts/import`)
-            .field('user_key', importNftData.user_key)
-            .field('contract_address', importNftData.contract_address)
-            .field('token_id', importNftData.token_id)
-            .field('network', importNftData.network)
-            .field('type', importNftData.type)
-            .field('status', importNftData.status)
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        // TODO I don't known what logic for import nft, add later
-    }).timeout(10000)
-
     it(`Update NFT`, async () => {
         const res = await request(server.app)
             .put(`/api/v1/nfts/${shareData.nfts[0].key}`)
@@ -273,6 +252,27 @@ describe('NFT', () => {
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
         expect(nft.removed).equal(true)
+    }).timeout(10000)
+
+    it(`Export NFT`, async () => {
+        const res = await request(server.app).post(`/api/v1/nfts/${shareData.nfts[0].key}/export`).set('Authorization', `Bearer ${shareData.token}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        // TODO I don't known what logic for export nft, add later
+    }).timeout(10000)
+
+    it(`Import NFT`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts/import`)
+            .field('user_key', importNftData.user_key)
+            .field('contract_address', importNftData.contract_address)
+            .field('token_id', importNftData.token_id)
+            .field('network', importNftData.network)
+            .field('type', importNftData.type)
+            .field('status', importNftData.status)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        // TODO I don't known what logic for import nft, add later
     }).timeout(10000)
 
     it(`Delete Collection`, async () => {
