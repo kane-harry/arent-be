@@ -1,7 +1,7 @@
 import IBaseModel from '@interfaces/base.model.interface'
 import { Types } from 'mongoose'
 
-export interface IProduct extends IBaseModel {
+export interface INft extends IBaseModel {
     name: string
     title: string
     description: string
@@ -17,7 +17,7 @@ export interface IProduct extends IBaseModel {
     status: string
 }
 
-export interface IProductImportLog extends IBaseModel {
+export interface INftImportLog extends IBaseModel {
     user_key: string
     contract_address: string
     token_id: string

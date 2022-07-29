@@ -1,9 +1,9 @@
 import { config } from '@config'
 import { randomBytes } from 'crypto'
 import { Schema, Types, model } from 'mongoose'
-import { IProduct, IProductImportLog } from './product.interface'
+import { INft, INftImportLog } from './nft.interface'
 
-const productSchema = new Schema<IProduct>(
+const nftSchema = new Schema<INft>(
     {
         key: {
             type: String,
@@ -42,9 +42,9 @@ const productSchema = new Schema<IProduct>(
     }
 )
 
-const ProductModel = model<IProduct>('products', productSchema)
+const NftModel = model<INft>('nfts', nftSchema)
 
-const productImportLogSchema = new Schema<IProductImportLog>({
+const nftImportLogSchema = new Schema<INftImportLog>({
     key: {
         type: String,
         required: true,
@@ -63,5 +63,5 @@ const productImportLogSchema = new Schema<IProductImportLog>({
     removed: { type: Boolean, default: false }
 })
 
-const ProductImportLogModel = model<IProductImportLog>('product_import_logs', productImportLogSchema)
-export { ProductModel, ProductImportLogModel }
+const NftImportLogModel = model<INftImportLog>('nft_import_logs', nftImportLogSchema)
+export { NftModel, NftImportLogModel }

@@ -1,6 +1,6 @@
 import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsPositive } from 'class-validator'
 
-export class ImportProductDto {
+export class ImportNftDto {
     @IsNotEmpty()
     public contract_address: string
 
@@ -19,7 +19,7 @@ export class ImportProductDto {
     public user_key: string
 }
 
-export class CreateProductDto {
+export class CreateNftDto {
     @IsNotEmpty()
     public name: string
 
