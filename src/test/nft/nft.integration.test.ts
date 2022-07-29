@@ -163,4 +163,12 @@ describe('NFT', () => {
         expect(nft.status).equal(updateNftData.status)
         expect(nft.on_market).equal(updateNftData.on_market)
     }).timeout(10000)
+
+    it(`Burn NFT`, async () => {
+        const res = await request(server.app).delete(`/api/v1/nfts/${shareData.nfts[0].key}`).set('Authorization', `Bearer ${shareData.token}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.removed).equal(true)
+    }).timeout(10000)
 })
