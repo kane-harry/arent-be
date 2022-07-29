@@ -40,6 +40,13 @@ const createNftData = {
         }
     ]
 }
+
+const updateNftData = {
+    owner: '',
+    status: '',
+    on_market: ''
+}
+
 describe('NFT', () => {
     before(async () => {
         await dbTest.connect()
@@ -140,5 +147,20 @@ describe('NFT', () => {
         expect(nft.collection_key).equal(res.body.collection_key)
         expect(nft.creator).equal(res.body.creator)
         expect(nft.owner).equal(res.body.owner)
+    }).timeout(10000)
+
+    it(`Update NFT`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/nfts/${shareData.nfts[0].key}`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .field('owner', updateNftData.owner)
+            .field('status', updateNftData.status)
+            .field('on_market', updateNftData.on_market)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.owner).equal(updateNftData.owner)
+        expect(nft.status).equal(updateNftData.status)
+        expect(nft.on_market).equal(updateNftData.on_market)
     }).timeout(10000)
 })
