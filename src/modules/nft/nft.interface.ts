@@ -7,14 +7,19 @@ export interface INft extends IBaseModel {
     description: string
     tags: string
     price: number | Types.Decimal128
-    platform: string
-    source: string
+    currency: string
+    metadata: [] | undefined
     image: object // {}
     images: object | [] | undefined
+    type: string
+    amount: number
     attributes: [] | undefined
+    on_market: boolean
     creator: string
     owner: string
+    nft_token_id: string
     status: string
+    collection_key: string
 }
 
 export interface INftImportLog extends IBaseModel {

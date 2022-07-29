@@ -6,6 +6,7 @@ import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
 import { initDataForUser } from '@app/test/init/authenticate'
 import { CollectionModel } from '@modules/collection/collection.model'
+import { NftModel } from '@modules/nft/nft.model'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -25,11 +26,17 @@ const createNftData = {
     title: 'title',
     description: 'description',
     tags: 'tag1,tag2',
-    price: 'price',
-    currency: 'currency',
-    metadata: 'metadata',
+    price: 5000,
+    currency: 'LL',
+    nft_token_id: '232423432',
+    metadata: [
+        {
+            player: 'Ronaldo',
+            year: 2020
+        }
+    ],
     type: 'type',
-    amount: 'amount',
+    amount: 1,
     attributes: [
         {
             trait_type: 'creator',
@@ -136,9 +143,10 @@ describe('NFT', () => {
             .field('tags', createNftData.tags)
             .field('price', createNftData.price)
             .field('currency', createNftData.currency)
-            .field('metadata', createNftData.metadata)
+            .field('metadata', JSON.stringify(createNftData.metadata))
             .field('type', createNftData.type)
             .field('amount', createNftData.amount)
+            .field('nft_token_id', createNftData.nft_token_id)
             .field('attributes', JSON.stringify(createNftData.attributes))
             .field('collection_key', shareData.collections[0].key)
             .attach('nft', './src/test/init/test.jpeg')
@@ -151,19 +159,23 @@ describe('NFT', () => {
         expect(nft.title).equal(createNftData.title)
         expect(nft.description).equal(createNftData.description)
         expect(nft.tags).equal(createNftData.tags)
-        expect(nft.price).equal(createNftData.price)
+        expect(nft.price.toString()).equal(createNftData.price.toString())
         expect(nft.currency).equal(createNftData.currency)
-        expect(nft.metadata).equal(createNftData.metadata)
+        expect(nft.metadata[0].year).equal(createNftData.metadata[0].year)
+        expect(nft.metadata[0].player).equal(createNftData.metadata[0].player)
         expect(nft.type).equal(createNftData.type)
         expect(nft.amount).equal(createNftData.amount)
-        expect(nft.attributes).equal(createNftData.attributes)
+        expect(nft.nft_token_id).equal(createNftData.nft_token_id)
+        expect(nft.attributes[0].trait_type).equal(createNftData.attributes[0].trait_type)
+        expect(nft.attributes[0].value).equal(createNftData.attributes[0].value)
+        expect(nft.attributes[1].trait_type).equal(createNftData.attributes[1].trait_type)
+        expect(nft.attributes[1].value).equal(createNftData.attributes[1].value)
 
         //Generate
         expect(nft.image.normal.length).gt(0)
         expect(nft.image.thumb.length).gt(0)
         expect(nft.images.length).gt(0)
         expect(nft.on_market).exist
-        expect(nft.nft_token_id).exist
         expect(nft.status).exist
 
         //Relation

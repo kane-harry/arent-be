@@ -39,6 +39,9 @@ export class CreateNftDto {
     public platform: string
 
     @IsOptional()
+    public nft_token_id: string
+
+    @IsOptional()
     public source: string
 
     @IsNotEmpty()

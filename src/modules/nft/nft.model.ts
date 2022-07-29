@@ -19,19 +19,30 @@ const nftSchema = new Schema<INft>(
         description: String,
         tags: String,
         price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        currency: String,
+        metadata: { type: [Object], default: [] },
         image: Object,
         images: { type: [Object], default: [] },
+        type: String,
+        amount: Number,
         attributes: { type: [Object], default: [] },
-
+        on_market: Boolean,
         creator: String,
         owner: String,
+        nft_token_id: String,
         status: String,
+        collection_key: String,
         removed: { type: Boolean, default: false }
     },
     {
         toJSON: {
             virtuals: true,
-            getters: true
+            getters: true,
+            transform: (doc, ret) => {
+                delete ret._id
+                ret.price = ret.price.toString()
+                return ret
+            }
         },
         timestamps: {
             createdAt: 'created',

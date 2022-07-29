@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Router, Request, Response } from 'express'
 import asyncHandler from '@utils/asyncHandler'
 import IController from '@interfaces/controller.interface'
@@ -22,7 +23,6 @@ class NftController implements IController {
         this.router.post(
             `${this.path}`,
             requireAuth,
-            requireAdmin(),
             asyncHandler(
                 handleFiles([
                     { name: 'nft', maxCount: 1 },
@@ -51,8 +51,28 @@ class NftController implements IController {
 
     private createNft = async (req: AuthenticationRequest, res: Response) => {
         const createNftDto: CreateNftDto = req.body
+        createNftDto.attributes = createNftDto.attributes && createNftDto.attributes.length ? JSON.parse(createNftDto.attributes) : []
+        createNftDto.metadata = createNftDto.metadata && createNftDto.metadata.length ? JSON.parse(createNftDto.metadata) : []
+        if (res?.locals?.files_uploaded?.length) {
+            createNftDto.image = { normal: '', thumb: '' }
+            const original = res.locals.files_uploaded.find((item: any) => item.type === 'original' && item.fieldname === 'nft')
+            createNftDto.image.normal = original?.key
+            const thumb = res.locals.files_uploaded.find((item: any) => item.type === 'thumb' && item.fieldname === 'nft')
+            createNftDto.image.thumb = thumb?.key
+
+            const images = res.locals.files_uploaded.filter((item: any) => item.fieldname === 'images')
+            const tempImages = {}
+            images.forEach((image: any) => {
+                const name = image.name
+                const type = image.type
+                tempImages[name] = tempImages[name] ?? {}
+                tempImages[name].name = name
+                tempImages[name][type] = image.key
+            })
+            createNftDto.images = Object.values(tempImages)
+        }
         const nft = await NftService.createNft(createNftDto, req.user)
-        return res.send(nft)
+        return res.json(nft)
     }
 }
 
