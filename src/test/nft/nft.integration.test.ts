@@ -47,6 +47,21 @@ const updateNftData = {
     on_market: ''
 }
 
+const createCollectionData = {
+    name: '',
+    description: '',
+    type: ''
+}
+
+const importNftData = {
+    user_key: '',
+    contract_address: '',
+    token_id: '',
+    network: '',
+    type: '',
+    status: ''
+}
+
 describe('NFT', () => {
     before(async () => {
         await dbTest.connect()
@@ -209,12 +224,12 @@ describe('NFT', () => {
     it(`Import NFT`, async () => {
         const res = await request(server.app)
             .post(`/api/v1/nfts/import`)
-            .field('user_key', createNftData.user_key)
-            .field('contract_address', createNftData.contract_address)
-            .field('token_id', createNftData.token_id)
-            .field('network', createNftData.network)
-            .field('type', createNftData.type)
-            .field('status', createNftData.status)
+            .field('user_key', importNftData.user_key)
+            .field('contract_address', importNftData.contract_address)
+            .field('token_id', importNftData.token_id)
+            .field('network', importNftData.network)
+            .field('type', importNftData.type)
+            .field('status', importNftData.status)
         expect(res.status).equal(200)
         validResponse(res.body)
         // TODO I don't known what logic for import nft, add later
