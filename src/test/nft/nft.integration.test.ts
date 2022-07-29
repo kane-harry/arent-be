@@ -94,6 +94,22 @@ describe('NFT', () => {
         shareData.collections = res.body.items
     }).timeout(10000)
 
+    it(`Get Collection Detail`, async () => {
+        const res = await request(server.app).get(`/api/v1/collections/${shareData.collections[0].key}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+
+        const collection = await CollectionModel.findOne({ key: shareData.collections[0].key })
+        expect(collection.name).equal(res.body.name)
+        expect(collection.description).equal(res.body.description)
+        expect(collection.type).equal(res.body.type)
+        expect(collection.logo).equal(res.body.logo)
+        expect(collection.background).equal(res.body.background)
+        expect(collection.items_count).equal(res.body.items_count)
+        expect(collection.creator).equal(res.body.creator)
+        expect(collection.owner).equal(res.body.owner)
+    }).timeout(10000)
+
     it(`Create NFT`, async () => {
         const res = await request(server.app)
             .post(`/api/v1/nfts`)
