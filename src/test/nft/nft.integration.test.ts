@@ -98,4 +98,11 @@ describe('NFT', () => {
         expect(nft.creator).equal(shareData.user.key)
         expect(nft.owner).equal(shareData.user.key)
     }).timeout(10000)
+
+    it(`List NFTs`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts`).set('Authorization', `Bearer ${shareData.token}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        shareData.nfts = res.body.items
+    }).timeout(10000)
 })
