@@ -50,9 +50,9 @@ const createNftData = {
 }
 
 const updateNftData = {
-    owner: '',
-    status: '',
-    on_market: ''
+    owner: 'safdsafsf',
+    status: 'on_sale',
+    on_market: true
 }
 
 const createCollectionData = {
@@ -235,9 +235,7 @@ describe('NFT', () => {
         const res = await request(server.app)
             .put(`/api/v1/nfts/${shareData.nfts[0].key}`)
             .set('Authorization', `Bearer ${shareData.token}`)
-            .field('owner', updateNftData.owner)
-            .field('status', updateNftData.status)
-            .field('on_market', updateNftData.on_market)
+            .send(updateNftData)
         expect(res.status).equal(200)
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })

@@ -53,3 +53,14 @@ export class CreateNftDto {
     @IsOptional()
     public images: any[]
 }
+
+export class UpdateNftDto {
+    @IsOptional()
+    public owner: string
+
+    @IsOptional()
+    public status: string
+
+    @IsOptional()
+    public on_market: string
+}

@@ -3,7 +3,7 @@ import { Router, Request, Response } from 'express'
 import asyncHandler from '@utils/asyncHandler'
 import IController from '@interfaces/controller.interface'
 import NftService from './nft.service'
-import { CreateNftDto, ImportNftDto } from './nft.dto'
+import { CreateNftDto, ImportNftDto, UpdateNftDto } from './nft.dto'
 import { requireAuth } from '@utils/authCheck'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUser } from '@modules/user/user.interface'
@@ -47,6 +47,7 @@ class NftController implements IController {
         this.router.get(`${this.path}/`, asyncHandler(this.queryNFTs))
         this.router.get(`${this.path}/users/:key`, asyncHandler(this.queryMyNFTs))
         this.router.get(`${this.path}/:key`, asyncHandler(this.getNftDetail))
+        this.router.put(`${this.path}/:key`, requireAuth, asyncHandler(this.updateNft))
     }
 
     private async importNft(req: Request, res: Response) {
@@ -99,6 +100,13 @@ class NftController implements IController {
     private async getNftDetail(req: CustomRequest, res: Response) {
         const { key } = req.params
         const data = await NftModel.findOne({ key })
+        return res.json(data)
+    }
+
+    private async updateNft(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const updateNftDto: UpdateNftDto = req.body
+        const data = await NftService.updateNft(key, updateNftDto, req.user)
         return res.json(data)
     }
 }

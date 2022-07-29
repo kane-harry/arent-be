@@ -71,3 +71,7 @@ export const UpdatePhoneEmailErrors = {
     code_type_not_supported: { code: 5001, status: 400, message: 'Code type not supported' },
     code_invalid_error: { code: 5004, status: 400, message: 'Invalid verification code.' }
 }
+
+export const NftErrors = {
+    nft_not_exists_error: { code: 7001, status: 400, message: 'Nft not found.' }
+}
