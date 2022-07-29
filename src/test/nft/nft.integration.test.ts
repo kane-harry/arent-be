@@ -156,6 +156,20 @@ describe('NFT', () => {
         // TODO I don't known what logic for export nft, add later
     }).timeout(10000)
 
+    it(`Import NFT`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts/import`)
+            .field('user_key', createNftData.user_key)
+            .field('contract_address', createNftData.contract_address)
+            .field('token_id', createNftData.token_id)
+            .field('network', createNftData.network)
+            .field('type', createNftData.type)
+            .field('status', createNftData.status)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        // TODO I don't known what logic for import nft, add later
+    }).timeout(10000)
+
     it(`Update NFT`, async () => {
         const res = await request(server.app)
             .put(`/api/v1/nfts/${shareData.nfts[0].key}`)
