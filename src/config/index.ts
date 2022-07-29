@@ -114,6 +114,7 @@ export const config = {
             accounts: 'accounts',
             admin_logs: 'admin_logs',
             auth_tokens: 'auth_tokens',
+            collections: 'collections',
             exception_logs: 'exception_logs',
             settings: 'settings',
             users: 'users',

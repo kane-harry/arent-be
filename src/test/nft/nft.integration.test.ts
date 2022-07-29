@@ -5,6 +5,7 @@ import request from 'supertest'
 import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
 import { initDataForUser } from '@app/test/init/authenticate'
+import { CollectionModel } from '@modules/collection/collection.model'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -48,9 +49,9 @@ const updateNftData = {
 }
 
 const createCollectionData = {
-    name: '',
-    description: '',
-    type: ''
+    name: 'collection name',
+    description: 'collection description',
+    type: 'sports'
 }
 
 const importNftData = {
