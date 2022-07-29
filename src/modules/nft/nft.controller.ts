@@ -13,6 +13,7 @@ import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middl
 import { ICollectionFilter } from '@modules/collection/collection.interface'
 import CollectionService from '@modules/collection/collection.service'
 import { INftFilter } from '@modules/nft/nft.interface'
+import { NftModel } from '@modules/nft/nft.model'
 
 class NftController implements IController {
     public path = '/nfts'
@@ -45,6 +46,7 @@ class NftController implements IController {
         this.router.post(`${this.path}/external/import`, requireAuth, validationMiddleware(ImportNftDto), asyncHandler(this.importNft))
         this.router.get(`${this.path}/`, asyncHandler(this.queryNFTs))
         this.router.get(`${this.path}/users/:key`, asyncHandler(this.queryMyNFTs))
+        this.router.get(`${this.path}/:key`, asyncHandler(this.getNftDetail))
     }
 
     private async importNft(req: Request, res: Response) {
@@ -91,6 +93,12 @@ class NftController implements IController {
         const filter = req.query as INftFilter
         filter.owner = key
         const data = await NftService.queryNfts(filter)
+        return res.json(data)
+    }
+
+    private async getNftDetail(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const data = await NftModel.findOne({ key })
         return res.json(data)
     }
 }

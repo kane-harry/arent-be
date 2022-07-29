@@ -206,19 +206,23 @@ describe('NFT', () => {
         expect(nft.title).equal(res.body.title)
         expect(nft.description).equal(res.body.description)
         expect(nft.tags).equal(res.body.tags)
-        expect(nft.price).equal(res.body.price)
+        expect(nft.price.toString()).equal(res.body.price.toString())
         expect(nft.currency).equal(res.body.currency)
-        expect(nft.metadata).equal(res.body.metadata)
+        expect(nft.metadata[0].year).equal(res.body.metadata[0].year)
+        expect(nft.metadata[0].player).equal(res.body.metadata[0].player)
         expect(nft.type).equal(res.body.type)
         expect(nft.amount).equal(res.body.amount)
-        expect(nft.attributes).equal(res.body.attributes)
+        expect(nft.nft_token_id).equal(res.body.nft_token_id)
+        expect(nft.attributes[0].trait_type).equal(res.body.attributes[0].trait_type)
+        expect(nft.attributes[0].value).equal(res.body.attributes[0].value)
+        expect(nft.attributes[1].trait_type).equal(res.body.attributes[1].trait_type)
+        expect(nft.attributes[1].value).equal(res.body.attributes[1].value)
 
         //Generate
         expect(nft.image.normal).equal(res.body.image.normal)
         expect(nft.image.thumb).equal(res.body.image.thumb)
-        expect(nft.images).equal(res.body.images)
+        expect(JSON.stringify(nft.images)).equal(JSON.stringify(res.body.images))
         expect(nft.on_market).equal(res.body.on_market)
-        expect(nft.nft_token_id).equal(res.body.nft_token_id)
         expect(nft.status).equal(res.body.status)
 
         //Relation
