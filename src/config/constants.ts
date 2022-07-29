@@ -88,3 +88,5 @@ export enum AccountExtType {
     Prime = 'PRIME',
     Ext = 'EXT'
 }
+
+export const MASTER_ACCOUNT_KEY = 'MASTER'

@@ -3,14 +3,14 @@ import AccountModel from './account.model'
 import { createEtherWallet } from '@utils/wallet'
 import { QueryRO } from '@interfaces/query.model'
 import { config } from '@config'
-import { filter, map, split } from 'lodash'
+import { filter, map, size, split } from 'lodash'
 import { MintDto, WithdrawDto } from './account.dto'
 import { AccountErrors, AuthErrors } from '@exceptions/custom.error'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import { IUser } from '@modules/user/user.interface'
-import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections } from '@config/constants'
+import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections, MASTER_ACCOUNT_KEY } from '@config/constants'
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
 
 export default class AccountService {
@@ -30,16 +30,16 @@ export default class AccountService {
         for (const coinWallet of coinWallets) {
             const accountName = `${coinWallet.symbol} ${accountNameSuffix}`
             const account = new AccountModel({
-                userKey: userKey,
+                user_key: userKey,
                 name: accountName,
                 symbol: coinWallet.symbol,
-                type: AccountType.Prime,
-                extType: AccountExtType.Prime,
+                type: userKey === MASTER_ACCOUNT_KEY ? AccountType.Master : AccountType.Prime,
+                ext_type: AccountExtType.Prime,
                 address: etherWallet.address,
                 platform: 'system',
                 salt: etherWallet.salt,
-                keyStore: etherWallet.key_store,
-                extKey: coinWallet.key
+                key_store: etherWallet.key_store,
+                ext_key: coinWallet.key
             })
             accounts.push(account)
         }
@@ -49,15 +49,15 @@ export default class AccountService {
             const accountName = `${token.symbol} ${accountNameSuffix}`
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
-                    userKey: userKey,
+                    user_key: userKey,
                     name: accountName,
                     symbol: token.symbol,
-                    type: AccountType.Ext,
-                    extType: AccountExtType.Ext,
+                    type: userKey === MASTER_ACCOUNT_KEY ? AccountType.Master : AccountType.Ext,
+                    ext_type: AccountExtType.Ext,
                     address: etherWallet.address,
                     platform: token.platform,
                     salt: etherWallet.salt,
-                    keyStore: etherWallet.key_store
+                    key_store: etherWallet.key_store
                 })
                 accounts.push(account)
             } else {
@@ -71,15 +71,15 @@ export default class AccountService {
             if (token.symbol) {
                 const accountName = `${token.symbol} ${accountNameSuffix}`
                 const account = new AccountModel({
-                    userKey: userKey,
+                    user_key: userKey,
                     name: accountName,
                     symbol: token.symbol,
-                    type: AccountType.Ext,
-                    extType: AccountExtType.Ext,
+                    type: userKey === MASTER_ACCOUNT_KEY ? AccountType.Master : AccountType.Ext,
+                    ext_type: AccountExtType.Ext,
                     address: etherWallet.address,
                     platform: 'ethereum',
                     salt: etherWallet.salt,
-                    keyStore: etherWallet.key_store,
+                    key_store: etherWallet.key_store,
                     metaData: {
                         contract: token.contract,
                         decimals: token.decimals
@@ -93,12 +93,14 @@ export default class AccountService {
     }
 
     protected static async bindingAccountBalance(account: any) {
-        if (account?.extType === AccountExtType.Prime) {
-            const wallet = await PrimeCoinProvider.getWalletByKey(account.extKey)
-            return {
-                ...(account?.toJSON() || account),
-                amount: wallet.amount,
-                nonce: wallet.nonce
+        if (account?.ext_type === AccountExtType.Prime) {
+            const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
+            if (wallet) {
+                return {
+                    ...(account?.toJSON() || account),
+                    amount: wallet.amount,
+                    nonce: wallet.nonce
+                }
             }
         }
 
@@ -110,6 +112,9 @@ export default class AccountService {
 
         conditions.$and = filter(
             map(fields, (value, key) => {
+                if (!value) {
+                    return undefined
+                }
                 switch (key) {
                     case 'key':
                     case 'user_key':
@@ -195,7 +200,7 @@ export default class AccountService {
 
     static async withdraw(key: string, params: WithdrawDto, operator: IUser) {
         const account = await AccountService.getAccountKeyStore(key)
-        if (account.type === AccountExtType.Prime) {
+        if (account.type === AccountType.Prime) {
             throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { key }))
         }
         if (account.user_key !== operator.key) {
@@ -209,18 +214,16 @@ export default class AccountService {
 
     /** MASTER */
     static async initMasterAccounts() {
-        const masterAccounts = await this.getAccountDetailByFields({
-            type: AccountType.Master,
-            removed: false
-        })
-        if (masterAccounts) {
+        const masterAccounts = await AccountModel.find({ type: AccountType.Master, removed: false }).select('-keyStore -salt').exec()
+
+        if (size(masterAccounts)) {
             throw new BizException(
                 AccountErrors.master_accounts_initialized_error,
                 new ErrorContext('account.master.service', 'initMasterAccounts', {})
             )
         }
 
-        return await this.initAccounts('MASTER', 'MASTER')
+        return await this.initAccounts(MASTER_ACCOUNT_KEY, 'Master')
     }
 
     static async mintMasterAccount(key: string, params: MintDto, options: { userKey: string; email: string }) {

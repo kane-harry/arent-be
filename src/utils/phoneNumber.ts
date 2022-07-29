@@ -39,6 +39,7 @@ export const getPhoneInfo = (phone: string) => {
     if (phoneInfo?.isValid()) {
         result.country = String(phoneInfo?.country).toUpperCase()
         result.phone = stripPhoneNumber(phone)
+        result.is_valid = true
     }
     return result
 }

@@ -1,4 +1,4 @@
-import { AccountType } from '@config/constants'
+import { AccountExtType, AccountType } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
 import IFilterModel from '@interfaces/filter.model.interface'
 import { Types } from 'mongoose'
@@ -8,8 +8,8 @@ export interface IAccount extends IBaseModel {
     user_key: string
     name: string
     symbol: string
-    type: string
-    ext_type: string
+    type: AccountType
+    ext_type: AccountExtType
     address: string
     platform: string
     amount: number | Types.Decimal128

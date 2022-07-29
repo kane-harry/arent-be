@@ -1,4 +1,5 @@
 import { config } from '@config'
+import { AccountExtType, AccountType } from '@config/constants'
 import { randomBytes } from 'crypto'
 import { Schema, Types, model } from 'mongoose'
 import { IAccount } from './account.interface'
@@ -18,8 +19,8 @@ const accountSchema = new Schema<IAccount>(
         name: String,
         symbol: { type: String, uppercase: true, index: true },
         platform: String,
-        type: { type: String, uppercase: true, default: 'EXT' },
-        ext_type: { type: String, uppercase: true, default: 'PRIME' },
+        type: { type: String, enum: AccountType, default: AccountType.Ext },
+        ext_type: { type: String, enum: AccountExtType, default: AccountExtType.Prime },
         address: String,
         amount: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         amount_locked: { type: Types.Decimal128, default: new Types.Decimal128('0') },
