@@ -80,7 +80,7 @@ describe('NFT', () => {
         //Generate
         expect(collection.logo.length).gt(0)
         expect(collection.background.length).gt(0)
-        expect(items_count).exist
+        expect(collection.items_count).exist
 
         //Relation
         expect(collection.creator).equal(shareData.user.key)
@@ -241,5 +241,16 @@ describe('NFT', () => {
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
         expect(nft.removed).equal(true)
+    }).timeout(10000)
+
+    it(`Delete Collection`, async () => {
+        const res = await request(server.app)
+            .delete(`/api/v1/collections/${shareData.collections[0].key}`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const collection = await CollectionModel.findOne({ key: shareData.collections[0].key })
+        expect(collection.removed).equal(true)
+        expect(collection.items_count).equal(0)
     }).timeout(10000)
 })
