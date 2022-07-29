@@ -42,8 +42,11 @@ export class CreateNftDto {
     public source: string
 
     @IsNotEmpty()
-    public image: string
-
-    @IsNotEmpty()
     public attributes: string
+
+    @IsOptional()
+    public image: object
+
+    @IsOptional()
+    public images: any[]
 }
