@@ -1,5 +1,6 @@
 import IBaseModel from '@interfaces/base.model.interface'
 import { Types } from 'mongoose'
+import IFilterModel from '@interfaces/filter.model.interface'
 
 export interface INft extends IBaseModel {
     name: string
@@ -29,4 +30,8 @@ export interface INftImportLog extends IBaseModel {
     type: string
     platform: string
     status: string
+}
+
+export interface INftFilter extends IFilterModel {
+    terms?: string
 }

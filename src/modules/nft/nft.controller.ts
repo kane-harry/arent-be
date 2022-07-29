@@ -9,7 +9,10 @@ import validationMiddleware from '@middlewares/validation.middleware'
 import { IUser } from '@modules/user/user.interface'
 import { requireAdmin } from '@config/role'
 import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
-import { AuthenticationRequest } from '@middlewares/request.middleware'
+import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
+import { ICollectionFilter } from '@modules/collection/collection.interface'
+import CollectionService from '@modules/collection/collection.service'
+import { INftFilter } from '@modules/nft/nft.interface'
 
 class NftController implements IController {
     public path = '/nfts'
@@ -40,6 +43,7 @@ class NftController implements IController {
             asyncHandler(this.createNft)
         )
         this.router.post(`${this.path}/external/import`, requireAuth, validationMiddleware(ImportNftDto), asyncHandler(this.importNft))
+        this.router.get(`${this.path}/`, asyncHandler(this.queryNFTs))
     }
 
     private async importNft(req: Request, res: Response) {
@@ -73,6 +77,12 @@ class NftController implements IController {
         }
         const nft = await NftService.createNft(createNftDto, req.user)
         return res.json(nft)
+    }
+
+    private async queryNFTs(req: CustomRequest, res: Response) {
+        const filter = req.query as INftFilter
+        const data = await NftService.queryNfts(filter)
+        return res.json(data)
     }
 }
 
