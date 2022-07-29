@@ -44,6 +44,7 @@ class NftController implements IController {
         )
         this.router.post(`${this.path}/external/import`, requireAuth, validationMiddleware(ImportNftDto), asyncHandler(this.importNft))
         this.router.get(`${this.path}/`, asyncHandler(this.queryNFTs))
+        this.router.get(`${this.path}/users/:key`, asyncHandler(this.queryMyNFTs))
     }
 
     private async importNft(req: Request, res: Response) {
@@ -81,6 +82,14 @@ class NftController implements IController {
 
     private async queryNFTs(req: CustomRequest, res: Response) {
         const filter = req.query as INftFilter
+        const data = await NftService.queryNfts(filter)
+        return res.json(data)
+    }
+
+    private async queryMyNFTs(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const filter = req.query as INftFilter
+        filter.owner = key
         const data = await NftService.queryNfts(filter)
         return res.json(data)
     }

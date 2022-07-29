@@ -34,6 +34,9 @@ export default class NftService {
             const reg = new RegExp(params.terms)
             filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { title: reg }, { tags: reg }]
         }
+        if (params.owner) {
+            filter.owner = params.owner
+        }
         if (params.sort_by) {
             delete sorting._id
             sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1

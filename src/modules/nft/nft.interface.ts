@@ -34,4 +34,5 @@ export interface INftImportLog extends IBaseModel {
 
 export interface INftFilter extends IFilterModel {
     terms?: string
+    owner?: string
 }
