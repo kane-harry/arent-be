@@ -1,12 +1,12 @@
-// @ts-nocheck
-import { Router, Request, Response } from 'express'
+import { Router, Response } from 'express'
 import asyncHandler from '@utils/asyncHandler'
 import IController from '@interfaces/controller.interface'
 import CollectionService from './collection.service'
 import { CreateCollectionDto } from './collection.dto'
 import { requireAuth } from '@utils/authCheck'
-import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
-import { AuthenticationRequest } from '@middlewares/request.middleware'
+import { handleFiles, uploadFiles } from '@middlewares/files.middleware'
+import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
+import { ICollectionFilter } from '@modules/collection/collection.interface'
 
 class CollectionController implements IController {
     public path = '/collections'
@@ -30,6 +30,7 @@ class CollectionController implements IController {
             asyncHandler(uploadFiles('background')),
             asyncHandler(this.createCollection)
         )
+        this.router.get(`${this.path}/`, asyncHandler(this.queryCollections))
     }
 
     private createCollection = async (req: AuthenticationRequest, res: Response) => {
@@ -42,6 +43,12 @@ class CollectionController implements IController {
         }
         const collection = await CollectionService.createCollection(createCollectionDto, req.user)
         return res.send(collection)
+    }
+
+    private async queryCollections(req: CustomRequest, res: Response) {
+        const filter = req.query as ICollectionFilter
+        const data = await CollectionService.queryCollections(filter)
+        return res.json(data)
     }
 }
 

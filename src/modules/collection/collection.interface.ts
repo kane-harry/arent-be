@@ -1,4 +1,5 @@
 import IBaseModel from '@interfaces/base.model.interface'
+import IFilterModel from '@interfaces/filter.model.interface'
 
 export interface ICollection extends IBaseModel {
     name: string
@@ -9,4 +10,8 @@ export interface ICollection extends IBaseModel {
     background: string
     type: string
     items_count: number
+}
+
+export interface ICollectionFilter extends IFilterModel {
+    terms?: string
 }
