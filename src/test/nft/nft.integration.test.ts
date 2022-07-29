@@ -149,6 +149,13 @@ describe('NFT', () => {
         expect(nft.owner).equal(res.body.owner)
     }).timeout(10000)
 
+    it(`Export NFT`, async () => {
+        const res = await request(server.app).post(`/api/v1/nfts/${shareData.nfts[0].key}/export`).set('Authorization', `Bearer ${shareData.token}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        // TODO I don't known what logic for export nft, add later
+    }).timeout(10000)
+
     it(`Update NFT`, async () => {
         const res = await request(server.app)
             .put(`/api/v1/nfts/${shareData.nfts[0].key}`)
