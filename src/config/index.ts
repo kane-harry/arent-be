@@ -116,6 +116,7 @@ export const config = {
             auth_tokens: 'auth_tokens',
             collections: 'collections',
             exception_logs: 'exception_logs',
+            nfts: 'nfts',
             settings: 'settings',
             users: 'users',
             user_history: 'user_history',

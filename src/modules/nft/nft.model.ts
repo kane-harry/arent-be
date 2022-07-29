@@ -49,7 +49,7 @@ const nftSchema = new Schema<INft>(
             updatedAt: 'modified'
         },
         versionKey: 'version',
-        collection: config.database.tables.users
+        collection: config.database.tables.nfts
     }
 )
 
