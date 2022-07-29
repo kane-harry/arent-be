@@ -111,4 +111,34 @@ describe('NFT', () => {
         validResponse(res.body)
         shareData.nfts = res.body.items
     }).timeout(10000)
+
+    it(`Get NFT Detail`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts/${shareData.nfts[0].key}`).set('Authorization', `Bearer ${shareData.token}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.name).equal(res.body.name)
+        expect(nft.title).equal(res.body.title)
+        expect(nft.description).equal(res.body.description)
+        expect(nft.tags).equal(res.body.tags)
+        expect(nft.price).equal(res.body.price)
+        expect(nft.currency).equal(res.body.currency)
+        expect(nft.metadata).equal(res.body.metadata)
+        expect(nft.type).equal(res.body.type)
+        expect(nft.amount).equal(res.body.amount)
+        expect(nft.attributes).equal(res.body.attributes)
+
+        //Generate
+        expect(nft.image.normal).equal(res.body.image.normal)
+        expect(nft.image.thumb).equal(res.body.image.thumb)
+        expect(nft.images).equal(res.body.images)
+        expect(nft.on_market).equal(res.body.on_market)
+        expect(nft.nft_token_id).equal(res.body.nft_token_id)
+        expect(nft.status).equal(res.body.status)
+
+        //Relation
+        expect(nft.collection_key).equal(res.body.collection_key)
+        expect(nft.creator).equal(res.body.creator)
+        expect(nft.owner).equal(res.body.owner)
+    }).timeout(10000)
 })
