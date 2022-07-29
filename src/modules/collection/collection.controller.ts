@@ -7,6 +7,7 @@ import { requireAuth } from '@utils/authCheck'
 import { handleFiles, uploadFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
+import { CollectionModel } from '@modules/collection/collection.model'
 
 class CollectionController implements IController {
     public path = '/collections'
@@ -31,6 +32,7 @@ class CollectionController implements IController {
             asyncHandler(this.createCollection)
         )
         this.router.get(`${this.path}/`, asyncHandler(this.queryCollections))
+        this.router.get(`${this.path}/:key`, asyncHandler(this.getCollectionDetail))
     }
 
     private createCollection = async (req: AuthenticationRequest, res: Response) => {
@@ -48,6 +50,12 @@ class CollectionController implements IController {
     private async queryCollections(req: CustomRequest, res: Response) {
         const filter = req.query as ICollectionFilter
         const data = await CollectionService.queryCollections(filter)
+        return res.json(data)
+    }
+
+    private getCollectionDetail = async (req: AuthenticationRequest, res: Response) => {
+        const key = req.params.key
+        const data = await CollectionModel.findOne({ key })
         return res.json(data)
     }
 }
