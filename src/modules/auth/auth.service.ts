@@ -54,7 +54,7 @@ export default class AuthService {
         if (!mfaEnabled) {
             return { status: 'verified' }
         }
-        const mfaType = user.mfa_settings.mfa_type
+        const mfaType = user.mfa_settings.type
         if (!code || !code.length || code === 'undefined') {
             const deliveryMethod = (owner: any, code: string) => {
                 if (mfaType === MFAType.EMAIL) {
