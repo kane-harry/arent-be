@@ -3,7 +3,6 @@ import IFilterModel from '@interfaces/filter.model.interface'
 import { Types } from 'mongoose'
 
 export interface ITransaction extends IBaseModel {
-    key?: string
     owner: string
     symbol: string
     sender: string
