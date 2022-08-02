@@ -9,6 +9,8 @@ import VerificationCodeController from '@modules/verification_code/code.controll
 import SiteController from '@modules/site/site.controller'
 import SettingController from '@modules/setting/setting.controller'
 import AdminLogController from '@modules/admin_logs/admin_log.controller'
+import NftController from '@modules/nft/nft.controller'
+import CollectionController from '@modules/collection/collection.controller'
 
 const app = new App([
     new VerificationCodeController(),
@@ -19,7 +21,9 @@ const app = new App([
     new BlockchainController(),
     new SiteController(),
     new SettingController(),
-    new AdminLogController()
+    new AdminLogController(),
+    new NftController(),
+    new CollectionController()
 ])
 
 app.listen()

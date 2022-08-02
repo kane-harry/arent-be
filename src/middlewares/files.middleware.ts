@@ -26,13 +26,14 @@ export const handleFiles = (fields: multer.Field[]) => async (req: Request, res:
         let allFiles: any[] = []
 
         forEach(fields, field => {
-            if (!files[field.name]) return
+            if (!files || !files[field.name]) return
             allFiles = [
                 ...allFiles,
                 ...map(files[field.name], (file: any) => {
                     return {
                         ...file,
-                        type: 'original'
+                        type: 'original',
+                        name: `${file.originalname}`
                     }
                 })
             ]
@@ -124,8 +125,11 @@ export const resizeImages =
 
 export const uploadFiles = (folder?: string) => async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const files: any = req.files
-
+        let files: any = req.files
+        if (folder) {
+            // @ts-ignore
+            files = files.filter(item => item.fieldname === folder)
+        }
         const s3 = new S3({
             credentials: {
                 accessKeyId: config.amazonS3.key,
@@ -160,12 +164,13 @@ export const uploadFiles = (folder?: string) => async (req: Request, res: Respon
             return {
                 fieldname: files[idx]?.fieldname,
                 type: files[idx]?.type,
+                name: files[idx]?.name,
                 location: el.Location,
                 key: el.Key
             }
         })
-
-        res.locals.files_uploaded = filesUploaded
+        res.locals.files_uploaded = res.locals.files_uploaded ?? []
+        res.locals.files_uploaded.push(...filesUploaded)
         next()
     } catch (err) {
         console.log(err)
