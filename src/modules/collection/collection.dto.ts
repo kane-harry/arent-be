@@ -12,7 +12,4 @@ export class CreateCollectionDto {
 
     @IsOptional()
     public background: string
-
-    @IsOptional()
-    public type: string
 }

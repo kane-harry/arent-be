@@ -20,7 +20,7 @@ const collectionSchema = new Schema<ICollection>(
         owner: String,
         logo: String,
         background: String,
-        type: String,
+        type: { type: String, default: 'normal' },
         items_count: Number,
         removed: { type: Boolean, default: false }
     },
