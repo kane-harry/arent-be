@@ -7,13 +7,16 @@ import { CreateNftDto, ImportNftDto, UpdateNftDto } from './nft.dto'
 import { requireAuth } from '@utils/authCheck'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUser } from '@modules/user/user.interface'
-import { requireAdmin } from '@config/role'
+import { isAdmin, requireAdmin } from '@config/role'
 import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
 import CollectionService from '@modules/collection/collection.service'
 import { INftFilter } from '@modules/nft/nft.interface'
 import { NftModel } from '@modules/nft/nft.model'
+import BizException from '@exceptions/biz.exception'
+import { AuthErrors, NftErrors } from '@exceptions/custom.error'
+import ErrorContext from '@exceptions/error.context'
 
 class NftController implements IController {
     public path = '/nfts'
@@ -52,6 +55,7 @@ class NftController implements IController {
         this.router.get(`${this.path}/users/:key`, asyncHandler(this.queryMyNFTs))
         this.router.get(`${this.path}/:key`, asyncHandler(this.getNftDetail))
         this.router.put(`${this.path}/:key`, requireAuth, asyncHandler(this.updateNft))
+        this.router.delete(`${this.path}/:key`, requireAuth, asyncHandler(this.deleteNft))
     }
 
     private async importNft(req: Request, res: Response) {
@@ -112,6 +116,20 @@ class NftController implements IController {
         const updateNftDto: UpdateNftDto = req.body
         const data = await NftService.updateNft(key, updateNftDto, req.user)
         return res.json(data)
+    }
+
+    private async deleteNft(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const nft = await NftModel.findOne({ key })
+        if (!nft) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
+        }
+        if (!isAdmin(req.user?.role) && req.user?.key !== nft.owner) {
+            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
+        }
+        nft.set('owner', '00000000000000000000000000000000', String)
+        await nft.save()
+        return res.json(nft)
     }
 }
 

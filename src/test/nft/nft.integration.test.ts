@@ -250,11 +250,12 @@ describe('NFT', () => {
     }).timeout(10000)
 
     it(`Burn NFT`, async () => {
+        await NftModel.updateOne({ key: shareData.nfts[0].key }, { $set: { owner: shareData.user.key } }, { upsert: true }).exec()
         const res = await request(server.app).delete(`/api/v1/nfts/${shareData.nfts[0].key}`).set('Authorization', `Bearer ${shareData.token}`)
         expect(res.status).equal(200)
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.removed).equal(true)
+        expect(nft.owner).equal('00000000000000000000000000000000')
     }).timeout(10000)
 
     it(`Export NFT`, async () => {
