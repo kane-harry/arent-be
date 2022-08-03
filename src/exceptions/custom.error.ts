@@ -52,7 +52,7 @@ export const TransactionErrors = {
 }
 
 export const DepositErrors = {
-    deposit_type_not_supported: { code: 4100, status: 400, message: 'Deposit type not supported' },
+    deposit_type_not_supported: { code: 4100, status: 400, message: 'Deposit type is not supported' },
     account_deposit_stripe_id_null: { code: 4101, status: 400, message: 'Account Deposit Stripe Id Null' },
     account_is_not_exist: { code: 4102, status: 400, message: 'Account is not existed' },
     deposit_stripe_disabled: { code: 4103, status: 400, message: 'Deposit Stripe Disabled' },
@@ -61,18 +61,18 @@ export const DepositErrors = {
 }
 
 export const VerificationCodeErrors = {
-    verification_code_type_not_supported: { code: 5001, status: 400, message: 'Code type not supported' },
+    verification_code_type_not_supported: { code: 5001, status: 400, message: 'Code type is not supported' },
     verification_code_duplicate_request_in_minute_error: { code: 5002, status: 400, message: 'Please request verification code after 1 minute.' },
     verification_code_duplicate_request_in_hour_error: { code: 5003, status: 400, message: 'Please request verification code after 1 hour.' },
     verification_code_invalid_error: { code: 5004, status: 400, message: 'Invalid verification code.' }
 }
 
 export const UpdatePhoneEmailErrors = {
-    code_type_not_supported: { code: 5001, status: 400, message: 'Code type not supported' },
+    code_type_not_supported: { code: 5001, status: 400, message: 'Code type is not supported' },
     code_invalid_error: { code: 5004, status: 400, message: 'Invalid verification code.' }
 }
 
 export const NftErrors = {
     nft_not_exists_error: { code: 7001, status: 400, message: 'Nft not found.' },
-    nft_image_error: { code: 7002, status: 400, message: 'Nft image error.' }
+    nft_image_error: { code: 7002, status: 400, message: 'Nft Image is required.' }
 }
