@@ -38,7 +38,7 @@ export const config = {
 
     jwtAccess: {
         secret: String(process.env.JWT_ACCESS_SECRET),
-        tokenExpiresIn: String(process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '30m') // 30 mins
+        tokenExpiresIn: String(process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '60m') // 30 mins
     },
 
     jwtRefresh: {
