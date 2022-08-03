@@ -42,7 +42,7 @@ export const config = {
     },
 
     jwtRefresh: {
-        secret: String(process.env.JWT_REFRESH_SECRET),
+        secret: String(process.env.JWT_ACCESS_SECRET),
         tokenExpiresIn: String(process.env.JWT_REFRESH_TOKEN_EXPIRES_IN || '7d') // 7 days
     },
 
