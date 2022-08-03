@@ -211,7 +211,7 @@ export default class AuthService {
 
         // create token
         const accessToken = AuthModel.createAccessToken(user.key, currentTimestamp)
-
+        const refreshToken = AuthModel.createRefreshToken(user.key, currentTimestamp)
         user.set('login_count', 0, Number)
         user.set('locked_timestamp', currentTimestamp, Number)
         user.set('token_version', currentTimestamp, Number)
@@ -224,7 +224,7 @@ export default class AuthService {
             ip_address: options?.req.ip_address
         }).save()
 
-        return { user: user, token: accessToken }
+        return { user: user, token: accessToken, refreshToken }
     }
 
     static async refreshToken(userKey: string) {

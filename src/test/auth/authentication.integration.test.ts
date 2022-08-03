@@ -45,16 +45,6 @@ describe('Authentication', () => {
         expect(shareData.token.length).gt(0)
     }).timeout(10000)
 
-    it('RefreshToken', async () => {
-        const res = await request(server.app)
-            .post('/api/v1/auth/token/refresh')
-            .set('Authorization', `Bearer ${shareData.token}`)
-            .send({ refreshToken: shareData.refreshToken })
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        expect(res?.body?.token).exist
-    }).timeout(10000)
-
     it('Logout', async () => {
         const res = await request(server.app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${shareData.token}`).send({
             refreshToken: shareData.refreshToken
@@ -62,6 +52,13 @@ describe('Authentication', () => {
 
         expect(res.status).equal(200)
         validResponse(res.body)
+    }).timeout(10000)
+
+    it('RefreshToken', async () => {
+        const res = await request(server.app).post('/api/v1/auth/token/refresh').set('Authorization', `Bearer ${shareData.refreshToken}`).send({})
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res?.body?.token).exist
     }).timeout(10000)
 
     it('ForgotPassword', async () => {
