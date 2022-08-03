@@ -12,6 +12,7 @@ import { isAdmin } from '@config/role'
 import BizException from '@exceptions/biz.exception'
 import { AccountErrors, AuthErrors, CollectionErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
+import { NftModel } from '@modules/nft/nft.model'
 
 class CollectionController implements IController {
     public path = '/collections'
@@ -37,6 +38,7 @@ class CollectionController implements IController {
         )
         this.router.get(`${this.path}/`, asyncHandler(this.queryCollections))
         this.router.get(`${this.path}/:key`, asyncHandler(this.getCollectionDetail))
+        this.router.delete(`${this.path}/:key`, requireAuth, asyncHandler(this.deleteCollection))
         this.router.put(
             `${this.path}/:key`,
             requireAuth,
@@ -107,6 +109,27 @@ class CollectionController implements IController {
         if (updateCollectionDto.background) {
             collection.set('background', updateCollectionDto.background, String)
         }
+        await collection.save()
+        return res.json(collection)
+    }
+
+    private deleteCollection = async (req: AuthenticationRequest, res: Response) => {
+        const key = req.params.key
+        const collection = await CollectionModel.findOne({ key })
+        if (!collection) {
+            throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+        }
+        if (!isAdmin(req.user?.role) && req.user?.key !== collection.owner) {
+            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+        }
+        const nfts = await NftModel.find({ collection_key: collection.key, on_market: true })
+        if (nfts.length) {
+            throw new BizException(
+                CollectionErrors.collection_has_approved_nfts,
+                new ErrorContext('collection.service', 'updateCollection', { nfts })
+            )
+        }
+        collection.set('removed', true, Boolean)
         await collection.save()
         return res.json(collection)
     }

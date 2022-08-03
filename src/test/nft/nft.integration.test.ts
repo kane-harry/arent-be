@@ -52,7 +52,7 @@ const createNftData = {
 const updateNftData = {
     owner: 'safdsafsf',
     status: 'on_sale',
-    on_market: true
+    on_market: false
 }
 
 const createCollectionData = {
@@ -63,8 +63,7 @@ const createCollectionData = {
 
 const updateCollectionData = {
     name: 'update collection name',
-    description: 'update collection description',
-    owner: 'new owner'
+    description: 'update collection description'
 }
 
 const importNftData = {
@@ -114,7 +113,7 @@ describe('NFT', () => {
         //Relation
         expect(collection.creator).equal(shareData.user.key)
         expect(collection.owner).equal(shareData.user.key)
-    }).timeout(10000)
+    }).timeout(20000)
 
     it(`List Collections`, async () => {
         const res = await request(server.app).get(`/api/v1/collections`)
@@ -188,7 +187,7 @@ describe('NFT', () => {
         expect(nft.collection_key).equal(shareData.collections[0].key)
         expect(nft.creator).equal(shareData.user.key)
         expect(nft.owner).equal(shareData.user.key)
-    }).timeout(10000)
+    }).timeout(20000)
 
     it(`List NFTs`, async () => {
         const res = await request(server.app).get(`/api/v1/nfts`).set('Authorization', `Bearer ${shareData.token}`)
@@ -285,7 +284,6 @@ describe('NFT', () => {
             .set('Authorization', `Bearer ${shareData.token}`)
             .field('name', updateCollectionData.name)
             .field('description', updateCollectionData.description)
-            .field('owner', updateCollectionData.owner)
             .attach('logo', './src/test/init/test.jpeg')
             .attach('background', './src/test/init/test.jpeg')
         expect(res.status).equal(200)
@@ -294,7 +292,6 @@ describe('NFT', () => {
         //Form data
         expect(collection.name).equal(updateCollectionData.name)
         expect(collection.description).equal(updateCollectionData.description)
-        expect(collection.owner).equal(updateCollectionData.owner)
 
         //Generate
         expect(collection.logo.length).gt(0)

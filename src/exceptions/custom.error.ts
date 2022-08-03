@@ -78,5 +78,6 @@ export const NftErrors = {
 }
 
 export const CollectionErrors = {
-    collection_not_exists_error: { code: 8001, status: 400, message: 'Collection not found.' }
+    collection_not_exists_error: { code: 8001, status: 400, message: 'Collection not found.' },
+    collection_has_approved_nfts: { code: 8001, status: 400, message: 'Can not delete collection has approve NFTs.' }
 }
