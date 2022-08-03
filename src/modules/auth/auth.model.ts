@@ -58,12 +58,13 @@ export class AuthModel extends model<IAuthToken>(config.database.tables.auth_tok
         return jwt.sign(payload, secret, { expiresIn })
     }
 
-    public static createRefreshToken(userKey: string) {
+    public static createRefreshToken(userKey: string, tokenVersion: number) {
         const expiresIn = config.jwtRefresh.tokenExpiresIn
         const secret = String(config.jwtRefresh.secret)
         // TODO: add client id ? not allow multiple device ?
         const payload = {
-            key: userKey
+            key: userKey,
+            token_version: tokenVersion
         }
         return jwt.sign(payload, secret, { expiresIn })
     }

@@ -36,7 +36,11 @@ class NftController implements IController {
             asyncHandler(
                 resizeImages({
                     nft: [{ maxSize: 300, id: 'thumb' }],
-                    images: [{ maxSize: 1280, id: 'lg' }]
+                    images: [
+                        { maxSize: 1280, id: 'lg' },
+                        { maxSize: 600, id: 'md' },
+                        { maxSize: 300, id: 'sm' }
+                    ]
                 })
             ),
             asyncHandler(uploadFiles('nft')),
