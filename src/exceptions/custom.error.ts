@@ -76,3 +76,7 @@ export const NftErrors = {
     nft_not_exists_error: { code: 7001, status: 400, message: 'Nft not found.' },
     nft_image_error: { code: 7002, status: 400, message: 'Nft Image is required.' }
 }
+
+export const CollectionErrors = {
+    collection_not_exists_error: { code: 8001, status: 400, message: 'Collection not found.' }
+}

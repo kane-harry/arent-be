@@ -2,12 +2,16 @@ import { Router, Response } from 'express'
 import asyncHandler from '@utils/asyncHandler'
 import IController from '@interfaces/controller.interface'
 import CollectionService from './collection.service'
-import { CreateCollectionDto } from './collection.dto'
+import { CreateCollectionDto, UpdateCollectionDto } from './collection.dto'
 import { requireAuth } from '@utils/authCheck'
 import { handleFiles, uploadFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
 import { CollectionModel } from '@modules/collection/collection.model'
+import { isAdmin } from '@config/role'
+import BizException from '@exceptions/biz.exception'
+import { AccountErrors, AuthErrors, CollectionErrors } from '@exceptions/custom.error'
+import ErrorContext from '@exceptions/error.context'
 
 class CollectionController implements IController {
     public path = '/collections'
@@ -33,6 +37,19 @@ class CollectionController implements IController {
         )
         this.router.get(`${this.path}/`, asyncHandler(this.queryCollections))
         this.router.get(`${this.path}/:key`, asyncHandler(this.getCollectionDetail))
+        this.router.put(
+            `${this.path}/:key`,
+            requireAuth,
+            asyncHandler(
+                handleFiles([
+                    { name: 'logo', maxCount: 1 },
+                    { name: 'background', maxCount: 1 }
+                ])
+            ),
+            asyncHandler(uploadFiles('logo')),
+            asyncHandler(uploadFiles('background')),
+            asyncHandler(this.updateCollection)
+        )
     }
 
     private createCollection = async (req: AuthenticationRequest, res: Response) => {
@@ -57,6 +74,41 @@ class CollectionController implements IController {
         const key = req.params.key
         const data = await CollectionModel.findOne({ key })
         return res.json(data)
+    }
+
+    private updateCollection = async (req: AuthenticationRequest, res: Response) => {
+        const key = req.params.key
+        const updateCollectionDto: UpdateCollectionDto = req.body
+        if (res?.locals?.files_uploaded?.length) {
+            const logo = res.locals.files_uploaded.find((item: any) => item.type === 'original' && item.fieldname === 'logo')
+            updateCollectionDto.logo = logo?.key
+            const background = res.locals.files_uploaded.find((item: any) => item.type === 'original' && item.fieldname === 'background')
+            updateCollectionDto.background = background?.key
+        }
+        const collection = await CollectionModel.findOne({ key })
+        if (!collection) {
+            throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+        }
+        if (!isAdmin(req.user?.role) && req.user?.key !== collection.owner) {
+            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+        }
+        if (updateCollectionDto.name) {
+            collection.set('name', updateCollectionDto.name, String)
+        }
+        if (updateCollectionDto.description) {
+            collection.set('description', updateCollectionDto.description, String)
+        }
+        if (updateCollectionDto.owner) {
+            collection.set('owner', updateCollectionDto.owner, String)
+        }
+        if (updateCollectionDto.logo) {
+            collection.set('logo', updateCollectionDto.logo, String)
+        }
+        if (updateCollectionDto.background) {
+            collection.set('background', updateCollectionDto.background, String)
+        }
+        await collection.save()
+        return res.json(collection)
     }
 }
 

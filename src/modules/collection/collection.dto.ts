@@ -13,3 +13,20 @@ export class CreateCollectionDto {
     @IsOptional()
     public background: string
 }
+
+export class UpdateCollectionDto {
+    @IsNotEmpty()
+    public name: string
+
+    @IsOptional()
+    public description: string
+
+    @IsOptional()
+    public logo: string
+
+    @IsOptional()
+    public background: string
+
+    @IsOptional()
+    public owner: string
+}

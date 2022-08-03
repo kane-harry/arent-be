@@ -61,6 +61,12 @@ const createCollectionData = {
     type: 'sports'
 }
 
+const updateCollectionData = {
+    name: 'update collection name',
+    description: 'update collection description',
+    owner: 'new owner'
+}
+
 const importNftData = {
     user_key: '',
     contract_address: '',
@@ -271,6 +277,28 @@ describe('NFT', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         // TODO I don't known what logic for import nft, add later
+    }).timeout(10000)
+
+    it(`Update collection`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/collections/${shareData.collections[0].key}`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .field('name', updateCollectionData.name)
+            .field('description', updateCollectionData.description)
+            .field('owner', updateCollectionData.owner)
+            .attach('logo', './src/test/init/test.jpeg')
+            .attach('background', './src/test/init/test.jpeg')
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const collection = await CollectionModel.findOne({ key: res.body.key })
+        //Form data
+        expect(collection.name).equal(updateCollectionData.name)
+        expect(collection.description).equal(updateCollectionData.description)
+        expect(collection.owner).equal(updateCollectionData.owner)
+
+        //Generate
+        expect(collection.logo.length).gt(0)
+        expect(collection.background.length).gt(0)
     }).timeout(10000)
 
     it(`Delete Collection`, async () => {
