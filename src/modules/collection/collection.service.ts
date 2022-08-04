@@ -1,5 +1,5 @@
 import { IUser } from '@modules/user/user.interface'
-import { CreateCollectionDto, UpdateCollectionDto } from './collection.dto'
+import { AssignCollectionDto, CreateCollectionDto, UpdateCollectionDto } from './collection.dto'
 import { CollectionModel } from './collection.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { QueryRO } from '@interfaces/query.model'
@@ -100,6 +100,18 @@ export default class CollectionService {
             )
         }
         collection.set('removed', true, Boolean)
+        return await collection.save()
+    }
+
+    static async assignCollection(key: string, assignCollectionDto: AssignCollectionDto, operator: IUser) {
+        const collection = await CollectionModel.findOne({ key })
+        if (!collection) {
+            throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'assignCollection', { key }))
+        }
+        if (!isAdmin(operator?.role) && operator?.key !== collection.owner) {
+            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'assignCollection', { key }))
+        }
+        collection.set('owner', assignCollectionDto.user_key, String)
         return await collection.save()
     }
 }

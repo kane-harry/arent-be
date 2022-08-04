@@ -366,6 +366,22 @@ describe('NFT', () => {
         expect(collection.background.length).gt(0)
     }).timeout(10000)
 
+    it(`Assign collection`, async () => {
+        const new_owner = 'new_owner'
+        const res = await request(server.app)
+            .put(`/api/v1/collections/${shareData.collections[0].key}/assign`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send({ user_key: new_owner })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const collection = await CollectionModel.findOne({ key: res.body.key })
+        expect(collection.owner).equal(new_owner)
+
+        //Reset owner
+        collection.set('owner', shareData.user.key, String)
+        await collection.save()
+    }).timeout(10000)
+
     it(`Delete Collection`, async () => {
         const res = await request(server.app)
             .delete(`/api/v1/collections/${shareData.collections[0].key}`)

@@ -30,3 +30,7 @@ export class UpdateCollectionDto {
     @IsOptional()
     public owner: string
 }
+
+export class AssignCollectionDto {
+    public user_key: string
+}
