@@ -43,7 +43,24 @@ export default class NftService {
             filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { title: reg }, { tags: reg }]
         }
         if (params.owner) {
-            filter.owner = params.owner
+            filter.$and = filter.$and ?? []
+            filter.$and.push({ owner: { $eq: params.owner } })
+        }
+        if (params.price_min) {
+            filter.$and = filter.$and ?? []
+            filter.$and.push({ price: { $gte: params.price_min } })
+        }
+        if (params.price_max) {
+            filter.$and = filter.$and ?? []
+            filter.$and.push({ price: { $lte: params.price_max } })
+        }
+        if (params.collection_key) {
+            filter.$and = filter.$and ?? []
+            filter.$and.push({ collection_key: { $eq: params.collection_key } })
+        }
+        if (params.on_market) {
+            filter.$and = filter.$and ?? []
+            filter.$and.push({ on_market: { $eq: params.on_market } })
         }
         if (params.sort_by) {
             delete sorting._id

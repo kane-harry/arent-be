@@ -202,9 +202,64 @@ describe('NFT', () => {
     }).timeout(10000)
 
     it(`List NFTs`, async () => {
-        const res = await request(server.app).get(`/api/v1/nfts`).set('Authorization', `Bearer ${shareData.token}`)
+        const res = await request(server.app).get(`/api/v1/nfts`)
         expect(res.status).equal(200)
         validResponse(res.body)
+    }).timeout(10000)
+
+    it(`List NFTs by terms`, async () => {
+        const terms = 'nam'
+        const res = await request(server.app).get(`/api/v1/nfts?terms=${terms}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const items = res.body.items.filter(
+            item => !(item.name.includes(terms) || item.description.includes(terms) || item.title.includes(terms) || item.tags.includes(terms))
+        )
+        expect(items.length).equal(0)
+    }).timeout(10000)
+
+    it(`List NFTs by owner`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts?owner=${shareData.user.key}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const items = res.body.items.filter(item => item.owner !== shareData.user.key)
+        expect(items.length).equal(0)
+    }).timeout(10000)
+
+    it(`List NFTs by price_min`, async () => {
+        const price = 0
+        const res = await request(server.app).get(`/api/v1/nfts?price_min=${price}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const items = res.body.items.filter(item => item.price_min < price)
+        expect(items.length).equal(0)
+    }).timeout(10000)
+
+    it(`List NFTs by price_max`, async () => {
+        const price = 1000
+        const res = await request(server.app).get(`/api/v1/nfts?price_max=${price}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const items = res.body.items.filter(item => item.price_max > price)
+        expect(items.length).equal(0)
+    }).timeout(10000)
+
+    it(`List NFTs by collection_key`, async () => {
+        const collectionKey = shareData.collections[0].key
+        const res = await request(server.app).get(`/api/v1/nfts?collection_key=${collectionKey}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const items = res.body.items.filter(item => item.collection_key !== collectionKey)
+        expect(items.length).equal(0)
+    }).timeout(10000)
+
+    it(`List NFTs by on_market`, async () => {
+        const market = true
+        const res = await request(server.app).get(`/api/v1/nfts?on_market=${market}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const items = res.body.items.filter(item => item.market !== market)
+        expect(items.length).equal(0)
     }).timeout(10000)
 
     it(`My NFTs`, async () => {
