@@ -36,16 +36,13 @@ export class CreateNftDto {
     public price: string
 
     @IsOptional()
-    public platform: string
-
-    @IsOptional()
     public nft_token_id: string
-
-    @IsOptional()
-    public source: string
 
     @IsNotEmpty()
     public attributes: string
+
+    @IsNotEmpty()
+    public metadata: string
 
     @IsOptional()
     public image: object
@@ -66,4 +63,31 @@ export class UpdateNftDto {
 
     @IsOptional()
     public on_market: string
+
+    @IsOptional()
+    public name: string
+
+    @IsOptional()
+    public title: string
+
+    @IsOptional()
+    public description: string
+
+    @IsOptional()
+    public tags: string
+
+    @IsOptional()
+    public price: string
+
+    @IsOptional()
+    public nft_token_id: string
+
+    @IsOptional()
+    public attributes: string
+
+    @IsOptional()
+    public metadata: string
+
+    @IsOptional()
+    public collection_key: string
 }

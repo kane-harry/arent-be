@@ -80,9 +80,18 @@ export default class NftService {
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('account.service', 'initAccounts', { key }))
         }
-        nft.set('owner', updateNftDto.owner, String)
-        nft.set('status', updateNftDto.status, String)
-        nft.set('on_market', updateNftDto.on_market, Boolean)
+        nft.set('owner', updateNftDto.owner ?? nft.owner, String)
+        nft.set('status', updateNftDto.status ?? nft.status, String)
+        nft.set('on_market', updateNftDto.on_market ?? nft.on_market, String)
+        nft.set('name', updateNftDto.name ?? nft.name, String)
+        nft.set('title', updateNftDto.title ?? nft.title, String)
+        nft.set('description', updateNftDto.description ?? nft.description, String)
+        nft.set('tags', updateNftDto.tags ?? nft.tags, String)
+        nft.set('price', updateNftDto.price ?? nft.price, String)
+        nft.set('nft_token_id', updateNftDto.nft_token_id ?? nft.nft_token_id, String)
+        nft.set('attributes', updateNftDto.attributes ?? nft.attributes, Array)
+        nft.set('metadata', updateNftDto.metadata ?? nft.metadata, Array)
+        nft.set('collection_key', updateNftDto.collection_key ?? nft.collection_key, String)
         return await nft.save()
     }
 

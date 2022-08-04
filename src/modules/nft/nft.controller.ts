@@ -108,6 +108,8 @@ class NftController implements IController {
     private async updateNft(req: CustomRequest, res: Response) {
         const { key } = req.params
         const updateNftDto: UpdateNftDto = req.body
+        updateNftDto.attributes = updateNftDto.attributes && updateNftDto.attributes.length ? JSON.parse(updateNftDto.attributes) : null
+        updateNftDto.metadata = updateNftDto.metadata && updateNftDto.metadata.length ? JSON.parse(updateNftDto.metadata) : null
         const data = await NftService.updateNft(key, updateNftDto, req.user)
         return res.json(data)
     }
