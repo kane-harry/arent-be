@@ -17,6 +17,7 @@ import { NftModel } from '@modules/nft/nft.model'
 import BizException from '@exceptions/biz.exception'
 import { AuthErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
+import { CollectionModel } from '@modules/collection/collection.model'
 
 class NftController implements IController {
     public path = '/nfts'
@@ -88,6 +89,7 @@ class NftController implements IController {
             createNftDto.images = Object.values(tempImages)
         }
         const nft = await NftService.createNft(createNftDto, req.user)
+        await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: 1 } }, { new: true }).exec()
         return res.json(nft)
     }
 
@@ -128,7 +130,10 @@ class NftController implements IController {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
         }
         nft.set('owner', '00000000000000000000000000000000', String)
+        nft.set('removed', true, Boolean)
         await nft.save()
+
+        await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: -1 } }, { new: true }).exec()
         return res.json(nft)
     }
 }
