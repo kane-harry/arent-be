@@ -23,6 +23,14 @@ export default class CollectionService {
             const reg = new RegExp(params.terms)
             filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { type: reg }]
         }
+        if (params.owner) {
+            filter.$and = filter.$and ?? []
+            filter.$and.push({ owner: { $eq: params.owner } })
+        }
+        if (!params.include_all) {
+            filter.$and = filter.$and ?? []
+            filter.$and.push({ items_count: { $gte: 0 } })
+        }
         if (params.sort_by) {
             delete sorting._id
             sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1

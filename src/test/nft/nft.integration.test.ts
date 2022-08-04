@@ -189,6 +189,18 @@ describe('NFT', () => {
         expect(nft.owner).equal(shareData.user.key)
     }).timeout(20000)
 
+    it(`List User Collections`, async () => {
+        const res = await request(server.app).get(`/api/v1/collections/user/${shareData.user.key}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+    }).timeout(10000)
+
+    it(`List User Collections`, async () => {
+        const res = await request(server.app).get(`/api/v1/collections/user/${shareData.user.key}?include_all=true`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+    }).timeout(10000)
+
     it(`List NFTs`, async () => {
         const res = await request(server.app).get(`/api/v1/nfts`).set('Authorization', `Bearer ${shareData.token}`)
         expect(res.status).equal(200)

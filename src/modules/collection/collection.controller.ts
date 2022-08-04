@@ -52,6 +52,7 @@ class CollectionController implements IController {
             asyncHandler(uploadFiles('background')),
             asyncHandler(this.updateCollection)
         )
+        this.router.get(`${this.path}/user/:key`, asyncHandler(this.queryUserCollections))
     }
 
     private createCollection = async (req: AuthenticationRequest, res: Response) => {
@@ -132,6 +133,14 @@ class CollectionController implements IController {
         collection.set('removed', true, Boolean)
         await collection.save()
         return res.json(collection)
+    }
+
+    private async queryUserCollections(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const filter = req.query as ICollectionFilter
+        filter.owner = key
+        const data = await CollectionService.queryCollections(filter)
+        return res.json(data)
     }
 }
 
