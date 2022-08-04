@@ -52,6 +52,9 @@ export class CreateNftDto {
 
     @IsOptional()
     public images: any[]
+
+    @IsOptional()
+    public collection_key: string
 }
 
 export class UpdateNftDto {
