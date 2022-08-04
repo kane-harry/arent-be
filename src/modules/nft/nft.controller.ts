@@ -7,13 +7,9 @@ import { CreateNftDto, ImportNftDto, UpdateNftDto } from './nft.dto'
 import { requireAuth } from '@utils/authCheck'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUser } from '@modules/user/user.interface'
-import { requireAdmin } from '@config/role'
 import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
-import { ICollectionFilter } from '@modules/collection/collection.interface'
-import CollectionService from '@modules/collection/collection.service'
 import { INftFilter } from '@modules/nft/nft.interface'
-import { NftModel } from '@modules/nft/nft.model'
 
 class NftController implements IController {
     public path = '/nfts'
@@ -52,6 +48,7 @@ class NftController implements IController {
         this.router.get(`${this.path}/users/:key`, asyncHandler(this.queryMyNFTs))
         this.router.get(`${this.path}/:key`, asyncHandler(this.getNftDetail))
         this.router.put(`${this.path}/:key`, requireAuth, asyncHandler(this.updateNft))
+        this.router.delete(`${this.path}/:key`, requireAuth, asyncHandler(this.deleteNft))
     }
 
     private async importNft(req: Request, res: Response) {
@@ -103,15 +100,23 @@ class NftController implements IController {
 
     private async getNftDetail(req: CustomRequest, res: Response) {
         const { key } = req.params
-        const data = await NftModel.findOne({ key })
+        const data = await NftService.getNftDetail(key)
         return res.json(data)
     }
 
     private async updateNft(req: CustomRequest, res: Response) {
         const { key } = req.params
         const updateNftDto: UpdateNftDto = req.body
+        updateNftDto.attributes = updateNftDto.attributes && updateNftDto.attributes.length ? JSON.parse(updateNftDto.attributes) : null
+        updateNftDto.metadata = updateNftDto.metadata && updateNftDto.metadata.length ? JSON.parse(updateNftDto.metadata) : null
         const data = await NftService.updateNft(key, updateNftDto, req.user)
         return res.json(data)
+    }
+
+    private async deleteNft(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const nft = await NftService.deleteNft(key, req.user)
+        return res.json(nft)
     }
 }
 

@@ -35,4 +35,8 @@ export interface INftImportLog extends IBaseModel {
 export interface INftFilter extends IFilterModel {
     terms?: string
     owner?: string
+    price_min?: number
+    price_max?: number
+    collection_key?: string
+    on_market?: boolean
 }

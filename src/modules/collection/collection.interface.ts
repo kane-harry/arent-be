@@ -14,4 +14,6 @@ export interface ICollection extends IBaseModel {
 
 export interface ICollectionFilter extends IFilterModel {
     terms?: string
+    owner?: string
+    include_all?: boolean
 }
