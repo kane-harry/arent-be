@@ -9,6 +9,7 @@ import BizException from '@exceptions/biz.exception'
 import { AccountErrors, AuthErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { isAdmin } from '@config/role'
+import UserService from '@modules/user/user.service'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -110,5 +111,14 @@ export default class NftService {
         await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: -1 } }, { new: true }).exec()
 
         return nft
+    }
+
+    static async getNftDetail(key: string) {
+        const nft = await NftModel.findOne({ key })
+        if (!nft) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.controller', 'getNFTDetail', { key }))
+        }
+        const owner = await UserService.getBriefByKey(nft.owner)
+        return { nft, owner }
     }
 }

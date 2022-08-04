@@ -101,7 +101,7 @@ class NftController implements IController {
 
     private async getNftDetail(req: CustomRequest, res: Response) {
         const { key } = req.params
-        const data = await NftModel.findOne({ key })
+        const data = await NftService.getNftDetail(key)
         return res.json(data)
     }
 
