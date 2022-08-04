@@ -78,16 +78,16 @@ export default class CollectionService {
     static async deleteCollection(key: string, operator: IUser) {
         const collection = await CollectionModel.findOne({ key })
         if (!collection) {
-            throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+            throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'deleteCollection', { key }))
         }
         if (!isAdmin(operator?.role) && operator?.key !== collection.owner) {
-            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'deleteCollection', { key }))
         }
-        const nfts = await NftModel.find({ collection_key: collection.key, on_market: true })
-        if (nfts.length) {
+        const totalCount = await NftModel.countDocuments({ collection_key: collection.key, on_market: true })
+        if (totalCount > 0) {
             throw new BizException(
                 CollectionErrors.collection_has_approved_nfts,
-                new ErrorContext('collection.service', 'updateCollection', { nfts })
+                new ErrorContext('collection.service', 'deleteCollection', { totalCount })
             )
         }
         collection.set('removed', true, Boolean)
