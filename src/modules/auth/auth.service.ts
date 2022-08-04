@@ -119,14 +119,14 @@ export default class AuthService {
             return { success: true }
         }
 
-        if (userData?.email === user.email) {
+        if (user.email && userData?.email === user.email) {
             throw new BizException(
                 AuthErrors.registration_email_exists_error,
                 new ErrorContext('auth.service', 'verifyRegistration', { email: userData.email })
             )
         }
 
-        if (userData?.phone === user.phone) {
+        if (user.phone && userData?.phone === user.phone) {
             throw new BizException(
                 AuthErrors.registration_phone_exists_error,
                 new ErrorContext('auth.service', 'verifyRegistration', { phone: userData.phone })

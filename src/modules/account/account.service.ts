@@ -80,7 +80,7 @@ export default class AccountService {
                     platform: 'ethereum',
                     salt: etherWallet.salt,
                     key_store: etherWallet.key_store,
-                    metaData: {
+                    meta_data: {
                         contract: token.contract,
                         decimals: token.decimals
                     }
