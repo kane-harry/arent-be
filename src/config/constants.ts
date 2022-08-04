@@ -90,3 +90,9 @@ export enum AccountExtType {
 }
 
 export const MASTER_ACCOUNT_KEY = 'MASTER'
+
+export enum NftStatus {
+    Pending = 'Pending',
+    Approved = 'Approved',
+    Rejected = 'Rejected'
+}

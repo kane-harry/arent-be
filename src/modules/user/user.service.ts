@@ -407,11 +407,11 @@ export default class UserService extends AuthService {
     }
 
     public static getBriefByName = async (chatName: string) => {
-        return await UserModel.findOne({ chat_name: chatName, removed: false }).select('key first_name last_name email chat_name country').exec()
+        return await UserModel.findOne({ chat_name: chatName, removed: false }).select('key first_name last_name email avatar chat_name').exec()
     }
 
     public static getBriefByKey = async (key: string) => {
-        return await UserModel.findOne({ key: key, removed: false }).select('key first_name last_name email chat_name country').exec()
+        return await UserModel.findOne({ key: key, removed: false }).select('key first_name last_name email avatar chat_name').exec()
     }
 
     public static getTotp = async (options: { req: AuthenticationRequest }) => {

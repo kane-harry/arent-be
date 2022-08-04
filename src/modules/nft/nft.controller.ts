@@ -10,7 +10,6 @@ import { IUser } from '@modules/user/user.interface'
 import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { INftFilter } from '@modules/nft/nft.interface'
-import { NftModel } from '@modules/nft/nft.model'
 
 class NftController implements IController {
     public path = '/nfts'

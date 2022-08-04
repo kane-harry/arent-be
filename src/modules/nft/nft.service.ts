@@ -10,6 +10,7 @@ import { AccountErrors, AuthErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { isAdmin } from '@config/role'
 import UserService from '@modules/user/user.service'
+import { NftStatus } from '@config/constants'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -28,10 +29,10 @@ export default class NftService {
 
         const model = new NftModel({
             ...createNftDto,
+            status: NftStatus.Pending,
             creator: operator.key,
             owner: operator.key,
-            on_market: false,
-            status: 'Mint'
+            on_market: false
         })
         const nft = await model.save()
         await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: 1 } }, { new: true }).exec()

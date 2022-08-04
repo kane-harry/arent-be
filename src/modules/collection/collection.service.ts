@@ -9,6 +9,7 @@ import ErrorContext from '@exceptions/error.context'
 import { isAdmin } from '@config/role'
 import { NftModel } from '@modules/nft/nft.model'
 import UserService from '@modules/user/user.service'
+import { NftStatus } from '@config/constants'
 
 export default class CollectionService {
     static async createCollection(createCollectionDto: CreateCollectionDto, operator: IUser) {
@@ -92,7 +93,7 @@ export default class CollectionService {
         if (!isAdmin(operator?.role) && operator?.key !== collection.owner) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'deleteCollection', { key }))
         }
-        const totalCount = await NftModel.countDocuments({ collection_key: collection.key, on_market: true })
+        const totalCount = await NftModel.countDocuments({ collection_key: collection.key })
         if (totalCount > 0) {
             throw new BizException(
                 CollectionErrors.collection_has_approved_nfts,
