@@ -7,12 +7,6 @@ import { requireAuth } from '@utils/authCheck'
 import { handleFiles, uploadFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
-import { CollectionModel } from '@modules/collection/collection.model'
-import { isAdmin } from '@config/role'
-import BizException from '@exceptions/biz.exception'
-import { AccountErrors, AuthErrors, CollectionErrors } from '@exceptions/custom.error'
-import ErrorContext from '@exceptions/error.context'
-import { NftModel } from '@modules/nft/nft.model'
 
 class CollectionController implements IController {
     public path = '/collections'
@@ -75,7 +69,7 @@ class CollectionController implements IController {
 
     private getCollectionDetail = async (req: AuthenticationRequest, res: Response) => {
         const key = req.params.key
-        const data = await CollectionModel.findOne({ key })
+        const data = await CollectionService.getCollectionDetail(key)
         return res.json(data)
     }
 
@@ -88,50 +82,13 @@ class CollectionController implements IController {
             const background = res.locals.files_uploaded.find((item: any) => item.type === 'original' && item.fieldname === 'background')
             updateCollectionDto.background = background?.key
         }
-        const collection = await CollectionModel.findOne({ key })
-        if (!collection) {
-            throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'updateCollection', { key }))
-        }
-        if (!isAdmin(req.user?.role) && req.user?.key !== collection.owner) {
-            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'updateCollection', { key }))
-        }
-        if (updateCollectionDto.name) {
-            collection.set('name', updateCollectionDto.name, String)
-        }
-        if (updateCollectionDto.description) {
-            collection.set('description', updateCollectionDto.description, String)
-        }
-        if (updateCollectionDto.owner) {
-            collection.set('owner', updateCollectionDto.owner, String)
-        }
-        if (updateCollectionDto.logo) {
-            collection.set('logo', updateCollectionDto.logo, String)
-        }
-        if (updateCollectionDto.background) {
-            collection.set('background', updateCollectionDto.background, String)
-        }
-        await collection.save()
+        const collection = await CollectionService.updateCollection(key, updateCollectionDto, req.user)
         return res.json(collection)
     }
 
     private deleteCollection = async (req: AuthenticationRequest, res: Response) => {
         const key = req.params.key
-        const collection = await CollectionModel.findOne({ key })
-        if (!collection) {
-            throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'updateCollection', { key }))
-        }
-        if (!isAdmin(req.user?.role) && req.user?.key !== collection.owner) {
-            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'updateCollection', { key }))
-        }
-        const nfts = await NftModel.find({ collection_key: collection.key, on_market: true })
-        if (nfts.length) {
-            throw new BizException(
-                CollectionErrors.collection_has_approved_nfts,
-                new ErrorContext('collection.service', 'updateCollection', { nfts })
-            )
-        }
-        collection.set('removed', true, Boolean)
-        await collection.save()
+        const collection = await CollectionService.deleteCollection(key, req.user)
         return res.json(collection)
     }
 

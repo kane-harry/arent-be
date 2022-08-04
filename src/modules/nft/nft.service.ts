@@ -6,8 +6,9 @@ import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
 import { INft, INftFilter } from '@modules/nft/nft.interface'
 import BizException from '@exceptions/biz.exception'
-import { AccountErrors, NftErrors } from '@exceptions/custom.error'
+import { AccountErrors, AuthErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
+import { isAdmin } from '@config/role'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -31,7 +32,10 @@ export default class NftService {
             on_market: false,
             status: 'Mint'
         })
-        return await model.save()
+        const nft = await model.save()
+        await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: 1 } }, { new: true }).exec()
+
+        return nft
     }
 
     static async queryNfts(params: INftFilter) {
@@ -80,5 +84,22 @@ export default class NftService {
         nft.set('status', updateNftDto.status, String)
         nft.set('on_market', updateNftDto.on_market, Boolean)
         return await nft.save()
+    }
+
+    static async deleteNft(key: string, operator: IUser) {
+        const nft = await NftModel.findOne({ key })
+        if (!nft) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
+        }
+        if (!isAdmin(operator?.role) && operator?.key !== nft.owner) {
+            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
+        }
+        nft.set('owner', '00000000000000000000000000000000', String)
+        nft.set('removed', true, Boolean)
+        await nft.save()
+
+        await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: -1 } }, { new: true }).exec()
+
+        return nft
     }
 }

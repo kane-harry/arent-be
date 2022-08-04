@@ -1,8 +1,13 @@
 import { IUser } from '@modules/user/user.interface'
-import { CreateCollectionDto } from './collection.dto'
+import { CreateCollectionDto, UpdateCollectionDto } from './collection.dto'
 import { CollectionModel } from './collection.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { QueryRO } from '@interfaces/query.model'
+import BizException from '@exceptions/biz.exception'
+import { AuthErrors, CollectionErrors } from '@exceptions/custom.error'
+import ErrorContext from '@exceptions/error.context'
+import { isAdmin } from '@config/role'
+import { NftModel } from '@modules/nft/nft.model'
 
 export default class CollectionService {
     static async createCollection(createCollectionDto: CreateCollectionDto, operator: IUser) {
@@ -38,5 +43,54 @@ export default class CollectionService {
         const totalCount = await CollectionModel.countDocuments(filter)
         const items = await CollectionModel.find<ICollection>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
         return new QueryRO<ICollection>(totalCount, params.page_index, params.page_size, items)
+    }
+
+    static async getCollectionDetail(key: string) {
+        return await CollectionModel.findOne({ key })
+    }
+
+    static async updateCollection(key: string, updateCollectionDto: UpdateCollectionDto, operator: IUser) {
+        const collection = await CollectionModel.findOne({ key })
+        if (!collection) {
+            throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+        }
+        if (!isAdmin(operator?.role) && operator?.key !== collection.owner) {
+            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+        }
+        if (updateCollectionDto.name) {
+            collection.set('name', updateCollectionDto.name, String)
+        }
+        if (updateCollectionDto.description) {
+            collection.set('description', updateCollectionDto.description, String)
+        }
+        if (updateCollectionDto.owner) {
+            collection.set('owner', updateCollectionDto.owner, String)
+        }
+        if (updateCollectionDto.logo) {
+            collection.set('logo', updateCollectionDto.logo, String)
+        }
+        if (updateCollectionDto.background) {
+            collection.set('background', updateCollectionDto.background, String)
+        }
+        return await collection.save()
+    }
+
+    static async deleteCollection(key: string, operator: IUser) {
+        const collection = await CollectionModel.findOne({ key })
+        if (!collection) {
+            throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+        }
+        if (!isAdmin(operator?.role) && operator?.key !== collection.owner) {
+            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+        }
+        const nfts = await NftModel.find({ collection_key: collection.key, on_market: true })
+        if (nfts.length) {
+            throw new BizException(
+                CollectionErrors.collection_has_approved_nfts,
+                new ErrorContext('collection.service', 'updateCollection', { nfts })
+            )
+        }
+        collection.set('removed', true, Boolean)
+        return await collection.save()
     }
 }

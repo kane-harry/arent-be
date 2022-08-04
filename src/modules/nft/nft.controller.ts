@@ -7,17 +7,10 @@ import { CreateNftDto, ImportNftDto, UpdateNftDto } from './nft.dto'
 import { requireAuth } from '@utils/authCheck'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUser } from '@modules/user/user.interface'
-import { isAdmin, requireAdmin } from '@config/role'
 import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
-import { ICollectionFilter } from '@modules/collection/collection.interface'
-import CollectionService from '@modules/collection/collection.service'
 import { INftFilter } from '@modules/nft/nft.interface'
 import { NftModel } from '@modules/nft/nft.model'
-import BizException from '@exceptions/biz.exception'
-import { AuthErrors, NftErrors } from '@exceptions/custom.error'
-import ErrorContext from '@exceptions/error.context'
-import { CollectionModel } from '@modules/collection/collection.model'
 
 class NftController implements IController {
     public path = '/nfts'
@@ -89,7 +82,6 @@ class NftController implements IController {
             createNftDto.images = Object.values(tempImages)
         }
         const nft = await NftService.createNft(createNftDto, req.user)
-        await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: 1 } }, { new: true }).exec()
         return res.json(nft)
     }
 
@@ -122,18 +114,7 @@ class NftController implements IController {
 
     private async deleteNft(req: CustomRequest, res: Response) {
         const { key } = req.params
-        const nft = await NftModel.findOne({ key })
-        if (!nft) {
-            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
-        }
-        if (!isAdmin(req.user?.role) && req.user?.key !== nft.owner) {
-            throw new BizException(AuthErrors.user_permission_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
-        }
-        nft.set('owner', '00000000000000000000000000000000', String)
-        nft.set('removed', true, Boolean)
-        await nft.save()
-
-        await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: -1 } }, { new: true }).exec()
+        const nft = await NftService.deleteNft(key, req.user)
         return res.json(nft)
     }
 }
