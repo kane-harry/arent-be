@@ -8,6 +8,7 @@ import { AuthErrors, CollectionErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { isAdmin } from '@config/role'
 import { NftModel } from '@modules/nft/nft.model'
+import UserService from '@modules/user/user.service'
 
 export default class CollectionService {
     static async createCollection(createCollectionDto: CreateCollectionDto, operator: IUser) {
@@ -46,7 +47,15 @@ export default class CollectionService {
     }
 
     static async getCollectionDetail(key: string) {
-        return await CollectionModel.findOne({ key })
+        const collection = await CollectionModel.findOne({ key })
+        if (!collection) {
+            throw new BizException(
+                CollectionErrors.collection_not_exists_error,
+                new ErrorContext('collection.service', 'getCollectionDetail', { key })
+            )
+        }
+        const owner = await UserService.getBriefByKey(collection.owner)
+        return { collection, owner }
     }
 
     static async updateCollection(key: string, updateCollectionDto: UpdateCollectionDto, operator: IUser) {
