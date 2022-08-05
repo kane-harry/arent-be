@@ -10,6 +10,7 @@ import { IUser } from '@modules/user/user.interface'
 import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { INftFilter } from '@modules/nft/nft.interface'
+import { NFT_IMAGE_SIZES } from '@config/constants'
 
 class NftController implements IController {
     public path = '/nfts'
@@ -32,11 +33,7 @@ class NftController implements IController {
             asyncHandler(
                 resizeImages({
                     nft: [{ maxSize: 300, id: 'thumb' }],
-                    images: [
-                        { maxSize: 1280, id: 'lg' },
-                        { maxSize: 600, id: 'md' },
-                        { maxSize: 300, id: 'sm' }
-                    ]
+                    images: NFT_IMAGE_SIZES
                 })
             ),
             asyncHandler(uploadFiles('nft')),
