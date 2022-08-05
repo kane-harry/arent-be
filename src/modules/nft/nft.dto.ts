@@ -52,6 +52,9 @@ export class CreateNftDto {
 
     @IsOptional()
     public collection_key: string
+
+    @IsOptional()
+    public type: string
 }
 
 export class UpdateNftDto {
@@ -90,4 +93,7 @@ export class UpdateNftDto {
 
     @IsOptional()
     public collection_key: string
+
+    @IsOptional()
+    public type: string
 }
