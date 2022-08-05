@@ -29,6 +29,11 @@ export enum UserHistoryActions {
     SetupTOTP = 'SetupTOTP'
 }
 
+export enum NftHistoryActions {
+    Create = 'Create',
+    Update = 'Update',
+    Delete = 'Delete'
+}
 export enum SecurityActions {
     Login = 'Login'
 }

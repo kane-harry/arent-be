@@ -10,7 +10,8 @@ import { AccountErrors, AuthErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { isAdmin } from '@config/role'
 import UserService from '@modules/user/user.service'
-import { NftStatus } from '@config/constants'
+import { NftHistoryActions, NftStatus } from '@config/constants'
+import NftHistoryModel from '@modules/nft_history/nft_history.model'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -21,7 +22,7 @@ export default class NftService {
         await model.save()
     }
 
-    static async createNft(createNftDto: CreateNftDto, operator: IUser) {
+    static async createNft(createNftDto: CreateNftDto, operator: IUser, options: any) {
         // @ts-ignore
         if (!createNftDto.image || !createNftDto.image.normal || !createNftDto.image.thumb) {
             throw new BizException(NftErrors.nft_image_error, new ErrorContext('nft.service', 'createNft', { image: createNftDto.image }))
@@ -36,6 +37,17 @@ export default class NftService {
         })
         const nft = await model.save()
         await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: 1 } }, { new: true }).exec()
+
+        // create log
+        await new NftHistoryModel({
+            user_key: operator.key,
+            action: NftHistoryActions.Create,
+            agent: options?.req.agent,
+            country: operator.country,
+            ip_address: options?.req.ip_address,
+            pre_data: null,
+            post_data: nft.toString()
+        }).save()
 
         return nft
     }
@@ -77,11 +89,12 @@ export default class NftService {
         return new QueryRO<INft>(totalCount, params.page_index, params.page_size, items)
     }
 
-    static async updateNft(key: string, updateNftDto: UpdateNftDto, operator: IUser) {
+    static async updateNft(key: string, updateNftDto: UpdateNftDto, operator: IUser, options: any) {
         const nft = await NftModel.findOne({ key, owner: operator.key })
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('account.service', 'initAccounts', { key }))
         }
+        const preNft = nft
         nft.set('owner', updateNftDto.owner ?? nft.owner, String)
         nft.set('status', updateNftDto.status ?? nft.status, String)
         nft.set('on_market', updateNftDto.on_market ?? nft.on_market, String)
@@ -94,10 +107,24 @@ export default class NftService {
         nft.set('attributes', updateNftDto.attributes ?? nft.attributes, Array)
         nft.set('metadata', updateNftDto.metadata ?? nft.metadata, Array)
         nft.set('collection_key', updateNftDto.collection_key ?? nft.collection_key, String)
-        return await nft.save()
+
+        const updateNft = await nft.save()
+
+        // create log
+        await new NftHistoryModel({
+            user_key: operator.key,
+            action: NftHistoryActions.Update,
+            agent: options?.req.agent,
+            country: operator.country,
+            ip_address: options?.req.ip_address,
+            pre_data: preNft.toString(),
+            post_data: updateNft.toString()
+        }).save()
+
+        return updateNft
     }
 
-    static async deleteNft(key: string, operator: IUser) {
+    static async deleteNft(key: string, operator: IUser, options: any) {
         const nft = await NftModel.findOne({ key })
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
@@ -105,13 +132,24 @@ export default class NftService {
         if (!isAdmin(operator?.role) && operator?.key !== nft.owner) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
         }
+        const preNft = nft
         nft.set('owner', '00000000000000000000000000000000', String)
         nft.set('removed', true, Boolean)
-        await nft.save()
+        const updateNft = await nft.save()
 
         await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: -1 } }, { new: true }).exec()
+        // create log
+        await new NftHistoryModel({
+            user_key: operator.key,
+            action: NftHistoryActions.Delete,
+            agent: options?.req.agent,
+            country: operator.country,
+            ip_address: options?.req.ip_address,
+            pre_data: preNft.toString(),
+            post_data: updateNft.toString()
+        }).save()
 
-        return nft
+        return updateNft
     }
 
     static async getNftDetail(key: string) {

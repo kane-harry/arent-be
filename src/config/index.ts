@@ -120,6 +120,7 @@ export const config = {
             settings: 'settings',
             users: 'users',
             user_history: 'user_history',
+            nft_history: 'nft_histories',
             user_security: 'user_security',
             verification_codes: 'verification_codes'
         }

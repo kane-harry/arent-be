@@ -77,7 +77,7 @@ class NftController implements IController {
             })
             createNftDto.images = Object.values(tempImages)
         }
-        const nft = await NftService.createNft(createNftDto, req.user)
+        const nft = await NftService.createNft(createNftDto, req.user, { req })
         return res.json(nft)
     }
 
@@ -106,13 +106,13 @@ class NftController implements IController {
         const updateNftDto: UpdateNftDto = req.body
         updateNftDto.attributes = updateNftDto.attributes && updateNftDto.attributes.length ? JSON.parse(updateNftDto.attributes) : null
         updateNftDto.metadata = updateNftDto.metadata && updateNftDto.metadata.length ? JSON.parse(updateNftDto.metadata) : null
-        const data = await NftService.updateNft(key, updateNftDto, req.user)
+        const data = await NftService.updateNft(key, updateNftDto, req.user, { req })
         return res.json(data)
     }
 
     private async deleteNft(req: CustomRequest, res: Response) {
         const { key } = req.params
-        const nft = await NftService.deleteNft(key, req.user)
+        const nft = await NftService.deleteNft(key, req.user, { req })
         return res.json(nft)
     }
 }
