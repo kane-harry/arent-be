@@ -97,3 +97,8 @@ export class UpdateNftDto {
     @IsOptional()
     public type: string
 }
+
+export class UpdateNftStatusDto {
+    @IsNotEmpty()
+    public status: string
+}

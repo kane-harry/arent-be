@@ -32,7 +32,8 @@ export enum UserHistoryActions {
 export enum NftHistoryActions {
     Create = 'Create',
     Update = 'Update',
-    Delete = 'Delete'
+    Delete = 'Delete',
+    UpdateStatus = 'UpdateStatus'
 }
 export enum SecurityActions {
     Login = 'Login'

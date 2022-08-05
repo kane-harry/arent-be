@@ -1,5 +1,5 @@
 import { IUser } from '@modules/user/user.interface'
-import { CreateNftDto, ImportNftDto, UpdateNftDto } from './nft.dto'
+import { CreateNftDto, ImportNftDto, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
 import { NftImportLogModel, NftModel } from './nft.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { CollectionModel } from '@modules/collection/collection.model'
@@ -119,6 +119,30 @@ export default class NftService {
             ip_address: options?.req.ip_address,
             pre_data: preNft.toString(),
             post_data: updateNft.toString()
+        }).save()
+
+        return updateNft
+    }
+
+    static async updateNftStatus(key: string, updateNftStatusDto: UpdateNftStatusDto, operator: IUser, options: any) {
+        const nft = await NftModel.findOne({ key })
+        if (!nft) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('account.service', 'updateNftStatus', { key }))
+        }
+        const preNft = nft
+        nft.set('status', updateNftStatusDto.status ?? nft.status, String)
+
+        const updateNft = await nft.save()
+
+        // create log
+        await new NftHistoryModel({
+            user_key: operator.key,
+            action: NftHistoryActions.UpdateStatus,
+            agent: options?.req.agent,
+            country: operator.country,
+            ip_address: options?.req.ip_address,
+            pre_data: { status: preNft.status },
+            post_data: { status: updateNft.status }
         }).save()
 
         return updateNft

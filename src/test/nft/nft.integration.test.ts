@@ -4,9 +4,10 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
-import { initDataForUser } from '@app/test/init/authenticate'
+import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authenticate'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { NftModel } from '@modules/nft/nft.model'
+import { NftStatus } from '@config/constants'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -19,6 +20,8 @@ let shareData = {
     nfts: [],
     collections: []
 }
+
+let adminShareData = { user: { key: '' }, token: '', refreshToken: '', accounts: [] }
 
 const createNftData = {
     name: 'name',
@@ -86,6 +89,11 @@ describe('NFT', () => {
 
     it('InitDataForUser', async () => {
         await initDataForUser(shareData)
+    }).timeout(10000)
+
+    it('InitDataForAdmin', async () => {
+        await initDataForUser(adminShareData, adminData)
+        await makeAdmin(adminData)
     }).timeout(10000)
 
     it(`Create collection`, async () => {
@@ -314,6 +322,17 @@ describe('NFT', () => {
         expect(nft.owner).equal(updateNftData.owner)
         expect(nft.status).equal(updateNftData.status)
         expect(nft.on_market).equal(updateNftData.on_market)
+    }).timeout(10000)
+
+    it(`Approved NFT`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/nfts/${shareData.nfts[0].key}/status`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ status: NftStatus.Approved })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.status).equal(NftStatus.Approved)
     }).timeout(10000)
 
     it(`Burn NFT`, async () => {

@@ -11,6 +11,7 @@ import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middl
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { INftFilter } from '@modules/nft/nft.interface'
 import { NFT_IMAGE_SIZES } from '@config/constants'
+import { requireAdmin } from '@config/role'
 
 class NftController implements IController {
     public path = '/nfts'
@@ -45,6 +46,7 @@ class NftController implements IController {
         this.router.get(`${this.path}/users/:key`, asyncHandler(this.queryMyNFTs))
         this.router.get(`${this.path}/:key`, asyncHandler(this.getNftDetail))
         this.router.put(`${this.path}/:key`, requireAuth, asyncHandler(this.updateNft))
+        this.router.put(`${this.path}/:key/status`, requireAuth, requireAdmin(), asyncHandler(this.updateNftStatus))
         this.router.delete(`${this.path}/:key`, requireAuth, asyncHandler(this.deleteNft))
     }
 
@@ -107,6 +109,13 @@ class NftController implements IController {
         updateNftDto.attributes = updateNftDto.attributes && updateNftDto.attributes.length ? JSON.parse(updateNftDto.attributes) : null
         updateNftDto.metadata = updateNftDto.metadata && updateNftDto.metadata.length ? JSON.parse(updateNftDto.metadata) : null
         const data = await NftService.updateNft(key, updateNftDto, req.user, { req })
+        return res.json(data)
+    }
+
+    private async updateNftStatus(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const updateNftDto: UpdateNftStatusDto = req.body
+        const data = await NftService.updateNftStatus(key, updateNftDto, req.user, { req })
         return res.json(data)
     }
 
