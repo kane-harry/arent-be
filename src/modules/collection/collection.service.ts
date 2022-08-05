@@ -93,7 +93,7 @@ export default class CollectionService {
         if (!isAdmin(operator?.role) && operator?.key !== collection.owner) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'deleteCollection', { key }))
         }
-        const totalCount = await NftModel.countDocuments({ collection_key: collection.key })
+        const totalCount = await NftModel.countDocuments({ collection_key: collection.key, status: NftStatus.Approved })
         if (totalCount > 0) {
             throw new BizException(
                 CollectionErrors.collection_has_approved_nfts,
