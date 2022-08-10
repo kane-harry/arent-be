@@ -152,7 +152,7 @@ export default class AccountService {
     static async getAccountDetailByFields(fields: { [key: string]: any }) {
         const conditions = this.mapConditions(fields)
 
-        const account = await AccountModel.findOne(conditions).select('-keyStore -salt').exec()
+        const account = await AccountModel.findOne(conditions).select('-key_store -salt').exec()
 
         return await this.bindingAccountBalance(account)
     }
@@ -184,7 +184,7 @@ export default class AccountService {
         const conditions = this.mapConditions(fields)
         const totalCount = await AccountModel.countDocuments(conditions).exec()
         const items = await AccountModel.find<IAccount>(conditions)
-            .select('-keyStore -salt')
+            .select('-key_store -salt')
             .sort({ symbol: -1 })
             .skip(offset)
             .limit(paginate.page_size)
@@ -214,7 +214,7 @@ export default class AccountService {
 
     /** MASTER */
     static async initMasterAccounts() {
-        const masterAccounts = await AccountModel.find({ type: AccountType.Master, removed: false }).select('-keyStore -salt').exec()
+        const masterAccounts = await AccountModel.find({ type: AccountType.Master, removed: false }).select('-key_store -salt').exec()
 
         if (size(masterAccounts)) {
             throw new BizException(
@@ -227,7 +227,7 @@ export default class AccountService {
     }
 
     static async mintMasterAccount(key: string, params: MintDto, options: { userKey: string; email: string }) {
-        const account = await AccountModel.findOne({ key }).select('-keyStore -salt').exec()
+        const account = await AccountModel.findOne({ key }).select('-key_store -salt').exec()
         if (!account) {
             throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
         }
