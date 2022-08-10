@@ -27,17 +27,17 @@ class NftController implements IController {
             requireAuth,
             asyncHandler(
                 handleFiles([
-                    { name: 'nft', maxCount: 1 },
+                    { name: 'videos', maxCount: 1 },
                     { name: 'images', maxCount: 1 }
                 ])
             ),
             asyncHandler(
                 resizeImages({
-                    nft: [{ maxSize: 300, id: 'thumb' }],
+                    videos: NFT_IMAGE_SIZES,
                     images: NFT_IMAGE_SIZES
                 })
             ),
-            asyncHandler(uploadFiles('nft')),
+            asyncHandler(uploadFiles('videos')),
             asyncHandler(uploadFiles('images')),
             asyncHandler(this.createNft)
         )
@@ -62,11 +62,16 @@ class NftController implements IController {
         createNftDto.attributes = createNftDto.attributes && createNftDto.attributes.length ? JSON.parse(createNftDto.attributes) : []
         createNftDto.metadata = createNftDto.metadata && createNftDto.metadata.length ? JSON.parse(createNftDto.metadata) : []
         if (res?.locals?.files_uploaded?.length) {
-            createNftDto.image = { normal: '', thumb: '' }
-            const original = res.locals.files_uploaded.find((item: any) => item.type === 'original' && item.fieldname === 'nft')
-            createNftDto.image.normal = original?.key
-            const thumb = res.locals.files_uploaded.find((item: any) => item.type === 'thumb' && item.fieldname === 'nft')
-            createNftDto.image.thumb = thumb?.key
+            const videos = res.locals.files_uploaded.filter((item: any) => item.fieldname === 'videos')
+            const tempVideos = {}
+            videos.forEach((image: any) => {
+                const name = image.name
+                const type = image.type
+                tempVideos[name] = tempVideos[name] ?? {}
+                tempVideos[name].name = name
+                tempVideos[name][type] = image.key
+            })
+            createNftDto.videos = Object.values(tempVideos)
 
             const images = res.locals.files_uploaded.filter((item: any) => item.fieldname === 'images')
             const tempImages = {}

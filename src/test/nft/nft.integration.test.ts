@@ -162,7 +162,7 @@ describe('NFT', () => {
             .field('nft_token_id', createNftData.nft_token_id)
             .field('attributes', JSON.stringify(createNftData.attributes))
             .field('collection_key', shareData.collections[0].key)
-            .attach('nft', './src/test/init/test.jpeg')
+            .attach('videos', './src/test/init/test.mp4')
             .attach('images', './src/test/init/test.jpeg')
         expect(res.status).equal(200)
         validResponse(res.body)
@@ -185,9 +185,8 @@ describe('NFT', () => {
         expect(nft.attributes[1].value).equal(createNftData.attributes[1].value)
 
         //Generate
-        expect(nft.image.normal.length).gt(0)
-        expect(nft.image.thumb.length).gt(0)
         expect(nft.images.length).gt(0)
+        expect(nft.videos.length).gt(0)
         expect(nft.on_market).exist
         expect(nft.status).exist
 
@@ -195,7 +194,7 @@ describe('NFT', () => {
         expect(nft.collection_key).equal(shareData.collections[0].key)
         expect(nft.creator).equal(shareData.user.key)
         expect(nft.owner).equal(shareData.user.key)
-    }).timeout(20000)
+    }).timeout(30000)
 
     it(`List User Collections`, async () => {
         const res = await request(server.app).get(`/api/v1/collections/user/${shareData.user.key}`)
@@ -299,9 +298,8 @@ describe('NFT', () => {
         expect(nft.attributes[1].value).equal(res.body.nft.attributes[1].value)
 
         //Generate
-        expect(nft.image.normal).equal(res.body.nft.image.normal)
-        expect(nft.image.thumb).equal(res.body.nft.image.thumb)
         expect(JSON.stringify(nft.images)).equal(JSON.stringify(res.body.nft.images))
+        expect(JSON.stringify(nft.videos)).equal(JSON.stringify(res.body.nft.videos))
         expect(nft.on_market).equal(res.body.nft.on_market)
         expect(nft.status).equal(res.body.nft.status)
 

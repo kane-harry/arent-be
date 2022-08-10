@@ -45,7 +45,7 @@ export class CreateNftDto {
     public metadata: string
 
     @IsOptional()
-    public image: object
+    public videos: any[]
 
     @IsOptional()
     public images: any[]
