@@ -29,7 +29,12 @@ const nftSchema = new Schema<INft>(
         on_market: Boolean,
         creator: String,
         owner: String,
-        nft_token_id: String,
+        nft_token_id: {
+            type: String,
+            default: () => {
+                return randomBytes(8).toString('hex')
+            }
+        },
         status: String,
         collection_key: String,
         removed: { type: Boolean, default: false }
