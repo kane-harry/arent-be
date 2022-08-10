@@ -25,6 +25,7 @@ import { requireAdmin, requireOwner } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUserQueryFilter } from './user.interface'
 import { downloadResource } from '@utils/utility'
+import { USER_IMAGE_SIZES } from '@config/constants'
 
 class UserController implements IController {
     public path = '/users'
@@ -49,11 +50,7 @@ class UserController implements IController {
             asyncHandler(handleFiles([{ name: 'avatar', maxCount: 1 }])),
             asyncHandler(
                 resizeImages({
-                    avatar: [
-                        { maxSize: 1280, id: 'lg' },
-                        { maxSize: 600, id: 'sm' },
-                        { maxSize: 80, id: 'mini' }
-                    ]
+                    avatar: USER_IMAGE_SIZES
                 })
             ),
             asyncHandler(uploadFiles('avatar')),

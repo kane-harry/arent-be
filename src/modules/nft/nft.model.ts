@@ -23,7 +23,7 @@ const nftSchema = new Schema<INft>(
         metadata: { type: [Object], default: [] },
         image: Object,
         images: { type: [Object], default: [] },
-        type: String,
+        type: { type: String, default: 'erc721' },
         amount: Number,
         attributes: { type: [Object], default: [] },
         on_market: Boolean,
