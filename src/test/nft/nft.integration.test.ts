@@ -342,6 +342,17 @@ describe('NFT', () => {
         expect(nft.owner).equal('00000000000000000000000000000000')
     }).timeout(10000)
 
+    it(`Reject NFT`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/nfts/${shareData.nfts[0].key}/status`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ status: NftStatus.Rejected })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.status).equal(NftStatus.Rejected)
+    }).timeout(10000)
+
     it(`Export NFT`, async () => {
         const res = await request(server.app).post(`/api/v1/nfts/${shareData.nfts[0].key}/export`).set('Authorization', `Bearer ${shareData.token}`)
         expect(res.status).equal(200)
