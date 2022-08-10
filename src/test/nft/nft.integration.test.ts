@@ -6,7 +6,7 @@ import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
 import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authenticate'
 import { CollectionModel } from '@modules/collection/collection.model'
-import { NftModel } from '@modules/nft/nft.model'
+import { NftImportLogModel, NftModel } from '@modules/nft/nft.model'
 import { NftStatus } from '@config/constants'
 
 chai.use(chaiAsPromised)
@@ -71,11 +71,11 @@ const updateCollectionData = {
 
 const importNftData = {
     user_key: '',
-    contract_address: '',
-    token_id: '',
-    network: '',
+    contract_address: '0x82384a67122f3b426386d27c8ce65449b31db91b',
+    token_id: '1100',
+    platform: 'ethereum',
     type: '',
-    status: ''
+    status: 'pending'
 }
 
 describe('NFT', () => {
@@ -361,17 +361,19 @@ describe('NFT', () => {
     }).timeout(10000)
 
     it(`Import NFT`, async () => {
+        importNftData.user_key = shareData.user.key
         const res = await request(server.app)
-            .post(`/api/v1/nfts/import`)
-            .field('user_key', importNftData.user_key)
-            .field('contract_address', importNftData.contract_address)
-            .field('token_id', importNftData.token_id)
-            .field('network', importNftData.network)
-            .field('type', importNftData.type)
-            .field('status', importNftData.status)
+            .post(`/api/v1/nfts/external/import`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send(importNftData)
         expect(res.status).equal(200)
         validResponse(res.body)
-        // TODO I don't known what logic for import nft, add later
+        const importNftLog = await NftImportLogModel.findOne({ key: res.body.key })
+        expect(importNftLog.user_key).equal(importNftLog.user_key)
+        expect(importNftLog.contract_address).equal(importNftLog.contract_address)
+        expect(importNftLog.platform).equal(importNftLog.platform)
+        expect(importNftLog.token_id).equal(importNftLog.token_id)
+        expect(importNftLog.status).equal(importNftLog.status)
     }).timeout(10000)
 
     it(`Update collection`, async () => {
