@@ -35,16 +35,16 @@ class AdminLogController implements IController {
         const fields = [
             { label: 'Key', value: 'key' },
             { label: 'Operator', value: 'operator' },
-            { label: 'UserKey', value: 'userKey' },
+            { label: 'UserKey', value: 'user_key' },
             { label: 'Section', value: 'section' },
             { label: 'Action', value: 'action' },
-            { label: 'PreData', value: 'preData' },
-            { label: 'PostData', value: 'postData' },
+            { label: 'PreData', value: 'pre_data' },
+            { label: 'PostData', value: 'post_data' },
             { label: 'Created', value: 'created' },
             { label: 'Modified', value: 'modified' }
         ]
 
-        return downloadResource(res, 'transactions.csv', fields, data.items)
+        return downloadResource(res, 'logs.csv', fields, data.items)
     }
 }
 
