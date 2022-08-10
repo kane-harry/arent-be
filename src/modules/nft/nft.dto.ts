@@ -38,11 +38,11 @@ export class CreateNftDto {
     @IsOptional()
     public nft_token_id: string
 
-    @IsNotEmpty()
+    @IsOptional()
     public attributes: string
 
-    @IsNotEmpty()
-    public metadata: string
+    @IsOptional()
+    public meta_data: string
 
     @IsOptional()
     public videos: any[]
@@ -83,13 +83,10 @@ export class UpdateNftDto {
     public price: string
 
     @IsOptional()
-    public nft_token_id: string
-
-    @IsOptional()
     public attributes: string
 
     @IsOptional()
-    public metadata: string
+    public meta_data: string
 
     @IsOptional()
     public collection_key: string

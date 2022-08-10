@@ -3,7 +3,7 @@ import { Router, Request, Response } from 'express'
 import asyncHandler from '@utils/asyncHandler'
 import IController from '@interfaces/controller.interface'
 import NftService from './nft.service'
-import {CreateNftDto, ImportNftDto, UpdateNftDto, UpdateNftStatusDto} from './nft.dto'
+import { CreateNftDto, ImportNftDto, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
 import { requireAuth } from '@utils/authCheck'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUser } from '@modules/user/user.interface'
@@ -60,7 +60,7 @@ class NftController implements IController {
     private createNft = async (req: AuthenticationRequest, res: Response) => {
         const createNftDto: CreateNftDto = req.body
         createNftDto.attributes = createNftDto.attributes && createNftDto.attributes.length ? JSON.parse(createNftDto.attributes) : []
-        createNftDto.metadata = createNftDto.metadata && createNftDto.metadata.length ? JSON.parse(createNftDto.metadata) : []
+        createNftDto.meta_data = createNftDto.meta_data && createNftDto.meta_data.length ? JSON.parse(createNftDto.meta_data) : []
         if (res?.locals?.files_uploaded?.length) {
             const videos = res.locals.files_uploaded.filter((item: any) => item.fieldname === 'videos')
             const tempVideos = {}

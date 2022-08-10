@@ -20,7 +20,7 @@ const nftSchema = new Schema<INft>(
         tags: String,
         price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         currency: String,
-        metadata: { type: [Object], default: [] },
+        meta_data: { type: [Object], default: [] },
         videos: { type: [Object], default: [] },
         images: { type: [Object], default: [] },
         type: { type: String, default: 'erc721' },
