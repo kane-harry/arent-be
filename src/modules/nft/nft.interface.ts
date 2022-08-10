@@ -10,7 +10,7 @@ export interface INft extends IBaseModel {
     price: number | Types.Decimal128
     currency: string
     metadata: [] | undefined
-    image: object // {}
+    videos: object | [] | undefined
     images: object | [] | undefined
     type: string
     amount: number

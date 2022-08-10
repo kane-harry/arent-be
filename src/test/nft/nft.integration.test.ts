@@ -6,7 +6,7 @@ import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
 import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authenticate'
 import { CollectionModel } from '@modules/collection/collection.model'
-import { NftModel } from '@modules/nft/nft.model'
+import { NftImportLogModel, NftModel } from '@modules/nft/nft.model'
 import { NftStatus } from '@config/constants'
 
 chai.use(chaiAsPromised)
@@ -71,11 +71,11 @@ const updateCollectionData = {
 
 const importNftData = {
     user_key: '',
-    contract_address: '',
-    token_id: '',
-    network: '',
+    contract_address: '0x82384a67122f3b426386d27c8ce65449b31db91b',
+    token_id: '1100',
+    platform: 'ethereum',
     type: '',
-    status: ''
+    status: 'pending'
 }
 
 describe('NFT', () => {
@@ -162,7 +162,7 @@ describe('NFT', () => {
             .field('nft_token_id', createNftData.nft_token_id)
             .field('attributes', JSON.stringify(createNftData.attributes))
             .field('collection_key', shareData.collections[0].key)
-            .attach('nft', './src/test/init/test.jpeg')
+            .attach('videos', './src/test/init/test.mp4')
             .attach('images', './src/test/init/test.jpeg')
         expect(res.status).equal(200)
         validResponse(res.body)
@@ -185,9 +185,8 @@ describe('NFT', () => {
         expect(nft.attributes[1].value).equal(createNftData.attributes[1].value)
 
         //Generate
-        expect(nft.image.normal.length).gt(0)
-        expect(nft.image.thumb.length).gt(0)
         expect(nft.images.length).gt(0)
+        expect(nft.videos.length).gt(0)
         expect(nft.on_market).exist
         expect(nft.status).exist
 
@@ -195,7 +194,7 @@ describe('NFT', () => {
         expect(nft.collection_key).equal(shareData.collections[0].key)
         expect(nft.creator).equal(shareData.user.key)
         expect(nft.owner).equal(shareData.user.key)
-    }).timeout(20000)
+    }).timeout(30000)
 
     it(`List User Collections`, async () => {
         const res = await request(server.app).get(`/api/v1/collections/user/${shareData.user.key}`)
@@ -299,9 +298,8 @@ describe('NFT', () => {
         expect(nft.attributes[1].value).equal(res.body.nft.attributes[1].value)
 
         //Generate
-        expect(nft.image.normal).equal(res.body.nft.image.normal)
-        expect(nft.image.thumb).equal(res.body.nft.image.thumb)
         expect(JSON.stringify(nft.images)).equal(JSON.stringify(res.body.nft.images))
+        expect(JSON.stringify(nft.videos)).equal(JSON.stringify(res.body.nft.videos))
         expect(nft.on_market).equal(res.body.nft.on_market)
         expect(nft.status).equal(res.body.nft.status)
 
@@ -344,6 +342,17 @@ describe('NFT', () => {
         expect(nft.owner).equal('00000000000000000000000000000000')
     }).timeout(10000)
 
+    it(`Reject NFT`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/nfts/${shareData.nfts[0].key}/status`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ status: NftStatus.Rejected })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.status).equal(NftStatus.Rejected)
+    }).timeout(10000)
+
     it(`Export NFT`, async () => {
         const res = await request(server.app).post(`/api/v1/nfts/${shareData.nfts[0].key}/export`).set('Authorization', `Bearer ${shareData.token}`)
         expect(res.status).equal(200)
@@ -352,17 +361,19 @@ describe('NFT', () => {
     }).timeout(10000)
 
     it(`Import NFT`, async () => {
+        importNftData.user_key = shareData.user.key
         const res = await request(server.app)
-            .post(`/api/v1/nfts/import`)
-            .field('user_key', importNftData.user_key)
-            .field('contract_address', importNftData.contract_address)
-            .field('token_id', importNftData.token_id)
-            .field('network', importNftData.network)
-            .field('type', importNftData.type)
-            .field('status', importNftData.status)
+            .post(`/api/v1/nfts/external/import`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send(importNftData)
         expect(res.status).equal(200)
         validResponse(res.body)
-        // TODO I don't known what logic for import nft, add later
+        const importNftLog = await NftImportLogModel.findOne({ key: res.body.key })
+        expect(importNftLog.user_key).equal(importNftLog.user_key)
+        expect(importNftLog.contract_address).equal(importNftLog.contract_address)
+        expect(importNftLog.platform).equal(importNftLog.platform)
+        expect(importNftLog.token_id).equal(importNftLog.token_id)
+        expect(importNftLog.status).equal(importNftLog.status)
     }).timeout(10000)
 
     it(`Update collection`, async () => {

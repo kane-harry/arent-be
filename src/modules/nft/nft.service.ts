@@ -24,8 +24,11 @@ export default class NftService {
 
     static async createNft(createNftDto: CreateNftDto, operator: IUser, options: any) {
         // @ts-ignore
-        if (!createNftDto.image || !createNftDto.image.normal || !createNftDto.image.thumb) {
-            throw new BizException(NftErrors.nft_image_error, new ErrorContext('nft.service', 'createNft', { image: createNftDto.image }))
+        if (!createNftDto.images.length && !createNftDto.videos.length) {
+            throw new BizException(
+                NftErrors.nft_image_error,
+                new ErrorContext('nft.service', 'createNft', { videos: createNftDto.videos, images: createNftDto.images })
+            )
         }
 
         const model = new NftModel({
