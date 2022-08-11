@@ -38,7 +38,6 @@ const createNftData = {
         }
     ],
     type: 'type',
-    amount: 1,
     attributes: [
         {
             trait_type: 'creator',
@@ -155,7 +154,6 @@ describe('NFT', () => {
             .field('currency', createNftData.currency)
             .field('meta_data', JSON.stringify(createNftData.meta_data))
             .field('type', createNftData.type)
-            .field('amount', createNftData.amount)
             .field('attributes', JSON.stringify(createNftData.attributes))
             .field('collection_key', shareData.collections[0].key)
             .field('num_sales', createNftData.num_sales)
@@ -172,7 +170,6 @@ describe('NFT', () => {
         expect(nft.meta_data[0].year).equal(createNftData.meta_data[0].year)
         expect(nft.meta_data[0].player).equal(createNftData.meta_data[0].player)
         expect(nft.type).equal(createNftData.type)
-        expect(nft.amount).equal(createNftData.amount)
         expect(nft.attributes[0].trait_type).equal(createNftData.attributes[0].trait_type)
         expect(nft.attributes[0].value).equal(createNftData.attributes[0].value)
         expect(nft.attributes[1].trait_type).equal(createNftData.attributes[1].trait_type)
@@ -200,7 +197,6 @@ describe('NFT', () => {
             .field('currency', createNftData.currency)
             .field('meta_data', JSON.stringify(createNftData.meta_data))
             .field('type', createNftData.type)
-            .field('amount', createNftData.amount)
             .field('attributes', JSON.stringify(createNftData.attributes))
             .field('collection_key', shareData.collections[0].key)
             .attach('image', './src/test/init/test.gif')
@@ -298,7 +294,6 @@ describe('NFT', () => {
         expect(nft.meta_data[0].year).equal(res.body.nft.meta_data[0].year)
         expect(nft.meta_data[0].player).equal(res.body.nft.meta_data[0].player)
         expect(nft.type).equal(res.body.nft.type)
-        expect(nft.amount).equal(res.body.nft.amount)
         expect(nft.nft_token_id).equal(res.body.nft.nft_token_id)
         expect(nft.attributes[0].trait_type).equal(res.body.nft.attributes[0].trait_type)
         expect(nft.attributes[0].value).equal(res.body.nft.attributes[0].value)
