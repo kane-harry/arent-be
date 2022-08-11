@@ -55,9 +55,9 @@ export default class NftService {
             const reg = new RegExp(params.terms)
             filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { title: reg }, { tags: reg }]
         }
-        if (params.owner) {
+        if (params.owner_key) {
             filter.$and = filter.$and ?? []
-            filter.$and.push({ owner: { $eq: params.owner } })
+            filter.$and.push({ owner_key: { $eq: params.owner_key } })
         }
         if (params.price_min) {
             filter.$and = filter.$and ?? []
@@ -146,7 +146,7 @@ export default class NftService {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
         }
         const preNft = nft
-        nft.set('owner', '00000000000000000000000000000000', String)
+        nft.set('owner_key', '00000000000000000000000000000000', String)
         nft.set('removed', true, Boolean)
         const updateNft = await nft.save()
 

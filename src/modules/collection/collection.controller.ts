@@ -89,7 +89,7 @@ class CollectionController implements IController {
     private async queryUserCollections(req: CustomRequest, res: Response) {
         const { key } = req.params
         const filter = req.query as ICollectionFilter
-        filter.owner = key
+        filter.owner_key = key
         const data = await CollectionService.queryCollections(filter)
         return res.json(data)
     }

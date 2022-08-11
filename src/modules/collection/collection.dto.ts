@@ -28,7 +28,7 @@ export class UpdateCollectionDto {
     public background: object
 
     @IsOptional()
-    public owner: string
+    public owner_key: string
 }
 
 export class AssignCollectionDto {

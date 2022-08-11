@@ -39,7 +39,7 @@ export interface INftImportLog extends IBaseModel {
 
 export interface INftFilter extends IFilterModel {
     terms?: string
-    owner?: string
+    owner_key?: string
     price_min?: number
     price_max?: number
     collection_key?: string
