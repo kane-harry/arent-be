@@ -51,8 +51,8 @@ const createNftData = {
 }
 
 const updateNftData = {
-    status: 'on_sale',
-    on_market: false
+    name: 'on_sale',
+    description: 'false'
 }
 
 const createCollectionData = {
@@ -320,8 +320,8 @@ describe('NFT', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.status).equal(updateNftData.status)
-        expect(nft.on_market).equal(updateNftData.on_market)
+        expect(nft.name).equal(updateNftData.name)
+        expect(nft.description).equal(updateNftData.description)
     }).timeout(10000)
 
     it(`Approved NFT`, async () => {
@@ -422,6 +422,5 @@ describe('NFT', () => {
         validResponse(res.body)
         const collection = await CollectionModel.findOne({ key: shareData.collections[0].key })
         expect(collection.removed).equal(true)
-        expect(collection.items_count).equal(0)
     }).timeout(10000)
 })

@@ -19,7 +19,7 @@ export default class NftService {
             ...payload,
             creator: operator.key
         })
-        await model.save()
+        return await model.save()
     }
 
     static async createNft(createNftDto: CreateNftDto, operator: IUser, options: any) {

@@ -112,7 +112,7 @@ export default class CollectionService {
         if (!isAdmin(operator?.role) && operator?.key !== collection.owner_key) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'assignCollection', { key }))
         }
-        collection.set('owner', assignCollectionDto.user_key, String)
+        collection.set('owner_key', assignCollectionDto.user_key, String)
         return await collection.save()
     }
 }
