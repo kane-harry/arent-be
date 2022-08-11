@@ -7,7 +7,8 @@ import { requireAuth } from '@utils/authCheck'
 import { handleFiles, uploadFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
-import validationMiddleware from "@middlewares/validation.middleware";
+import validationMiddleware from '@middlewares/validation.middleware'
+import { NFT_IMAGE_SIZES } from '@config/constants'
 
 class CollectionController implements IController {
     public path = '/collections'
@@ -23,7 +24,7 @@ class CollectionController implements IController {
             requireAuth,
             asyncHandler(
                 handleFiles([
-                    { name: 'logo', maxCount: 1 },
+                    { name: 'logo', maxCount: 1, resizeOptions: NFT_IMAGE_SIZES },
                     { name: 'background', maxCount: 1 }
                 ])
             ),

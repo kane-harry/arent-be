@@ -1,7 +1,7 @@
 import asyncHandler from '@utils/asyncHandler'
 import { Request, Router, Response } from 'express'
 import IController from '@interfaces/controller.interface'
-import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
+import { handleFiles } from '@middlewares/files.middleware'
 import { requireAuth } from '@utils/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
@@ -47,13 +47,7 @@ class UserController implements IController {
         this.router.post(
             `${this.path}/avatar`,
             requireAuth,
-            asyncHandler(handleFiles([{ name: 'avatar', maxCount: 1 }])),
-            asyncHandler(
-                resizeImages({
-                    avatar: USER_IMAGE_SIZES
-                })
-            ),
-            asyncHandler(uploadFiles('avatar')),
+            asyncHandler(handleFiles([{ name: 'avatar', maxCount: 1, resizeOptions: USER_IMAGE_SIZES }])),
             asyncHandler(this.uploadAvatar)
         )
 
