@@ -70,44 +70,52 @@ export const resizeImages =
                             size: file.buffer.length
                         })
                     }
-                    if (file.mimetype.startsWith('image')) {
-                        const sizes = resizeOptions[file.fieldname]
-                        if (!isArray(sizes)) return
-                        const fileName = `${uuidV4()}.jpeg`
-                        const originalFile = sharp(file.buffer)
-                            .jpeg()
-                            .toBuffer()
-                            .then(data => {
-                                return Promise.resolve({
-                                    ...file,
-                                    buffer: data,
-                                    originalname: 'original' + '-' + fileName,
-                                    type: 'original',
-                                    size: data.length
-                                })
-                            })
-                            .catch(err => {
-                                return Promise.reject(err)
-                            })
-                        const newFiles = map(sizes, curSize =>
-                            sharp(file.buffer)
-                                .resize(curSize.maxSize, curSize.maxSize, { fit: sharp.fit.inside })
+                    if (file.mimetype.startsWith('image/gif')) {
+                        newFilesOps.push({
+                            ...file,
+                            type: 'image',
+                            size: file.buffer.length
+                        })
+                    } else {
+                        if (file.mimetype.startsWith('image')) {
+                            const sizes = resizeOptions[file.fieldname]
+                            if (!isArray(sizes)) return
+                            const fileName = `${uuidV4()}.jpeg`
+                            const originalFile = sharp(file.buffer)
                                 .jpeg()
                                 .toBuffer()
                                 .then(data => {
                                     return Promise.resolve({
                                         ...file,
                                         buffer: data,
-                                        originalname: curSize.id + '-' + fileName,
-                                        type: curSize.id,
+                                        originalname: 'original' + '-' + fileName,
+                                        type: 'original',
                                         size: data.length
                                     })
                                 })
                                 .catch(err => {
                                     return Promise.reject(err)
                                 })
-                        )
-                        newFilesOps = [...newFilesOps, originalFile, ...newFiles]
+                            const newFiles = map(sizes, curSize =>
+                                sharp(file.buffer)
+                                    .resize(curSize.maxSize, curSize.maxSize, { fit: sharp.fit.inside })
+                                    .jpeg()
+                                    .toBuffer()
+                                    .then(data => {
+                                        return Promise.resolve({
+                                            ...file,
+                                            buffer: data,
+                                            originalname: curSize.id + '-' + fileName,
+                                            type: curSize.id,
+                                            size: data.length
+                                        })
+                                    })
+                                    .catch(err => {
+                                        return Promise.reject(err)
+                                    })
+                            )
+                            newFilesOps = [...newFilesOps, originalFile, ...newFiles]
+                        }
                     }
                 })
                 req.files = await Promise.all(newFilesOps)

@@ -194,6 +194,26 @@ describe('NFT', () => {
         expect(nft.owner).equal(shareData.user.key)
     }).timeout(30000)
 
+    it(`Create gift NFT`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .field('name', createNftData.name)
+            .field('title', createNftData.title)
+            .field('description', createNftData.description)
+            .field('tags', createNftData.tags)
+            .field('price', createNftData.price)
+            .field('currency', createNftData.currency)
+            .field('metadata', JSON.stringify(createNftData.metadata))
+            .field('type', createNftData.type)
+            .field('amount', createNftData.amount)
+            .field('attributes', JSON.stringify(createNftData.attributes))
+            .field('collection_key', shareData.collections[0].key)
+            .attach('images', './src/test/init/test.gif')
+        expect(res.status).equal(200)
+        validResponse(res.body)
+    }).timeout(30000)
+
     it(`List User Collections`, async () => {
         const res = await request(server.app).get(`/api/v1/collections/user/${shareData.user.key}`)
         expect(res.status).equal(200)
