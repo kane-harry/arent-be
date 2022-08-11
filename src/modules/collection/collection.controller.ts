@@ -4,7 +4,7 @@ import IController from '@interfaces/controller.interface'
 import CollectionService from './collection.service'
 import { AssignCollectionDto, CreateCollectionDto, UpdateCollectionDto } from './collection.dto'
 import { requireAuth } from '@utils/authCheck'
-import { handleFiles, uploadFiles } from '@middlewares/files.middleware'
+import { handleFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
 import validationMiddleware from '@middlewares/validation.middleware'
@@ -39,12 +39,10 @@ class CollectionController implements IController {
             requireAuth,
             asyncHandler(
                 handleFiles([
-                    { name: 'logo', maxCount: 1 },
+                    { name: 'logo', maxCount: 1, resizeOptions: NFT_IMAGE_SIZES },
                     { name: 'background', maxCount: 1 }
                 ])
             ),
-            asyncHandler(uploadFiles('logo')),
-            asyncHandler(uploadFiles('background')),
             asyncHandler(this.updateCollection)
         )
         this.router.get(`${this.path}/user/:key`, asyncHandler(this.queryUserCollections))
