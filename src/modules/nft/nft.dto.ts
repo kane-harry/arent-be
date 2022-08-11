@@ -23,20 +23,14 @@ export class CreateNftDto {
     @IsNotEmpty()
     public name: string
 
-    @IsNotEmpty()
-    public title: string
-
     @IsOptional()
     public description: string
 
-    @IsOptional()
-    public tags: string
+    @IsNotEmpty()
+    public collection_key: string
 
     @IsNotEmpty()
     public price: string
-
-    @IsOptional()
-    public nft_token_id: string
 
     @IsOptional()
     public attributes: string
@@ -45,39 +39,24 @@ export class CreateNftDto {
     public meta_data: string
 
     @IsOptional()
-    public videos: any[]
+    public animation: any
 
-    @IsOptional()
-    public images: any[]
+    @IsNotEmpty()
+    public image: any
 
-    @IsOptional()
-    public collection_key: string
-
-    @IsOptional()
+    @IsNotEmpty()
     public type: string
+
+    @IsNotEmpty()
+    public num_sales: string
 }
 
 export class UpdateNftDto {
     @IsOptional()
-    public owner: string
-
-    @IsOptional()
-    public status: string
-
-    @IsOptional()
-    public on_market: string
-
-    @IsOptional()
     public name: string
 
     @IsOptional()
-    public title: string
-
-    @IsOptional()
     public description: string
-
-    @IsOptional()
-    public tags: string
 
     @IsOptional()
     public price: string
@@ -92,7 +71,10 @@ export class UpdateNftDto {
     public collection_key: string
 
     @IsOptional()
-    public type: string
+    public animation: any
+
+    @IsOptional()
+    public image: any
 }
 
 export class UpdateNftStatusDto {

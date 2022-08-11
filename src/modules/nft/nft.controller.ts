@@ -10,8 +10,10 @@ import { IUser } from '@modules/user/user.interface'
 import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { INftFilter } from '@modules/nft/nft.interface'
-import { NFT_IMAGE_SIZES } from '@config/constants'
 import { requireAdmin } from '@config/role'
+import { NFT_IMAGE_SIZES } from '@config/constants'
+import Multer from 'multer'
+const upload = Multer()
 
 class NftController implements IController {
     public path = '/nfts'
@@ -22,25 +24,7 @@ class NftController implements IController {
     }
 
     private initRoutes() {
-        this.router.post(
-            `${this.path}`,
-            requireAuth,
-            asyncHandler(
-                handleFiles([
-                    { name: 'videos', maxCount: 1 },
-                    { name: 'images', maxCount: 1 }
-                ])
-            ),
-            asyncHandler(
-                resizeImages({
-                    videos: NFT_IMAGE_SIZES,
-                    images: NFT_IMAGE_SIZES
-                })
-            ),
-            asyncHandler(uploadFiles('videos')),
-            asyncHandler(uploadFiles('images')),
-            asyncHandler(this.createNft)
-        )
+        this.router.post(`${this.path}`, requireAuth, upload.any(), validationMiddleware(CreateNftDto), asyncHandler(this.createNft))
         this.router.post(`${this.path}/external/import`, requireAuth, validationMiddleware(ImportNftDto), asyncHandler(this.importNft))
         this.router.get(`${this.path}/`, asyncHandler(this.queryNFTs))
         this.router.get(`${this.path}/users/:key`, asyncHandler(this.queryMyNFTs))
@@ -61,29 +45,33 @@ class NftController implements IController {
         const createNftDto: CreateNftDto = req.body
         createNftDto.attributes = createNftDto.attributes && createNftDto.attributes.length ? JSON.parse(createNftDto.attributes) : []
         createNftDto.meta_data = createNftDto.meta_data && createNftDto.meta_data.length ? JSON.parse(createNftDto.meta_data) : []
-        if (res?.locals?.files_uploaded?.length) {
-            const videos = res.locals.files_uploaded.filter((item: any) => item.fieldname === 'videos')
-            const tempVideos = {}
-            videos.forEach((image: any) => {
-                const name = image.name
-                const type = image.type
-                tempVideos[name] = tempVideos[name] ?? {}
-                tempVideos[name].name = name
-                tempVideos[name][type] = image.key
-            })
-            createNftDto.videos = Object.values(tempVideos)
+        const files = req.files
+        // createNftDto.image=> {original:{},thumbnail:{}}
+        // createNftDto.animation=> {original:{}} no thumbnail
 
-            const images = res.locals.files_uploaded.filter((item: any) => item.fieldname === 'images')
-            const tempImages = {}
-            images.forEach((image: any) => {
-                const name = image.name
-                const type = image.type
-                tempImages[name] = tempImages[name] ?? {}
-                tempImages[name].name = name
-                tempImages[name][type] = image.key
-            })
-            createNftDto.images = Object.values(tempImages)
-        }
+        // if (res?.locals?.files_uploaded?.length) {
+        //     const videos = res.locals.files_uploaded.filter((item: any) => item.fieldname === 'videos')
+        //     const tempVideos = {}
+        //     videos.forEach((image: any) => {
+        //         const name = image.name
+        //         const type = image.type
+        //         tempVideos[name] = tempVideos[name] ?? {}
+        //         tempVideos[name].name = name
+        //         tempVideos[name][type] = image.key
+        //     })
+        //     createNftDto.videos = Object.values(tempVideos)
+
+        //     const images = res.locals.files_uploaded.filter((item: any) => item.fieldname === 'images')
+        //     const tempImages = {}
+        //     images.forEach((image: any) => {
+        //         const name = image.name
+        //         const type = image.type
+        //         tempImages[name] = tempImages[name] ?? {}
+        //         tempImages[name].name = name
+        //         tempImages[name][type] = image.key
+        //     })
+        //     createNftDto.images = Object.values(tempImages)
+        // }
         const nft = await NftService.createNft(createNftDto, req.user, { req })
         return res.json(nft)
     }
@@ -112,7 +100,7 @@ class NftController implements IController {
         const { key } = req.params
         const updateNftDto: UpdateNftDto = req.body
         updateNftDto.attributes = updateNftDto.attributes && updateNftDto.attributes.length ? JSON.parse(updateNftDto.attributes) : null
-        updateNftDto.metadata = updateNftDto.metadata && updateNftDto.metadata.length ? JSON.parse(updateNftDto.metadata) : null
+        updateNftDto.meta_data = updateNftDto.meta_data && updateNftDto.meta_data.length ? JSON.parse(updateNftDto.meta_data) : null
         const data = await NftService.updateNft(key, updateNftDto, req.user, { req })
         return res.json(data)
     }
