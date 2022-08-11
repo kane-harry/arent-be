@@ -7,6 +7,7 @@ import { requireAuth } from '@utils/authCheck'
 import { handleFiles, uploadFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
+import validationMiddleware from "@middlewares/validation.middleware";
 
 class CollectionController implements IController {
     public path = '/collections'
@@ -26,8 +27,7 @@ class CollectionController implements IController {
                     { name: 'background', maxCount: 1 }
                 ])
             ),
-            asyncHandler(uploadFiles('logo')),
-            asyncHandler(uploadFiles('background')),
+            validationMiddleware(CreateCollectionDto),
             asyncHandler(this.createCollection)
         )
         this.router.get(`${this.path}/`, asyncHandler(this.queryCollections))
@@ -52,12 +52,6 @@ class CollectionController implements IController {
 
     private createCollection = async (req: AuthenticationRequest, res: Response) => {
         const createCollectionDto: CreateCollectionDto = req.body
-        if (res?.locals?.files_uploaded?.length) {
-            const logo = res.locals.files_uploaded.find((item: any) => item.type === 'original' && item.fieldname === 'logo')
-            createCollectionDto.logo = logo?.key
-            const background = res.locals.files_uploaded.find((item: any) => item.type === 'original' && item.fieldname === 'background')
-            createCollectionDto.background = background?.key
-        }
         const collection = await CollectionService.createCollection(createCollectionDto, req.user)
         return res.send(collection)
     }

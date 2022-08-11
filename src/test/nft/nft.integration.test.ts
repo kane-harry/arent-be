@@ -115,8 +115,8 @@ describe('NFT', () => {
         expect(collection.type).equal(createCollectionData.type)
 
         //Generate
-        expect(collection.logo.length).gt(0)
-        expect(collection.background.length).gt(0)
+        expect(collection.logo).exist
+        expect(collection.background).exist
         expect(collection.items_count).exist
 
         //Relation

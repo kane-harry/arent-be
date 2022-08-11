@@ -6,8 +6,8 @@ export interface ICollection extends IBaseModel {
     description: string
     creator: string
     owner: string
-    logo: string
-    background: string
+    logo: object
+    background: object
     type: string
     items_count: number
 }

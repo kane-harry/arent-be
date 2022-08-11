@@ -18,8 +18,8 @@ const collectionSchema = new Schema<ICollection>(
         description: String,
         creator: String,
         owner: String,
-        logo: String,
-        background: String,
+        logo: { type: Object, default: null },
+        background: { type: Object, default: null },
         type: { type: String, default: 'normal' },
         items_count: Number,
         removed: { type: Boolean, default: false }
