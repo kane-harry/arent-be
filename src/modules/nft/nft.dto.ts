@@ -36,9 +36,6 @@ export class CreateNftDto {
     public price: string
 
     @IsOptional()
-    public nft_token_id: string
-
-    @IsOptional()
     public attributes: string
 
     @IsOptional()
