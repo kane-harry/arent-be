@@ -410,7 +410,7 @@ describe('NFT', () => {
         expect(collection.owner_key).equal(new_owner)
 
         //Reset owner
-        collection.set('owner', shareData.user.key, String)
+        collection.set('owner_key', shareData.user.key, String)
         await collection.save()
     }).timeout(10000)
 
