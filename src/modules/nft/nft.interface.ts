@@ -4,23 +4,28 @@ import IFilterModel from '@interfaces/filter.model.interface'
 
 export interface INft extends IBaseModel {
     name: string
-    title: string
     description: string
-    tags: string
+    external_link: string
+    collection_key: string
+    // collection
     price: number | Types.Decimal128
     currency: string
     meta_data: [] | undefined
-    videos: object | [] | undefined
-    images: object | [] | undefined
+    animation: object | undefined
+    image: object | undefined
     type: string
-    amount: number
+    num_sales: number
+    creator_key: string
+    owner_key: string
     attributes: [] | undefined
     on_market: boolean
-    creator: string
-    owner: string
-    nft_token_id: string
+    listing_date: Date | undefined
+    last_sale: Date | undefined
+    token_id: string
     status: string
-    collection_key: string
+    is_presale: boolean
+    top_bid: object | undefined
+    // auctions
 }
 
 export interface INftImportLog extends IBaseModel {
@@ -34,7 +39,7 @@ export interface INftImportLog extends IBaseModel {
 
 export interface INftFilter extends IFilterModel {
     terms?: string
-    owner?: string
+    owner_key?: string
     price_min?: number
     price_max?: number
     collection_key?: string

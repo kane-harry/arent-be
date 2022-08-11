@@ -4,9 +4,11 @@ import IController from '@interfaces/controller.interface'
 import CollectionService from './collection.service'
 import { AssignCollectionDto, CreateCollectionDto, UpdateCollectionDto } from './collection.dto'
 import { requireAuth } from '@utils/authCheck'
-import { handleFiles, uploadFiles } from '@middlewares/files.middleware'
+import { handleFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
+import validationMiddleware from '@middlewares/validation.middleware'
+import { NFT_IMAGE_SIZES } from '@config/constants'
 
 class CollectionController implements IController {
     public path = '/collections'
@@ -22,12 +24,11 @@ class CollectionController implements IController {
             requireAuth,
             asyncHandler(
                 handleFiles([
-                    { name: 'logo', maxCount: 1 },
+                    { name: 'logo', maxCount: 1, resizeOptions: NFT_IMAGE_SIZES },
                     { name: 'background', maxCount: 1 }
                 ])
             ),
-            asyncHandler(uploadFiles('logo')),
-            asyncHandler(uploadFiles('background')),
+            // validationMiddleware(CreateCollectionDto),
             asyncHandler(this.createCollection)
         )
         this.router.get(`${this.path}/`, asyncHandler(this.queryCollections))
@@ -38,12 +39,10 @@ class CollectionController implements IController {
             requireAuth,
             asyncHandler(
                 handleFiles([
-                    { name: 'logo', maxCount: 1 },
+                    { name: 'logo', maxCount: 1, resizeOptions: NFT_IMAGE_SIZES },
                     { name: 'background', maxCount: 1 }
                 ])
             ),
-            asyncHandler(uploadFiles('logo')),
-            asyncHandler(uploadFiles('background')),
             asyncHandler(this.updateCollection)
         )
         this.router.get(`${this.path}/user/:key`, asyncHandler(this.queryUserCollections))
@@ -52,12 +51,6 @@ class CollectionController implements IController {
 
     private createCollection = async (req: AuthenticationRequest, res: Response) => {
         const createCollectionDto: CreateCollectionDto = req.body
-        if (res?.locals?.files_uploaded?.length) {
-            const logo = res.locals.files_uploaded.find((item: any) => item.type === 'original' && item.fieldname === 'logo')
-            createCollectionDto.logo = logo?.key
-            const background = res.locals.files_uploaded.find((item: any) => item.type === 'original' && item.fieldname === 'background')
-            createCollectionDto.background = background?.key
-        }
         const collection = await CollectionService.createCollection(createCollectionDto, req.user)
         return res.send(collection)
     }
@@ -96,7 +89,7 @@ class CollectionController implements IController {
     private async queryUserCollections(req: CustomRequest, res: Response) {
         const { key } = req.params
         const filter = req.query as ICollectionFilter
-        filter.owner = key
+        filter.owner_key = key
         const data = await CollectionService.queryCollections(filter)
         return res.json(data)
     }

@@ -15,8 +15,8 @@ export default class CollectionService {
     static async createCollection(createCollectionDto: CreateCollectionDto, operator: IUser) {
         const model = new CollectionModel({
             ...createCollectionDto,
-            creator: operator.key,
-            owner: operator.key,
+            creator_key: operator.key,
+            owner_key: operator.key,
             items_count: 0
         })
         return await model.save()
@@ -30,9 +30,9 @@ export default class CollectionService {
             const reg = new RegExp(params.terms)
             filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { type: reg }]
         }
-        if (params.owner) {
+        if (params.owner_key) {
             filter.$and = filter.$and ?? []
-            filter.$and.push({ owner: { $eq: params.owner } })
+            filter.$and.push({ owner_key: { $eq: params.owner_key } })
         }
         if (!params.include_all) {
             filter.$and = filter.$and ?? []
@@ -55,7 +55,7 @@ export default class CollectionService {
                 new ErrorContext('collection.service', 'getCollectionDetail', { key })
             )
         }
-        const owner = await UserService.getBriefByKey(collection.owner)
+        const owner = await UserService.getBriefByKey(collection.owner_key)
         return { collection, owner }
     }
 
@@ -64,7 +64,7 @@ export default class CollectionService {
         if (!collection) {
             throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'updateCollection', { key }))
         }
-        if (!isAdmin(operator?.role) && operator?.key !== collection.owner) {
+        if (!isAdmin(operator?.role) && operator?.key !== collection.owner_key) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'updateCollection', { key }))
         }
         if (updateCollectionDto.name) {
@@ -73,8 +73,8 @@ export default class CollectionService {
         if (updateCollectionDto.description) {
             collection.set('description', updateCollectionDto.description, String)
         }
-        if (updateCollectionDto.owner) {
-            collection.set('owner', updateCollectionDto.owner, String)
+        if (updateCollectionDto.owner_key) {
+            collection.set('owner', updateCollectionDto.owner_key, String)
         }
         if (updateCollectionDto.logo) {
             collection.set('logo', updateCollectionDto.logo, String)
@@ -90,7 +90,7 @@ export default class CollectionService {
         if (!collection) {
             throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'deleteCollection', { key }))
         }
-        if (!isAdmin(operator?.role) && operator?.key !== collection.owner) {
+        if (!isAdmin(operator?.role) && operator?.key !== collection.owner_key) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'deleteCollection', { key }))
         }
         const totalCount = await NftModel.countDocuments({ collection_key: collection.key, status: NftStatus.Approved })
@@ -109,10 +109,10 @@ export default class CollectionService {
         if (!collection) {
             throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'assignCollection', { key }))
         }
-        if (!isAdmin(operator?.role) && operator?.key !== collection.owner) {
+        if (!isAdmin(operator?.role) && operator?.key !== collection.owner_key) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'assignCollection', { key }))
         }
-        collection.set('owner', assignCollectionDto.user_key, String)
+        collection.set('owner_key', assignCollectionDto.user_key, String)
         return await collection.save()
     }
 }

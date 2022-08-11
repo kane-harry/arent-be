@@ -19,23 +19,15 @@ export default class NftService {
             ...payload,
             creator: operator.key
         })
-        await model.save()
+        return await model.save()
     }
 
     static async createNft(createNftDto: CreateNftDto, operator: IUser, options: any) {
-        // @ts-ignore
-        if (!createNftDto.images.length && !createNftDto.videos.length) {
-            throw new BizException(
-                NftErrors.nft_image_error,
-                new ErrorContext('nft.service', 'createNft', { videos: createNftDto.videos, images: createNftDto.images })
-            )
-        }
-
         const model = new NftModel({
             ...createNftDto,
             status: NftStatus.Pending,
-            creator: operator.key,
-            owner: operator.key,
+            creator_key: operator.key,
+            owner_key: operator.key,
             on_market: false
         })
         const nft = await model.save()
@@ -63,9 +55,9 @@ export default class NftService {
             const reg = new RegExp(params.terms)
             filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { title: reg }, { tags: reg }]
         }
-        if (params.owner) {
+        if (params.owner_key) {
             filter.$and = filter.$and ?? []
-            filter.$and.push({ owner: { $eq: params.owner } })
+            filter.$and.push({ owner_key: { $eq: params.owner_key } })
         }
         if (params.price_min) {
             filter.$and = filter.$and ?? []
@@ -98,13 +90,8 @@ export default class NftService {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('account.service', 'initAccounts', { key }))
         }
         const preNft = nft
-        nft.set('owner', updateNftDto.owner ?? nft.owner, String)
-        nft.set('status', updateNftDto.status ?? nft.status, String)
-        nft.set('on_market', updateNftDto.on_market ?? nft.on_market, String)
         nft.set('name', updateNftDto.name ?? nft.name, String)
-        nft.set('title', updateNftDto.title ?? nft.title, String)
         nft.set('description', updateNftDto.description ?? nft.description, String)
-        nft.set('tags', updateNftDto.tags ?? nft.tags, String)
         nft.set('price', updateNftDto.price ?? nft.price, String)
         nft.set('attributes', updateNftDto.attributes ?? nft.attributes, Array)
         nft.set('meta_data', updateNftDto.meta_data ?? nft.meta_data, Array)
@@ -155,11 +142,11 @@ export default class NftService {
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
         }
-        if (!isAdmin(operator?.role) && operator?.key !== nft.owner) {
+        if (!isAdmin(operator?.role) && operator?.key !== nft.owner_key) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
         }
         const preNft = nft
-        nft.set('owner', '00000000000000000000000000000000', String)
+        nft.set('owner_key', '00000000000000000000000000000000', String)
         nft.set('removed', true, Boolean)
         const updateNft = await nft.save()
 
@@ -183,7 +170,7 @@ export default class NftService {
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.controller', 'getNFTDetail', { key }))
         }
-        const owner = await UserService.getBriefByKey(nft.owner)
+        const owner = await UserService.getBriefByKey(nft.owner_key)
         return { nft, owner }
     }
 }

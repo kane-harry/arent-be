@@ -4,16 +4,16 @@ import IFilterModel from '@interfaces/filter.model.interface'
 export interface ICollection extends IBaseModel {
     name: string
     description: string
-    creator: string
-    owner: string
-    logo: string
-    background: string
+    creator_key: string
+    owner_key: string
+    logo: object
+    background: object
     type: string
     items_count: number
 }
 
 export interface ICollectionFilter extends IFilterModel {
     terms?: string
-    owner?: string
+    owner_key?: string
     include_all?: boolean
 }

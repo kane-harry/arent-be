@@ -88,14 +88,14 @@ describe('Profile', () => {
             validResponse(res.body)
             expect(res.body.original).equal(avatarKey)
             expect(res.body.lg).equal(avatarKey)
-            expect(res.body.sm).equal(avatarKey)
+            expect(res.body.md).equal(avatarKey)
             expect(res.body.mini).equal(avatarKey)
 
             const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
             assert.deepEqual(user?.avatar, {
                 original: avatarKey,
                 lg: avatarKey,
-                sm: avatarKey,
+                md: avatarKey,
                 mini: avatarKey
             })
         })
@@ -167,7 +167,10 @@ describe('Profile', () => {
         })
 
         it('updateUser should be success', async () => {
-            const updateRes = await request(server.app).put(`/api/v1/users/profile`).set('Authorization', `Bearer ${shareData.token}`).send(updateData)
+            const updateRes = await request(server.app)
+                .put(`/api/v1/users/profile`)
+                .set('Authorization', `Bearer ${shareData.token}`)
+                .send(updateData)
 
             expect(updateRes.status).equal(200)
             validResponse(updateRes.body)
@@ -198,7 +201,10 @@ describe('Profile', () => {
     }).timeout(10000)
 
     it('GetProfile', async () => {
-        const res = await request(server.app).get(`/api/v1/users/${shareData.user.key}/profile`).set('Authorization', `Bearer ${shareData.token}`).send()
+        const res = await request(server.app)
+            .get(`/api/v1/users/${shareData.user.key}/profile`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
 

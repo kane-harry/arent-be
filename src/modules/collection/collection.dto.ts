@@ -8,10 +8,10 @@ export class CreateCollectionDto {
     public description: string
 
     @IsOptional()
-    public logo: string
+    public logo: object
 
     @IsOptional()
-    public background: string
+    public background: object
 }
 
 export class UpdateCollectionDto {
@@ -22,13 +22,13 @@ export class UpdateCollectionDto {
     public description: string
 
     @IsOptional()
-    public logo: string
+    public logo: object
 
     @IsOptional()
-    public background: string
+    public background: object
 
     @IsOptional()
-    public owner: string
+    public owner_key: string
 }
 
 export class AssignCollectionDto {

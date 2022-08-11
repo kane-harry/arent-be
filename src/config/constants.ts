@@ -105,12 +105,12 @@ export enum NftStatus {
 
 export const NFT_IMAGE_SIZES = [
     { maxSize: 1280, id: 'lg' },
-    { maxSize: 600, id: 'sm' },
+    { maxSize: 600, id: 'md' },
     { maxSize: 300, id: 'sm' }
 ]
 
 export const USER_IMAGE_SIZES = [
     { maxSize: 1280, id: 'lg' },
-    { maxSize: 600, id: 'sm' },
+    { maxSize: 600, id: 'md' },
     { maxSize: 80, id: 'mini' }
 ]

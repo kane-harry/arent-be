@@ -26,10 +26,9 @@ let adminShareData = { user: { key: '' }, token: '', refreshToken: '', accounts:
 const createNftData = {
     name: 'name',
     desc: 'desc',
-    title: 'title',
     description: 'description',
-    tags: 'tag1,tag2',
     price: 5000,
+    num_sales: 1,
     currency: 'LL',
     nft_token_id: '232423432',
     meta_data: [
@@ -39,7 +38,6 @@ const createNftData = {
         }
     ],
     type: 'type',
-    amount: 1,
     attributes: [
         {
             trait_type: 'creator',
@@ -53,9 +51,8 @@ const createNftData = {
 }
 
 const updateNftData = {
-    owner: 'safdsafsf',
-    status: 'on_sale',
-    on_market: false
+    name: 'on_sale',
+    description: 'false'
 }
 
 const createCollectionData = {
@@ -114,13 +111,13 @@ describe('NFT', () => {
         expect(collection.type).equal(createCollectionData.type)
 
         //Generate
-        expect(collection.logo.length).gt(0)
-        expect(collection.background.length).gt(0)
+        expect(collection.logo).exist
+        expect(collection.background).exist
         expect(collection.items_count).exist
 
         //Relation
-        expect(collection.creator).equal(shareData.user.key)
-        expect(collection.owner).equal(shareData.user.key)
+        expect(collection.creator_key).equal(shareData.user.key)
+        expect(collection.owner_key).equal(shareData.user.key)
     }).timeout(20000)
 
     it(`List Collections`, async () => {
@@ -139,11 +136,11 @@ describe('NFT', () => {
         expect(collection.name).equal(res.body.collection.name)
         expect(collection.description).equal(res.body.collection.description)
         expect(collection.type).equal(res.body.collection.type)
-        expect(collection.logo).equal(res.body.collection.logo)
-        expect(collection.background).equal(res.body.collection.background)
+        expect(JSON.stringify(collection.logo)).equal(JSON.stringify(res.body.collection.logo))
+        expect(JSON.stringify(collection.background)).equal(JSON.stringify(res.body.collection.background))
         expect(collection.items_count).equal(res.body.collection.items_count)
-        expect(collection.creator).equal(res.body.collection.creator)
-        expect(collection.owner).equal(res.body.collection.owner)
+        expect(collection.creator_key).equal(res.body.collection.creator_key)
+        expect(collection.owner_key).equal(res.body.collection.owner_key)
     }).timeout(10000)
 
     it(`Create NFT`, async () => {
@@ -151,47 +148,42 @@ describe('NFT', () => {
             .post(`/api/v1/nfts`)
             .set('Authorization', `Bearer ${shareData.token}`)
             .field('name', createNftData.name)
-            .field('title', createNftData.title)
             .field('description', createNftData.description)
-            .field('tags', createNftData.tags)
             .field('price', createNftData.price)
             .field('currency', createNftData.currency)
             .field('meta_data', JSON.stringify(createNftData.meta_data))
             .field('type', createNftData.type)
-            .field('amount', createNftData.amount)
             .field('attributes', JSON.stringify(createNftData.attributes))
             .field('collection_key', shareData.collections[0].key)
-            .attach('videos', './src/test/init/test.mp4')
-            .attach('images', './src/test/init/test.jpeg')
+            .field('num_sales', createNftData.num_sales)
+            .attach('animation', './src/test/init/test.mp4')
+            .attach('image', './src/test/init/test.jpeg')
         expect(res.status).equal(200)
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: res.body.key })
         //Form data
         expect(nft.name).equal(createNftData.name)
-        expect(nft.title).equal(createNftData.title)
         expect(nft.description).equal(createNftData.description)
-        expect(nft.tags).equal(createNftData.tags)
         expect(nft.price.toString()).equal(createNftData.price.toString())
         expect(nft.currency).equal(createNftData.currency)
         expect(nft.meta_data[0].year).equal(createNftData.meta_data[0].year)
         expect(nft.meta_data[0].player).equal(createNftData.meta_data[0].player)
         expect(nft.type).equal(createNftData.type)
-        expect(nft.amount).equal(createNftData.amount)
         expect(nft.attributes[0].trait_type).equal(createNftData.attributes[0].trait_type)
         expect(nft.attributes[0].value).equal(createNftData.attributes[0].value)
         expect(nft.attributes[1].trait_type).equal(createNftData.attributes[1].trait_type)
         expect(nft.attributes[1].value).equal(createNftData.attributes[1].value)
 
         //Generate
-        expect(nft.images.length).gt(0)
-        expect(nft.videos.length).gt(0)
+        expect(nft.image).exist
+        expect(nft.animation).exist
         expect(nft.on_market).exist
         expect(nft.status).exist
 
         //Relation
         expect(nft.collection_key).equal(shareData.collections[0].key)
-        expect(nft.creator).equal(shareData.user.key)
-        expect(nft.owner).equal(shareData.user.key)
+        expect(nft.creator_key).equal(shareData.user.key)
+        expect(nft.owner_key).equal(shareData.user.key)
     }).timeout(30000)
 
     it(`Create gift NFT`, async () => {
@@ -199,17 +191,15 @@ describe('NFT', () => {
             .post(`/api/v1/nfts`)
             .set('Authorization', `Bearer ${shareData.token}`)
             .field('name', createNftData.name)
-            .field('title', createNftData.title)
             .field('description', createNftData.description)
-            .field('tags', createNftData.tags)
             .field('price', createNftData.price)
             .field('currency', createNftData.currency)
             .field('meta_data', JSON.stringify(createNftData.meta_data))
             .field('type', createNftData.type)
-            .field('amount', createNftData.amount)
             .field('attributes', JSON.stringify(createNftData.attributes))
             .field('collection_key', shareData.collections[0].key)
-            .attach('images', './src/test/init/test.gif')
+            .field('num_sales', createNftData.num_sales)
+            .attach('image', './src/test/init/test.gif')
         expect(res.status).equal(200)
         validResponse(res.body)
     }).timeout(30000)
@@ -237,17 +227,15 @@ describe('NFT', () => {
         const res = await request(server.app).get(`/api/v1/nfts?terms=${terms}`)
         expect(res.status).equal(200)
         validResponse(res.body)
-        const items = res.body.items.filter(
-            item => !(item.name.includes(terms) || item.description.includes(terms) || item.title.includes(terms) || item.tags.includes(terms))
-        )
+        const items = res.body.items.filter(item => !(item.name.includes(terms) || item.description.includes(terms)))
         expect(items.length).equal(0)
     }).timeout(10000)
 
     it(`List NFTs by owner`, async () => {
-        const res = await request(server.app).get(`/api/v1/nfts?owner=${shareData.user.key}`)
+        const res = await request(server.app).get(`/api/v1/nfts?owner_key=${shareData.user.key}`)
         expect(res.status).equal(200)
         validResponse(res.body)
-        const items = res.body.items.filter(item => item.owner !== shareData.user.key)
+        const items = res.body.items.filter(item => item.owner_key !== shareData.user.key)
         expect(items.length).equal(0)
     }).timeout(10000)
 
@@ -300,15 +288,12 @@ describe('NFT', () => {
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
         expect(nft.name).equal(res.body.nft.name)
-        expect(nft.title).equal(res.body.nft.title)
         expect(nft.description).equal(res.body.nft.description)
-        expect(nft.tags).equal(res.body.nft.tags)
         expect(nft.price.toString()).equal(res.body.nft.price.toString())
         expect(nft.currency).equal(res.body.nft.currency)
         expect(nft.meta_data[0].year).equal(res.body.nft.meta_data[0].year)
         expect(nft.meta_data[0].player).equal(res.body.nft.meta_data[0].player)
         expect(nft.type).equal(res.body.nft.type)
-        expect(nft.amount).equal(res.body.nft.amount)
         expect(nft.nft_token_id).equal(res.body.nft.nft_token_id)
         expect(nft.attributes[0].trait_type).equal(res.body.nft.attributes[0].trait_type)
         expect(nft.attributes[0].value).equal(res.body.nft.attributes[0].value)
@@ -316,8 +301,8 @@ describe('NFT', () => {
         expect(nft.attributes[1].value).equal(res.body.nft.attributes[1].value)
 
         //Generate
-        expect(JSON.stringify(nft.images)).equal(JSON.stringify(res.body.nft.images))
-        expect(JSON.stringify(nft.videos)).equal(JSON.stringify(res.body.nft.videos))
+        expect(JSON.stringify(nft.image)).equal(JSON.stringify(res.body.nft.image))
+        expect(JSON.stringify(nft.animation)).equal(JSON.stringify(res.body.nft.animation))
         expect(nft.on_market).equal(res.body.nft.on_market)
         expect(nft.status).equal(res.body.nft.status)
 
@@ -335,9 +320,8 @@ describe('NFT', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.owner).equal(updateNftData.owner)
-        expect(nft.status).equal(updateNftData.status)
-        expect(nft.on_market).equal(updateNftData.on_market)
+        expect(nft.name).equal(updateNftData.name)
+        expect(nft.description).equal(updateNftData.description)
     }).timeout(10000)
 
     it(`Approved NFT`, async () => {
@@ -357,7 +341,7 @@ describe('NFT', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.owner).equal('00000000000000000000000000000000')
+        expect(nft.owner_key).equal('00000000000000000000000000000000')
     }).timeout(10000)
 
     it(`Reject NFT`, async () => {
@@ -410,8 +394,8 @@ describe('NFT', () => {
         expect(collection.description).equal(updateCollectionData.description)
 
         //Generate
-        expect(collection.logo.length).gt(0)
-        expect(collection.background.length).gt(0)
+        expect(collection.logo).exist
+        expect(collection.background).exist
     }).timeout(10000)
 
     it(`Assign collection`, async () => {
@@ -423,10 +407,10 @@ describe('NFT', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         const collection = await CollectionModel.findOne({ key: res.body.key })
-        expect(collection.owner).equal(new_owner)
+        expect(collection.owner_key).equal(new_owner)
 
         //Reset owner
-        collection.set('owner', shareData.user.key, String)
+        collection.set('owner_key', shareData.user.key, String)
         await collection.save()
     }).timeout(10000)
 
@@ -438,6 +422,5 @@ describe('NFT', () => {
         validResponse(res.body)
         const collection = await CollectionModel.findOne({ key: shareData.collections[0].key })
         expect(collection.removed).equal(true)
-        expect(collection.items_count).equal(0)
     }).timeout(10000)
 })
