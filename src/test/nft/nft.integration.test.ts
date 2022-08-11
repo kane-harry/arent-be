@@ -27,7 +27,6 @@ const createNftData = {
     name: 'name',
     desc: 'desc',
     description: 'description',
-    tags: 'tag1,tag2',
     price: 5000,
     num_sales: 1,
     currency: 'LL',
@@ -152,7 +151,6 @@ describe('NFT', () => {
             .set('Authorization', `Bearer ${shareData.token}`)
             .field('name', createNftData.name)
             .field('description', createNftData.description)
-            .field('tags', createNftData.tags)
             .field('price', createNftData.price)
             .field('currency', createNftData.currency)
             .field('meta_data', JSON.stringify(createNftData.meta_data))
@@ -169,7 +167,6 @@ describe('NFT', () => {
         //Form data
         expect(nft.name).equal(createNftData.name)
         expect(nft.description).equal(createNftData.description)
-        expect(nft.tags).equal(createNftData.tags)
         expect(nft.price.toString()).equal(createNftData.price.toString())
         expect(nft.currency).equal(createNftData.currency)
         expect(nft.meta_data[0].year).equal(createNftData.meta_data[0].year)
@@ -199,7 +196,6 @@ describe('NFT', () => {
             .set('Authorization', `Bearer ${shareData.token}`)
             .field('name', createNftData.name)
             .field('description', createNftData.description)
-            .field('tags', createNftData.tags)
             .field('price', createNftData.price)
             .field('currency', createNftData.currency)
             .field('meta_data', JSON.stringify(createNftData.meta_data))
@@ -235,7 +231,7 @@ describe('NFT', () => {
         const res = await request(server.app).get(`/api/v1/nfts?terms=${terms}`)
         expect(res.status).equal(200)
         validResponse(res.body)
-        const items = res.body.items.filter(item => !(item.name.includes(terms) || item.description.includes(terms) || item.tags.includes(terms)))
+        const items = res.body.items.filter(item => !(item.name.includes(terms) || item.description.includes(terms)))
         expect(items.length).equal(0)
     }).timeout(10000)
 
@@ -297,7 +293,6 @@ describe('NFT', () => {
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
         expect(nft.name).equal(res.body.nft.name)
         expect(nft.description).equal(res.body.nft.description)
-        expect(nft.tags).equal(res.body.nft.tags)
         expect(nft.price.toString()).equal(res.body.nft.price.toString())
         expect(nft.currency).equal(res.body.nft.currency)
         expect(nft.meta_data[0].year).equal(res.body.nft.meta_data[0].year)
