@@ -30,6 +30,7 @@ const createNftData = {
     description: 'description',
     tags: 'tag1,tag2',
     price: 5000,
+    num_sales: 1,
     currency: 'LL',
     nft_token_id: '232423432',
     meta_data: [
@@ -161,8 +162,9 @@ describe('NFT', () => {
             .field('amount', createNftData.amount)
             .field('attributes', JSON.stringify(createNftData.attributes))
             .field('collection_key', shareData.collections[0].key)
-            .attach('videos', './src/test/init/test.mp4')
-            .attach('images', './src/test/init/test.jpeg')
+            .field('num_sales', createNftData.num_sales)
+            .attach('animation', './src/test/init/test.mp4')
+            .attach('image', './src/test/init/test.jpeg')
         expect(res.status).equal(200)
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: res.body.key })
@@ -183,8 +185,8 @@ describe('NFT', () => {
         expect(nft.attributes[1].value).equal(createNftData.attributes[1].value)
 
         //Generate
-        expect(nft.images.length).gt(0)
-        expect(nft.videos.length).gt(0)
+        expect(nft.image.length).gt(0)
+        expect(nft.animation.length).gt(0)
         expect(nft.on_market).exist
         expect(nft.status).exist
 
@@ -209,7 +211,7 @@ describe('NFT', () => {
             .field('amount', createNftData.amount)
             .field('attributes', JSON.stringify(createNftData.attributes))
             .field('collection_key', shareData.collections[0].key)
-            .attach('images', './src/test/init/test.gif')
+            .attach('image', './src/test/init/test.gif')
         expect(res.status).equal(200)
         validResponse(res.body)
     }).timeout(30000)
@@ -316,8 +318,8 @@ describe('NFT', () => {
         expect(nft.attributes[1].value).equal(res.body.nft.attributes[1].value)
 
         //Generate
-        expect(JSON.stringify(nft.images)).equal(JSON.stringify(res.body.nft.images))
-        expect(JSON.stringify(nft.videos)).equal(JSON.stringify(res.body.nft.videos))
+        expect(JSON.stringify(nft.image)).equal(JSON.stringify(res.body.nft.image))
+        expect(JSON.stringify(nft.animation)).equal(JSON.stringify(res.body.nft.animation))
         expect(nft.on_market).equal(res.body.nft.on_market)
         expect(nft.status).equal(res.body.nft.status)
 
