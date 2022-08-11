@@ -32,7 +32,7 @@ const createNftData = {
     price: 5000,
     currency: 'LL',
     nft_token_id: '232423432',
-    metadata: [
+    meta_data: [
         {
             player: 'Ronaldo',
             year: 2020
@@ -156,7 +156,7 @@ describe('NFT', () => {
             .field('tags', createNftData.tags)
             .field('price', createNftData.price)
             .field('currency', createNftData.currency)
-            .field('metadata', JSON.stringify(createNftData.metadata))
+            .field('meta_data', JSON.stringify(createNftData.meta_data))
             .field('type', createNftData.type)
             .field('amount', createNftData.amount)
             .field('attributes', JSON.stringify(createNftData.attributes))
@@ -173,8 +173,8 @@ describe('NFT', () => {
         expect(nft.tags).equal(createNftData.tags)
         expect(nft.price.toString()).equal(createNftData.price.toString())
         expect(nft.currency).equal(createNftData.currency)
-        expect(nft.metadata[0].year).equal(createNftData.metadata[0].year)
-        expect(nft.metadata[0].player).equal(createNftData.metadata[0].player)
+        expect(nft.meta_data[0].year).equal(createNftData.meta_data[0].year)
+        expect(nft.meta_data[0].player).equal(createNftData.meta_data[0].player)
         expect(nft.type).equal(createNftData.type)
         expect(nft.amount).equal(createNftData.amount)
         expect(nft.attributes[0].trait_type).equal(createNftData.attributes[0].trait_type)
@@ -204,7 +204,7 @@ describe('NFT', () => {
             .field('tags', createNftData.tags)
             .field('price', createNftData.price)
             .field('currency', createNftData.currency)
-            .field('metadata', JSON.stringify(createNftData.metadata))
+            .field('meta_data', JSON.stringify(createNftData.meta_data))
             .field('type', createNftData.type)
             .field('amount', createNftData.amount)
             .field('attributes', JSON.stringify(createNftData.attributes))
@@ -305,8 +305,8 @@ describe('NFT', () => {
         expect(nft.tags).equal(res.body.nft.tags)
         expect(nft.price.toString()).equal(res.body.nft.price.toString())
         expect(nft.currency).equal(res.body.nft.currency)
-        expect(nft.metadata[0].year).equal(res.body.nft.metadata[0].year)
-        expect(nft.metadata[0].player).equal(res.body.nft.metadata[0].player)
+        expect(nft.meta_data[0].year).equal(res.body.nft.meta_data[0].year)
+        expect(nft.meta_data[0].player).equal(res.body.nft.meta_data[0].player)
         expect(nft.type).equal(res.body.nft.type)
         expect(nft.amount).equal(res.body.nft.amount)
         expect(nft.nft_token_id).equal(res.body.nft.nft_token_id)
