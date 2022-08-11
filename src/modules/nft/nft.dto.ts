@@ -26,7 +26,7 @@ export class CreateNftDto {
     @IsOptional()
     public description: string
 
-    @IsNotEmpty()
+    @IsOptional()
     public collection_key: string
 
     @IsNotEmpty()
