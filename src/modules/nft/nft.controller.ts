@@ -33,7 +33,6 @@ class NftController implements IController {
             ),
             asyncHandler(
                 resizeImages({
-                    videos: NFT_IMAGE_SIZES,
                     images: NFT_IMAGE_SIZES
                 })
             ),
