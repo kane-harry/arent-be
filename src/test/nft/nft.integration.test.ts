@@ -32,7 +32,7 @@ const createNftData = {
     price: 5000,
     currency: 'LL',
     nft_token_id: '232423432',
-    metadata: [
+    meta_data: [
         {
             player: 'Ronaldo',
             year: 2020
@@ -156,10 +156,9 @@ describe('NFT', () => {
             .field('tags', createNftData.tags)
             .field('price', createNftData.price)
             .field('currency', createNftData.currency)
-            .field('metadata', JSON.stringify(createNftData.metadata))
+            .field('meta_data', JSON.stringify(createNftData.meta_data))
             .field('type', createNftData.type)
             .field('amount', createNftData.amount)
-            .field('nft_token_id', createNftData.nft_token_id)
             .field('attributes', JSON.stringify(createNftData.attributes))
             .field('collection_key', shareData.collections[0].key)
             .attach('videos', './src/test/init/test.mp4')
@@ -174,11 +173,10 @@ describe('NFT', () => {
         expect(nft.tags).equal(createNftData.tags)
         expect(nft.price.toString()).equal(createNftData.price.toString())
         expect(nft.currency).equal(createNftData.currency)
-        expect(nft.metadata[0].year).equal(createNftData.metadata[0].year)
-        expect(nft.metadata[0].player).equal(createNftData.metadata[0].player)
+        expect(nft.meta_data[0].year).equal(createNftData.meta_data[0].year)
+        expect(nft.meta_data[0].player).equal(createNftData.meta_data[0].player)
         expect(nft.type).equal(createNftData.type)
         expect(nft.amount).equal(createNftData.amount)
-        expect(nft.nft_token_id).equal(createNftData.nft_token_id)
         expect(nft.attributes[0].trait_type).equal(createNftData.attributes[0].trait_type)
         expect(nft.attributes[0].value).equal(createNftData.attributes[0].value)
         expect(nft.attributes[1].trait_type).equal(createNftData.attributes[1].trait_type)
@@ -194,6 +192,26 @@ describe('NFT', () => {
         expect(nft.collection_key).equal(shareData.collections[0].key)
         expect(nft.creator).equal(shareData.user.key)
         expect(nft.owner).equal(shareData.user.key)
+    }).timeout(30000)
+
+    it(`Create gift NFT`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .field('name', createNftData.name)
+            .field('title', createNftData.title)
+            .field('description', createNftData.description)
+            .field('tags', createNftData.tags)
+            .field('price', createNftData.price)
+            .field('currency', createNftData.currency)
+            .field('meta_data', JSON.stringify(createNftData.meta_data))
+            .field('type', createNftData.type)
+            .field('amount', createNftData.amount)
+            .field('attributes', JSON.stringify(createNftData.attributes))
+            .field('collection_key', shareData.collections[0].key)
+            .attach('images', './src/test/init/test.gif')
+        expect(res.status).equal(200)
+        validResponse(res.body)
     }).timeout(30000)
 
     it(`List User Collections`, async () => {
@@ -287,8 +305,8 @@ describe('NFT', () => {
         expect(nft.tags).equal(res.body.nft.tags)
         expect(nft.price.toString()).equal(res.body.nft.price.toString())
         expect(nft.currency).equal(res.body.nft.currency)
-        expect(nft.metadata[0].year).equal(res.body.nft.metadata[0].year)
-        expect(nft.metadata[0].player).equal(res.body.nft.metadata[0].player)
+        expect(nft.meta_data[0].year).equal(res.body.nft.meta_data[0].year)
+        expect(nft.meta_data[0].player).equal(res.body.nft.meta_data[0].player)
         expect(nft.type).equal(res.body.nft.type)
         expect(nft.amount).equal(res.body.nft.amount)
         expect(nft.nft_token_id).equal(res.body.nft.nft_token_id)

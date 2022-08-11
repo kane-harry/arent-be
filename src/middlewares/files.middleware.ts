@@ -57,19 +57,26 @@ export const resizeImages =
             id: string
         }[]
     }) =>
-        async (req: Request, res: Response, next: NextFunction) => {
-            try {
-                const files = req.files
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const files = req.files
 
-                let newFilesOps: any[] = []
-                forEach(files, (file: any) => {
-                    if (file.mimetype.startsWith('video')) {
-                        newFilesOps.push({
-                            ...file,
-                            type: 'video',
-                            size: file.buffer.length
-                        })
-                    }
+            let newFilesOps: any[] = []
+            forEach(files, (file: any) => {
+                if (file.mimetype.startsWith('video')) {
+                    newFilesOps.push({
+                        ...file,
+                        type: 'video',
+                        size: file.buffer.length
+                    })
+                }
+                if (file.mimetype.startsWith('image/gif')) {
+                    newFilesOps.push({
+                        ...file,
+                        type: 'image',
+                        size: file.buffer.length
+                    })
+                } else {
                     if (file.mimetype.startsWith('image')) {
                         const sizes = resizeOptions[file.fieldname]
                         if (!isArray(sizes)) return
@@ -109,19 +116,20 @@ export const resizeImages =
                         )
                         newFilesOps = [...newFilesOps, originalFile, ...newFiles]
                     }
-                })
-                req.files = await Promise.all(newFilesOps)
-                next()
-            } catch (err) {
-                console.log(err)
-                throw new ApplicationException(CommonErrors.internal_server_error, {
-                    class_name: 'FileValidation',
-                    method: 'resizeImages',
-                    details: String(err),
-                    message: null
-                })
-            }
+                }
+            })
+            req.files = await Promise.all(newFilesOps)
+            next()
+        } catch (err) {
+            console.log(err)
+            throw new ApplicationException(CommonErrors.internal_server_error, {
+                class_name: 'FileValidation',
+                method: 'resizeImages',
+                details: String(err),
+                message: null
+            })
         }
+    }
 
 export const uploadFiles = (folder?: string) => async (req: Request, res: Response, next: NextFunction) => {
     try {
