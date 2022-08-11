@@ -58,7 +58,7 @@ export const handleFiles = (fields: any[]) => async (req: Request, res: Response
             if (!file.resizeOptions) {
                 newFilesOps.push({
                     ...file,
-                    type: 'video',
+                    type: 'original',
                     size: file.buffer.length
                 })
                 return
@@ -66,7 +66,7 @@ export const handleFiles = (fields: any[]) => async (req: Request, res: Response
             if (file.mimetype.startsWith('video')) {
                 newFilesOps.push({
                     ...file,
-                    type: 'video',
+                    type: 'original',
                     size: file.buffer.length
                 })
                 return
@@ -74,7 +74,7 @@ export const handleFiles = (fields: any[]) => async (req: Request, res: Response
             if (file.mimetype.startsWith('image/gif')) {
                 newFilesOps.push({
                     ...file,
-                    type: 'image',
+                    type: 'original',
                     size: file.buffer.length
                 })
                 return
