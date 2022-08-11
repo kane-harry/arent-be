@@ -28,7 +28,7 @@ class CollectionController implements IController {
                     { name: 'background', maxCount: 1 }
                 ])
             ),
-            validationMiddleware(CreateCollectionDto),
+            // validationMiddleware(CreateCollectionDto),
             asyncHandler(this.createCollection)
         )
         this.router.get(`${this.path}/`, asyncHandler(this.queryCollections))

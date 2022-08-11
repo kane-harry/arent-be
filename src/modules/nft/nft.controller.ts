@@ -34,7 +34,7 @@ class NftController implements IController {
                     { name: 'animation', maxCount: 1 }
                 ])
             ),
-            validationMiddleware(CreateNftDto),
+            // validationMiddleware(CreateNftDto),
             asyncHandler(this.createNft)
         )
         this.router.post(`${this.path}/external/import`, requireAuth, validationMiddleware(ImportNftDto), asyncHandler(this.importNft))
