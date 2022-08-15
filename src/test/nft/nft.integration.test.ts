@@ -308,8 +308,12 @@ describe('NFT', () => {
 
         //Relation
         expect(nft.collection_key).equal(res.body.nft.collection_key)
-        expect(nft.creator).equal(res.body.nft.creator)
-        expect(nft.owner).equal(res.body.nft.owner)
+        expect(nft.creator_key).equal(res.body.nft.creator_key)
+        expect(nft.owner_key).equal(res.body.nft.owner_key)
+
+        expect(res.body.owner.key).equal(nft.owner_key)
+        expect(res.body.creator.key).equal(nft.creator_key)
+        expect(res.body.collection.key).equal(nft.collection_key)
     }).timeout(10000)
 
     it(`Update NFT`, async () => {

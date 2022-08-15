@@ -12,6 +12,7 @@ import { isAdmin } from '@config/role'
 import UserService from '@modules/user/user.service'
 import { NftHistoryActions, NftStatus } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
+import CollectionService from '@modules/collection/collection.service'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -171,6 +172,8 @@ export default class NftService {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.controller', 'getNFTDetail', { key }))
         }
         const owner = await UserService.getBriefByKey(nft.owner_key)
-        return { nft, owner }
+        const creator = await UserService.getBriefByKey(nft.creator_key)
+        const collectionDetail = await CollectionService.getCollectionDetail(nft.collection_key)
+        return { nft, owner, creator, collection: collectionDetail.collection }
     }
 }
