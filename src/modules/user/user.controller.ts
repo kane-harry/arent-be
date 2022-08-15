@@ -1,7 +1,7 @@
 import asyncHandler from '@utils/asyncHandler'
 import { Request, Router, Response } from 'express'
 import IController from '@interfaces/controller.interface'
-import { handleFiles, resizeImages, uploadFiles } from '@middlewares/files.middleware'
+import { handleFiles } from '@middlewares/files.middleware'
 import { requireAuth } from '@utils/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
@@ -25,6 +25,7 @@ import { requireAdmin, requireOwner } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUserQueryFilter } from './user.interface'
 import { downloadResource } from '@utils/utility'
+import { USER_AVATAR_SIZES } from '@config/constants'
 
 class UserController implements IController {
     public path = '/users'
@@ -46,17 +47,7 @@ class UserController implements IController {
         this.router.post(
             `${this.path}/avatar`,
             requireAuth,
-            asyncHandler(handleFiles([{ name: 'avatar', maxCount: 1 }])),
-            asyncHandler(
-                resizeImages({
-                    avatar: [
-                        { maxSize: 1280, id: 'lg' },
-                        { maxSize: 600, id: 'sm' },
-                        { maxSize: 80, id: 'mini' }
-                    ]
-                })
-            ),
-            asyncHandler(uploadFiles('avatar')),
+            asyncHandler(handleFiles([{ name: 'avatar', maxCount: 1, resizeOptions: USER_AVATAR_SIZES }])),
             asyncHandler(this.uploadAvatar)
         )
 
@@ -183,24 +174,24 @@ class UserController implements IController {
         const data = await UserService.getUserList(filter)
         const fields = [
             { label: 'Key', value: 'key' },
-            { label: 'First Name', value: 'firstName' },
-            { label: 'Last Name', value: 'lastName' },
-            { label: 'Chat Name', value: 'chatName' },
-            { label: 'Full Name', value: 'fullName' },
+            { label: 'First Name', value: 'first_name' },
+            { label: 'Last Name', value: 'last_lame' },
+            { label: 'Chat Name', value: 'chat_name' },
+            { label: 'Full Name', value: 'full_name' },
             { label: 'Email', value: 'email' },
             { label: 'Phone', value: 'phone' },
             { label: 'Country', value: 'country' },
             { label: 'Avatar', value: 'avatar' },
             { label: 'Status', value: 'status' },
             { label: 'Role', value: 'role' },
-            { label: 'Email Verified', value: 'emailVerified' },
-            { label: 'Phone Verified', value: 'phoneVerified' },
+            { label: 'Email Verified', value: 'email_verified' },
+            { label: 'Phone Verified', value: 'phone_verified' },
             { label: 'Removed', value: 'removed' },
-            { label: 'KYC Verified', value: 'kycVerified' },
+            { label: 'KYC Verified', value: 'kyc_verified' },
             { label: 'Created', value: 'created' }
         ]
 
-        return downloadResource(res, 'export.csv', fields, data.items ?? data)
+        return downloadResource(res, 'users.csv', fields, data.items ?? data)
     }
 
     private resetCredentials = async (req: AuthenticationRequest, res: Response) => {

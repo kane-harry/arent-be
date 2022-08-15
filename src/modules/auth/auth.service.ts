@@ -54,7 +54,7 @@ export default class AuthService {
         if (!mfaEnabled) {
             return { status: 'verified' }
         }
-        const mfaType = user.mfa_settings.mfa_type
+        const mfaType = user.mfa_settings.type
         if (!code || !code.length || code === 'undefined') {
             const deliveryMethod = (owner: any, code: string) => {
                 if (mfaType === MFAType.EMAIL) {
@@ -119,14 +119,14 @@ export default class AuthService {
             return { success: true }
         }
 
-        if (userData?.email === user.email) {
+        if (user.email && userData?.email === user.email) {
             throw new BizException(
                 AuthErrors.registration_email_exists_error,
                 new ErrorContext('auth.service', 'verifyRegistration', { email: userData.email })
             )
         }
 
-        if (userData?.phone === user.phone) {
+        if (user.phone && userData?.phone === user.phone) {
             throw new BizException(
                 AuthErrors.registration_phone_exists_error,
                 new ErrorContext('auth.service', 'verifyRegistration', { phone: userData.phone })
@@ -211,7 +211,7 @@ export default class AuthService {
 
         // create token
         const accessToken = AuthModel.createAccessToken(user.key, currentTimestamp)
-
+        const refreshToken = AuthModel.createRefreshToken(user.key, currentTimestamp)
         user.set('login_count', 0, Number)
         user.set('locked_timestamp', currentTimestamp, Number)
         user.set('token_version', currentTimestamp, Number)
@@ -224,7 +224,7 @@ export default class AuthService {
             ip_address: options?.req.ip_address
         }).save()
 
-        return { user: user, token: accessToken }
+        return { user: user, token: accessToken, refreshToken }
     }
 
     static async refreshToken(userKey: string) {

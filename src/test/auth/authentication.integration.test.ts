@@ -32,8 +32,8 @@ describe('Authentication', () => {
         const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
 
         //Same
-        expect(user?.first_name).equal(userData.firstName)
-        expect(user?.last_name).equal(userData.lastName)
+        expect(user?.first_name).equal(userData.first_name)
+        expect(user?.last_name).equal(userData.last_name)
         expect(user?.email).equal(userData.email)
         expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(userData.phone))
         //Different
@@ -45,18 +45,8 @@ describe('Authentication', () => {
         expect(shareData.token.length).gt(0)
     }).timeout(10000)
 
-    it('RefreshToken', async () => {
-        const res = await request(server.app)
-            .post('/auth/token/refresh')
-            .set('Authorization', `Bearer ${shareData.token}`)
-            .send({ refreshToken: shareData.refreshToken })
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        expect(res?.body?.token).exist
-    }).timeout(10000)
-
     it('Logout', async () => {
-        const res = await request(server.app).post('/auth/logout').set('Authorization', `Bearer ${shareData.token}`).send({
+        const res = await request(server.app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${shareData.token}`).send({
             refreshToken: shareData.refreshToken
         })
 
@@ -64,8 +54,15 @@ describe('Authentication', () => {
         validResponse(res.body)
     }).timeout(10000)
 
+    it('RefreshToken', async () => {
+        const res = await request(server.app).post('/api/v1/auth/token/refresh').set('Authorization', `Bearer ${shareData.refreshToken}`).send({})
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res?.body?.token).exist
+    }).timeout(10000)
+
     it('ForgotPassword', async () => {
-        const res1 = await request(server.app).post('/auth/password/forgot').send({
+        const res1 = await request(server.app).post('/api/v1/users/password/forgot').send({
             owner: userData.email,
             type: 'email'
         })
@@ -78,12 +75,12 @@ describe('Authentication', () => {
         const verificationCode = await MODELS.VerificationCode.findOne(
             {
                 type: CodeType.ForgotPassword,
-                owner: shareData.user.key
+                owner: userData.email
             },
             {},
             { sort: { created_at: -1 } }
         ).exec()
-        const res1 = await request(server.app).post('/auth/password/reset').set('Authorization', `Bearer ${shareData.token}`).send({
+        const res1 = await request(server.app).post('/api/v1/users/password/reset').set('Authorization', `Bearer ${shareData.token}`).send({
             owner: userData.email,
             type: 'email',
             pin: userData.pin,
@@ -97,7 +94,7 @@ describe('Authentication', () => {
     }).timeout(10000)
 
     it('ForgotPin', async () => {
-        const res1 = await request(server.app).post('/auth/pin/forgot').send({
+        const res1 = await request(server.app).post('/api/v1/users/pin/forgot').send({
             owner: userData.email,
             type: 'email'
         })
@@ -115,7 +112,7 @@ describe('Authentication', () => {
             {},
             { sort: { created_at: -1 } }
         ).exec()
-        const res1 = await request(server.app).post('/auth/pin/reset').set('Authorization', `Bearer ${shareData.token}`).send({
+        const res1 = await request(server.app).post('/api/v1/users/pin/reset').set('Authorization', `Bearer ${shareData.token}`).send({
             owner: userData.email,
             type: 'email',
             password: newPassword,

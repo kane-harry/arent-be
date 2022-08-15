@@ -15,9 +15,9 @@ let shareData = {
     user: {
         email: '',
         key: '',
-        chatName: '',
-        firstName: '',
-        lastName: '',
+        chat_name: '',
+        first_name: '',
+        last_name: '',
         phone: ''
     },
     token: '',
@@ -25,13 +25,13 @@ let shareData = {
     newEmailCode: '',
     newPhoneCode: ''
 }
-let adminShareData = { user: { key: '', chatName: '' }, token: '', refreshToken: '', accounts: [] }
+let adminShareData = { user: { key: '', chat_name: '' }, token: '', refreshToken: '', accounts: [] }
 
 const updateData = {
     email: 'new.email@gmail.com',
-    firstName: 'firstName',
-    lastName: 'lastName',
-    chatName: 'chatName',
+    first_name: 'firstName',
+    last_name: 'lastName',
+    chat_name: 'chatName',
     phone: '+972552992022',
     country: 'country',
     playerId: 'playerId',
@@ -59,7 +59,7 @@ describe('Profile', () => {
 
     context('Test case for function uploadAvatar', () => {
         it('uploadAvatar should be throw without authenticate', async () => {
-            const res = await request(server.app).post('/users/avatar').attach('avatar', './src/test/init/test.jpeg')
+            const res = await request(server.app).post('/api/v1/users/avatar').attach('avatar', './src/test/init/test.jpeg')
             expect(res.status).equal(401)
             expect(res.body).empty
             expect(res.text).equal('Unauthorized')
@@ -80,23 +80,21 @@ describe('Profile', () => {
                 return { upload }
             })
             const res = await request(server.app)
-                .post('/users/avatar')
+                .post('/api/v1/users/avatar')
                 .set('Authorization', `Bearer ${shareData.token}`)
                 .attach('avatar', './src/test/init/test.jpeg')
 
             expect(res.status).equal(200)
             validResponse(res.body)
             expect(res.body.original).equal(avatarKey)
-            expect(res.body.lg).equal(avatarKey)
-            expect(res.body.sm).equal(avatarKey)
-            expect(res.body.mini).equal(avatarKey)
+            expect(res.body.normal).equal(avatarKey)
+            expect(res.body.small).equal(avatarKey)
 
             const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
             assert.deepEqual(user?.avatar, {
                 original: avatarKey,
-                lg: avatarKey,
-                sm: avatarKey,
-                mini: avatarKey
+                normal: avatarKey,
+                small: avatarKey
             })
         })
     })
@@ -104,8 +102,8 @@ describe('Profile', () => {
     it(`GetVerificationCode EmailUpdate`, async () => {
         const owner = updateData.email
         const codeType = CodeType.EmailUpdate
-        const res = await request(server.app).post('/verification/code/get').send({
-            codeType: codeType,
+        const res = await request(server.app).post('/api/v1/verification/code/generate').send({
+            code_type: codeType,
             owner: owner
         })
         expect(res.status).equal(200)
@@ -126,8 +124,8 @@ describe('Profile', () => {
     it(`GetVerificationCode PhoneUpdate`, async () => {
         const owner = await stripPhoneNumber(updateData.phone)
         const codeType = CodeType.PhoneUpdate
-        const res = await request(server.app).post('/verification/code/get').send({
-            codeType: codeType,
+        const res = await request(server.app).post('/api/v1/verification/code/generate').send({
+            code_type: codeType,
             owner: owner
         })
         expect(res.status).equal(200)
@@ -146,20 +144,20 @@ describe('Profile', () => {
     }).timeout(10000)
 
     it('GetPublicUserByChatName', async () => {
-        const updateRes = await request(server.app).get(`/users/${shareData.user.chatName}/brief`)
+        const updateRes = await request(server.app).get(`/api/v1/users/${shareData.user.chat_name}/brief`)
 
         expect(updateRes.status).equal(200)
         validResponse(updateRes.body)
 
         expect(updateRes.body?.email).equal(shareData.user.email)
-        expect(updateRes.body?.firstName).equal(shareData.user.firstName)
-        expect(updateRes.body?.lastName).equal(shareData.user.lastName)
-        expect(updateRes.body?.chatName).equal(shareData.user.chatName)
+        expect(updateRes.body?.first_name).equal(shareData.user.first_name)
+        expect(updateRes.body?.last_name).equal(shareData.user.last_name)
+        expect(updateRes.body?.chat_name).equal(shareData.user.chat_name)
     })
 
     context('Test case for function updateUser', () => {
         it('updateUser should be throw without authenticate', async () => {
-            const res = await request(server.app).put('/users/profile').send(updateData)
+            const res = await request(server.app).put('/api/v1/users/profile').send(updateData)
             expect(res.status).equal(401)
             validResponse(res.body)
             expect(res.body).empty
@@ -167,45 +165,51 @@ describe('Profile', () => {
         })
 
         it('updateUser should be success', async () => {
-            const updateRes = await request(server.app).put(`/users/profile`).set('Authorization', `Bearer ${shareData.token}`).send(updateData)
+            const updateRes = await request(server.app)
+                .put(`/api/v1/users/profile`)
+                .set('Authorization', `Bearer ${shareData.token}`)
+                .send(updateData)
 
             expect(updateRes.status).equal(200)
             validResponse(updateRes.body)
 
             const user = await MODELS.UserModel.findOne({ email: userData.email }).exec()
-            expect(user?.first_name).equal(updateData.firstName)
-            expect(user?.last_name).equal(updateData.lastName)
-            expect(user?.chat_name).equal(updateData.chatName)
+            expect(user?.first_name).equal(updateData.first_name)
+            expect(user?.last_name).equal(updateData.last_name)
+            expect(user?.chat_name).equal(updateData.chat_name)
         })
     })
 
     it('GetUserList', async () => {
-        const pageIndex = 1
-        const pageSize = 25
+        const page_index = 1
+        const page_size = 25
         const res = await request(server.app)
-            .get(`/users?page_index=${pageIndex}&page_size=${pageSize}`)
+            .get(`/api/v1/users?page_index=${page_index}&page_size=${page_size}`)
             .set('Authorization', `Bearer ${adminShareData.token}`)
             .send()
         expect(res.status).equal(200)
         validResponse(res.body)
 
         expect(res.body.items).be.an('array')
-        expect(res.body.totalCount).exist
-        expect(res.body.hasNextPage).exist
-        expect(res.body.totalPages).exist
-        expect(res.body.pageIndex).equal(pageIndex)
-        expect(res.body.pageSize).equal(pageSize)
+        expect(res.body.total_count).exist
+        expect(res.body.has_next_page).exist
+        expect(res.body.total_pages).exist
+        expect(res.body.page_index).equal(page_index)
+        expect(res.body.page_size).equal(page_size)
     }).timeout(10000)
 
     it('GetProfile', async () => {
-        const res = await request(server.app).get(`/users/${shareData.user.key}/profile`).set('Authorization', `Bearer ${shareData.token}`).send()
+        const res = await request(server.app)
+            .get(`/api/v1/users/${shareData.user.key}/profile`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
 
         const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
-        expect(user?.first_name).equal(res.body.firstName)
-        expect(user?.last_name).equal(res.body.lastName)
-        expect(user?.chat_name).equal(res.body.chatName)
+        expect(user?.first_name).equal(res.body.first_name)
+        expect(user?.last_name).equal(res.body.last_name)
+        expect(user?.chat_name).equal(res.body.chat_name)
         expect(user?.phone).equal(res.body.phone)
         expect(user?.country).equal(res.body.country)
     }).timeout(10000)

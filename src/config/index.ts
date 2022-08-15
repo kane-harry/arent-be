@@ -38,11 +38,11 @@ export const config = {
 
     jwtAccess: {
         secret: String(process.env.JWT_ACCESS_SECRET),
-        tokenExpiresIn: String(process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '30m') // 30 mins
+        tokenExpiresIn: String(process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || '60m') // 30 mins
     },
 
     jwtRefresh: {
-        secret: String(process.env.JWT_REFRESH_SECRET),
+        secret: String(process.env.JWT_ACCESS_SECRET),
         tokenExpiresIn: String(process.env.JWT_REFRESH_TOKEN_EXPIRES_IN || '7d') // 7 days
     },
 
@@ -114,10 +114,13 @@ export const config = {
             accounts: 'accounts',
             admin_logs: 'admin_logs',
             auth_tokens: 'auth_tokens',
+            collections: 'collections',
             exception_logs: 'exception_logs',
+            nfts: 'nfts',
             settings: 'settings',
             users: 'users',
             user_history: 'user_history',
+            nft_history: 'nft_histories',
             user_security: 'user_security',
             verification_codes: 'verification_codes'
         }

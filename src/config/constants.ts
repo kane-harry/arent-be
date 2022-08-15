@@ -29,6 +29,12 @@ export enum UserHistoryActions {
     SetupTOTP = 'SetupTOTP'
 }
 
+export enum NftHistoryActions {
+    Create = 'Create',
+    Update = 'Update',
+    Delete = 'Delete',
+    UpdateStatus = 'UpdateStatus'
+}
 export enum SecurityActions {
     Login = 'Login'
 }
@@ -88,3 +94,37 @@ export enum AccountExtType {
     Prime = 'PRIME',
     Ext = 'EXT'
 }
+
+export const MASTER_ACCOUNT_KEY = 'MASTER'
+
+export enum NftStatus {
+    Pending = 'Pending',
+    Approved = 'Approved',
+    Rejected = 'Rejected'
+}
+
+export const NFT_IMAGE_SIZES = [
+    { maxSize: 1280, id: 'large' },
+    { maxSize: 600, id: 'normal' },
+    { maxSize: 300, id: 'small' }
+]
+
+export const USER_AVATAR_SIZES = [
+    { maxSize: 400, id: 'normal' },
+    { maxSize: 200, id: 'small' }
+]
+
+export enum NftType {
+    ERC721 = 'ERC721',
+    ERC1155 = 'ERC1155'
+}
+
+export const COLLECTION_LOGO_SIZES = [
+    { maxSize: 400, id: 'normal' },
+    { maxSize: 200, id: 'small' }
+]
+
+export const COLLECTION_BACKGROUND_SIZES = [
+    { maxSize: 800, id: 'normal' },
+    { maxSize: 600, id: 'small' }
+]
