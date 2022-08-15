@@ -41,7 +41,7 @@ export class CreateNftDto {
     @IsOptional()
     public animation: any
 
-    @IsNotEmpty()
+    @IsOptional()
     public image: any
 
     @IsNotEmpty()

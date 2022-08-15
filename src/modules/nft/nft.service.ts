@@ -10,10 +10,12 @@ import { AccountErrors, AuthErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { isAdmin } from '@config/role'
 import UserService from '@modules/user/user.service'
-import { NftHistoryActions, NftStatus } from '@config/constants'
+import { NftHistoryActions, NftStatus, MASTER_ACCOUNT_KEY, NftType, NFT_IMAGE_SIZES } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
 import { NftRO } from '@interfaces/nft.model'
+import { resizeImages, uploadFiles } from '@utils/s3Upload'
+import { filter } from 'lodash'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -24,12 +26,38 @@ export default class NftService {
         return await model.save()
     }
 
-    static async createNft(createNftDto: CreateNftDto, operator: IUser, options: any) {
+    static async createNft(createNftDto: CreateNftDto, files: any, operator: IUser, options: any) {
+        if (!files || !files.find((item: any) => item.fieldname === 'image')) {
+            throw new BizException(NftErrors.nft_image_required_error, new ErrorContext('nft.service', 'createNft', {}))
+        }
+        files = await resizeImages(files, { image: NFT_IMAGE_SIZES })
+        const assets = await uploadFiles(files, 'nfts')
+
+        const images = filter(assets, asset => {
+            return asset.fieldname === 'image'
+        })
+        const originalImg = images.find(item => item.type === 'original')
+        const largeImg = images.find(item => item.type === 'original')
+        const normalImg = images.find(item => item.type === 'normal')
+        const smallImg = images.find(item => item.type === 'small')
+        const image = {
+            original: originalImg?.key,
+            large: largeImg?.key,
+            normal: normalImg?.key,
+            small: smallImg?.key
+        }
+        const animationResp = assets.find(asset => {
+            return asset.fieldname === 'animation'
+        })
+        const animation = animationResp?.key
+
         const model = new NftModel({
             ...createNftDto,
-            status: NftStatus.Pending,
+            image: image,
+            animation: animation,
+            status: isAdmin(operator.role) ? NftStatus.Approved : NftStatus.Pending,
             creator_key: operator.key,
-            owner_key: operator.key,
+            owner_key: isAdmin(operator.role) ? MASTER_ACCOUNT_KEY : operator.key,
             on_market: false
         })
         const nft = await model.save()

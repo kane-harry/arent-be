@@ -25,18 +25,7 @@ class NftController implements IController {
     }
 
     private initRoutes() {
-        this.router.post(
-            `${this.path}`,
-            requireAuth,
-            asyncHandler(
-                handleFiles([
-                    { name: 'image', maxCount: 1, resizeOptions: NFT_IMAGE_SIZES },
-                    { name: 'animation', maxCount: 1 }
-                ])
-            ),
-            // validationMiddleware(CreateNftDto),
-            asyncHandler(this.createNft)
-        )
+        this.router.post(`${this.path}`, requireAuth, upload.any(), validationMiddleware(CreateNftDto), asyncHandler(this.createNft))
         this.router.post(`${this.path}/external/import`, requireAuth, validationMiddleware(ImportNftDto), asyncHandler(this.importNft))
         this.router.get(`${this.path}/`, asyncHandler(this.queryNFTs))
         this.router.get(`${this.path}/users/:key`, asyncHandler(this.queryMyNFTs))
@@ -57,7 +46,8 @@ class NftController implements IController {
         const createNftDto: CreateNftDto = req.body
         createNftDto.attributes = createNftDto.attributes && createNftDto.attributes.length ? JSON.parse(createNftDto.attributes) : []
         createNftDto.meta_data = createNftDto.meta_data && createNftDto.meta_data.length ? JSON.parse(createNftDto.meta_data) : []
-        const nft = await NftService.createNft(createNftDto, req.user, { req })
+        const files = req.files
+        const nft = await NftService.createNft(createNftDto, files, req.user, { req })
         return res.json(nft)
     }
 

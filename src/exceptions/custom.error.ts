@@ -74,7 +74,8 @@ export const UpdatePhoneEmailErrors = {
 
 export const NftErrors = {
     nft_not_exists_error: { code: 7001, status: 400, message: 'Nft not found.' },
-    nft_image_error: { code: 7002, status: 400, message: 'Nft Image is required.' }
+    nft_image_error: { code: 7002, status: 400, message: 'Nft Image is required.' },
+    nft_image_required_error: { code: 7303, status: 400, message: 'please upload NFT picture.' }
 }
 
 export const CollectionErrors = {
