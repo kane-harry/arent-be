@@ -13,6 +13,7 @@ import UserService from '@modules/user/user.service'
 import { NftHistoryActions, NftStatus } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
+import { NftRO } from '@interfaces/nft.model'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -174,6 +175,6 @@ export default class NftService {
         const owner = await UserService.getBriefByKey(nft.owner_key)
         const creator = await UserService.getBriefByKey(nft.creator_key)
         const collectionDetail = await CollectionService.getCollectionDetail(nft.collection_key)
-        return { nft, owner, creator, collection: collectionDetail.collection }
+        return new NftRO<INft>(nft, owner, creator, collectionDetail.collection)
     }
 }
