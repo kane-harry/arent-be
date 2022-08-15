@@ -104,13 +104,27 @@ export enum NftStatus {
 }
 
 export const NFT_IMAGE_SIZES = [
-    { maxSize: 1280, id: 'lg' },
-    { maxSize: 600, id: 'md' },
-    { maxSize: 300, id: 'sm' }
+    { maxSize: 1280, id: 'large' },
+    { maxSize: 600, id: 'normal' },
+    { maxSize: 300, id: 'small' }
 ]
 
-export const USER_IMAGE_SIZES = [
-    { maxSize: 1280, id: 'lg' },
-    { maxSize: 600, id: 'md' },
-    { maxSize: 80, id: 'mini' }
+export const USER_AVATAR_SIZES = [
+    { maxSize: 400, id: 'normal' },
+    { maxSize: 200, id: 'small' }
+]
+
+export enum NftType {
+    ERC721 = 'ERC721',
+    ERC1155 = 'ERC1155'
+}
+
+export const COLLECTION_LOGO_SIZES = [
+    { maxSize: 400, id: 'normal' },
+    { maxSize: 200, id: 'small' }
+]
+
+export const COLLECTION_BACKGROUND_SIZES = [
+    { maxSize: 800, id: 'normal' },
+    { maxSize: 600, id: 'small' }
 ]
