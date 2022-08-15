@@ -87,16 +87,14 @@ describe('Profile', () => {
             expect(res.status).equal(200)
             validResponse(res.body)
             expect(res.body.original).equal(avatarKey)
-            expect(res.body.lg).equal(avatarKey)
-            expect(res.body.md).equal(avatarKey)
-            expect(res.body.mini).equal(avatarKey)
+            expect(res.body.normal).equal(avatarKey)
+            expect(res.body.small).equal(avatarKey)
 
             const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
             assert.deepEqual(user?.avatar, {
                 original: avatarKey,
-                lg: avatarKey,
-                md: avatarKey,
-                mini: avatarKey
+                normal: avatarKey,
+                small: avatarKey
             })
         })
     })

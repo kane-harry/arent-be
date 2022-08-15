@@ -25,7 +25,7 @@ import { requireAdmin, requireOwner } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUserQueryFilter } from './user.interface'
 import { downloadResource } from '@utils/utility'
-import { USER_IMAGE_SIZES } from '@config/constants'
+import { USER_AVATAR_SIZES } from '@config/constants'
 
 class UserController implements IController {
     public path = '/users'
@@ -47,7 +47,7 @@ class UserController implements IController {
         this.router.post(
             `${this.path}/avatar`,
             requireAuth,
-            asyncHandler(handleFiles([{ name: 'avatar', maxCount: 1, resizeOptions: USER_IMAGE_SIZES }])),
+            asyncHandler(handleFiles([{ name: 'avatar', maxCount: 1, resizeOptions: USER_AVATAR_SIZES }])),
             asyncHandler(this.uploadAvatar)
         )
 
