@@ -37,7 +37,7 @@ export default class NftService {
             return asset.fieldname === 'image'
         })
         const originalImg = images.find(item => item.type === 'original')
-        const largeImg = images.find(item => item.type === 'original')
+        const largeImg = images.find(item => item.type === 'large')
         const normalImg = images.find(item => item.type === 'normal')
         const smallImg = images.find(item => item.type === 'small')
         const image = {
@@ -83,7 +83,7 @@ export default class NftService {
         const sorting: any = { _id: 1 }
         if (params.terms) {
             const reg = new RegExp(params.terms)
-            filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { title: reg }, { tags: reg }]
+            filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { title: reg }, { tags: reg }, { type: reg }, { status: reg }]
         }
         if (params.owner_key) {
             filter.$and = filter.$and ?? []

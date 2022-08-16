@@ -67,6 +67,7 @@ export const resizeImages = async (
 
         const sizes = resizeOptions[file.fieldname]
         if (!isArray(sizes)) {
+            file.type = 'original'
             newFilesOps.push(file)
             continue
         }
