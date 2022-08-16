@@ -279,6 +279,8 @@ describe('NFT', () => {
         const res = await request(server.app).get(`/api/v1/nfts/users/${shareData.user.key}`).set('Authorization', `Bearer ${shareData.token}`)
         expect(res.status).equal(200)
         validResponse(res.body)
+        const items = res.body.items.filter(item => item.owner_key !== shareData.user.key)
+        expect(items.length).equal(0)
         shareData.nfts = res.body.items
     }).timeout(10000)
 

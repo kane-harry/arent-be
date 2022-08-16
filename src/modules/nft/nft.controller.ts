@@ -60,7 +60,7 @@ class NftController implements IController {
     private async queryMyNFTs(req: CustomRequest, res: Response) {
         const { key } = req.params
         const filter = req.query as INftFilter
-        filter.owner = key
+        filter.owner_key = key
         const data = await NftService.queryNfts(filter)
         return res.json(data)
     }
