@@ -82,6 +82,14 @@ export class UpdateNftStatusDto {
     public status: string
 }
 
+export class BulkUpdateNftStatusDto {
+    @IsNotEmpty()
+    public status: string
+
+    @IsNotEmpty()
+    public keys: any
+}
+
 export class NftRO<T> {
     nft: any
     collection: any
