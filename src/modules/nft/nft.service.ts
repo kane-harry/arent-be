@@ -1,5 +1,5 @@
 import { IUser } from '@modules/user/user.interface'
-import { CreateNftDto, ImportNftDto, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
+import { CreateNftDto, ImportNftDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
 import { NftImportLogModel, NftModel } from './nft.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { CollectionModel } from '@modules/collection/collection.model'
@@ -13,7 +13,6 @@ import UserService from '@modules/user/user.service'
 import { NftHistoryActions, NftStatus, MASTER_ACCOUNT_KEY, NftType, NFT_IMAGE_SIZES } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
-import { NftRO } from '@interfaces/nft.model'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
 import { filter } from 'lodash'
 
@@ -37,7 +36,7 @@ export default class NftService {
             return asset.fieldname === 'image'
         })
         const originalImg = images.find(item => item.type === 'original')
-        const largeImg = images.find(item => item.type === 'original')
+        const largeImg = images.find(item => item.type === 'large')
         const normalImg = images.find(item => item.type === 'normal')
         const smallImg = images.find(item => item.type === 'small')
         const image = {
@@ -83,7 +82,7 @@ export default class NftService {
         const sorting: any = { _id: 1 }
         if (params.terms) {
             const reg = new RegExp(params.terms)
-            filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { title: reg }, { tags: reg }]
+            filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { title: reg }, { tags: reg }, { type: reg }, { status: reg }]
         }
         if (params.owner_key) {
             filter.$and = filter.$and ?? []

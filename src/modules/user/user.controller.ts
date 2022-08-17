@@ -26,6 +26,9 @@ import validationMiddleware from '@middlewares/validation.middleware'
 import { IUserQueryFilter } from './user.interface'
 import { downloadResource } from '@utils/utility'
 import { USER_AVATAR_SIZES } from '@config/constants'
+import Multer from 'multer'
+
+const upload = Multer()
 
 class UserController implements IController {
     public path = '/users'
@@ -44,12 +47,7 @@ class UserController implements IController {
         this.router.post(`${this.path}/pin/forgot`, validationMiddleware(ForgotPinDto), asyncHandler(this.forgotPin))
         this.router.post(`${this.path}/pin/reset`, validationMiddleware(ResetPinDto), asyncHandler(this.resetPin))
 
-        this.router.post(
-            `${this.path}/avatar`,
-            requireAuth,
-            asyncHandler(handleFiles([{ name: 'avatar', maxCount: 1, resizeOptions: USER_AVATAR_SIZES }])),
-            asyncHandler(this.uploadAvatar)
-        )
+        this.router.post(`${this.path}/avatar`, requireAuth, upload.any(), asyncHandler(this.uploadAvatar))
 
         this.router.put(`${this.path}/profile`, requireAuth, validationMiddleware(UpdateProfileDto), asyncHandler(this.updateProfile))
         this.router.get(`${this.path}/:key/profile`, requireAuth, requireOwner('users'), asyncHandler(this.getProfile))
@@ -115,8 +113,7 @@ class UserController implements IController {
     }
 
     private uploadAvatar = async (req: AuthenticationRequest, res: Response) => {
-        const filesUploaded = res.locals.files_uploaded
-        const data = await UserService.uploadAvatar(filesUploaded, { req })
+        const data = await UserService.uploadAvatar(req.files, { req })
         return res.send(data)
     }
 

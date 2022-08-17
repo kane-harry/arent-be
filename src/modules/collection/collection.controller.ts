@@ -4,11 +4,11 @@ import IController from '@interfaces/controller.interface'
 import CollectionService from './collection.service'
 import { AssignCollectionDto, CreateCollectionDto, UpdateCollectionDto } from './collection.dto'
 import { requireAuth } from '@utils/authCheck'
-import { handleFiles } from '@middlewares/files.middleware'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
 import validationMiddleware from '@middlewares/validation.middleware'
-import { NFT_IMAGE_SIZES } from '@config/constants'
+import Multer from 'multer'
+const upload = Multer()
 
 class CollectionController implements IController {
     public path = '/collections'
@@ -19,39 +19,18 @@ class CollectionController implements IController {
     }
 
     private initRoutes() {
-        this.router.post(
-            `${this.path}`,
-            requireAuth,
-            asyncHandler(
-                handleFiles([
-                    { name: 'logo', maxCount: 1, resizeOptions: NFT_IMAGE_SIZES },
-                    { name: 'background', maxCount: 1 }
-                ])
-            ),
-            // validationMiddleware(CreateCollectionDto),
-            asyncHandler(this.createCollection)
-        )
+        this.router.post(`${this.path}`, requireAuth, upload.any(), validationMiddleware(CreateCollectionDto), asyncHandler(this.createCollection))
         this.router.get(`${this.path}/`, asyncHandler(this.queryCollections))
         this.router.get(`${this.path}/:key`, asyncHandler(this.getCollectionDetail))
         this.router.delete(`${this.path}/:key`, requireAuth, asyncHandler(this.deleteCollection))
-        this.router.put(
-            `${this.path}/:key`,
-            requireAuth,
-            asyncHandler(
-                handleFiles([
-                    { name: 'logo', maxCount: 1, resizeOptions: NFT_IMAGE_SIZES },
-                    { name: 'background', maxCount: 1 }
-                ])
-            ),
-            asyncHandler(this.updateCollection)
-        )
+        this.router.put(`${this.path}/:key`, requireAuth, upload.any(), asyncHandler(this.updateCollection))
         this.router.get(`${this.path}/user/:key`, asyncHandler(this.queryUserCollections))
         this.router.put(`${this.path}/:key/assign`, requireAuth, asyncHandler(this.assignCollection))
     }
 
     private createCollection = async (req: AuthenticationRequest, res: Response) => {
         const createCollectionDto: CreateCollectionDto = req.body
-        const collection = await CollectionService.createCollection(createCollectionDto, req.user)
+        const collection = await CollectionService.createCollection(createCollectionDto, req.files, req.user)
         return res.send(collection)
     }
 
@@ -70,12 +49,6 @@ class CollectionController implements IController {
     private updateCollection = async (req: AuthenticationRequest, res: Response) => {
         const key = req.params.key
         const updateCollectionDto: UpdateCollectionDto = req.body
-        if (res?.locals?.files_uploaded?.length) {
-            const logo = res.locals.files_uploaded.find((item: any) => item.type === 'original' && item.fieldname === 'logo')
-            updateCollectionDto.logo = logo?.key
-            const background = res.locals.files_uploaded.find((item: any) => item.type === 'original' && item.fieldname === 'background')
-            updateCollectionDto.background = background?.key
-        }
         const collection = await CollectionService.updateCollection(key, updateCollectionDto, req.user)
         return res.json(collection)
     }
