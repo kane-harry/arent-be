@@ -90,6 +90,11 @@ export class BulkUpdateNftStatusDto {
     public keys: any
 }
 
+export class BulkDeleteNftDto {
+    @IsNotEmpty()
+    public keys: any
+}
+
 export class NftRO<T> {
     nft: any
     collection: any
