@@ -3,7 +3,7 @@ import { Router, Request, Response } from 'express'
 import asyncHandler from '@utils/asyncHandler'
 import IController from '@interfaces/controller.interface'
 import NftService from './nft.service'
-import { CreateNftDto, ImportNftDto, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
+import { BulkDeleteNftDto, BulkUpdateNftStatusDto, CreateNftDto, ImportNftDto, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
 import { requireAuth } from '@utils/authCheck'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUser } from '@modules/user/user.interface'
@@ -32,7 +32,9 @@ class NftController implements IController {
         this.router.get(`${this.path}/:key`, asyncHandler(this.getNftDetail))
         this.router.put(`${this.path}/:key`, requireAuth, asyncHandler(this.updateNft))
         this.router.put(`${this.path}/:key/status`, requireAuth, requireAdmin(), asyncHandler(this.updateNftStatus))
+        this.router.post(`${this.path}/status`, requireAuth, requireAdmin(), asyncHandler(this.bulkUpdateNftStatus))
         this.router.delete(`${this.path}/:key`, requireAuth, asyncHandler(this.deleteNft))
+        this.router.delete(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(this.bulkDeleteNft))
     }
 
     private async importNft(req: Request, res: Response) {
@@ -87,10 +89,40 @@ class NftController implements IController {
         return res.json(data)
     }
 
+    private async bulkUpdateNftStatus(req: CustomRequest, res: Response) {
+        const updateNftDto: BulkUpdateNftStatusDto = req.body
+        const { keys, status } = updateNftDto
+        const data = []
+        for (const key of keys) {
+            try {
+                const item = await NftService.updateNftStatus(key, { status: status }, req.user, { req })
+                data.push(item)
+            } catch (e) {
+                data.push(e)
+            }
+        }
+        return res.json(data)
+    }
+
     private async deleteNft(req: CustomRequest, res: Response) {
         const { key } = req.params
         const nft = await NftService.deleteNft(key, req.user, { req })
         return res.json(nft)
+    }
+
+    private async bulkDeleteNft(req: CustomRequest, res: Response) {
+        const deleteNftDto: BulkDeleteNftDto = req.body
+        const { keys } = deleteNftDto
+        const data = []
+        for (const key of keys) {
+            try {
+                const item = await NftService.deleteNft(key, req.user, { req })
+                data.push(item)
+            } catch (e) {
+                data.push(e)
+            }
+        }
+        return res.json(data)
     }
 }
 
