@@ -15,6 +15,7 @@ export interface INft extends IBaseModel {
     image: object | undefined
     type: string
     num_sales: number
+    quantity: number
     creator_key: string
     owner_key: string
     attributes: [] | undefined

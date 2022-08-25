@@ -25,6 +25,7 @@ const nftSchema = new Schema<INft>(
         image: { type: Object, default: null },
         type: { type: String, default: 'erc721' },
         num_sales: Number,
+        quantity: Number,
         creator_key: String,
         owner_key: String,
         attributes: { type: [Object], default: [] },
