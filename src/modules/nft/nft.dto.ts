@@ -47,8 +47,11 @@ export class CreateNftDto {
     @IsNotEmpty()
     public type: string
 
-    @IsNotEmpty()
+    @IsOptional()
     public num_sales: string
+
+    @IsOptional()
+    public quantity: string
 }
 
 export class UpdateNftDto {
@@ -75,6 +78,9 @@ export class UpdateNftDto {
 
     @IsOptional()
     public image: any
+
+    @IsOptional()
+    public quantity: string
 }
 
 export class UpdateNftStatusDto {

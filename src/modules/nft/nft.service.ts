@@ -125,6 +125,7 @@ export default class NftService {
         nft.set('attributes', updateNftDto.attributes ?? nft.attributes, Array)
         nft.set('meta_data', updateNftDto.meta_data ?? nft.meta_data, Array)
         nft.set('collection_key', updateNftDto.collection_key ?? nft.collection_key, String)
+        nft.set('quantity', updateNftDto.quantity ?? nft.quantity, Number)
 
         const updateNft = await nft.save()
 

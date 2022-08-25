@@ -29,6 +29,7 @@ const createNftData = {
     description: 'description',
     price: 5000,
     num_sales: 1,
+    quantity: 1,
     currency: 'LL',
     nft_token_id: '232423432',
     meta_data: [
@@ -37,7 +38,7 @@ const createNftData = {
             year: 2020
         }
     ],
-    type: 'type',
+    type: 'erc721',
     attributes: [
         {
             trait_type: 'creator',
@@ -156,6 +157,7 @@ describe('NFT', () => {
             .field('attributes', JSON.stringify(createNftData.attributes))
             .field('collection_key', shareData.collections[0].key)
             .field('num_sales', createNftData.num_sales)
+            .field('quantity', createNftData.quantity)
             .attach('animation', './src/test/init/test.mp4')
             .attach('image', './src/test/init/test.jpeg')
         expect(res.status).equal(200)
@@ -169,6 +171,8 @@ describe('NFT', () => {
         expect(nft.meta_data[0].year).equal(createNftData.meta_data[0].year)
         expect(nft.meta_data[0].player).equal(createNftData.meta_data[0].player)
         expect(nft.type).equal(createNftData.type)
+        expect(nft.num_sales).equal(createNftData.num_sales)
+        expect(nft.quantity).equal(createNftData.quantity)
         expect(nft.attributes[0].trait_type).equal(createNftData.attributes[0].trait_type)
         expect(nft.attributes[0].value).equal(createNftData.attributes[0].value)
         expect(nft.attributes[1].trait_type).equal(createNftData.attributes[1].trait_type)
