@@ -29,7 +29,8 @@ export const AuthErrors = {
     user_locked_error: { message: 'Your account is locked, please contact customer service for help.', code: 2018, status: 400 },
     user_reset_credentials_incorrect_code_error: { message: 'code is incorrect.', code: 2019, status: 400 },
     user_token_setup_error: { message: 'We could not verify your tokens, please try again', code: 2020, status: 400 },
-    user_permission_error: { message: 'You do not have permission', code: 2021, status: 400 }
+    user_permission_error: { message: 'You do not have permission', code: 2021, status: 400 },
+    image_required_error: { code: 2022, status: 400, message: 'Please upload picture.' }
 }
 
 export const AccountErrors = {
@@ -80,5 +81,6 @@ export const NftErrors = {
 
 export const CollectionErrors = {
     collection_not_exists_error: { code: 8001, status: 400, message: 'Collection not found.' },
-    collection_has_approved_nfts: { code: 8001, status: 400, message: 'Can not delete collection due to there are NFTs in this collection.' }
+    collection_has_approved_nfts: { code: 8002, status: 400, message: 'Can not delete collection due to there are NFTs in this collection.' },
+    image_required_error: { code: 8003, status: 400, message: 'Please upload Collection picture.' }
 }

@@ -330,6 +330,15 @@ describe('NFT', () => {
         expect(nft.description).equal(updateNftData.description)
     }).timeout(10000)
 
+    it(`Bulk Rejected NFT`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts/status`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ status: NftStatus.Rejected, keys: [shareData.nfts[0].key] })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+    }).timeout(10000)
+
     it(`Approved NFT`, async () => {
         const res = await request(server.app)
             .put(`/api/v1/nfts/${shareData.nfts[0].key}/status`)
@@ -359,6 +368,15 @@ describe('NFT', () => {
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
         expect(nft.status).equal(NftStatus.Rejected)
+    }).timeout(10000)
+
+    it(`Bulk Remove NFT`, async () => {
+        const res = await request(server.app)
+            .delete(`/api/v1/nfts`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ keys: [shareData.nfts[0].key] })
+        expect(res.status).equal(200)
+        validResponse(res.body)
     }).timeout(10000)
 
     it(`Export NFT`, async () => {

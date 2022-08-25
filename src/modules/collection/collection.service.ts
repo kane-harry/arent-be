@@ -9,10 +9,37 @@ import ErrorContext from '@exceptions/error.context'
 import { isAdmin } from '@config/role'
 import { NftModel } from '@modules/nft/nft.model'
 import UserService from '@modules/user/user.service'
-import { NftStatus } from '@config/constants'
+import { COLLECTION_LOGO_SIZES, NftStatus } from '@config/constants'
+import { resizeImages, uploadFiles } from '@utils/s3Upload'
+import { filter } from 'lodash'
 
 export default class CollectionService {
-    static async createCollection(createCollectionDto: CreateCollectionDto, operator: IUser) {
+    static async createCollection(createCollectionDto: CreateCollectionDto, files: any, operator: IUser) {
+        if (!files || !files.length) {
+            throw new BizException(CollectionErrors.image_required_error, new ErrorContext('collection.service', 'createCollection', {}))
+        }
+        files = await resizeImages(files, { logo: COLLECTION_LOGO_SIZES })
+        const assets = await uploadFiles(files, 'collections')
+        const logos = filter(assets, asset => {
+            return asset.fieldname === 'logo'
+        })
+        const backgrounds = filter(assets, asset => {
+            return asset.fieldname === 'background'
+        })
+        const originalLogo = logos.find(item => item.type === 'original')
+        const normalLogo = logos.find(item => item.type === 'normal')
+        const smallLogo = logos.find(item => item.type === 'small')
+        createCollectionDto.logo = {
+            original: originalLogo?.key,
+            normal: normalLogo?.key,
+            small: smallLogo?.key
+        }
+
+        const originalBackground = backgrounds.find(item => item.type === 'original')
+        createCollectionDto.background = {
+            original: originalBackground?.key
+        }
+
         const model = new CollectionModel({
             ...createCollectionDto,
             creator_key: operator.key,

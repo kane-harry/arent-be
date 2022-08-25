@@ -1,5 +1,5 @@
 import BizException from '@exceptions/biz.exception'
-import { AuthErrors, CommonErrors } from '@exceptions/custom.error'
+import { AuthErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
@@ -34,10 +34,20 @@ import EmailService from '@modules/emaill/email.service'
 import UserHistoryModel from '@modules/user_history/user_history.model'
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
 import { role } from '@config/role'
-import { CodeType, UserStatus, UserHistoryActions, AdminLogsActions, AdminLogsSections, MFAType } from '@config/constants'
+import {
+    CodeType,
+    UserStatus,
+    UserHistoryActions,
+    AdminLogsActions,
+    AdminLogsSections,
+    MFAType,
+    NFT_IMAGE_SIZES,
+    USER_AVATAR_SIZES
+} from '@config/constants'
 import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
 import AccountService from '@modules/account/account.service'
+import { resizeImages, uploadFiles } from '@utils/s3Upload'
 
 export default class UserService extends AuthService {
     public static async register(userData: CreateUserDto, options?: any) {
@@ -96,15 +106,22 @@ export default class UserService extends AuthService {
         return this.logIn({ email: userData.email, password: userData.password, token: null }, options)
     }
 
-    public static uploadAvatar = async (filesUploaded: IFileUploaded[], options: { req: AuthenticationRequest }) => {
+    public static uploadAvatar = async (files: any, options: { req: AuthenticationRequest }) => {
         const user = await UserModel.findOne({ email: options.req.user?.email, removed: false }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'uploadAvatar', {}))
         }
 
+        if (!files || !files.length) {
+            throw new BizException(AuthErrors.image_required_error, new ErrorContext('user.service', 'uploadAvatar', {}))
+        }
+
+        files = await resizeImages(files, { avatar: USER_AVATAR_SIZES })
+        const assets = await uploadFiles(files, 'avatar')
+
         let avatars: { [key: string]: string } = {}
-        forEach(filesUploaded, file => {
+        forEach(assets, file => {
             avatars = {
                 ...avatars,
                 [file.type]: file.key
