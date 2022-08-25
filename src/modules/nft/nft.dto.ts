@@ -48,10 +48,10 @@ export class CreateNftDto {
     public type: string
 
     @IsOptional()
-    public num_sales: string
+    public num_sales: number
 
     @IsOptional()
-    public quantity: string
+    public quantity: number = 1
 }
 
 export class UpdateNftDto {
@@ -80,7 +80,7 @@ export class UpdateNftDto {
     public image: any
 
     @IsOptional()
-    public quantity: string
+    public quantity: number = 1
 }
 
 export class UpdateNftStatusDto {
