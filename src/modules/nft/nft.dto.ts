@@ -47,7 +47,7 @@ export class CreateNftDto {
     @IsNotEmpty()
     public type: string
 
-    @IsNotEmpty()
+    @IsOptional()
     public num_sales: string
 }
 
