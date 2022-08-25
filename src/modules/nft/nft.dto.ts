@@ -81,3 +81,33 @@ export class UpdateNftStatusDto {
     @IsNotEmpty()
     public status: string
 }
+
+export class BulkUpdateNftStatusDto {
+    @IsNotEmpty()
+    public status: string
+
+    @IsNotEmpty()
+    public keys: any
+}
+
+export class BulkDeleteNftDto {
+    @IsNotEmpty()
+    public keys: any
+}
+
+export class NftRO<T> {
+    nft: any
+    collection: any
+    creator: any
+    owner: any
+    constructor(nft: any, owner: any, creator: any, collection: any) {
+        this.nft = nft
+        this.collection = collection
+        if (creator) {
+            this.creator = { key: creator.key, chat_name: creator.chat_name, avatar: creator.avatar }
+        }
+        if (owner) {
+            this.owner = { key: owner.key, chat_name: owner.chat_name, avatar: owner.avatar }
+        }
+    }
+}
