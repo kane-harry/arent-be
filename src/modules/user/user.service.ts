@@ -48,7 +48,7 @@ import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
 import AccountService from '@modules/account/account.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
-import { PublicUserListRO } from '@interfaces/public.model'
+import { BriefUserRO } from '@interfaces/public.model'
 
 export default class UserService extends AuthService {
     public static async register(userData: CreateUserDto, options?: any) {
@@ -542,7 +542,7 @@ export default class UserService extends AuthService {
         return new QueryRO<IUser>(totalCount, params.page_index, params.page_size, items)
     }
 
-    public static getPublicUserList = async (params: IUserQueryFilter) => {
+    public static searchUser = async (params: IUserQueryFilter) => {
         const reg = new RegExp(params.terms)
         const filter: { [key: string]: any } = {
             $or: [{ key: reg }, { first_name: reg }, { last_name: reg }, { chat_name: reg }, { email: reg }, { phone: reg }],
@@ -551,7 +551,7 @@ export default class UserService extends AuthService {
         }
         const sorting: any = { _id: 1 }
         const items = await UserModel.find<IUser>(filter).sort(sorting).skip(0).limit(50).exec()
-        return new PublicUserListRO(items)
+        return new BriefUserRO(items)
     }
 
     public static getAllUser = async () => {

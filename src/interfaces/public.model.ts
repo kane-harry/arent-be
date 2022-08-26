@@ -1,6 +1,6 @@
 import { IUser } from '@modules/user/user.interface'
 
-export class PublicUserListRO {
+export class BriefUserRO {
     items: Array<{}>
     constructor(items: Array<IUser>) {
         this.items = items.map((item: IUser) => {
