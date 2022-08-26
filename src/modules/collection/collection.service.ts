@@ -51,6 +51,10 @@ export default class CollectionService {
     }
 
     static async createDefaultCollection(createNftDto: CreateNftDto, operator: IUser) {
+        const collection = await CollectionModel.findOne({ owner_key: operator.key, type: 'default' })
+        if (collection) {
+            return collection
+        }
         const createCollectionDto = {
             name: createNftDto.name,
             description: createNftDto.description
@@ -59,7 +63,8 @@ export default class CollectionService {
             ...createCollectionDto,
             creator_key: operator.key,
             owner_key: operator.key,
-            items_count: 0
+            items_count: 0,
+            type: 'default'
         })
         return await model.save()
     }
