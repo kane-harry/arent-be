@@ -213,4 +213,11 @@ describe('Profile', () => {
         expect(user?.phone).equal(res.body.phone)
         expect(user?.country).equal(res.body.country)
     }).timeout(10000)
+
+    it('Get Public User', async () => {
+        const searchKey = shareData.user.chat_name.substring(0, 5)
+        const res = await request(server.app).get(`/api/v1/users/username?search=${searchKey}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+    }).timeout(10000)
 })
