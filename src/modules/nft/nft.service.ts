@@ -50,6 +50,10 @@ export default class NftService {
         })
         const animation = animationResp?.key
 
+        if (!createNftDto.collection_key || !createNftDto.collection_key.length) {
+            const collection = await CollectionService.createDefaultCollection(createNftDto, operator)
+            createNftDto.collection_key = collection?.key ?? ''
+        }
         const model = new NftModel({
             ...createNftDto,
             image: image,
