@@ -545,7 +545,7 @@ export default class UserService extends AuthService {
     public static searchUser = async (params: IUserQueryFilter) => {
         const reg = new RegExp(params.terms)
         const filter: { [key: string]: any } = {
-            $or: [{ chat_name: reg }],
+            $or: [{ first_name: reg }, { last_name: reg }, { chat_name: reg }],
             $and: [{ created: { $exists: true } }],
             removed: false
         }
