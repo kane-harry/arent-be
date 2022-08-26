@@ -550,7 +550,7 @@ export default class UserService extends AuthService {
             removed: false
         }
         const sorting: any = { _id: 1 }
-        const items = await UserModel.find<IUser>(filter).sort(sorting).skip(0).limit(50).exec()
+        const items = await UserModel.find<IUser>(filter).sort(sorting).limit(50).exec()
         return new BriefUserRO(items)
     }
 
