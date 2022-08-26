@@ -56,6 +56,7 @@ class UserController implements IController {
         this.router.post(`${this.path}/:key/totp`, requireAuth, validationMiddleware(SetupTotpDto), asyncHandler(this.setTotp))
         this.router.post(`${this.path}/:key/security`, requireAuth, validationMiddleware(UpdateSecurityDto), asyncHandler(this.updateSecurity))
         this.router.get(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(this.getUserList))
+        this.router.get(`${this.path}/username`, asyncHandler(this.getPublicUserList))
 
         this.router.put(
             `${this.path}/:key/profile/admin`,
@@ -163,6 +164,13 @@ class UserController implements IController {
     private getUserList = async (req: CustomRequest, res: Response) => {
         const filter = req.query as IUserQueryFilter
         const data = await UserService.getUserList(filter)
+        return res.send(data)
+    }
+
+    private getPublicUserList = async (req: CustomRequest, res: Response) => {
+        const filter = req.query as IUserQueryFilter
+        filter.terms = req.query.search
+        const data = await UserService.getPublicUserList(filter)
         return res.send(data)
     }
 
