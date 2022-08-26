@@ -12,6 +12,7 @@ import UserService from '@modules/user/user.service'
 import { COLLECTION_LOGO_SIZES, NftStatus } from '@config/constants'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
 import { filter } from 'lodash'
+import { CreateNftDto } from '@modules/nft/nft.dto'
 
 export default class CollectionService {
     static async createCollection(createCollectionDto: CreateCollectionDto, files: any, operator: IUser) {
@@ -40,6 +41,20 @@ export default class CollectionService {
             original: originalBackground?.key
         }
 
+        const model = new CollectionModel({
+            ...createCollectionDto,
+            creator_key: operator.key,
+            owner_key: operator.key,
+            items_count: 0
+        })
+        return await model.save()
+    }
+
+    static async createDefaultCollection(createNftDto: CreateNftDto, operator: IUser) {
+        const createCollectionDto = {
+            name: createNftDto.name,
+            description: createNftDto.description
+        }
         const model = new CollectionModel({
             ...createCollectionDto,
             creator_key: operator.key,
