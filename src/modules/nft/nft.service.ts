@@ -82,7 +82,7 @@ export default class NftService {
         const sorting: any = { _id: 1 }
         if (params.terms) {
             const reg = new RegExp(params.terms)
-            filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { title: reg }, { tags: reg }, { type: reg }, { status: reg }]
+            filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { type: reg }, { status: reg }]
         }
         if (params.owner_key) {
             filter.$and = filter.$and ?? []
