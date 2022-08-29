@@ -206,7 +206,7 @@ export default class NftService {
         }
         const owner = await UserService.getBriefByKey(nft.owner_key)
         const creator = await UserService.getBriefByKey(nft.creator_key)
-        const collectionDetail = await CollectionService.getCollectionDetail(nft.collection_key)
-        return new NftRO<INft>(nft, owner, creator, collectionDetail.collection)
+        const collection = await CollectionModel.findOne({ key: nft.collection_key })
+        return new NftRO<INft>(nft, owner, creator, collection)
     }
 }
