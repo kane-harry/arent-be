@@ -521,7 +521,7 @@ export default class UserService extends AuthService {
         const reg = new RegExp(params.terms)
         const filter: { [key: string]: any } = {
             $or: [{ key: reg }, { email: reg }, { phone: reg }],
-            $and: [{ created: { $exists: true } }],
+            $and: [{ created: { $exists: true } }, { removed: false }],
             removed: false
         }
         if (params.date_from) {
