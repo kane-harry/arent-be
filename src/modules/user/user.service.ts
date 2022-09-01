@@ -521,7 +521,7 @@ export default class UserService extends AuthService {
         const reg = new RegExp(params.terms)
         const filter: { [key: string]: any } = {
             $or: [{ key: reg }, { email: reg }, { phone: reg }],
-            $and: [{ created: { $exists: true } }],
+            $and: [{ created: { $exists: true } }, { removed: false }],
             removed: false
         }
         if (params.date_from) {
@@ -543,6 +543,7 @@ export default class UserService extends AuthService {
     }
 
     public static searchUser = async (params: IUserQueryFilter) => {
+        const offset = (params.page_index - 1) * params.page_size
         const reg = new RegExp(params.terms)
         const filter: { [key: string]: any } = {
             $or: [{ first_name: reg }, { last_name: reg }, { chat_name: reg }],
@@ -550,8 +551,13 @@ export default class UserService extends AuthService {
             removed: false
         }
         const sorting: any = { _id: 1 }
-        const items = await UserModel.find<IUser>(filter).sort(sorting).limit(50).exec()
-        return new BriefUserRO(items)
+        if (params.sort_by) {
+            delete sorting._id
+            sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1
+        }
+        const totalCount = await UserModel.countDocuments(filter)
+        const items = await UserModel.find<IUser>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
+        return new BriefUserRO(totalCount, params.page_index, params.page_size, items)
     }
 
     public static getAllUser = async () => {

@@ -82,7 +82,7 @@ export default class NftService {
 
     static async queryNfts(params: INftFilter) {
         const offset = (params.page_index - 1) * params.page_size
-        const filter: any = {}
+        const filter: any = { $and: [{ removed: false }] }
         const sorting: any = { _id: 1 }
         if (params.terms) {
             const reg = new RegExp(params.terms)
