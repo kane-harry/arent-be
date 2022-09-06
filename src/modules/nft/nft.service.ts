@@ -1,5 +1,5 @@
 import { IUser } from '@modules/user/user.interface'
-import { CreateNftDto, ImportNftDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
+import { BuyNftDto, CreateNftDto, ImportNftDto, NftRO, SellNftDto, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
 import { NftImportLogModel, NftModel } from './nft.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { CollectionModel } from '@modules/collection/collection.model'
@@ -15,6 +15,11 @@ import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
 import { filter } from 'lodash'
+import UserModel from '@modules/user/user.model'
+import AccountService from '@modules/account/account.service'
+import TransactionService from '@modules/transaction/transaction.service'
+import { SendPrimeCoinsDto } from '@modules/transaction/transaction.dto'
+import { IAccount } from '@modules/account/account.interface'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -68,6 +73,7 @@ export default class NftService {
 
         // create log
         await new NftHistoryModel({
+            nft_key: nft.key,
             user_key: operator.key,
             action: NftHistoryActions.Create,
             agent: options?.req.agent,
@@ -135,6 +141,7 @@ export default class NftService {
 
         // create log
         await new NftHistoryModel({
+            nft_key: key,
             user_key: operator.key,
             action: NftHistoryActions.Update,
             agent: options?.req.agent,
@@ -159,6 +166,7 @@ export default class NftService {
 
         // create log
         await new NftHistoryModel({
+            nft_key: key,
             user_key: operator.key,
             action: NftHistoryActions.UpdateStatus,
             agent: options?.req.agent,
@@ -187,6 +195,7 @@ export default class NftService {
         await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: -1 } }, { new: true }).exec()
         // create log
         await new NftHistoryModel({
+            nft_key: key,
             user_key: operator.key,
             action: NftHistoryActions.Delete,
             agent: options?.req.agent,
@@ -208,5 +217,110 @@ export default class NftService {
         const creator = await UserService.getBriefByKey(nft.creator_key)
         const collection = await CollectionModel.findOne({ key: nft.collection_key })
         return new NftRO<INft>(nft, owner, creator, collection)
+    }
+
+    static async sellNft(key: string, params: SellNftDto, options: any) {
+        const user: IUser = options.req.user
+        const nft = await NftModel.findOne({ key, owner_key: user.key })
+        if (!nft) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'sellNft', { key }))
+        }
+        if (nft.status !== NftStatus.Approved) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'sellNft', { key }))
+        }
+        if (params.description_append) {
+            params.description_append = `|${user.chat_name}|${new Date()}|${params.description_append}|`
+        }
+        const updateData: any = { ...params }
+        updateData.on_market = true
+
+        const data = await NftModel.findOneAndUpdate(
+            { key: key },
+            {
+                $set: updateData
+            },
+            { projection: { _id: 0 }, returnOriginal: false }
+        )
+
+        await new NftHistoryModel({
+            nft_key: key,
+            user_key: user.key,
+            action: NftHistoryActions.SALE,
+            agent: options?.req.agent,
+            country: user.country,
+            ip_address: options?.req.ip_address,
+            pre_data: nft.toString(),
+            post_data: data?.toString()
+        }).save()
+
+        return data
+    }
+
+    static async buyNft(key: string, params: BuyNftDto) {
+        const session = await UserModel.startSession()
+        session.startTransaction()
+        try {
+            const nft = await NftModel.findOne({ key })
+            if (!nft) {
+                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+            }
+            if (nft.owner_key === params.buyer_key) {
+                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+            }
+            if (!nft.on_market) {
+                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+            }
+            const seller: IUser | null = await UserModel.findOne({ key: nft.owner_key })
+            const buyer: IUser | null = await UserModel.findOne({ key: params.buyer_key })
+
+            if (!seller || !buyer) {
+                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+            }
+
+            const sellerAccount: IAccount | null = await AccountService.getAccountByUserKeyAndSymbol(seller.key, nft.currency)
+            const buyerAccount: IAccount | null = await AccountService.getAccountByUserKeyAndSymbol(buyer.key, nft.currency)
+
+            if (!sellerAccount || !buyerAccount) {
+                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+            }
+
+            const coinParams: SendPrimeCoinsDto = {
+                symbol: params.symbol,
+                amount: nft.price.toString(),
+                recipient: sellerAccount.address,
+                mode: 'inclusive',
+                notes: `Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
+                sender: buyerAccount.address
+            }
+            const transaction = await TransactionService.sendPrimeCoins(coinParams, buyer)
+
+            const updateData: any = { owner_key: buyer.key, on_market: false }
+
+            const data = await NftModel.findOneAndUpdate(
+                { key: key },
+                {
+                    $set: updateData
+                },
+                { projection: { _id: 0 }, returnOriginal: false }
+            )
+
+            await new NftHistoryModel({
+                nft_key: key,
+                user_key: buyer.key,
+                action: NftHistoryActions.BUY,
+                agent: params.agent,
+                country: buyer.country,
+                ip_address: params.agent,
+                pre_data: nft.toString(),
+                post_data: data?.toString()
+            }).save()
+
+            session.endSession()
+            return transaction
+        } catch (error) {
+            await session.abortTransaction()
+            session.endSession()
+            throw error
+        }
     }
 }

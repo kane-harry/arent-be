@@ -3,7 +3,16 @@ import { Router, Request, Response } from 'express'
 import asyncHandler from '@utils/asyncHandler'
 import IController from '@interfaces/controller.interface'
 import NftService from './nft.service'
-import { BulkDeleteNftDto, BulkUpdateNftStatusDto, CreateNftDto, ImportNftDto, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
+import {
+    BulkDeleteNftDto,
+    BulkUpdateNftStatusDto,
+    BuyNftDto,
+    CreateNftDto,
+    ImportNftDto,
+    SellNftDto,
+    UpdateNftDto,
+    UpdateNftStatusDto
+} from './nft.dto'
 import { requireAuth } from '@utils/authCheck'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUser } from '@modules/user/user.interface'
@@ -13,6 +22,10 @@ import { INftFilter } from '@modules/nft/nft.interface'
 import { requireAdmin } from '@config/role'
 import { NFT_IMAGE_SIZES } from '@config/constants'
 import Multer from 'multer'
+import UserModel from '@modules/user/user.model'
+import TransactionService from '@modules/transaction/transaction.service'
+import { config } from '@config'
+import addToBuyProductQueue from '@modules/queues/nft_queue'
 
 const upload = Multer()
 
@@ -35,6 +48,8 @@ class NftController implements IController {
         this.router.post(`${this.path}/status`, requireAuth, requireAdmin(), asyncHandler(this.bulkUpdateNftStatus))
         this.router.delete(`${this.path}/:key`, requireAuth, asyncHandler(this.deleteNft))
         this.router.delete(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(this.bulkDeleteNft))
+        this.router.post(`${this.path}/:key/liston`, requireAuth, asyncHandler(this.sellNft))
+        this.router.post(`${this.path}/:key/buy`, requireAuth, asyncHandler(this.buyNft))
     }
 
     private async importNft(req: Request, res: Response) {
@@ -122,6 +137,25 @@ class NftController implements IController {
                 data.push(e)
             }
         }
+        return res.json(data)
+    }
+
+    private sellNft = async (req: AuthenticationRequest, res: Response) => {
+        const { key } = req.params
+        const sellNftDto: SellNftDto = req.body
+        const nft = await NftService.sellNft(key, sellNftDto, { req })
+        return res.json(nft)
+    }
+
+    private buyNft = async (req: AuthenticationRequest, res: Response) => {
+        const { key } = req.params
+        const buyNftDto: BuyNftDto = req.body
+        buyNftDto.ip =
+            req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress
+        buyNftDto.agent = req.headers['user-agent']
+        buyNftDto.buyer_key = req.user.key
+
+        const data = await addToBuyProductQueue({ key, buyNftDto })
         return res.json(data)
     }
 }

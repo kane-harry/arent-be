@@ -18,6 +18,10 @@ const nftHistorySchema = new Schema<INftHistory>(
             type: String,
             required: true
         },
+        nft_key: {
+            type: String,
+            required: true
+        },
         ip_address: {
             type: String,
             required: true
