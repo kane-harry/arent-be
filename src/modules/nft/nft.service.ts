@@ -215,6 +215,25 @@ export default class NftService {
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'sellNft', { key }))
         }
+        if (nft.status !== NftStatus.Approved) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'sellNft', { key }))
+        }
+        const user: IUser = options.req.user
+        if (params.description_append) {
+            params.description_append = `|${user.chat_name}|${new Date()}|${params.description_append}|`
+        }
+        const updateData: any = { ...params }
+        updateData.on_market = true
+
+        const data = await NftModel.findOneAndUpdate(
+            { key: key },
+            {
+                $set: updateData
+            },
+            { projection: { _id: 0 }, returnOriginal: false }
+        )
+
+        return data?.value
     }
 
     static async buyNft(key: string, params: BuyNftDto, options: any) {
