@@ -68,6 +68,7 @@ export default class NftService {
 
         // create log
         await new NftHistoryModel({
+            nft_key: nft.key,
             user_key: operator.key,
             action: NftHistoryActions.Create,
             agent: options?.req.agent,
@@ -135,6 +136,7 @@ export default class NftService {
 
         // create log
         await new NftHistoryModel({
+            nft_key: key,
             user_key: operator.key,
             action: NftHistoryActions.Update,
             agent: options?.req.agent,
@@ -159,6 +161,7 @@ export default class NftService {
 
         // create log
         await new NftHistoryModel({
+            nft_key: key,
             user_key: operator.key,
             action: NftHistoryActions.UpdateStatus,
             agent: options?.req.agent,
@@ -187,6 +190,7 @@ export default class NftService {
         await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: -1 } }, { new: true }).exec()
         // create log
         await new NftHistoryModel({
+            nft_key: key,
             user_key: operator.key,
             action: NftHistoryActions.Delete,
             agent: options?.req.agent,
@@ -232,6 +236,17 @@ export default class NftService {
             },
             { projection: { _id: 0 }, returnOriginal: false }
         )
+
+        await new NftHistoryModel({
+            nft_key: key,
+            user_key: user.key,
+            action: NftHistoryActions.SALE,
+            agent: options?.req.agent,
+            country: user.country,
+            ip_address: options?.req.ip_address,
+            pre_data: nft.toString(),
+            post_data: data?.toString()
+        }).save()
 
         return data
     }
