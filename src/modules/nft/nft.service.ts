@@ -211,14 +211,14 @@ export default class NftService {
     }
 
     static async sellNft(key: string, params: SellNftDto, options: any) {
-        const nft = await NftModel.findOne({ key })
+        const user: IUser = options.req.user
+        const nft = await NftModel.findOne({ key, owner_key: user.key })
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'sellNft', { key }))
         }
         if (nft.status !== NftStatus.Approved) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'sellNft', { key }))
         }
-        const user: IUser = options.req.user
         if (params.description_append) {
             params.description_append = `|${user.chat_name}|${new Date()}|${params.description_append}|`
         }
@@ -233,7 +233,7 @@ export default class NftService {
             { projection: { _id: 0 }, returnOriginal: false }
         )
 
-        return data?.value
+        return data
     }
 
     static async buyNft(key: string, params: BuyNftDto, options: any) {
