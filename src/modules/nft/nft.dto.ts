@@ -118,6 +118,24 @@ export class NftRO<T> {
     }
 }
 
-export class SellNftDto {}
+export class SellNftDto {
+    @IsNotEmpty()
+    public price: number
 
-export class BuyNftDto {}
+    @IsNotEmpty()
+    public usd_price: number
+
+    @IsNotEmpty()
+    public price_type: string
+
+    @IsNotEmpty()
+    public accept_symbols: any
+
+    @IsNotEmpty()
+    public description_append: string
+}
+
+export class BuyNftDto {
+    @IsNotEmpty()
+    public symbol: string
+}
