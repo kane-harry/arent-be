@@ -34,7 +34,8 @@ export enum NftHistoryActions {
     Update = 'Update',
     Delete = 'Delete',
     UpdateStatus = 'UpdateStatus',
-    SALE = 'SALE'
+    SALE = 'SALE',
+    BUY = 'BUY'
 }
 export enum SecurityActions {
     Login = 'Login'

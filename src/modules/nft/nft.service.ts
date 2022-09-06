@@ -15,6 +15,8 @@ import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
 import { filter } from 'lodash'
+import UserModel from '@modules/user/user.model'
+import AccountService from '@modules/account/account.service'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -256,5 +258,36 @@ export default class NftService {
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
         }
+        if (nft.owner_key === options.req.user.key) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+        }
+        if (!nft.on_market) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+        }
+        const seller = await UserModel.findOne({ key: nft.owner_key })
+        const buyer = options.req.user
+
+        const updateData: any = { owner_key: buyer.key }
+
+        const data = await NftModel.findOneAndUpdate(
+            { key: key },
+            {
+                $set: updateData
+            },
+            { projection: { _id: 0 }, returnOriginal: false }
+        )
+
+        await new NftHistoryModel({
+            nft_key: key,
+            user_key: buyer.key,
+            action: NftHistoryActions.BUY,
+            agent: options?.req.agent,
+            country: buyer.country,
+            ip_address: options?.req.ip_address,
+            pre_data: nft.toString(),
+            post_data: data?.toString()
+        }).save()
+
+        return data
     }
 }
