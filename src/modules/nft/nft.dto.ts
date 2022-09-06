@@ -117,3 +117,7 @@ export class NftRO<T> {
         }
     }
 }
+
+export class SellNftDto {}
+
+export class BuyNftDto {}

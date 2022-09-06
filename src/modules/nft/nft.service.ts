@@ -1,5 +1,5 @@
 import { IUser } from '@modules/user/user.interface'
-import { CreateNftDto, ImportNftDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
+import { BuyNftDto, CreateNftDto, ImportNftDto, NftRO, SellNftDto, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
 import { NftImportLogModel, NftModel } from './nft.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { CollectionModel } from '@modules/collection/collection.model'
@@ -208,5 +208,19 @@ export default class NftService {
         const creator = await UserService.getBriefByKey(nft.creator_key)
         const collection = await CollectionModel.findOne({ key: nft.collection_key })
         return new NftRO<INft>(nft, owner, creator, collection)
+    }
+
+    static async sellNft(key: string, params: SellNftDto, options: any) {
+        const nft = await NftModel.findOne({ key })
+        if (!nft) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'sellNft', { key }))
+        }
+    }
+
+    static async buyNft(key: string, params: BuyNftDto, options: any) {
+        const nft = await NftModel.findOne({ key })
+        if (!nft) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+        }
     }
 }
