@@ -150,7 +150,7 @@ class NftController implements IController {
 
     private offMarket = async (req: AuthenticationRequest, res: Response) => {
         const { key } = req.params
-        const data = await NftService.offMarket(key, params, { req })
+        const data = await NftService.offMarket(key, { req })
         return res.json(data)
     }
 
