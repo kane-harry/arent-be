@@ -7,7 +7,10 @@ import server from '@app/server'
 import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authenticate'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { NftImportLogModel, NftModel } from '@modules/nft/nft.model'
-import { NftStatus } from '@config/constants'
+import { AccountType, FeeMode, NftStatus } from '@config/constants'
+import AccountModel from '@modules/account/account.model'
+import { parsePrimeAmount } from '@utils/number'
+import AccountService from '@modules/account/account.service'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -21,7 +24,7 @@ let shareData = {
     collections: []
 }
 
-let adminShareData = { user: { key: '' }, token: '', refreshToken: '', accounts: [] }
+let adminShareData = { user: { key: '' }, token: '', refreshToken: '', accounts: [], masterAccounts: [] }
 
 const createNftData = {
     name: 'name',
@@ -100,6 +103,51 @@ describe('NFT', () => {
         await initDataForUser(adminShareData, adminData)
         await makeAdmin(adminData)
     }).timeout(10000)
+
+    it('InitMasterAccounts', async () => {
+        const res1 = await request(server.app).post(`/api/v1/accounts/master`).set('Authorization', `Bearer ${adminShareData.token}`).send()
+        expect(res1.status).equal(200)
+    }).timeout(10000)
+
+    it('GetMasterAccounts', async () => {
+        const accounts = await AccountModel.find({ user_key: AccountType.Master, removed: false })
+        expect(accounts.length).gt(0)
+        adminShareData.masterAccounts = accounts.filter(item => item.symbol === createNftData.currency)
+
+        const accounts2 = await AccountModel.find({ user_key: adminShareData.user.key, removed: false })
+        expect(accounts2.length).gt(0)
+        adminShareData.accounts = accounts2.filter(item => item.symbol === createNftData.currency)
+    }).timeout(10000)
+
+    it('MintMasterAccount', async () => {
+        const sender = adminShareData.masterAccounts[0]
+        const res1 = await request(server.app)
+            .post(`/api/v1/accounts/${sender.key}/mint`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({
+                amount: 40996.3,
+                notes: 'mint master account',
+                type: 'mint'
+            })
+        expect(res1.status).equal(200)
+        validResponse(res1.body)
+    }).timeout(10000)
+
+    it('Send Funds', async () => {
+        const sender = adminShareData.masterAccounts[0]
+        const recipient = adminShareData.accounts[0]
+        const amountSend = 10
+        const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${adminShareData.token}`).send({
+            symbol: createNftData.currency,
+            sender: sender.address,
+            recipient: recipient.address,
+            amount: amountSend.toString(),
+            nonce: '1',
+            notes: 'test notes',
+            mode: FeeMode.Inclusive
+        })
+        expect(res.status).equal(200)
+    }).timeout(30000)
 
     it(`Create collection`, async () => {
         const res = await request(server.app)
