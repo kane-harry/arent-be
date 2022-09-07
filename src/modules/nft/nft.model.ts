@@ -19,6 +19,7 @@ const nftSchema = new Schema<INft>(
         external_link: String,
         collection_key: String,
         price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        royalty: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         currency: String,
         meta_data: { type: [Object], default: [] },
         animation: { type: Object, default: null },

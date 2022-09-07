@@ -9,6 +9,7 @@ export interface INft extends IBaseModel {
     collection_key: string
     // collection
     price: number | Types.Decimal128
+    royalty: number | Types.Decimal128
     currency: string
     meta_data: [] | undefined
     animation: object | undefined
