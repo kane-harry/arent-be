@@ -78,12 +78,10 @@ const importNftData = {
 
 const sellData = {
     price: 1,
-    usd_price: 50,
     price_type: 'fix_price',
-    accept_symbols: [createNftData.currency],
     description_append: 'Sell description'
 }
-const buyData = { symbol: sellData.accept_symbols[0] }
+const buyData = { symbol: createNftData.currency }
 
 describe('NFT', () => {
     before(async () => {

@@ -122,18 +122,12 @@ export class SellNftDto {
     @IsNotEmpty()
     public price: number
 
-    // @IsNotEmpty()
-    // public usd_price: number
-
     @IsNotEmpty()
     public price_type: string
 
     // reserved fields
     // auction_start
     // auction_end
-
-    // @IsNotEmpty()
-    // public accept_symbols: any
 
     @IsNotEmpty()
     public description_append: string
