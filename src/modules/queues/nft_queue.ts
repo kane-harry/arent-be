@@ -1,7 +1,7 @@
 import { config } from '@config'
 import buyNftProcess from '@modules/queues/nfts-queue-consumer'
 
-const Queue = require('bull')
+import Queue from 'bull'
 
 // const myQueue = new Queue('myJob', 'redis://127.0.0.1:6379');
 const buyProductQueue = new Queue('buyNft', {

@@ -118,19 +118,16 @@ export class NftRO<T> {
     }
 }
 
-export class SellNftDto {
-    @IsNotEmpty()
-    public price: number
+export class NftOnMarketDto {
+    @IsOptional()
+    public price: string
 
-    @IsNotEmpty()
-    public price_type: string
+    // @IsOptional()
+    // public price_type: string
 
     // reserved fields
     // auction_start
     // auction_end
-
-    @IsNotEmpty()
-    public description_append: string
 }
 
 export class BuyNftDto {

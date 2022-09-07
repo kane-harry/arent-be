@@ -1,14 +1,14 @@
 import { IUser } from '@modules/user/user.interface'
-import { BuyNftDto, CreateNftDto, ImportNftDto, NftRO, SellNftDto, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
+import { BuyNftDto, CreateNftDto, ImportNftDto, NftOnMarketDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
 import { NftImportLogModel, NftModel } from './nft.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
 import { INft, INftFilter } from '@modules/nft/nft.interface'
 import BizException from '@exceptions/biz.exception'
-import { AccountErrors, AuthErrors, NftErrors } from '@exceptions/custom.error'
+import { AccountErrors, AuthErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
-import { isAdmin } from '@config/role'
+import { isAdmin, role, roleCan } from '@config/role'
 import UserService from '@modules/user/user.service'
 import { NftHistoryActions, NftStatus, MASTER_ACCOUNT_KEY, NftType, NFT_IMAGE_SIZES } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
@@ -20,6 +20,8 @@ import AccountService from '@modules/account/account.service'
 import TransactionService from '@modules/transaction/transaction.service'
 import { SendPrimeCoinsDto } from '@modules/transaction/transaction.dto'
 import { IAccount } from '@modules/account/account.interface'
+import { config } from '@config'
+import addToBuyProductQueue from '@modules/queues/nft_queue'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -219,17 +221,17 @@ export default class NftService {
         return new NftRO<INft>(nft, owner, creator, collection)
     }
 
-    static async sellNft(key: string, params: SellNftDto, options: any) {
+    static async onMarket(key: string, params: NftOnMarketDto, options: any) {
         const user: IUser = options.req.user
         const nft = await NftModel.findOne({ key, owner_key: user.key })
         if (!nft) {
-            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'sellNft', { key }))
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'onMarket', { key }))
+        }
+        if (!roleCan(user.role, config.operations.PUT_NFT_ON_MARKET) && nft.owner_key !== user.key) {
+            throw new BizException(CommonErrors.unauthorised, new ErrorContext('nft.service', 'onMarket', { key }))
         }
         if (nft.status !== NftStatus.Approved) {
-            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'sellNft', { key }))
-        }
-        if (params.description_append) {
-            params.description_append = `|${user.chat_name}|${new Date()}|${params.description_append}|`
+            throw new BizException(NftErrors.nft_is_not_approved_error, new ErrorContext('nft.service', 'onMarket', { key }))
         }
 
         if (params.price) {
@@ -243,7 +245,7 @@ export default class NftService {
         await new NftHistoryModel({
             nft_key: key,
             user_key: user.key,
-            action: NftHistoryActions.SALE,
+            action: NftHistoryActions.OnMarket,
             agent: options?.req.agent,
             country: user.country,
             ip_address: options?.req.ip_address,
@@ -254,15 +256,53 @@ export default class NftService {
         return postData
     }
 
-    static async buyNft(key: string, params: BuyNftDto) {
+    static async offMarket(key: string, options: any) {
+        const user: IUser = options.req.user
+        const nft = await NftModel.findOne({ key, owner_key: user.key })
+        if (!nft) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'onMarket', { key }))
+        }
+        if (!roleCan(user.role, config.operations.PUT_NFT_OFF_MARKET) && nft.owner_key !== user.key) {
+            throw new BizException(CommonErrors.unauthorised, new ErrorContext('nft.service', 'onMarket', { key }))
+        }
+        if (nft.status !== NftStatus.Approved) {
+            throw new BizException(NftErrors.nft_is_not_approved_error, new ErrorContext('nft.service', 'onMarket', { key }))
+        }
+        nft.set('on_market', false)
+
+        const postData = await nft.save()
+        await new NftHistoryModel({
+            nft_key: key,
+            user_key: user.key,
+            action: NftHistoryActions.OffMarket,
+            agent: options?.req.agent,
+            country: user.country,
+            ip_address: options?.req.ip_address,
+            pre_data: nft.toString(),
+            post_data: postData?.toString()
+        }).save()
+
+        return postData
+    }
+
+    static async processPurchase(key: string, operator: IUser, agent: string, ip: string) {
+        let data = null
+        if (config.redis.enabled) {
+            data = await addToBuyProductQueue({ key, operator, agent, ip })
+        } else {
+            data = await NftService.buyNft(key, operator, agent, ip)
+        }
+    }
+
+    static async buyNft(key: string, operator: IUser, agent: string, ip: string) {
         const session = await UserModel.startSession()
         session.startTransaction()
         try {
-            const nft = await NftModel.findOne({ key })
+            const nft = await NftModel.findOne({ key, removed: false }).exec()
             if (!nft) {
                 throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
-            if (nft.owner_key === params.buyer_key) {
+            if (nft.owner_key === operator.key) {
                 throw new BizException(
                     NftErrors.product_buy_same_owner_error,
                     new ErrorContext('nft.service', 'buyNft', { key, owner_key: nft.owner_key })
@@ -271,22 +311,31 @@ export default class NftService {
             if (!nft.on_market) {
                 throw new BizException(NftErrors.item_not_on_market, new ErrorContext('nft.service', 'buyNft', { key }))
             }
-            const seller: IUser | null = await UserModel.findOne({ key: nft.owner_key })
-            const buyer: IUser | null = await UserModel.findOne({ key: params.buyer_key })
+
+            // TODO : auction nft
+            // if (item.price_type === constants.product.price_type.auction) {
+            // throw new BizException(NftErrors.purchase_auction_nft_error, new ErrorContext('nft.service', 'buyNft', { key }))
+            // }
+            const seller = await UserService.getBriefByKey(nft.owner_key)
+            const buyer = await UserService.getBriefByKey(operator.key)
 
             if (!seller || !buyer) {
-                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+                throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
 
             const sellerAccount: IAccount | null = await AccountService.getAccountByUserKeyAndSymbol(seller.key, nft.currency)
             const buyerAccount: IAccount | null = await AccountService.getAccountByUserKeyAndSymbol(buyer.key, nft.currency)
 
             if (!sellerAccount || !buyerAccount) {
-                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+                throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
 
+            // TODO : not correct
+            // 1. buyer send coins to master
+            // 2. deduct fee
+            // 3. master send coins to seller
             const coinParams: SendPrimeCoinsDto = {
-                symbol: params.symbol,
+                symbol: nft.currency,
                 amount: nft.price.toString(),
                 recipient: sellerAccount.address,
                 mode: 'inclusive',
@@ -308,10 +357,10 @@ export default class NftService {
             await new NftHistoryModel({
                 nft_key: key,
                 user_key: buyer.key,
-                action: NftHistoryActions.BUY,
-                agent: params.agent,
+                action: NftHistoryActions.Purchase,
+                agent: agent,
                 country: buyer.country,
-                ip_address: params.agent,
+                ip_address: ip,
                 pre_data: nft.toString(),
                 post_data: data?.toString()
             }).save()
