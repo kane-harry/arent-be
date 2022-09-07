@@ -257,6 +257,6 @@ export default class AccountService {
 
     static async getAccountByUserKeyAndSymbol(user_key: string, symbol: string) {
         const account: IAccount | null = await AccountModel.findOne({ user_key, symbol })
-        return account
+        return await this.bindingAccountBalance(account)
     }
 }
