@@ -24,6 +24,7 @@ import { config } from '@config'
 import addToBuyProductQueue from '@modules/queues/nft_queue'
 import { roundUp } from '@utils/utility'
 import SettingService from '@modules/setting/setting.service'
+import { parsePrimeAmount } from '@utils/number'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -335,13 +336,14 @@ export default class NftService {
             }
 
             const setting = await SettingService.getGlobalSetting()
-            const productSoldFeeRate = setting.prime_transfer_fee
-            const paymentOrderValue = nft.price
-            const productSoldFee = roundUp(paymentOrderValue * productSoldFeeRate, 8)
+            const productSoldFeeRate = parsePrimeAmount(setting.prime_transfer_fee)
+            const paymentOrderValue = parsePrimeAmount(nft.price)
+            const productSoldFee = paymentOrderValue.mul(productSoldFeeRate)
+            const royaltyRate = parsePrimeAmount(nft.royalty)
 
             const buyerToMasterAmount = paymentOrderValue
-            const masterToCreatorAmount = roundUp(paymentOrderValue * nft.royalty, 8)
-            const masterToSellerAmount = roundUp(buyerToMasterAmount - productSoldFee - masterToCreatorAmount, 8)
+            const masterToCreatorAmount = paymentOrderValue.mul(royaltyRate)
+            const masterToSellerAmount = buyerToMasterAmount.sub(productSoldFee).sub(masterToCreatorAmount)
 
             // 1. buyer send coins to master
             const buyerToMasterParams: SendPrimeCoinsDto = {
