@@ -263,12 +263,13 @@ export default class NftService {
                 throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
             if (nft.owner_key === params.buyer_key) {
-                // TODO : correct error msg
-                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+                throw new BizException(
+                    NftErrors.product_buy_same_owner_error,
+                    new ErrorContext('nft.service', 'buyNft', { key, owner_key: nft.owner_key })
+                )
             }
             if (!nft.on_market) {
-                // TODO : correct error msg
-                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
+                throw new BizException(NftErrors.item_not_on_market, new ErrorContext('nft.service', 'buyNft', { key }))
             }
             const seller: IUser | null = await UserModel.findOne({ key: nft.owner_key })
             const buyer: IUser | null = await UserModel.findOne({ key: params.buyer_key })

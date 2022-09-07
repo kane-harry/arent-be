@@ -76,7 +76,9 @@ export const UpdatePhoneEmailErrors = {
 export const NftErrors = {
     nft_not_exists_error: { code: 7001, status: 400, message: 'Nft not found.' },
     nft_image_error: { code: 7002, status: 400, message: 'Nft Image is required.' },
-    nft_image_required_error: { code: 7303, status: 400, message: 'please upload NFT picture.' }
+    nft_image_required_error: { code: 7303, status: 400, message: 'please upload NFT picture.' },
+    product_buy_same_owner_error: { code: 7304, status: 400, message: 'Can not buy own nft' },
+    item_not_on_market: { code: 7305, status: 400, message: 'Item not on market' }
 }
 
 export const CollectionErrors = {
