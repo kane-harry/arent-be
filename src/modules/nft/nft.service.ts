@@ -360,7 +360,7 @@ export default class NftService {
                 amount: masterToCreatorAmount.toString(),
                 recipient: creatorAccount.address,
                 mode: 'inclusive',
-                notes: `Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
+                notes: `ROYALTY: Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
                 sender: masterAccount.address
             }
             const masterToCreatorTransaction = await TransactionService.sendPrimeCoins(masterToCreatorParams, buyer)
