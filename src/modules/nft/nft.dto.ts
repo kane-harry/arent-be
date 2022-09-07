@@ -122,14 +122,14 @@ export class SellNftDto {
     @IsNotEmpty()
     public price: number
 
-    // @IsNotEmpty()
-    // public usd_price: number
+    @IsNotEmpty()
+    public usd_price: number
 
     @IsNotEmpty()
     public price_type: string
 
-    // @IsNotEmpty()
-    // public accept_symbols: any
+    @IsNotEmpty()
+    public accept_symbols: any
 
     @IsNotEmpty()
     public description_append: string
@@ -138,4 +138,13 @@ export class SellNftDto {
 export class BuyNftDto {
     @IsNotEmpty()
     public symbol: string
+
+    @IsOptional()
+    public ip: string
+
+    @IsOptional()
+    public agent: string
+
+    @IsOptional()
+    public buyer_key: string
 }

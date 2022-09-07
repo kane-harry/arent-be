@@ -22,6 +22,10 @@ import { INftFilter } from '@modules/nft/nft.interface'
 import { requireAdmin } from '@config/role'
 import { NFT_IMAGE_SIZES } from '@config/constants'
 import Multer from 'multer'
+import UserModel from '@modules/user/user.model'
+import TransactionService from '@modules/transaction/transaction.service'
+import { config } from '@config'
+import addToBuyProductQueue from '@modules/queues/nft_queue'
 
 const upload = Multer()
 
@@ -146,8 +150,13 @@ class NftController implements IController {
     private buyNft = async (req: AuthenticationRequest, res: Response) => {
         const { key } = req.params
         const buyNftDto: BuyNftDto = req.body
-        const nft = await NftService.buyNft(key, buyNftDto, { req })
-        return res.json(nft)
+        buyNftDto.ip =
+            req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress
+        buyNftDto.agent = req.headers['user-agent']
+        buyNftDto.buyer_key = req.user.key
+
+        const data = await addToBuyProductQueue({ key, buyNftDto })
+        return res.json(data)
     }
 }
 
