@@ -24,7 +24,7 @@ import { config } from '@config'
 import addToBuyProductQueue from '@modules/queues/nft_queue'
 import { roundUp } from '@utils/utility'
 import SettingService from '@modules/setting/setting.service'
-import { parsePrimeAmount } from '@utils/number'
+import { formatAmount, parsePrimeAmount } from '@utils/number'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -336,10 +336,10 @@ export default class NftService {
             }
 
             const setting = await SettingService.getGlobalSetting()
-            const productSoldFeeRate = parsePrimeAmount(setting.prime_transfer_fee)
+            const productSoldFeeRate = parseFloat(setting.prime_transfer_fee.toString())
             const buyerAmount = parsePrimeAmount(buyerAccount.amount)
             const paymentOrderValue = parsePrimeAmount(nft.price)
-            const productSoldFee = paymentOrderValue.mul(productSoldFeeRate)
+            const productSoldFee = parsePrimeAmount(parseFloat(nft.price.toString()) * productSoldFeeRate)
             const royaltyRate = parsePrimeAmount(nft.royalty)
 
             const buyerToMasterAmount = paymentOrderValue
@@ -353,7 +353,7 @@ export default class NftService {
             // 1. buyer send coins to master
             const buyerToMasterParams: SendPrimeCoinsDto = {
                 symbol: nft.currency,
-                amount: buyerToMasterAmount.toString(),
+                amount: formatAmount(buyerToMasterAmount.toString()),
                 recipient: masterAccount.address,
                 mode: 'inclusive',
                 notes: `Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
@@ -364,7 +364,7 @@ export default class NftService {
             // 2. master send royalty to creator
             const masterToCreatorParams: SendPrimeCoinsDto = {
                 symbol: nft.currency,
-                amount: masterToCreatorAmount.toString(),
+                amount: formatAmount(masterToCreatorAmount.toString()),
                 recipient: creatorAccount.address,
                 mode: 'inclusive',
                 notes: `ROYALTY: Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
@@ -375,7 +375,7 @@ export default class NftService {
             // 3. master send coins to seller
             const masterToSellerParams: SendPrimeCoinsDto = {
                 symbol: nft.currency,
-                amount: masterToSellerAmount.toString(),
+                amount: formatAmount(masterToSellerAmount.toString()),
                 recipient: sellerAccount.address,
                 mode: 'inclusive',
                 notes: `Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
