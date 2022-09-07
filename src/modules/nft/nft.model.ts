@@ -46,6 +46,7 @@ const nftSchema = new Schema<INft>(
             transform: (doc, ret) => {
                 delete ret._id
                 ret.price = ret.price.toString()
+                ret.royalty = ret.royalty.toString()
                 return ret
             }
         },

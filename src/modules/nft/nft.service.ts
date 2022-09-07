@@ -341,10 +341,10 @@ export default class NftService {
             const buyerAmount = parsePrimeAmount(buyerAccount.amount)
             const paymentOrderValue = parsePrimeAmount(nft.price)
             const productSoldFee = parsePrimeAmount(parseFloat(nft.price.toString()) * productSoldFeeRate)
-            const royaltyRate = parsePrimeAmount(nft.royalty)
+            const royaltyRate = parseFloat(nft.royalty.toString())
 
             const buyerToMasterAmount = paymentOrderValue
-            const masterToCreatorAmount = paymentOrderValue.mul(royaltyRate)
+            const masterToCreatorAmount = parsePrimeAmount(parseFloat(nft.price.toString()) * royaltyRate)
             const masterToSellerAmount = buyerToMasterAmount.sub(productSoldFee).sub(masterToCreatorAmount)
 
             if (buyerAmount.lt(paymentOrderValue) || buyerToMasterAmount.lt(0) || masterToCreatorAmount.lt(0) || masterToSellerAmount.lt(0)) {

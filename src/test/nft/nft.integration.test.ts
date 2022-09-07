@@ -33,6 +33,7 @@ const createNftData = {
     price: 5000,
     num_sales: 1,
     quantity: 1,
+    royalty: 0.01,
     currency: 'LL',
     nft_token_id: '232423432',
     meta_data: [
@@ -213,6 +214,7 @@ describe('NFT', () => {
             .field('collection_key', shareData.collections[0].key)
             .field('num_sales', createNftData.num_sales)
             .field('quantity', createNftData.quantity)
+            .field('royalty', createNftData.royalty)
             .attach('animation', './src/test/init/test.mp4')
             .attach('image', './src/test/init/test.jpeg')
         expect(res.status).equal(200)
@@ -228,6 +230,7 @@ describe('NFT', () => {
         expect(nft.type).equal(createNftData.type)
         expect(nft.num_sales).equal(createNftData.num_sales)
         expect(nft.quantity).equal(createNftData.quantity)
+        expect(nft.royalty.toString()).equal(createNftData.royalty.toString())
         expect(nft.attributes[0].trait_type).equal(createNftData.attributes[0].trait_type)
         expect(nft.attributes[0].value).equal(createNftData.attributes[0].value)
         expect(nft.attributes[1].trait_type).equal(createNftData.attributes[1].trait_type)
@@ -243,24 +246,6 @@ describe('NFT', () => {
         expect(nft.collection_key).equal(shareData.collections[0].key)
         expect(nft.creator_key).equal(shareData.user.key)
         expect(nft.owner_key).equal(shareData.user.key)
-    }).timeout(30000)
-
-    it(`Create gift NFT`, async () => {
-        const res = await request(server.app)
-            .post(`/api/v1/nfts`)
-            .set('Authorization', `Bearer ${shareData.token}`)
-            .field('name', createNftData.name)
-            .field('description', createNftData.description)
-            .field('price', createNftData.price)
-            .field('currency', createNftData.currency)
-            .field('meta_data', JSON.stringify(createNftData.meta_data))
-            .field('type', createNftData.type)
-            .field('attributes', JSON.stringify(createNftData.attributes))
-            .field('collection_key', shareData.collections[0].key)
-            .field('num_sales', createNftData.num_sales)
-            .attach('image', './src/test/init/test.gif')
-        expect(res.status).equal(200)
-        validResponse(res.body)
     }).timeout(30000)
 
     it(`List User Collections`, async () => {
