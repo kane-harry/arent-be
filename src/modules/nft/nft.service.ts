@@ -337,6 +337,7 @@ export default class NftService {
 
             const setting = await SettingService.getGlobalSetting()
             const productSoldFeeRate = parsePrimeAmount(setting.prime_transfer_fee)
+            const buyerAmount = parsePrimeAmount(buyerAccount.amount)
             const paymentOrderValue = parsePrimeAmount(nft.price)
             const productSoldFee = paymentOrderValue.mul(productSoldFeeRate)
             const royaltyRate = parsePrimeAmount(nft.royalty)
@@ -344,6 +345,10 @@ export default class NftService {
             const buyerToMasterAmount = paymentOrderValue
             const masterToCreatorAmount = paymentOrderValue.mul(royaltyRate)
             const masterToSellerAmount = buyerToMasterAmount.sub(productSoldFee).sub(masterToCreatorAmount)
+
+            if (buyerAmount.lt(paymentOrderValue) || buyerToMasterAmount.lt(0) || masterToCreatorAmount.lt(0) || masterToSellerAmount.lt(0)) {
+                throw new BizException(NftErrors.wrong_amount, new ErrorContext('nft.service', 'buyNft', { price: nft.price }))
+            }
 
             // 1. buyer send coins to master
             const buyerToMasterParams: SendPrimeCoinsDto = {

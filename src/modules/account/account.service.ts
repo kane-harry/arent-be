@@ -175,7 +175,7 @@ export default class AccountService {
 
     static async getMasterAccountBriefBySymbol(symbol: string) {
         const account = await AccountModel.findOne({ symbol: symbol, type: AccountType.Master }).select('-key_store -salt').exec()
-        return account
+        return await this.bindingAccountBalance(account)
     }
 
     static async queryAccounts(fields: { [key: string]: any }, paginate: { page_index: number; page_size: number }) {
