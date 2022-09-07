@@ -321,8 +321,9 @@ export default class NftService {
             // }
             const seller = await UserService.getBriefByKey(nft.owner_key)
             const buyer = await UserService.getBriefByKey(operator.key)
+            const admin = await UserModel.findOne({ role: 999, removed: false })
 
-            if (!seller || !buyer) {
+            if (!seller || !buyer || !admin) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
 
@@ -361,16 +362,19 @@ export default class NftService {
             }
             const buyerToMasterTransaction = await TransactionService.sendPrimeCoins(buyerToMasterParams, buyer)
 
-            // 2. master send royalty to creator
-            const masterToCreatorParams: SendPrimeCoinsDto = {
-                symbol: nft.currency,
-                amount: formatAmount(masterToCreatorAmount.toString()),
-                recipient: creatorAccount.address,
-                mode: 'inclusive',
-                notes: `ROYALTY: Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
-                sender: masterAccount.address
+            let masterToCreatorTransaction
+            if (masterToCreatorAmount.gt(0)) {
+                // 2. master send royalty to creator
+                const masterToCreatorParams: SendPrimeCoinsDto = {
+                    symbol: nft.currency,
+                    amount: formatAmount(masterToCreatorAmount.toString()),
+                    recipient: creatorAccount.address,
+                    mode: 'inclusive',
+                    notes: `ROYALTY: Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
+                    sender: masterAccount.address
+                }
+                masterToCreatorTransaction = await TransactionService.sendPrimeCoins(masterToCreatorParams, admin)
             }
-            const masterToCreatorTransaction = await TransactionService.sendPrimeCoins(masterToCreatorParams, buyer)
 
             // 3. master send coins to seller
             const masterToSellerParams: SendPrimeCoinsDto = {
@@ -381,7 +385,7 @@ export default class NftService {
                 notes: `Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
                 sender: masterAccount.address
             }
-            const masterToSellerTransaction = await TransactionService.sendPrimeCoins(masterToSellerParams, buyer)
+            const masterToSellerTransaction = await TransactionService.sendPrimeCoins(masterToSellerParams, admin)
 
             const updateData: any = { owner_key: buyer.key, on_market: false }
 
