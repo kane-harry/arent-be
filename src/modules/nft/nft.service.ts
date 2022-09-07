@@ -231,17 +231,15 @@ export default class NftService {
         if (params.description_append) {
             params.description_append = `|${user.chat_name}|${new Date()}|${params.description_append}|`
         }
-        const updateData: any = { ...params }
-        updateData.on_market = true
 
-        const data = await NftModel.findOneAndUpdate(
-            { key: key },
-            {
-                $set: updateData
-            },
-            { projection: { _id: 0 }, returnOriginal: false }
-        )
+        if (params.price) {
+            nft.set('price', params.price)
+        }
+        nft.set('on_market', true)
 
+        // TODO: AUCTION
+
+        const postData = await nft.save()
         await new NftHistoryModel({
             nft_key: key,
             user_key: user.key,
@@ -250,10 +248,10 @@ export default class NftService {
             country: user.country,
             ip_address: options?.req.ip_address,
             pre_data: nft.toString(),
-            post_data: data?.toString()
+            post_data: postData?.toString()
         }).save()
 
-        return data
+        return postData
     }
 
     static async buyNft(key: string, params: BuyNftDto) {
@@ -265,9 +263,11 @@ export default class NftService {
                 throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
             if (nft.owner_key === params.buyer_key) {
+                // TODO : correct error msg
                 throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
             if (!nft.on_market) {
+                // TODO : correct error msg
                 throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
             const seller: IUser | null = await UserModel.findOne({ key: nft.owner_key })

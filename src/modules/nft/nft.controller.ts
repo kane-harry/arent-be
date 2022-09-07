@@ -155,6 +155,12 @@ class NftController implements IController {
         buyNftDto.agent = req.headers['user-agent']
         buyNftDto.buyer_key = req.user.key
 
+        // TODO:
+        // if (redis_enabled) {
+        //     const data = await addToBuyProductQueue({ key, buyNftDto })
+        // } else {
+        //     const data = await NftService.buyNft()
+        // }
         const data = await addToBuyProductQueue({ key, buyNftDto })
         return res.json(data)
     }
