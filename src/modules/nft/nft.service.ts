@@ -1,6 +1,6 @@
 import { IUser } from '@modules/user/user.interface'
 import { BuyNftDto, CreateNftDto, ImportNftDto, NftOnMarketDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
-import {NftImportLogModel, NftModel, NftOwnershipLogModel, NftSaleLogModel} from './nft.model'
+import { NftImportLogModel, NftModel, NftOwnershipLogModel, NftSaleLogModel } from './nft.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
@@ -28,6 +28,7 @@ import { formatAmount, parsePrimeAmount } from '@utils/number'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import { ISendCoinDto } from '@modules/transaction/transaction.interface'
 import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
+import EmailService from '@modules/emaill/email.service'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -475,9 +476,9 @@ export default class NftService {
                 post_data: data?.toString()
             }).save()
 
-            await NftService.addSaleLog({buyer, seller, nft, buyer_txn, royalty_txn, seller_txn, royaltyFee, sellerAmount})
-            await NftService.addOwnershipLog({buyer, seller, nft, buyer_txn, royalty_txn, seller_txn})
-            await NftService.sendEmail({buyer, seller, nft, buyer_txn, royalty_txn, seller_txn})
+            await NftService.addSaleLog({ buyer, seller, nft, buyer_txn, royalty_txn, seller_txn, royaltyFee, sellerAmount })
+            await NftService.addOwnershipLog({ buyer, seller, nft, buyer_txn, royalty_txn, seller_txn })
+            await NftService.sendEmail({ buyer, seller, nft, buyer_txn, royalty_txn, seller_txn })
 
             session.endSession()
             return { buyer_txn, royalty_txn, seller_txn }
@@ -488,8 +489,8 @@ export default class NftService {
         }
     }
 
-    static async addSaleLog(options:any) {
-        const {buyer, seller, nft, buyer_txn, royalty_txn, seller_txn, royaltyFee, sellerAmount} = options
+    static async addSaleLog(options: any) {
+        const { buyer, seller, nft, buyer_txn, royalty_txn, seller_txn, royaltyFee, sellerAmount } = options
         const nftSaleLog = new NftSaleLogModel()
         nftSaleLog.nft_key = nft.key
         nftSaleLog.price = nft.price
@@ -498,8 +499,8 @@ export default class NftService {
         return await nftSaleLog.save()
     }
 
-    static async addOwnershipLog(options:any) {
-        const {buyer, seller, nft, buyer_txn, royalty_txn, seller_txn} = options
+    static async addOwnershipLog(options: any) {
+        const { buyer, seller, nft, buyer_txn, royalty_txn, seller_txn } = options
         const nftOnwershipLog = new NftOwnershipLogModel()
         nftOnwershipLog.nft_key = nft.key
         nftOnwershipLog.price = nft.price
@@ -508,14 +509,15 @@ export default class NftService {
         return await nftOnwershipLog.save()
     }
 
-    static async sendEmail(options:any) {
-        const {buyer, seller, nft, buyer_txn, royalty_txn, seller_txn} = options
-        // TODO
+    static async sendEmail(options: any) {
+        const { buyer, seller, nft, buyer_txn, royalty_txn, seller_txn } = options
         if (buyer.email) {
-
+            const context = { address: buyer.email, txn: buyer_txn }
+            EmailService.sendPurchaseProductSuccessNotification(context)
         }
         if (seller.email) {
-
+            const context = { address: seller.email, txn: seller_txn }
+            EmailService.sendSaleProductSuccessNotification(context)
         }
     }
 }

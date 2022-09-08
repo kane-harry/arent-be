@@ -190,4 +190,40 @@ export default class EmailService {
             console.error('sendUserResetCredentialsCompletedNotification => ' + err.message)
         })
     }
+
+    static async sendPurchaseProductSuccessNotification(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('product-purchase.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
+                if (err) {
+                    reject(err)
+                }
+                // Send email
+                subject = `${config.emailNotification.emailParamClientName} - Nft Purchased`
+                sendEmail(subject, String(text), String(html), _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendPurchaseProductSuccessNotification => ' + err.message)
+        })
+    }
+
+    static async sendSaleProductSuccessNotification(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('product-sold.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
+                if (err) {
+                    reject(err)
+                }
+                // Send email
+                subject = `${config.emailNotification.emailParamClientName} - Nft Sold`
+                sendEmail(subject, String(text), String(html), _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendSellProductSuccessNotification => ' + err.message)
+        })
+    }
 }
