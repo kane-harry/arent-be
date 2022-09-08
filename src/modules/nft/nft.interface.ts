@@ -55,3 +55,17 @@ export interface INftFilter extends IFilterModel {
     collection_key?: string
     on_market?: boolean
 }
+
+export interface INftSaleLog extends IBaseModel {
+    nft_key: string
+    price: string
+    commission_fee: string
+    seller_amount: string
+    buyer_rebate_fee: string
+    seller_rebate_fee: string
+    royalty_fee: string
+    rate: string
+    usd_value: string
+    quantity: string
+    unit_price: string
+}

@@ -1,6 +1,6 @@
 import { IUser } from '@modules/user/user.interface'
 import { BuyNftDto, CreateNftDto, ImportNftDto, NftOnMarketDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
-import {NftImportLogModel, NftModel, NftOwnershipLogModel} from './nft.model'
+import {NftImportLogModel, NftModel, NftOwnershipLogModel, NftSaleLogModel} from './nft.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
@@ -400,13 +400,14 @@ export default class NftService {
             const masterPrivateKey = await decryptKeyWithSalt(masterKeyStore.key_store, masterKeyStore.salt)
 
             let royalty_txn
+            let royaltyFee
             let masterNonce
             if (royaltyAmount.gt(0)) {
                 // 2. master send royalty to creator
 
                 masterNonce = await PrimeCoinProvider.getWalletNonceBySymbolAndAddress(masterAccount.symbol, masterAccount.address)
                 masterNonce = masterNonce + 1
-                const royaltyFee = formatAmount(royaltyAmount.toString())
+                royaltyFee = formatAmount(royaltyAmount.toString())
                 const royaltyMessage = `${nft.currency}:${masterAccount.address}:${creatorAccount.address}:${royaltyFee}:${masterNonce}`
                 const royaltySignature = await signMessage(masterPrivateKey, royaltyMessage)
 
@@ -474,7 +475,7 @@ export default class NftService {
                 post_data: data?.toString()
             }).save()
 
-            await NftService.addSaleLog({buyer, seller, nft, buyer_txn, royalty_txn, seller_txn})
+            await NftService.addSaleLog({buyer, seller, nft, buyer_txn, royalty_txn, seller_txn, royaltyFee, sellerAmount})
             await NftService.addOwnershipLog({buyer, seller, nft, buyer_txn, royalty_txn, seller_txn})
             await NftService.sendEmail({buyer, seller, nft, buyer_txn, royalty_txn, seller_txn})
 
@@ -488,8 +489,13 @@ export default class NftService {
     }
 
     static async addSaleLog(options:any) {
-        const {buyer, seller, nft, buyer_txn, royalty_txn, seller_txn} = options
-        // TODO
+        const {buyer, seller, nft, buyer_txn, royalty_txn, seller_txn, royaltyFee, sellerAmount} = options
+        const nftSaleLog = new NftSaleLogModel()
+        nftSaleLog.nft_key = nft.key
+        nftSaleLog.price = nft.price
+        nftSaleLog.seller_amount = sellerAmount
+        nftSaleLog.royalty_fee = royaltyFee
+        return await nftSaleLog.save()
     }
 
     static async addOwnershipLog(options:any) {
