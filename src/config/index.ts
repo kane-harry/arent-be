@@ -58,7 +58,7 @@ export const config = {
     emailTemplatesRootPath: 'src/templates',
 
     redis: {
-        enabled: Boolean(process.env.REDIS_ENABLED || false),
+        enabled: Boolean(process.env.REDIS_ENABLED === 'true') || false,
         redisURL: String(process.env.REDIS_URL || '127.0.0.1'),
         redisPort: Number(process.env.REDIS_PORT || 6379)
     },
