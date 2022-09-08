@@ -72,7 +72,7 @@ const isAdmin = (roleObj: any) => {
     return roleObj === roles.admin.id
 }
 
-const can = (role: number, operation: string) => {
+const roleCan = (role: number, operation: string) => {
     if (isAdmin(role)) {
         return true
     }
@@ -100,7 +100,7 @@ const userCan = (operation: string) => {
                 return next()
             }
 
-            if (can(userRole, operation)) {
+            if (roleCan(userRole, operation)) {
                 return next()
             }
 
@@ -132,7 +132,7 @@ const requireOwner = (section: 'users' | 'logs' | 'accounts' | 'resources') => {
                 }
             }
             if (section === 'users') {
-                if (req.user.key === req.params.key || can(req.user.role, config.operations.USERS_DETAIL)) {
+                if (req.user.key === req.params.key || roleCan(req.user.role, config.operations.USERS_DETAIL)) {
                     return next()
                 }
             }
@@ -151,4 +151,4 @@ const requireOwner = (section: 'users' | 'logs' | 'accounts' | 'resources') => {
     ]
 }
 
-export { requireAdmin, requireOwner, isAdmin, can, userCan, role }
+export { requireAdmin, requireOwner, isAdmin, roleCan, userCan, role }

@@ -33,7 +33,10 @@ export enum NftHistoryActions {
     Create = 'Create',
     Update = 'Update',
     Delete = 'Delete',
-    UpdateStatus = 'UpdateStatus'
+    UpdateStatus = 'UpdateStatus',
+    OnMarket = 'OnMarket',
+    OffMarket = 'OffMarket',
+    Purchase = 'Purchase'
 }
 export enum SecurityActions {
     Login = 'Login'
@@ -49,7 +52,8 @@ export const DEFAULT_SETTING = {
     registration_require_phone_verified: false,
     login_require_mfa: true,
     withdraw_require_mfa: true,
-    prime_transfer_fee: 0.1
+    prime_transfer_fee: 0.1,
+    nft_commission_fee_rate: 0.05
 }
 
 export const SETTINGS_TYPE = {
@@ -117,6 +121,12 @@ export const USER_AVATAR_SIZES = [
 export enum NftType {
     ERC721 = 'ERC721',
     ERC1155 = 'ERC1155'
+}
+
+export enum NftOnwerShipType {
+    Mint = 'Mint',
+    Purchase = 'Purchase',
+    Transfer = 'Transfer'
 }
 
 export const COLLECTION_LOGO_SIZES = [

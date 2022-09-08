@@ -33,6 +33,9 @@ export class CreateNftDto {
     public price: string
 
     @IsOptional()
+    public royalty: string
+
+    @IsOptional()
     public attributes: string
 
     @IsOptional()
@@ -47,8 +50,11 @@ export class CreateNftDto {
     @IsNotEmpty()
     public type: string
 
-    @IsNotEmpty()
-    public num_sales: string
+    @IsOptional()
+    public num_sales: number
+
+    @IsOptional()
+    public quantity: number = 1
 }
 
 export class UpdateNftDto {
@@ -75,6 +81,9 @@ export class UpdateNftDto {
 
     @IsOptional()
     public image: any
+
+    @IsOptional()
+    public quantity: number = 1
 }
 
 export class UpdateNftStatusDto {
@@ -110,4 +119,30 @@ export class NftRO<T> {
             this.owner = { key: owner.key, chat_name: owner.chat_name, avatar: owner.avatar }
         }
     }
+}
+
+export class NftOnMarketDto {
+    @IsOptional()
+    public price: string
+
+    // @IsOptional()
+    // public price_type: string
+
+    // reserved fields
+    // auction_start
+    // auction_end
+}
+
+export class BuyNftDto {
+    @IsNotEmpty()
+    public symbol: string
+
+    @IsOptional()
+    public ip: string
+
+    @IsOptional()
+    public agent: string
+
+    @IsOptional()
+    public buyer_key: string
 }

@@ -234,9 +234,11 @@ export default class AuthService {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
         }
         const accessToken = AuthModel.createAccessToken(userKey, currentTimestamp)
+        const refreshToken = AuthModel.createRefreshToken(userKey, currentTimestamp)
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
         return {
-            token: accessToken
+            token: accessToken,
+            refreshToken
         }
     }
 

@@ -12,6 +12,7 @@ import UserService from '@modules/user/user.service'
 import { COLLECTION_LOGO_SIZES, NftStatus } from '@config/constants'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
 import { filter } from 'lodash'
+import { CreateNftDto } from '@modules/nft/nft.dto'
 
 export default class CollectionService {
     static async createCollection(createCollectionDto: CreateCollectionDto, files: any, operator: IUser) {
@@ -49,9 +50,28 @@ export default class CollectionService {
         return await model.save()
     }
 
+    static async createDefaultCollection(createNftDto: CreateNftDto, operator: IUser) {
+        const collection = await CollectionModel.findOne({ owner_key: operator.key, type: 'default' })
+        if (collection) {
+            return collection
+        }
+        const createCollectionDto = {
+            name: createNftDto.name,
+            description: createNftDto.description
+        }
+        const model = new CollectionModel({
+            ...createCollectionDto,
+            creator_key: operator.key,
+            owner_key: operator.key,
+            items_count: 0,
+            type: 'default'
+        })
+        return await model.save()
+    }
+
     static async queryCollections(params: ICollectionFilter) {
         const offset = (params.page_index - 1) * params.page_size
-        const filter: any = {}
+        const filter: any = { $and: [{ removed: false }] }
         const sorting: any = { _id: 1 }
         if (params.terms) {
             const reg = new RegExp(params.terms)

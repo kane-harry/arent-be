@@ -19,7 +19,8 @@ export default class SettingService {
                     registration_require_phone_verified: DEFAULT_SETTING.registration_require_phone_verified,
                     login_require_mfa: DEFAULT_SETTING.login_require_mfa,
                     prime_transfer_fee: DEFAULT_SETTING.prime_transfer_fee,
-                    withdraw_require_mfa: DEFAULT_SETTING.withdraw_require_mfa
+                    withdraw_require_mfa: DEFAULT_SETTING.withdraw_require_mfa,
+                    nft_commission_fee_rate: DEFAULT_SETTING.nft_commission_fee_rate
                 }
             },
             {
@@ -56,7 +57,8 @@ export default class SettingService {
                     registration_require_phone_verified: data.registration_require_phone_verified,
                     login_require_mfa: data.login_require_mfa,
                     prime_transfer_fee: data.prime_transfer_fee,
-                    withdraw_require_mfa: data.withdraw_require_mfa
+                    withdraw_require_mfa: data.withdraw_require_mfa,
+                    nft_commission_fee_rate: data.nft_commission_fee_rate
                 }
             },
             {

@@ -48,6 +48,7 @@ import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
 import AccountService from '@modules/account/account.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
+import { BriefUserRO } from '@interfaces/public.model'
 
 export default class UserService extends AuthService {
     public static async register(userData: CreateUserDto, options?: any) {
@@ -520,7 +521,7 @@ export default class UserService extends AuthService {
         const reg = new RegExp(params.terms)
         const filter: { [key: string]: any } = {
             $or: [{ key: reg }, { email: reg }, { phone: reg }],
-            $and: [{ created: { $exists: true } }],
+            $and: [{ created: { $exists: true } }, { removed: false }],
             removed: false
         }
         if (params.date_from) {
@@ -539,6 +540,24 @@ export default class UserService extends AuthService {
         const totalCount = await UserModel.countDocuments(filter)
         const items = await UserModel.find<IUser>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
         return new QueryRO<IUser>(totalCount, params.page_index, params.page_size, items)
+    }
+
+    public static searchUser = async (params: IUserQueryFilter) => {
+        const offset = (params.page_index - 1) * params.page_size
+        const reg = new RegExp(params.terms)
+        const filter: { [key: string]: any } = {
+            $or: [{ first_name: reg }, { last_name: reg }, { chat_name: reg }],
+            $and: [{ created: { $exists: true } }],
+            removed: false
+        }
+        const sorting: any = { _id: 1 }
+        if (params.sort_by) {
+            delete sorting._id
+            sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1
+        }
+        const totalCount = await UserModel.countDocuments(filter)
+        const items = await UserModel.find<IUser>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
+        return new BriefUserRO(totalCount, params.page_index, params.page_size, items)
     }
 
     public static getAllUser = async () => {
