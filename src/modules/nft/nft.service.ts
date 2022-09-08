@@ -474,7 +474,9 @@ export default class NftService {
                 post_data: data?.toString()
             }).save()
 
-            // TODO: 1. add sale logs, 2 . add owner ship logs 3. send emails
+            await NftService.addSaleLog({buyer, seller, nft, buyer_txn, royalty_txn, seller_txn})
+            await NftService.addOwnershipLog({buyer, seller, nft, buyer_txn, royalty_txn, seller_txn})
+            await NftService.sendEmail({buyer, seller, nft, buyer_txn, royalty_txn, seller_txn})
 
             session.endSession()
             return { buyer_txn, royalty_txn, seller_txn }
@@ -482,6 +484,27 @@ export default class NftService {
             await session.abortTransaction()
             session.endSession()
             throw error
+        }
+    }
+
+    static async addSaleLog(options:any) {
+        const {buyer, seller, nft, buyer_txn, royalty_txn, seller_txn} = options
+        // TODO
+    }
+
+    static async addOwnershipLog(options:any) {
+        const {buyer, seller, nft, buyer_txn, royalty_txn, seller_txn} = options
+        // TODO
+    }
+
+    static async sendEmail(options:any) {
+        const {buyer, seller, nft, buyer_txn, royalty_txn, seller_txn} = options
+        // TODO
+        if (buyer.email) {
+
+        }
+        if (seller.email) {
+
         }
     }
 }
