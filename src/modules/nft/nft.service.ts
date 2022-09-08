@@ -1,6 +1,6 @@
 import { IUser } from '@modules/user/user.interface'
 import { BuyNftDto, CreateNftDto, ImportNftDto, NftOnMarketDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
-import { NftImportLogModel, NftModel } from './nft.model'
+import {NftImportLogModel, NftModel, NftOwnershipLogModel} from './nft.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
@@ -494,7 +494,12 @@ export default class NftService {
 
     static async addOwnershipLog(options:any) {
         const {buyer, seller, nft, buyer_txn, royalty_txn, seller_txn} = options
-        // TODO
+        const nftOnwershipLog = new NftOwnershipLogModel()
+        nftOnwershipLog.nft_key = nft.key
+        nftOnwershipLog.price = nft.price
+        nftOnwershipLog.previous_owner = seller.key
+        nftOnwershipLog.current_owner = buyer.key
+        return await nftOnwershipLog.save()
     }
 
     static async sendEmail(options:any) {

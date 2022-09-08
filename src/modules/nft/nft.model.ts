@@ -1,7 +1,7 @@
 import { config } from '@config'
 import { randomBytes } from 'crypto'
 import { Schema, Types, model } from 'mongoose'
-import { INft, INftImportLog } from './nft.interface'
+import {INft, INftImportLog, INftOwnershipLog} from './nft.interface'
 
 const nftSchema = new Schema<INft>(
     {
@@ -81,4 +81,25 @@ const nftImportLogSchema = new Schema<INftImportLog>({
 })
 
 const NftImportLogModel = model<INftImportLog>('nft_import_logs', nftImportLogSchema)
-export { NftModel, NftImportLogModel }
+
+const nftOwnershipLogSchema = new Schema<INftOwnershipLog>({
+    key: {
+        type: String,
+        required: true,
+        index: true,
+        unique: true,
+        default: () => {
+            return randomBytes(8).toString('hex')
+        }
+    },
+    nft_key: String,
+    price: String,
+    previous_owner: String,
+    current_owner: String,
+    removed: { type: Boolean, default: false }
+})
+
+const NftOwnershipLogModel = model<INftOwnershipLog>('nft_ownership_logs', nftOwnershipLogSchema)
+
+
+export { NftModel, NftImportLogModel, NftOwnershipLogModel }

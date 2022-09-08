@@ -39,6 +39,14 @@ export interface INftImportLog extends IBaseModel {
     status: string
 }
 
+export interface INftOwnershipLog extends IBaseModel {
+    nft_key: string
+    price: string
+    token_id: string
+    previous_owner: string
+    current_owner: string
+}
+
 export interface INftFilter extends IFilterModel {
     terms?: string
     owner_key?: string
