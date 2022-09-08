@@ -16,7 +16,7 @@ const postData = {
     login_require_mfa: false,
     withdraw_require_mfa: false,
     prime_transfer_fee: 0.1,
-    nft_trade_fee_rate: 0.05
+    nft_commission_fee_rate: 0.05
 }
 
 const updateData = {
@@ -24,7 +24,8 @@ const updateData = {
     registration_require_phone_verified: false,
     login_require_mfa: true,
     withdraw_require_mfa: true,
-    prime_transfer_fee: 20
+    prime_transfer_fee: 0.05,
+    nft_commission_fee_rate: 0.03
 }
 const key = SETTINGS_TYPE.global_federation_settings
 describe('Setting', () => {
