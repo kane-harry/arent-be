@@ -21,4 +21,9 @@ export class SettingDto {
     @IsPositive()
     @IsNumber({ allowNaN: false })
     public prime_transfer_fee: number
+
+    @IsNotEmpty()
+    @IsPositive()
+    @IsNumber({ allowNaN: false })
+    public nft_trade_fee_rate: number
 }

@@ -52,7 +52,8 @@ export const DEFAULT_SETTING = {
     registration_require_phone_verified: false,
     login_require_mfa: true,
     withdraw_require_mfa: true,
-    prime_transfer_fee: 0.1
+    prime_transfer_fee: 0.1,
+    nft_trade_fee_rate: 0.05
 }
 
 export const SETTINGS_TYPE = {

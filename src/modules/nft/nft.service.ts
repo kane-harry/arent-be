@@ -25,6 +25,9 @@ import addToBuyProductQueue from '@modules/queues/nft_queue'
 import { roundUp } from '@utils/utility'
 import SettingService from '@modules/setting/setting.service'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
+import { PrimeCoinProvider } from '@providers/coin.provider'
+import { ISendCoinDto } from '@modules/transaction/transaction.interface'
+import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -295,6 +298,7 @@ export default class NftService {
         } else {
             data = await NftService.buyNft(key, operator, agent, ip)
         }
+        return data
     }
 
     static async buyNft(key: string, operator: IUser, agent: string, ip: string) {
@@ -321,9 +325,8 @@ export default class NftService {
             // }
             const seller = await UserService.getBriefByKey(nft.owner_key)
             const buyer = await UserService.getBriefByKey(operator.key)
-            const admin = await UserModel.findOne({ role: 999, removed: false })
 
-            if (!seller || !buyer || !admin) {
+            if (!seller || !buyer) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
 
@@ -337,55 +340,118 @@ export default class NftService {
             }
 
             const setting = await SettingService.getGlobalSetting()
-            const productSoldFeeRate = parseFloat(setting.prime_transfer_fee.toString())
-            const buyerAmount = parsePrimeAmount(buyerAccount.amount)
+
+            const nftTradingRate = parseFloat(setting.nft_trade_fee_rate.toString())
+            const buyerBalance = parsePrimeAmount(Number(buyerAccount.amount) - Number(buyerAccount.amount_locked))
             const paymentOrderValue = parsePrimeAmount(nft.price)
-            const productSoldFee = parsePrimeAmount(parseFloat(nft.price.toString()) * productSoldFeeRate)
+            const nftTradingFee = parsePrimeAmount(parseFloat(nft.price.toString()) * nftTradingRate)
             const royaltyRate = parseFloat(nft.royalty.toString())
 
             const buyerToMasterAmount = paymentOrderValue
-            const masterToCreatorAmount = parsePrimeAmount(parseFloat(nft.price.toString()) * royaltyRate)
-            const masterToSellerAmount = buyerToMasterAmount.sub(productSoldFee).sub(masterToCreatorAmount)
+            const royaltyAmount = parsePrimeAmount(parseFloat(nft.price.toString()) * royaltyRate)
+            const masterToSellerAmount = buyerToMasterAmount.sub(nftTradingFee).sub(royaltyAmount)
 
-            if (buyerAmount.lt(paymentOrderValue) || buyerToMasterAmount.lt(0) || masterToCreatorAmount.lt(0) || masterToSellerAmount.lt(0)) {
-                throw new BizException(NftErrors.wrong_amount, new ErrorContext('nft.service', 'buyNft', { price: nft.price }))
+            if (buyerBalance.lt(paymentOrderValue)) {
+                throw new BizException(NftErrors.purchase_insufficient_funds_error, new ErrorContext('nft.service', 'buyNft', { price: nft.price }))
+            }
+            // const transferFee = Number(setting.prime_transfer_fee || 0)
+            const txnDetails = {
+                type: 'PRODUCT',
+                nft_key: nft.key,
+                nft_name: nft.name,
+                nft_price: nft.price,
+                currency: nft.currency,
+                seller: seller.key,
+                seller_address: sellerAccount.address,
+                buyer: buyer.key,
+                buyer_address: buyerAccount.address,
+                payment_order_value: nft.price,
+                payment_symbol: nft.currency
             }
 
             // 1. buyer send coins to master
-            const buyerToMasterParams: SendPrimeCoinsDto = {
-                symbol: nft.currency,
-                amount: formatAmount(buyerToMasterAmount.toString()),
-                recipient: masterAccount.address,
-                mode: 'inclusive',
-                notes: `Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
-                sender: buyerAccount.address
-            }
-            const buyerToMasterTransaction = await TransactionService.sendPrimeCoins(buyerToMasterParams, buyer)
+            const buyerKeyStore = await AccountService.getAccountKeyStore(buyerAccount.key)
+            const buyerPrivateKey = await decryptKeyWithSalt(buyerKeyStore.key_store, buyerKeyStore.salt)
+            let buyerNonce = await PrimeCoinProvider.getWalletNonceBySymbolAndAddress(buyerAccount.symbol, buyerAccount.address)
+            buyerNonce = buyerNonce + 1
+            const buyerSendAmount = formatAmount(buyerToMasterAmount.toString())
+            const buyerMessage = `${nft.currency}:${buyerAccount.address}:${masterAccount.address}:${buyerSendAmount}:${buyerNonce}`
+            const buyerSignature = await signMessage(buyerPrivateKey, buyerMessage)
 
-            let masterToCreatorTransaction
-            if (masterToCreatorAmount.gt(0)) {
+            txnDetails.type = 'NFT_BOUGHT'
+            const buyerTxnParams: ISendCoinDto = {
+                symbol: nft.currency,
+                sender: buyerAccount.address,
+                recipient: masterAccount.address,
+                amount: buyerSendAmount,
+                nonce: String(buyerNonce),
+                type: 'TRANSFER',
+                signature: buyerSignature,
+                notes: `NFT bought - name: ${nft.name}, key: ${nft.key} `,
+                details: txnDetails,
+                fee_address: masterAccount.address,
+                fee: String(0)
+            }
+            const buyerResponse = await PrimeCoinProvider.sendPrimeCoins(buyerTxnParams)
+
+            const buyer_txn = buyerResponse.key
+
+            const masterKeyStore = await AccountService.getAccountKeyStore(masterAccount.key)
+            const masterPrivateKey = await decryptKeyWithSalt(masterKeyStore.key_store, masterKeyStore.salt)
+
+            let royalty_txn
+            let masterNonce
+            if (royaltyAmount.gt(0)) {
                 // 2. master send royalty to creator
-                const masterToCreatorParams: SendPrimeCoinsDto = {
+
+                masterNonce = await PrimeCoinProvider.getWalletNonceBySymbolAndAddress(masterAccount.symbol, masterAccount.address)
+                masterNonce = masterNonce + 1
+                const royaltyFee = formatAmount(royaltyAmount.toString())
+                const royaltyMessage = `${nft.currency}:${masterAccount.address}:${creatorAccount.address}:${royaltyFee}:${masterNonce}`
+                const royaltySignature = await signMessage(masterPrivateKey, royaltyMessage)
+
+                txnDetails.type = 'NFT_ROYALTY'
+                const royaltyTxnParams: ISendCoinDto = {
                     symbol: nft.currency,
-                    amount: formatAmount(masterToCreatorAmount.toString()),
+                    sender: masterAccount.address,
                     recipient: creatorAccount.address,
-                    mode: 'inclusive',
-                    notes: `ROYALTY: Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
-                    sender: masterAccount.address
+                    amount: royaltyFee,
+                    nonce: String(masterNonce),
+                    type: 'TRANSFER',
+                    signature: royaltySignature,
+                    notes: `NFT royalty - name: ${nft.name}, key: ${nft.key} `,
+                    details: txnDetails,
+                    fee_address: masterAccount.address,
+                    fee: String(0)
                 }
-                masterToCreatorTransaction = await TransactionService.sendPrimeCoins(masterToCreatorParams, admin)
+                const royaltyResponse = await PrimeCoinProvider.sendPrimeCoins(royaltyTxnParams)
+                royalty_txn = royaltyResponse.key
             }
 
             // 3. master send coins to seller
-            const masterToSellerParams: SendPrimeCoinsDto = {
+
+            masterNonce = await PrimeCoinProvider.getWalletNonceBySymbolAndAddress(masterAccount.symbol, masterAccount.address)
+            masterNonce = masterNonce + 1
+            const sellerAmount = formatAmount(masterToSellerAmount.toString())
+            const sellerMessage = `${nft.currency}:${masterAccount.address}:${sellerAccount.address}:${sellerAmount}:${masterNonce}`
+            const sellerSignature = await signMessage(masterPrivateKey, sellerMessage)
+
+            txnDetails.type = 'ITEM_SOLD'
+            const royaltyTxnParams: ISendCoinDto = {
                 symbol: nft.currency,
-                amount: formatAmount(masterToSellerAmount.toString()),
+                sender: masterAccount.address,
                 recipient: sellerAccount.address,
-                mode: 'inclusive',
-                notes: `Buy NFT ${nft.key}, owner: ${buyerAccount.address}, buyer: ${sellerAccount.address}, price: ${nft.price}, symbol: ${nft.currency}`,
-                sender: masterAccount.address
+                amount: sellerAmount,
+                nonce: String(masterNonce),
+                type: 'TRANSFER',
+                signature: sellerSignature,
+                notes: `NFT Sold - name: ${nft.name}, key: ${nft.key} `,
+                details: txnDetails,
+                fee_address: masterAccount.address,
+                fee: String(0)
             }
-            const masterToSellerTransaction = await TransactionService.sendPrimeCoins(masterToSellerParams, admin)
+            const sellerResponse = await PrimeCoinProvider.sendPrimeCoins(royaltyTxnParams)
+            const seller_txn = sellerResponse.key
 
             const updateData: any = { owner_key: buyer.key, on_market: false }
 
@@ -408,8 +474,10 @@ export default class NftService {
                 post_data: data?.toString()
             }).save()
 
+            // TODO: 1. add sale logs, 2 . add owner ship logs 3. send emails
+
             session.endSession()
-            return { buyerToMasterTransaction, masterToCreatorTransaction, masterToSellerTransaction }
+            return { buyer_txn, royalty_txn, seller_txn }
         } catch (error) {
             await session.abortTransaction()
             session.endSession()

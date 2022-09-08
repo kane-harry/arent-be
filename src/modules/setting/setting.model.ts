@@ -26,13 +26,15 @@ const settingSchema = new Schema<ISetting>(
             type: Boolean,
             required: true
         },
-        prime_transfer_fee: { type: Types.Decimal128, default: new Types.Decimal128('0') }
+        prime_transfer_fee: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        nft_trade_fee_rate: { type: Types.Decimal128, default: new Types.Decimal128('0') }
     },
     {
         toJSON: {
             transform: (doc, ret) => {
                 delete ret._id
-                ret.prime_transfer_fee = ret.prime_transfer_fee.toString()
+                ret.prime_transfer_fee = Number(ret.prime_transfer_fee)
+                ret.nft_trade_fee_rate = Number(ret.nft_trade_fee_rate)
                 return ret
             }
             // getters: true
