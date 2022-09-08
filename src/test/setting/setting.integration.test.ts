@@ -15,7 +15,8 @@ const postData = {
     registration_require_phone_verified: true,
     login_require_mfa: false,
     withdraw_require_mfa: false,
-    prime_transfer_fee: 10
+    prime_transfer_fee: 0.1,
+    nft_trade_fee_rate: 0.05
 }
 
 const updateData = {

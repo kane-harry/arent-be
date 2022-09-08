@@ -426,7 +426,7 @@ describe('NFT', () => {
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
         expect(nft.on_market).equal(false)
         expect(nft.owner).equal(adminShareData.user.token)
-    }).timeout(10000)
+    }).timeout(20000)
 
     it(`Burn NFT`, async () => {
         await NftModel.updateOne({ key: shareData.nfts[0].key }, { $set: { owner: shareData.user.key } }, { upsert: true }).exec()
