@@ -4,21 +4,19 @@ import { NftImportLogModel, NftModel, NftOwnershipLogModel, NftSaleLogModel } fr
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
-import { INft, INftFilter } from '@modules/nft/nft.interface'
+import { INft, INftFilter, INftOwnershipLog, INftSaleLog } from '@modules/nft/nft.interface'
 import BizException from '@exceptions/biz.exception'
 import { AccountErrors, AuthErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { isAdmin, role, roleCan } from '@config/role'
 import UserService from '@modules/user/user.service'
-import { NftHistoryActions, NftStatus, MASTER_ACCOUNT_KEY, NftType, NFT_IMAGE_SIZES } from '@config/constants'
+import { NftHistoryActions, NftStatus, MASTER_ACCOUNT_KEY, NftType, NFT_IMAGE_SIZES, NftOnwerShipType } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
 import { filter } from 'lodash'
 import UserModel from '@modules/user/user.model'
 import AccountService from '@modules/account/account.service'
-import TransactionService from '@modules/transaction/transaction.service'
-import { SendPrimeCoinsDto } from '@modules/transaction/transaction.dto'
 import { IAccount } from '@modules/account/account.interface'
 import { config } from '@config'
 import addToBuyProductQueue from '@modules/queues/nft_queue'
@@ -91,6 +89,17 @@ export default class NftService {
             pre_data: null,
             post_data: nft.toString()
         }).save()
+
+        await NftService.addNftOwnershipLog({
+            nft_key: nft.key,
+            collection_key: nft.collection_key,
+            price: nft.price,
+            currency: nft.currency,
+            token_id: nft.token_id,
+            previous_owner: { key: operator.key, avatar: operator.avatar, chat_name: operator.chat_name },
+            current_owner: { key: operator.key, avatar: operator.avatar, chat_name: operator.chat_name },
+            type: NftOnwerShipType.Mint
+        })
 
         return nft
     }
@@ -342,15 +351,18 @@ export default class NftService {
 
             const setting = await SettingService.getGlobalSetting()
 
-            const nftTradingRate = parseFloat(setting.nft_trade_fee_rate.toString())
+            const commissionFeeRate = parseFloat(setting.nft_commission_fee_rate.toString())
             const buyerBalance = parsePrimeAmount(Number(buyerAccount.amount) - Number(buyerAccount.amount_locked))
             const paymentOrderValue = parsePrimeAmount(nft.price)
-            const nftTradingFee = parsePrimeAmount(parseFloat(nft.price.toString()) * nftTradingRate)
-            const royaltyRate = parseFloat(nft.royalty.toString())
+            const commissionFee = parseFloat(nft.price.toString()) * commissionFeeRate
+            const commissionFeeAmount = parsePrimeAmount(commissionFee)
 
             const buyerToMasterAmount = paymentOrderValue
-            const royaltyAmount = parsePrimeAmount(parseFloat(nft.price.toString()) * royaltyRate)
-            const masterToSellerAmount = buyerToMasterAmount.sub(nftTradingFee).sub(royaltyAmount)
+
+            const royaltyRate = parseFloat((nft.royalty || 0).toString())
+            const royaltyFee = parseFloat(nft.price.toString()) * royaltyRate
+            const royaltyFeeAmount = parsePrimeAmount(royaltyFee)
+            const masterToSellerAmount = buyerToMasterAmount.sub(commissionFeeAmount).sub(royaltyFeeAmount)
 
             if (buyerBalance.lt(paymentOrderValue)) {
                 throw new BizException(NftErrors.purchase_insufficient_funds_error, new ErrorContext('nft.service', 'buyNft', { price: nft.price }))
@@ -362,6 +374,7 @@ export default class NftService {
                 nft_name: nft.name,
                 nft_price: nft.price,
                 currency: nft.currency,
+                commission_fee: commissionFee,
                 seller: seller.key,
                 seller_address: sellerAccount.address,
                 buyer: buyer.key,
@@ -401,14 +414,11 @@ export default class NftService {
             const masterPrivateKey = await decryptKeyWithSalt(masterKeyStore.key_store, masterKeyStore.salt)
 
             let royalty_txn
-            let royaltyFee
             let masterNonce
-            if (royaltyAmount.gt(0)) {
+            if (royaltyFeeAmount.gt(0)) {
                 // 2. master send royalty to creator
-
                 masterNonce = await PrimeCoinProvider.getWalletNonceBySymbolAndAddress(masterAccount.symbol, masterAccount.address)
                 masterNonce = masterNonce + 1
-                royaltyFee = formatAmount(royaltyAmount.toString())
                 const royaltyMessage = `${nft.currency}:${masterAccount.address}:${creatorAccount.address}:${royaltyFee}:${masterNonce}`
                 const royaltySignature = await signMessage(masterPrivateKey, royaltyMessage)
 
@@ -417,7 +427,7 @@ export default class NftService {
                     symbol: nft.currency,
                     sender: masterAccount.address,
                     recipient: creatorAccount.address,
-                    amount: royaltyFee,
+                    amount: String(royaltyFee),
                     nonce: String(masterNonce),
                     type: 'TRANSFER',
                     signature: royaltySignature,
@@ -476,9 +486,31 @@ export default class NftService {
                 post_data: data?.toString()
             }).save()
 
-            await NftService.addSaleLog({ buyer, seller, nft, buyer_txn, royalty_txn, seller_txn, royaltyFee, sellerAmount })
-            await NftService.addOwnershipLog({ buyer, seller, nft, buyer_txn, royalty_txn, seller_txn })
-            await NftService.sendEmail({ buyer, seller, nft, buyer_txn, royalty_txn, seller_txn })
+            await NftService.addNftSaleLog({
+                nft_key: nft.key,
+                collection_key: nft.collection_key,
+                unit_price: nft.price,
+                currency: nft.currency,
+                order_value: nft.price,
+                commission_fee: commissionFee,
+                royalty_fee: royaltyFee,
+                quantity: 1,
+                seller: { key: seller.key, avatar: seller.avatar, chat_name: seller.chat_name },
+                buyer: { key: buyer.key, avatar: buyer.avatar, chat_name: buyer.chat_name },
+                secondary_market: nft.creator_key !== nft.owner_key,
+                details: { buyer_txn, seller_txn, royalty_txn }
+            })
+            await NftService.addNftOwnershipLog({
+                nft_key: nft.key,
+                collection_key: nft.collection_key,
+                price: nft.price,
+                currency: nft.currency,
+                token_id: nft.token_id,
+                previous_owner: { key: seller.key, avatar: seller.avatar, chat_name: seller.chat_name },
+                current_owner: { key: buyer.key, avatar: buyer.avatar, chat_name: buyer.chat_name },
+                type: NftOnwerShipType.Purchase
+            })
+            await NftService.sendNftPurchaseEmailNotification({ buyer, seller, nft, buyer_txn, royalty_txn, seller_txn })
 
             session.endSession()
             return { buyer_txn, royalty_txn, seller_txn }
@@ -489,27 +521,21 @@ export default class NftService {
         }
     }
 
-    static async addSaleLog(options: any) {
-        const { buyer, seller, nft, buyer_txn, royalty_txn, seller_txn, royaltyFee, sellerAmount } = options
-        const nftSaleLog = new NftSaleLogModel()
-        nftSaleLog.nft_key = nft.key
-        nftSaleLog.price = nft.price
-        nftSaleLog.seller_amount = sellerAmount
-        nftSaleLog.royalty_fee = royaltyFee
-        return await nftSaleLog.save()
+    static async addNftSaleLog(params: INftSaleLog) {
+        const model = new NftSaleLogModel({
+            ...params
+        })
+        return await model.save()
     }
 
-    static async addOwnershipLog(options: any) {
-        const { buyer, seller, nft, buyer_txn, royalty_txn, seller_txn } = options
-        const nftOnwershipLog = new NftOwnershipLogModel()
-        nftOnwershipLog.nft_key = nft.key
-        nftOnwershipLog.price = nft.price
-        nftOnwershipLog.previous_owner = seller.key
-        nftOnwershipLog.current_owner = buyer.key
-        return await nftOnwershipLog.save()
+    static async addNftOwnershipLog(params: INftOwnershipLog) {
+        const model = new NftOwnershipLogModel({
+            ...params
+        })
+        return await model.save()
     }
 
-    static async sendEmail(options: any) {
+    static async sendNftPurchaseEmailNotification(options: any) {
         const { buyer, seller, nft, buyer_txn, royalty_txn, seller_txn } = options
         if (buyer.email) {
             const context = { address: buyer.email, txn: buyer_txn }

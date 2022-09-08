@@ -40,11 +40,29 @@ export interface INftImportLog extends IBaseModel {
 }
 
 export interface INftOwnershipLog extends IBaseModel {
-    nft_key: string
-    price: string
+    nft_key: string | undefined
+    collection_key: string | undefined
+    price: number | Types.Decimal128
+    currency: string
     token_id: string
-    previous_owner: string
-    current_owner: string
+    previous_owner: object | undefined
+    current_owner: object | undefined
+    type: string
+}
+
+export interface INftSaleLog extends IBaseModel {
+    nft_key: string | undefined
+    collection_key: string | undefined
+    unit_price: number | Types.Decimal128
+    currency: string
+    order_value: number | Types.Decimal128
+    commission_fee: number | Types.Decimal128
+    royalty_fee: number | Types.Decimal128
+    quantity: number
+    seller: object | undefined
+    buyer: object | undefined
+    secondary_market: Boolean
+    details: object | undefined
 }
 
 export interface INftFilter extends IFilterModel {
@@ -54,18 +72,4 @@ export interface INftFilter extends IFilterModel {
     price_max?: number
     collection_key?: string
     on_market?: boolean
-}
-
-export interface INftSaleLog extends IBaseModel {
-    nft_key: string
-    price: string
-    commission_fee: string
-    seller_amount: string
-    buyer_rebate_fee: string
-    seller_rebate_fee: string
-    royalty_fee: string
-    rate: string
-    usd_value: string
-    quantity: string
-    unit_price: string
 }

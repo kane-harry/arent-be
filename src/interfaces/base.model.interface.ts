@@ -1,5 +1,5 @@
 interface IBaseModel {
-    key: string
+    key?: string
     removed?: Boolean
     created?: Date
     modified?: Date

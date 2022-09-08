@@ -25,5 +25,5 @@ export class SettingDto {
     @IsNotEmpty()
     @IsPositive()
     @IsNumber({ allowNaN: false })
-    public nft_trade_fee_rate: number
+    public nft_commission_fee_rate: number
 }
