@@ -1,7 +1,7 @@
 import { config } from '@config'
 import { randomBytes } from 'crypto'
 import { Schema, Types, model } from 'mongoose'
-import {INft, INftImportLog, INftOwnershipLog, INftSaleLog} from './nft.interface'
+import { INft, INftImportLog, INftOwnershipLog, INftSaleLog } from './nft.interface'
 
 const nftSchema = new Schema<INft>(
     {
@@ -126,6 +126,5 @@ const nftSaleLogSchema = new Schema<INftSaleLog>({
 })
 
 const NftSaleLogModel = model<INftSaleLog>('nft_sale_logs', nftSaleLogSchema)
-
 
 export { NftModel, NftImportLogModel, NftOwnershipLogModel, NftSaleLogModel }
