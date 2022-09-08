@@ -104,7 +104,9 @@ export const config = {
         TRADES_DETAIL: 'trades_detail',
         USER_LIST_EXPORT: 'users_export',
         VIEW_USER_DETAIL: 'view_user_detail',
-        UPDATE_PHONE_STATUS: 'update_phone_status'
+        UPDATE_PHONE_STATUS: 'update_phone_status',
+        PUT_NFT_ON_MARKET: 'PUT_NFT_ON_MARKET',
+        PUT_NFT_OFF_MARKET: 'PUT_NFT_OFF_MARKET'
     },
 
     database: {

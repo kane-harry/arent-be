@@ -9,4 +9,5 @@ export interface ISetting extends IBaseModel {
     login_require_mfa: boolean
     withdraw_require_mfa: boolean
     prime_transfer_fee: number | Types.Decimal128 | string | BigNumber
+    nft_commission_fee_rate: number | Types.Decimal128 | string | BigNumber
 }

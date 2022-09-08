@@ -120,6 +120,15 @@ export class PrimeCoinProvider {
         }
     }
 
+    public static async getWalletNonceBySymbolAndAddress(symbol: string, address: string) {
+        try {
+            const resp = await this.instance.get(`/accounts/${symbol}/nonce/${address}`)
+            return resp.data
+        } catch (error) {
+            return this.requestErrorHandler('getWalletNonceBySymbolAndAddress', error)
+        }
+    }
+
     public static async getWalletsByAddress(address: string) {
         try {
             const resp = await this.instance.get(`/accounts/address/${address}`)

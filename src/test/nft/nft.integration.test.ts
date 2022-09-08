@@ -7,7 +7,10 @@ import server from '@app/server'
 import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authenticate'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { NftImportLogModel, NftModel } from '@modules/nft/nft.model'
-import { NftStatus } from '@config/constants'
+import { AccountType, FeeMode, NftStatus } from '@config/constants'
+import AccountModel from '@modules/account/account.model'
+import { parsePrimeAmount } from '@utils/number'
+import AccountService from '@modules/account/account.service'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -21,7 +24,7 @@ let shareData = {
     collections: []
 }
 
-let adminShareData = { user: { key: '' }, token: '', refreshToken: '', accounts: [] }
+let adminShareData = { user: { key: '' }, token: '', refreshToken: '', accounts: [], masterAccounts: [] }
 
 const createNftData = {
     name: 'name',
@@ -30,6 +33,7 @@ const createNftData = {
     price: 5000,
     num_sales: 1,
     quantity: 1,
+    royalty: 0.01,
     currency: 'LL',
     nft_token_id: '232423432',
     meta_data: [
@@ -76,6 +80,13 @@ const importNftData = {
     status: 'pending'
 }
 
+const sellData = {
+    price: 1,
+    price_type: 'fix_price',
+    description_append: 'Sell description'
+}
+const buyData = { symbol: createNftData.currency }
+
 describe('NFT', () => {
     before(async () => {
         await dbTest.connect()
@@ -93,6 +104,51 @@ describe('NFT', () => {
         await initDataForUser(adminShareData, adminData)
         await makeAdmin(adminData)
     }).timeout(10000)
+
+    it('InitMasterAccounts', async () => {
+        const res1 = await request(server.app).post(`/api/v1/accounts/master`).set('Authorization', `Bearer ${adminShareData.token}`).send()
+        expect(res1.status).equal(200)
+    }).timeout(10000)
+
+    it('GetMasterAccounts', async () => {
+        const accounts = await AccountModel.find({ user_key: AccountType.Master, removed: false })
+        expect(accounts.length).gt(0)
+        adminShareData.masterAccounts = accounts.filter(item => item.symbol === createNftData.currency)
+
+        const accounts2 = await AccountModel.find({ user_key: adminShareData.user.key, removed: false })
+        expect(accounts2.length).gt(0)
+        adminShareData.accounts = accounts2.filter(item => item.symbol === createNftData.currency)
+    }).timeout(10000)
+
+    it('MintMasterAccount', async () => {
+        const sender = adminShareData.masterAccounts[0]
+        const res1 = await request(server.app)
+            .post(`/api/v1/accounts/${sender.key}/mint`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({
+                amount: 40996.3,
+                notes: 'mint master account',
+                type: 'mint'
+            })
+        expect(res1.status).equal(200)
+        validResponse(res1.body)
+    }).timeout(10000)
+
+    it('Send Funds', async () => {
+        const sender = adminShareData.masterAccounts[0]
+        const recipient = adminShareData.accounts[0]
+        const amountSend = 10
+        const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${adminShareData.token}`).send({
+            symbol: createNftData.currency,
+            sender: sender.address,
+            recipient: recipient.address,
+            amount: amountSend.toString(),
+            nonce: '1',
+            notes: 'test notes',
+            mode: FeeMode.Inclusive
+        })
+        expect(res.status).equal(200)
+    }).timeout(30000)
 
     it(`Create collection`, async () => {
         const res = await request(server.app)
@@ -158,6 +214,7 @@ describe('NFT', () => {
             .field('collection_key', shareData.collections[0].key)
             .field('num_sales', createNftData.num_sales)
             .field('quantity', createNftData.quantity)
+            .field('royalty', createNftData.royalty)
             .attach('animation', './src/test/init/test.mp4')
             .attach('image', './src/test/init/test.jpeg')
         expect(res.status).equal(200)
@@ -173,6 +230,7 @@ describe('NFT', () => {
         expect(nft.type).equal(createNftData.type)
         expect(nft.num_sales).equal(createNftData.num_sales)
         expect(nft.quantity).equal(createNftData.quantity)
+        expect(nft.royalty.toString()).equal(createNftData.royalty.toString())
         expect(nft.attributes[0].trait_type).equal(createNftData.attributes[0].trait_type)
         expect(nft.attributes[0].value).equal(createNftData.attributes[0].value)
         expect(nft.attributes[1].trait_type).equal(createNftData.attributes[1].trait_type)
@@ -188,24 +246,6 @@ describe('NFT', () => {
         expect(nft.collection_key).equal(shareData.collections[0].key)
         expect(nft.creator_key).equal(shareData.user.key)
         expect(nft.owner_key).equal(shareData.user.key)
-    }).timeout(30000)
-
-    it(`Create gift NFT`, async () => {
-        const res = await request(server.app)
-            .post(`/api/v1/nfts`)
-            .set('Authorization', `Bearer ${shareData.token}`)
-            .field('name', createNftData.name)
-            .field('description', createNftData.description)
-            .field('price', createNftData.price)
-            .field('currency', createNftData.currency)
-            .field('meta_data', JSON.stringify(createNftData.meta_data))
-            .field('type', createNftData.type)
-            .field('attributes', JSON.stringify(createNftData.attributes))
-            .field('collection_key', shareData.collections[0].key)
-            .field('num_sales', createNftData.num_sales)
-            .attach('image', './src/test/init/test.gif')
-        expect(res.status).equal(200)
-        validResponse(res.body)
     }).timeout(30000)
 
     it(`List User Collections`, async () => {
@@ -354,9 +394,43 @@ describe('NFT', () => {
         expect(nft.status).equal(NftStatus.Approved)
     }).timeout(10000)
 
+    it(`market/off NFT`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/nfts/${shareData.nfts[0].key}/market/off`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send(sellData)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.on_market).equal(false)
+    }).timeout(10000)
+
+    it(`market/on NFT`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/nfts/${shareData.nfts[0].key}/market/on`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send(sellData)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.on_market).equal(true)
+    }).timeout(10000)
+
+    it(`Buy NFT`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts/${shareData.nfts[0].key}/buy`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send(buyData)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.on_market).equal(false)
+        expect(nft.owner).equal(adminShareData.user.token)
+    }).timeout(20000)
+
     it(`Burn NFT`, async () => {
         await NftModel.updateOne({ key: shareData.nfts[0].key }, { $set: { owner: shareData.user.key } }, { upsert: true }).exec()
-        const res = await request(server.app).delete(`/api/v1/nfts/${shareData.nfts[0].key}`).set('Authorization', `Bearer ${shareData.token}`)
+        const res = await request(server.app).delete(`/api/v1/nfts/${shareData.nfts[0].key}`).set('Authorization', `Bearer ${adminShareData.token}`)
         expect(res.status).equal(200)
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })

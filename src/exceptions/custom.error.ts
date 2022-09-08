@@ -1,5 +1,6 @@
 export const CommonErrors = {
     // common errors - start from 1000
+    unauthorised: { message: 'Unauthorized', code: 10, status: 401 },
     not_implemented: { code: 1002, status: 501, message: 'Not Implemented.' },
     request_validation_error: { code: 1002, status: 422, message: 'The request failed due to a validation error.' },
     internal_server_error: { code: 1003, status: 500, message: 'Internal Server Error' },
@@ -76,7 +77,12 @@ export const UpdatePhoneEmailErrors = {
 export const NftErrors = {
     nft_not_exists_error: { code: 7001, status: 400, message: 'Nft not found.' },
     nft_image_error: { code: 7002, status: 400, message: 'Nft Image is required.' },
-    nft_image_required_error: { code: 7303, status: 400, message: 'please upload NFT picture.' }
+    nft_image_required_error: { code: 7303, status: 400, message: 'please upload NFT picture.' },
+    product_buy_same_owner_error: { code: 7304, status: 400, message: 'Can not buy own nft.' },
+    item_not_on_market: { code: 7305, status: 400, message: 'Item not on market' },
+    nft_is_not_approved_error: { code: 7306, status: 400, message: 'Nft is not approved.' },
+    purchase_auction_nft_error: { code: 7307, status: 400, message: 'Can not buy auction product directly.' },
+    purchase_insufficient_funds_error: { code: 7308, status: 400, message: 'Insufficient funds to complete transaction.' }
 }
 
 export const CollectionErrors = {
