@@ -131,30 +131,51 @@ const nftOwnershipLogSchema = new Schema<INftOwnershipLog>(
 
 const NftOwnershipLogModel = model<INftOwnershipLog>('nft_ownership_logs', nftOwnershipLogSchema)
 
-const nftSaleLogSchema = new Schema<INftSaleLog>({
-    key: {
-        type: String,
-        required: true,
-        index: true,
-        unique: true,
-        default: () => {
-            return randomBytes(8).toString('hex')
-        }
+const nftSaleLogSchema = new Schema<INftSaleLog>(
+    {
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(8).toString('hex')
+            }
+        },
+        nft_key: String,
+        collection_key: String,
+        unit_price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        currency: String,
+        order_value: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        commission_fee: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        royalty_fee: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        quantity: Number,
+        seller: Object,
+        buyer: Object,
+        secondary_market: Boolean,
+        details: Object,
+        removed: { type: Boolean, default: false }
     },
-    nft_key: String,
-    collection_key: String,
-    unit_price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
-    currency: String,
-    order_value: { type: Types.Decimal128, default: new Types.Decimal128('0') },
-    commission_fee: { type: Types.Decimal128, default: new Types.Decimal128('0') },
-    royalty_fee: { type: Types.Decimal128, default: new Types.Decimal128('0') },
-    quantity: Number,
-    seller: Object,
-    buyer: Object,
-    secondary_market: Boolean,
-    details: Object,
-    removed: { type: Boolean, default: false }
-})
+    {
+        toJSON: {
+            virtuals: true,
+            getters: true,
+            transform: (doc, ret) => {
+                delete ret._id
+                ret.unit_price = parseFloat(ret.unit_price.toString())
+                ret.order_value = parseFloat(ret.order_value.toString())
+                ret.commission_fee = parseFloat(ret.commission_fee.toString())
+                ret.royalty_fee = parseFloat(ret.royalty_fee.toString())
+                return ret
+            }
+        },
+        timestamps: {
+            createdAt: 'created',
+            updatedAt: 'modified'
+        },
+        versionKey: 'version'
+    }
+)
 
 const NftSaleLogModel = model<INftSaleLog>('nft_sale_logs', nftSaleLogSchema)
 
