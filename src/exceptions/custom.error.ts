@@ -31,7 +31,8 @@ export const AuthErrors = {
     user_reset_credentials_incorrect_code_error: { message: 'code is incorrect.', code: 2019, status: 400 },
     user_token_setup_error: { message: 'We could not verify your tokens, please try again', code: 2020, status: 400 },
     user_permission_error: { message: 'You do not have permission', code: 2021, status: 400 },
-    image_required_error: { code: 2022, status: 400, message: 'Please upload picture.' }
+    image_required_error: { code: 2022, status: 400, message: 'Please upload picture.' },
+    user_auth_not_exists_error: { message: 'Not support login method. Choose one from email, phone or token', status: 400, code: 2023 }
 }
 
 export const AccountErrors = {
@@ -89,4 +90,11 @@ export const CollectionErrors = {
     collection_not_exists_error: { code: 8001, status: 400, message: 'Collection not found.' },
     collection_has_approved_nfts: { code: 8002, status: 400, message: 'Can not delete collection due to there are NFTs in this collection.' },
     image_required_error: { code: 8003, status: 400, message: 'Please upload Collection picture.' }
+}
+
+export const UserAuthCodeErrors = {
+    verification_code_type_not_supported: { code: 9001, status: 400, message: 'Code type is not supported' },
+    verification_code_duplicate_request_in_minute_error: { code: 9002, status: 400, message: 'Please request verification code after 1 minute.' },
+    verification_code_duplicate_request_in_hour_error: { code: 9003, status: 400, message: 'Please request verification code after 1 hour.' },
+    verification_code_invalid_error: { code: 9004, status: 400, message: 'Invalid verification code.' }
 }

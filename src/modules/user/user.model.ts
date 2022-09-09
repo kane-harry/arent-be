@@ -33,7 +33,6 @@ const userSchema = new Schema<IUser>(
             unique: true,
             trim: true,
             lowercase: true,
-            required: true,
             index: true
         },
         password: {
@@ -57,6 +56,7 @@ const userSchema = new Schema<IUser>(
         email_verified: { type: Boolean, default: false },
         phone_verified: { type: Boolean, default: false },
         kyc_verified: { type: Boolean, default: false },
+        source: String,
         totp_temp_secret: String,
         totp_secret: {
             type: String,

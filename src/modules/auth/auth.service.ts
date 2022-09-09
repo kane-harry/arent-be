@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
-import { CreateUserDto } from '@modules/user/user.dto'
+import { AuthorizeDto, CreateUserDto } from '@modules/user/user.dto'
 import { LogInDto } from './auth.dto'
 import { capitalize, escapeRegExp, toLower, trim } from 'lodash'
 import UserModel from '@modules/user/user.model'
@@ -13,11 +13,14 @@ import SettingService from '@modules/setting/setting.service'
 import { getPhoneInfo } from '@utils/phoneNumber'
 import { generateUnixTimestamp } from '@utils/utility'
 import { ISetting } from '@modules/setting/setting.interface'
-import { CodeType, UserStatus, SecurityActions, MFAType } from '@config/constants'
+import { CodeType, UserStatus, SecurityActions, MFAType, UserAuthCodeType } from '@config/constants'
 import EmailService from '@modules/emaill/email.service'
 import sendSms from '@utils/sms'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import { verifyToken } from '@utils/totp'
+import { config } from '@config'
+import { VerifyUserAuthCodeDto } from '@modules/user_auth_code/user_auth_code.dto'
+import UserAuthCodeService from '@modules/user_auth_code/user_auth_code.service'
 
 export default class AuthService {
     protected static async formatCreateUserDto(userData: CreateUserDto) {
@@ -209,22 +212,7 @@ export default class AuthService {
             }
         }
 
-        // create token
-        const accessToken = AuthModel.createAccessToken(user.key, currentTimestamp)
-        const refreshToken = AuthModel.createRefreshToken(user.key, currentTimestamp)
-        user.set('login_count', 0, Number)
-        user.set('locked_timestamp', currentTimestamp, Number)
-        user.set('token_version', currentTimestamp, Number)
-        await user.save()
-
-        new UserSecurityModel({
-            user_key: user.key,
-            action: SecurityActions.Login,
-            agent: options?.req.agent,
-            ip_address: options?.req.ip_address
-        }).save()
-
-        return { user: user, token: accessToken, refreshToken }
+        return AuthService.generateToken(user, options)
     }
 
     static async refreshToken(userKey: string) {
@@ -250,5 +238,116 @@ export default class AuthService {
         user.set('token_version', currentTimestamp, Number)
         await user.save()
         return { success: true }
+    }
+
+    static async authorizeByPhone(params: AuthorizeDto, options?: any) {
+        const codeParams: VerifyUserAuthCodeDto = { type: UserAuthCodeType.Phone, owner: params.owner, code: params.code }
+        await UserAuthCodeService.verifyCode(codeParams)
+
+        let user = await UserModel.findOne({ phone: params.owner, removed: false }).exec()
+        if (!user) {
+            user = new UserModel()
+            user.phone = params.owner
+            user.chat_name = await UserModel.generateRandomChatName(params.owner)
+            user.source = 'phone'
+            user.phone_verified = true
+            await user.save()
+        }
+        return AuthService.generateToken(user, options)
+    }
+
+    static async authorizeByEmail(params: AuthorizeDto, options?: any) {
+        const codeParams: VerifyUserAuthCodeDto = { type: UserAuthCodeType.Email, owner: params.owner, code: params.code }
+        await UserAuthCodeService.verifyCode(codeParams)
+
+        let user = await UserModel.findOne({ email: params.owner, removed: false }).exec()
+        if (!user) {
+            user = new UserModel()
+            user.email = params.owner
+            user.chat_name = await UserModel.generateRandomChatName(params.owner)
+            user.source = 'email'
+            user.email_verified = true
+            await user.save()
+        }
+        return AuthService.generateToken(user, options)
+    }
+
+    static async authorizeViaGoogle(logInData: AuthorizeDto, options?: any) {
+        // Follow docs: https://developers.google.com/identity/sign-in/android/backend-auth
+        const { code } = logInData
+
+        const { OAuth2Client } = require('google-auth-library')
+        const client = new OAuth2Client(config.google.CLIENT_ID)
+
+        const ticket = await client.verifyIdToken({
+            idToken: code,
+            audience: config.google.CLIENT_ID // Specify the CLIENT_ID of the app that accesses the backend
+            // Or, if multiple clients access the backend:
+            // [CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
+        })
+        const payload = ticket.getPayload()
+        const { sub, email, name, picture } = payload
+
+        let user = await UserModel.findOne({ email: email, removed: false }).exec()
+        if (!user) {
+            user = new UserModel()
+            user.email = email
+            user.avatar = picture
+            user.source = 'google'
+            await user.save()
+        }
+        return AuthService.generateToken(user, options)
+    }
+
+    static async authorizeViaApple(logInData: AuthorizeDto, options?: any) {
+        const jwt = require('jsonwebtoken')
+
+        const { code } = logInData
+        const { header } = jwt.decode(code, { complete: true })
+
+        const kid = header.kid
+        const publicKey = (await AuthService.key(kid)).getPublicKey()
+
+        const { sub, email } = jwt.verify(code, publicKey)
+
+        let user = await UserModel.findOne({ email: email, removed: false }).exec()
+        if (!user) {
+            user = new UserModel()
+            user.email = email
+            user.source = 'apple'
+            await user.save()
+        }
+
+        return AuthService.generateToken(user, options)
+    }
+
+    static async key(kid: any) {
+        const jwksClient = require('jwks-rsa')
+        const client = jwksClient({
+            jwksUri: 'https://appleid.apple.com/auth/keys',
+            timeout: 30000
+        })
+
+        return await client.getSigningKey(kid)
+    }
+
+    static async generateToken(user: any, options?: any) {
+        const currentTimestamp = generateUnixTimestamp()
+        // create token
+        const accessToken = AuthModel.createAccessToken(user.key, currentTimestamp)
+        const refreshToken = AuthModel.createRefreshToken(user.key, currentTimestamp)
+        user.set('login_count', 0, Number)
+        user.set('locked_timestamp', currentTimestamp, Number)
+        user.set('token_version', currentTimestamp, Number)
+        await user.save()
+
+        new UserSecurityModel({
+            user_key: user.key,
+            action: SecurityActions.Login,
+            agent: options?.req.agent,
+            ip_address: options?.req.ip_address
+        }).save()
+
+        return { user: user, token: accessToken, refreshToken }
     }
 }

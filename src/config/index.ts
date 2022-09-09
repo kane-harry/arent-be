@@ -124,7 +124,12 @@ export const config = {
             user_history: 'user_history',
             nft_history: 'nft_histories',
             user_security: 'user_security',
-            verification_codes: 'verification_codes'
+            verification_codes: 'verification_codes',
+            user_auth_codes: 'user_auth_codes'
         }
+    },
+
+    google: {
+        CLIENT_ID: String(process.env.GOOGLE_CLIENT_ID || '267320374218-4ftlfimkq6r1no50icveoetab44of443.apps.googleusercontent.com')
     }
 }

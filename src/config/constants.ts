@@ -11,6 +11,11 @@ export enum CodeType {
     Security = 'Security'
 }
 
+export enum UserAuthCodeType {
+    Email = 'email',
+    Phone = 'phone'
+}
+
 export enum UserStatus {
     Normal = 'Normal',
     Locked = 'Locked',
@@ -138,3 +143,10 @@ export const COLLECTION_BACKGROUND_SIZES = [
     { maxSize: 800, id: 'normal' },
     { maxSize: 600, id: 'small' }
 ]
+
+export enum UserAuthType {
+    Email = 'email',
+    Phone = 'phone',
+    Google = 'google',
+    Apple = 'apple'
+}

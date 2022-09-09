@@ -18,7 +18,8 @@ import {
     ForgotPasswordDto,
     ForgotPinDto,
     ResetPasswordDto,
-    ResetPinDto
+    ResetPinDto,
+    AuthorizeDto
 } from './user.dto'
 import UserModel from './user.model'
 import * as bcrypt from 'bcrypt'
@@ -42,7 +43,8 @@ import {
     AdminLogsSections,
     MFAType,
     NFT_IMAGE_SIZES,
-    USER_AVATAR_SIZES
+    USER_AVATAR_SIZES,
+    UserAuthType
 } from '@config/constants'
 import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
@@ -51,6 +53,22 @@ import { resizeImages, uploadFiles } from '@utils/s3Upload'
 import { BriefUserRO } from '@interfaces/public.model'
 
 export default class UserService extends AuthService {
+    public static async authorize(params: AuthorizeDto, options?: any) {
+        if (params.type === UserAuthType.Email) {
+            return AuthService.authorizeByEmail(params, options)
+        }
+        if (params.type === UserAuthType.Phone) {
+            return AuthService.authorizeByPhone(params, options)
+        }
+        if (params.type === UserAuthType.Google) {
+            return AuthService.authorizeViaGoogle(params, options)
+        }
+        if (params.type === UserAuthType.Apple) {
+            return AuthService.authorizeViaApple(params, options)
+        }
+        throw new BizException(AuthErrors.user_auth_not_exists_error, new ErrorContext('user.service', 'userAuth', {}))
+    }
+
     public static async register(userData: CreateUserDto, options?: any) {
         userData = await this.formatCreateUserDto(userData)
         await this.verifyRegistration(userData)

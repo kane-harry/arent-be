@@ -1,7 +1,6 @@
 import asyncHandler from '@utils/asyncHandler'
 import { Request, Router, Response } from 'express'
 import IController from '@interfaces/controller.interface'
-import { handleFiles } from '@middlewares/files.middleware'
 import { requireAuth } from '@utils/authCheck'
 import UserService from './user.service'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
@@ -19,14 +18,19 @@ import {
     ForgotPasswordDto,
     ForgotPinDto,
     ResetPasswordDto,
-    ResetPinDto
+    ResetPinDto,
+    AuthorizeDto
 } from './user.dto'
 import { requireAdmin, requireOwner } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { IUserQueryFilter } from './user.interface'
 import { downloadResource } from '@utils/utility'
-import { USER_AVATAR_SIZES } from '@config/constants'
+import { UserAuthCodeType } from '@config/constants'
 import Multer from 'multer'
+import { CreateUserAuthCodeDto } from '@modules/user_auth_code/user_auth_code.dto'
+import UserAuthCodeService from '@modules/user_auth_code/user_auth_code.service'
+import EmailService from '@modules/emaill/email.service'
+import sendSms from '@utils/sms'
 
 const upload = Multer()
 
@@ -39,6 +43,8 @@ class UserController implements IController {
     }
 
     private initRoutes() {
+        this.router.post(`${this.path}/code`, validationMiddleware(CreateUserAuthCodeDto), asyncHandler(this.getUserAuthCode))
+        this.router.post(`${this.path}/auth`, validationMiddleware(AuthorizeDto), asyncHandler(this.authorize))
         this.router.post(`${this.path}/register`, validationMiddleware(CreateUserDto), asyncHandler(this.register))
 
         this.router.post(`${this.path}/password/forgot`, validationMiddleware(ForgotPasswordDto), asyncHandler(this.forgotPassword))
@@ -76,6 +82,32 @@ class UserController implements IController {
         this.router.post(`${this.path}/:key/phone/update`, requireAuth, requireOwner('users'), asyncHandler(this.updatePhone))
         this.router.post(`${this.path}/:key/email/update`, requireAuth, requireOwner('users'), asyncHandler(this.updateEmail))
         this.router.get(`${this.path}/list/export`, requireAuth, requireAdmin(), asyncHandler(this.exportAllUser))
+    }
+
+    private getUserAuthCode = async (req: CustomRequest, res: Response) => {
+        const params: CreateUserAuthCodeDto = req.body
+        const deliveryMethod = (owner: any, code: string) => {
+            switch (params.type) {
+                case UserAuthCodeType.Email:
+                    EmailService.sendRegistrationVerificationCode({ address: owner, code })
+                    break
+                case UserAuthCodeType.Phone:
+                    sendSms('LightLink', `[LightLink] Please use this verification code: ${code} to complete registration in 15 minutes.`, owner)
+                    break
+                default:
+                    break
+            }
+        }
+
+        const data = await UserAuthCodeService.generateCode(params, deliveryMethod)
+        return res.send(data)
+    }
+
+    private authorize = async (req: CustomRequest, res: Response) => {
+        const params: AuthorizeDto = req.body
+        const data = await UserService.authorize(params, { req })
+
+        return res.send(data)
     }
 
     private register = async (req: CustomRequest, res: Response) => {

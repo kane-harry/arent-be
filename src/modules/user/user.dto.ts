@@ -210,3 +210,14 @@ export class ResetPinDto {
     @IsString()
     public pin: string
 }
+
+export class AuthorizeDto {
+    @IsNotEmpty()
+    public type: string
+
+    @IsNotEmpty()
+    public owner: string
+
+    @IsNotEmpty()
+    public code: string
+}
