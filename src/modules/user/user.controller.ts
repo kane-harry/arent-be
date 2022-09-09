@@ -31,6 +31,10 @@ import { CreateUserAuthCodeDto } from '@modules/user_auth_code/user_auth_code.dt
 import UserAuthCodeService from '@modules/user_auth_code/user_auth_code.service'
 import EmailService from '@modules/emaill/email.service'
 import sendSms from '@utils/sms'
+import { getPhoneInfo, stripPhoneNumber } from '@utils/phoneNumber'
+import BizException from '@exceptions/biz.exception'
+import { AuthErrors } from '@exceptions/custom.error'
+import ErrorContext from '@exceptions/error.context'
 
 const upload = Multer()
 
@@ -86,6 +90,13 @@ class UserController implements IController {
 
     private getUserAuthCode = async (req: CustomRequest, res: Response) => {
         const params: CreateUserAuthCodeDto = req.body
+        if (params.type === UserAuthCodeType.Phone) {
+            params.owner = stripPhoneNumber(params.owner)
+            const phoneInfo = getPhoneInfo(params.owner)
+            if (!phoneInfo.is_valid) {
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('auth.controller', 'getUserAuthCode', { phone: params.owner }))
+            }
+        }
         const deliveryMethod = (owner: any, code: string) => {
             switch (params.type) {
                 case UserAuthCodeType.Email:
@@ -105,6 +116,13 @@ class UserController implements IController {
 
     private authorize = async (req: CustomRequest, res: Response) => {
         const params: AuthorizeDto = req.body
+        if (params.type === UserAuthCodeType.Phone) {
+            params.owner = stripPhoneNumber(params.owner)
+            const phoneInfo = getPhoneInfo(params.owner)
+            if (!phoneInfo.is_valid) {
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('auth.controller', 'getUserAuthCode', { phone: params.owner }))
+            }
+        }
         const data = await UserService.authorize(params, { req })
 
         return res.send(data)

@@ -241,6 +241,7 @@ export default class AuthService {
     }
 
     static async authorizeByPhone(params: AuthorizeDto, options?: any) {
+        const phoneInfo = getPhoneInfo(params.owner)
         const codeParams: VerifyUserAuthCodeDto = { type: UserAuthCodeType.Phone, owner: params.owner, code: params.code }
         await UserAuthCodeService.verifyCode(codeParams)
 
@@ -250,7 +251,7 @@ export default class AuthService {
             user.phone = params.owner
             user.chat_name = await UserModel.generateRandomChatName(params.owner)
             user.source = 'phone'
-            user.phone_verified = true
+            user.country = phoneInfo.country
             await user.save()
         }
         return AuthService.generateToken(user, options)
