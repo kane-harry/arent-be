@@ -25,6 +25,11 @@ export interface IAccount extends IBaseModel {
     nonce?: number
 }
 
+export interface IAccountRO extends IAccount {
+    amount_usd: number | Types.Decimal128
+    amount_locked_usd: number | Types.Decimal128
+}
+
 export interface IUserAccountsFilter extends IFilterModel {
     key?: string
     keys?: string

@@ -11,6 +11,7 @@ import SettingController from '@modules/setting/setting.controller'
 import AdminLogController from '@modules/admin_logs/admin_log.controller'
 import NftController from '@modules/nft/nft.controller'
 import CollectionController from '@modules/collection/collection.controller'
+import RateController from '@modules/exchange_rate/rate.controller'
 
 const app = new App([
     new VerificationCodeController(),
@@ -23,7 +24,8 @@ const app = new App([
     new SettingController(),
     new AdminLogController(),
     new NftController(),
-    new CollectionController()
+    new CollectionController(),
+    new RateController()
 ])
 
 app.listen()

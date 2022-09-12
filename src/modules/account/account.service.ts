@@ -1,4 +1,4 @@
-import { IAccount } from './account.interface'
+import { IAccount, IAccountRO } from './account.interface'
 import AccountModel from './account.model'
 import { createEtherWallet } from '@utils/wallet'
 import { QueryRO } from '@interfaces/query.model'
@@ -12,6 +12,8 @@ import { PrimeCoinProvider } from '@providers/coin.provider'
 import { IUser } from '@modules/user/user.interface'
 import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections, MASTER_ACCOUNT_KEY } from '@config/constants'
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
+import { RateModel } from '@modules/exchange_rate/rate.model'
+import { roundUp } from '@utils/utility'
 
 export default class AccountService {
     private static async initAccounts(userKey: string, accountNameSuffix = 'Account') {
@@ -93,16 +95,22 @@ export default class AccountService {
     }
 
     protected static async bindingAccountBalance(account: any) {
+        const rateData = await RateModel.findOne({ symbol: `${account.symbol}-USDT` }).exec()
+        const rate = rateData ? rateData.rate : 1
         if (account?.ext_type === AccountExtType.Prime) {
             const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
             if (wallet) {
                 return {
                     ...(account?.toJSON() || account),
                     amount: wallet.amount,
-                    nonce: wallet.nonce
+                    nonce: wallet.nonce,
+                    amount_usd: roundUp(account.amount * rate, 8)
                 }
             }
+        } else {
+            account.amount_usd = roundUp(account.amount * rate, 8)
         }
+        account.amount_locked_usd = roundUp(account.amount_locked * rate, 8)
 
         return account
     }
@@ -195,7 +203,7 @@ export default class AccountService {
                 return this.bindingAccountBalance(el)
             })
         )
-        return new QueryRO<IAccount>(totalCount, paginate.page_index, paginate.page_size, data)
+        return new QueryRO<IAccountRO>(totalCount, paginate.page_index, paginate.page_size, data)
     }
 
     static async withdraw(key: string, params: WithdrawDto, operator: IUser) {
