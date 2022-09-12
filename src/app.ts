@@ -14,6 +14,7 @@ import { config } from '@config'
 import SettingService from '@modules/setting/setting.service'
 import swaggerUI from 'swagger-ui-express'
 import { openApiV1Documents } from '@docs/openApiGenerator'
+import RateScheduler from '@modules/jobs/rate.schedule'
 
 class App {
     public app: express.Application
@@ -25,6 +26,7 @@ class App {
         this.initControllers(controllers)
         this.initErrorHandling()
         this.initSwaggerDocs()
+        this.initSchedulers()
     }
 
     public listen() {
@@ -82,6 +84,10 @@ class App {
 
     private initSwaggerDocs() {
         this.app.use('/api-v1-docs', swaggerUI.serve, swaggerUI.setup(openApiV1Documents))
+    }
+
+    private initSchedulers() {
+        return [new RateScheduler()]
     }
 }
 
