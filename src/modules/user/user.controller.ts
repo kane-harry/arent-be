@@ -100,7 +100,7 @@ class UserController implements IController {
         const deliveryMethod = (owner: any, code: string) => {
             switch (params.type) {
                 case UserAuthCodeType.Email:
-                    EmailService.sendRegistrationVerificationCode({ address: owner, code })
+                    EmailService.sendUserAuthVerificationCode({ address: owner, code })
                     break
                 case UserAuthCodeType.Phone:
                     sendSms('LightLink', `[LightLink] Please use this verification code: ${code} to complete registration in 15 minutes.`, owner)

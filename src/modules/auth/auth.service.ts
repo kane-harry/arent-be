@@ -21,6 +21,7 @@ import { verifyToken } from '@utils/totp'
 import { config } from '@config'
 import { VerifyUserAuthCodeDto } from '@modules/user_auth_code/user_auth_code.dto'
 import UserAuthCodeService from '@modules/user_auth_code/user_auth_code.service'
+import AccountService from '@modules/account/account.service'
 
 export default class AuthService {
     protected static async formatCreateUserDto(userData: CreateUserDto) {
@@ -253,6 +254,7 @@ export default class AuthService {
             user.source = 'phone'
             user.country = phoneInfo.country
             await user.save()
+            await AccountService.initUserAccounts(user.key)
         }
         return AuthService.generateToken(user, options)
     }
@@ -269,6 +271,7 @@ export default class AuthService {
             user.source = 'email'
             user.email_verified = true
             await user.save()
+            await AccountService.initUserAccounts(user.key)
         }
         return AuthService.generateToken(user, options)
     }
@@ -296,6 +299,7 @@ export default class AuthService {
             user.avatar = picture
             user.source = 'google'
             await user.save()
+            await AccountService.initUserAccounts(user.key)
         }
         return AuthService.generateToken(user, options)
     }
@@ -317,6 +321,7 @@ export default class AuthService {
             user.email = email
             user.source = 'apple'
             await user.save()
+            await AccountService.initUserAccounts(user.key)
         }
 
         return AuthService.generateToken(user, options)

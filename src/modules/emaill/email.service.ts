@@ -11,6 +11,24 @@ const defaultContext = {
 const templates = new EmailTemplates({ root: config.emailTemplatesRootPath })
 
 export default class EmailService {
+    static async sendUserAuthVerificationCode(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('user-auth-verification-code.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
+                if (err) {
+                    reject(err)
+                }
+                // Send email
+                subject = `${config.emailNotification.emailParamClientName} - Verification Code`
+                sendEmail(subject, String(text), String(html), _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendUserAuthVerificationCode => ' + err.message)
+        })
+    }
+
     static async sendRegistrationVerificationCode(context: EmailContextDto) {
         const _context = Object.assign({}, context, defaultContext)
 
