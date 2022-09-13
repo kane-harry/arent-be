@@ -3,7 +3,7 @@ import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { AuthorizeDto, CreateUserDto } from '@modules/user/user.dto'
 import { LogInDto } from './auth.dto'
-import { capitalize, escapeRegExp, toLower, trim } from 'lodash'
+import { capitalize, escapeRegExp, first, toLower, trim } from 'lodash'
 import UserModel from '@modules/user/user.model'
 import { VerificationCode } from '@modules/verification_code/code.model'
 import { AuthErrors } from '@exceptions/custom.error'
@@ -250,7 +250,7 @@ export default class AuthService {
         if (!user) {
             user = new UserModel()
             user.phone = params.owner
-            user.chat_name = await UserModel.generateRandomChatName(params.owner)
+            user.chat_name = await UserModel.generateRandomChatName()
             user.source = 'phone'
             user.country = phoneInfo.country
             await user.save()
@@ -265,9 +265,10 @@ export default class AuthService {
 
         let user = await UserModel.findOne({ email: params.owner, removed: false }).exec()
         if (!user) {
+            const defaultChatname = first(params.owner.split('@'))
             user = new UserModel()
             user.email = params.owner
-            user.chat_name = await UserModel.generateRandomChatName(params.owner)
+            user.chat_name = await UserModel.generateRandomChatName(defaultChatname)
             user.source = 'email'
             user.email_verified = true
             await user.save()

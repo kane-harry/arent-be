@@ -96,7 +96,10 @@ userSchema.virtual('full_name').get(function (this: { first_name: string; last_n
 const _UserModel = model<IUser>(config.database.tables.users, userSchema)
 
 export default class UserModel extends _UserModel {
-    public static async generateRandomChatName(name: string) {
+    public static async generateRandomChatName(name?: string) {
+        if (!name) {
+            name = generateRandomCode(4, 4, true)
+        }
         let chatName = kebabCase(escapeRegExp(name).toLowerCase())
         const filter = { chat_name: chatName }
         let referenceInDatabase = await this.findOne(filter).select('key chat_name').exec()
