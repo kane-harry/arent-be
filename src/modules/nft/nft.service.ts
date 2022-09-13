@@ -1,16 +1,15 @@
 import { IUser } from '@modules/user/user.interface'
-import { BuyNftDto, CreateNftDto, ImportNftDto, NftOnMarketDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
-import { NftImportLogModel, NftModel, NftOwnershipLogModel, NftSaleLogModel } from './nft.model'
-import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
+import { BidNftDto, CreateNftDto, ImportNftDto, NftOnMarketDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
+import { NftBidLogModel, NftImportLogModel, NftModel, NftOwnershipLogModel, NftSaleLogModel } from './nft.model'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
-import { INft, INftFilter, INftOwnershipLog, INftSaleLog } from '@modules/nft/nft.interface'
+import { INft, INftBidLog, INftFilter, INftOwnershipLog, INftSaleLog, ITopBid } from '@modules/nft/nft.interface'
 import BizException from '@exceptions/biz.exception'
 import { AccountErrors, AuthErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
-import { isAdmin, role, roleCan } from '@config/role'
+import { isAdmin, roleCan } from '@config/role'
 import UserService from '@modules/user/user.service'
-import { NftHistoryActions, NftStatus, MASTER_ACCOUNT_KEY, NftType, NFT_IMAGE_SIZES, NftOnwerShipType } from '@config/constants'
+import { MASTER_ACCOUNT_KEY, NFT_IMAGE_SIZES, NftHistoryActions, NftOnwerShipType, NftPriceType, NftStatus } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
@@ -20,7 +19,7 @@ import AccountService from '@modules/account/account.service'
 import { IAccount } from '@modules/account/account.interface'
 import { config } from '@config'
 import addToBuyProductQueue from '@modules/queues/nft_queue'
-import { roundUp } from '@utils/utility'
+import { generateUnixTimestamp } from '@utils/utility'
 import SettingService from '@modules/setting/setting.service'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
 import { PrimeCoinProvider } from '@providers/coin.provider'
@@ -250,12 +249,28 @@ export default class NftService {
             throw new BizException(NftErrors.nft_is_not_approved_error, new ErrorContext('nft.service', 'onMarket', { key }))
         }
 
+        if (params.price_type === NftPriceType.Auction) {
+            if (params.auction_start > params.auction_end) {
+                throw new BizException(
+                    NftErrors.auction_nft_params_error,
+                    new ErrorContext('nft.service', 'onMarket', { key, auction_start: params.auction_start })
+                )
+            }
+            const currentTime = generateUnixTimestamp()
+            if (params.auction_end > 0 && params.auction_end < currentTime) {
+                throw new BizException(
+                    NftErrors.auction_nft_params_error,
+                    new ErrorContext('nft.service', 'onMarket', { key, auction_end: params.auction_end })
+                )
+            }
+            nft.set('auction_start', params.auction_start)
+            nft.set('auction_end', params.auction_end)
+        }
         if (params.price) {
             nft.set('price', params.price)
         }
+        nft.set('price_type', params.price_type)
         nft.set('on_market', true)
-
-        // TODO: AUCTION
 
         const postData = await nft.save()
         await new NftHistoryModel({
@@ -329,10 +344,9 @@ export default class NftService {
                 throw new BizException(NftErrors.item_not_on_market, new ErrorContext('nft.service', 'buyNft', { key }))
             }
 
-            // TODO : auction nft
-            // if (item.price_type === constants.product.price_type.auction) {
-            // throw new BizException(NftErrors.purchase_auction_nft_error, new ErrorContext('nft.service', 'buyNft', { key }))
-            // }
+            if (nft.price_type !== NftPriceType.Fixed) {
+                throw new BizException(NftErrors.purchase_auction_nft_error, new ErrorContext('nft.service', 'buyNft', { key }))
+            }
             const seller = await UserService.getBriefByKey(nft.owner_key)
             const buyer = await UserService.getBriefByKey(operator.key)
 
@@ -521,8 +535,162 @@ export default class NftService {
         }
     }
 
+    static async bidNft(key: string, params: BidNftDto, options: any) {
+        const session = await UserModel.startSession()
+        session.startTransaction()
+        try {
+            const nft = await NftModel.findOne({ key, removed: false }).exec()
+            if (!nft) {
+                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
+            if (nft.owner_key === options.req.user.key) {
+                throw new BizException(
+                    NftErrors.product_buy_same_owner_error,
+                    new ErrorContext('nft.service', 'bidNft', { key, owner_key: nft.owner_key })
+                )
+            }
+            if (!nft.on_market) {
+                throw new BizException(NftErrors.item_not_on_market, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
+
+            if (nft.price_type !== NftPriceType.Auction) {
+                throw new BizException(NftErrors.purchase_auction_nft_error, new ErrorContext('nft.service', 'buyNft', { key }))
+            }
+            const seller = await UserService.getBriefByKey(nft.owner_key)
+            const buyer = await UserService.getBriefByKey(options.req.user.key)
+
+            if (!seller || !buyer) {
+                throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
+
+            const masterAccount: IAccount | null = await AccountService.getMasterAccountBriefBySymbol(nft.currency)
+            const creatorAccount: IAccount | null = await AccountService.getAccountByUserKeyAndSymbol(nft.creator_key, nft.currency)
+            const sellerAccount: IAccount | null = await AccountService.getAccountByUserKeyAndSymbol(seller.key, nft.currency)
+            const buyerAccount: IAccount | null = await AccountService.getAccountByUserKeyAndSymbol(buyer.key, nft.currency)
+
+            if (!sellerAccount || !buyerAccount || !masterAccount || !creatorAccount) {
+                throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
+
+            const buyerBalance = parsePrimeAmount(Number(buyerAccount.amount) - Number(buyerAccount.amount_locked))
+            const paymentOrderValue = parsePrimeAmount(nft.price)
+
+            const buyerToMasterAmount = paymentOrderValue
+
+            if (buyerBalance.lt(paymentOrderValue)) {
+                throw new BizException(NftErrors.purchase_insufficient_funds_error, new ErrorContext('nft.service', 'bidNft', { price: nft.price }))
+            }
+
+            if (nft.top_bid) {
+                await NftService.releaseTopBid(nft, params, masterAccount)
+            }
+
+            await AccountService.lockAmount(buyerAccount.key, params.amount, options.req.user)
+            const txnDetails = {
+                type: 'BID_LOCK',
+                nft_key: nft.key,
+                nft_name: nft.name,
+                nft_price: nft.price,
+                currency: nft.currency,
+                seller: seller.key,
+                seller_address: sellerAccount.address,
+                buyer: buyer.key,
+                buyer_address: buyerAccount.address,
+                payment_order_value: nft.price,
+                payment_symbol: nft.currency
+            }
+
+            // 1. buyer send coins to master
+            const buyerKeyStore = await AccountService.getAccountKeyStore(buyerAccount.key)
+            const buyerPrivateKey = await decryptKeyWithSalt(buyerKeyStore.key_store, buyerKeyStore.salt)
+            let buyerNonce = await PrimeCoinProvider.getWalletNonceBySymbolAndAddress(buyerAccount.symbol, buyerAccount.address)
+            buyerNonce = buyerNonce + 1
+            const buyerSendAmount = formatAmount(buyerToMasterAmount.toString())
+            const buyerMessage = `${nft.currency}:${buyerAccount.address}:${masterAccount.address}:${buyerSendAmount}:${buyerNonce}`
+            const buyerSignature = await signMessage(buyerPrivateKey, buyerMessage)
+
+            txnDetails.type = 'NFT_BID'
+            const buyerTxnParams: ISendCoinDto = {
+                symbol: nft.currency,
+                sender: buyerAccount.address,
+                recipient: masterAccount.address,
+                amount: '0',
+                nonce: String(buyerNonce),
+                type: 'BID_LOCK',
+                signature: buyerSignature,
+                notes: `NFT bid - name: ${nft.name}, key: ${nft.key}, amount: ${params.amount} `,
+                details: txnDetails,
+                fee_address: masterAccount.address,
+                fee: String(0)
+            }
+            // const buyerResponse = await PrimeCoinProvider.sendPrimeCoins(buyerTxnParams)
+            // const buyer_txn = buyerResponse.key
+            const buyer_txn = ''
+            const top_bid: ITopBid = {
+                user_key: buyer.key,
+                avatar: buyer.avatar,
+                chat_name: buyer.chat_name,
+                price: params.amount,
+                secondary_market: nft.creator_key !== nft.owner_key,
+                currency: nft.currency,
+                address: buyerAccount.address,
+                account_key: buyerAccount.key
+            }
+            const updateData: any = { price: params.amount, top_bid: top_bid }
+            const currentTimestamp = generateUnixTimestamp()
+            if (nft.auction_end - currentTimestamp <= 5 * 60) {
+                const extend_seconds = 5 * 60
+                updateData.auction_end = nft.auction_end + extend_seconds
+            }
+            const data = await NftModel.findOneAndUpdate(
+                { key: key },
+                {
+                    $set: updateData
+                },
+                { projection: { _id: 0 }, returnOriginal: false }
+            )
+
+            await new NftHistoryModel({
+                nft_key: key,
+                user_key: buyer.key,
+                action: NftHistoryActions.Bid,
+                agent: options.req.agent,
+                country: buyer.country,
+                ip_address: options.req.ip_address,
+                pre_data: nft.toString(),
+                post_data: data?.toString()
+            }).save()
+
+            await NftService.addNftBidLog({
+                nft_key: nft.key,
+                price: params.amount,
+                user_key: buyer.key,
+                avatar: buyer.avatar,
+                email: buyer.email,
+                first_name: buyer.first_name,
+                last_name: buyer.last_name,
+                lock_tnx: buyer_txn,
+                secondary_market: nft.creator_key !== nft.owner_key
+            })
+
+            session.endSession()
+            return { buyer_txn: buyer_txn }
+        } catch (error) {
+            await session.abortTransaction()
+            session.endSession()
+            throw error
+        }
+    }
+
     static async addNftSaleLog(params: INftSaleLog) {
         const model = new NftSaleLogModel({
+            ...params
+        })
+        return await model.save()
+    }
+
+    static async addNftBidLog(params: INftBidLog) {
+        const model = new NftBidLogModel({
             ...params
         })
         return await model.save()
@@ -545,5 +713,48 @@ export default class NftService {
             const context = { address: seller.email, txn: seller_txn }
             EmailService.sendSaleProductSuccessNotification(context)
         }
+    }
+
+    static async releaseTopBid(nft: INft, params: BidNftDto, masterAccount: IAccount) {
+        const topBid: ITopBid | undefined = nft.top_bid
+        if (!topBid) {
+            return
+        }
+        if (topBid.price >= params.amount) {
+            throw new BizException(
+                NftErrors.product_highest_bidder_error,
+                new ErrorContext('nft.service', 'bidNft', { key: nft.key, amount: params.amount })
+            )
+        }
+        const buyer: IUser | null = await UserModel.findOne({ key: topBid.user_key })
+        const buyerAccount: IAccount | null = await AccountService.getAccountByUserKeyAndSymbol(topBid.user_key, nft.currency)
+        if (!buyerAccount || !buyer) {
+            return
+        }
+
+        const masterKeyStore = await AccountService.getAccountKeyStore(masterAccount.key)
+        const masterPrivateKey = await decryptKeyWithSalt(masterKeyStore.key_store, masterKeyStore.salt)
+        let masterNonce = await PrimeCoinProvider.getWalletNonceBySymbolAndAddress(masterAccount.symbol, masterAccount.address)
+        masterNonce = masterNonce + 1
+        const sellerAmount = topBid.price
+        const sellerMessage = `${nft.currency}:${masterAccount.address}:${buyerAccount.address}:${sellerAmount}:${masterNonce}`
+        const sellerSignature = await signMessage(masterPrivateKey, sellerMessage)
+
+        const buyerTxnParams: ISendCoinDto = {
+            symbol: nft.currency,
+            sender: masterAccount.address,
+            recipient: buyerAccount.address,
+            amount: '0',
+            nonce: String(masterNonce),
+            type: 'BID_UNLOCK',
+            signature: sellerSignature,
+            notes: `Bid Unlock - name: ${nft.name}, key: ${nft.key}, unlock amount: ${params.amount} `,
+            details: topBid,
+            fee_address: masterAccount.address,
+            fee: String(0)
+        }
+        // const buyerResponse = await PrimeCoinProvider.sendPrimeCoins(buyerTxnParams)
+
+        await AccountService.unlockAmount(topBid.account_key, topBid.price, buyer)
     }
 }

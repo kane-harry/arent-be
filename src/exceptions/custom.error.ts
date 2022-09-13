@@ -83,7 +83,9 @@ export const NftErrors = {
     item_not_on_market: { code: 7305, status: 400, message: 'Item not on market' },
     nft_is_not_approved_error: { code: 7306, status: 400, message: 'Nft is not approved.' },
     purchase_auction_nft_error: { code: 7307, status: 400, message: 'Can not buy auction product directly.' },
-    purchase_insufficient_funds_error: { code: 7308, status: 400, message: 'Insufficient funds to complete transaction.' }
+    purchase_insufficient_funds_error: { code: 7308, status: 400, message: 'Insufficient funds to complete transaction.' },
+    auction_nft_params_error: { code: 7309, status: 400, message: 'Invalid params for auction' },
+    product_highest_bidder_error: { code: 7310, status: 400, message: 'Nft highest bidder error' }
 }
 
 export const CollectionErrors = {

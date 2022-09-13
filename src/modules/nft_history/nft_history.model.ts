@@ -23,8 +23,7 @@ const nftHistorySchema = new Schema<INftHistory>(
             required: true
         },
         ip_address: {
-            type: String,
-            required: true
+            type: String
         },
         country: {
             type: String

@@ -41,7 +41,8 @@ export enum NftHistoryActions {
     UpdateStatus = 'UpdateStatus',
     OnMarket = 'OnMarket',
     OffMarket = 'OffMarket',
-    Purchase = 'Purchase'
+    Purchase = 'Purchase',
+    Bid = 'Bid'
 }
 export enum SecurityActions {
     Login = 'Login'
@@ -149,4 +150,14 @@ export enum UserAuthType {
     Phone = 'phone',
     Google = 'google',
     Apple = 'apple'
+}
+
+export enum NftPriceType {
+    Fixed = 'fixed',
+    Auction = 'auction'
+}
+
+export enum IAccountLogType {
+    Lock = 'lock',
+    UnLock = 'unlock'
 }

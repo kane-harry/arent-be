@@ -125,7 +125,8 @@ export const config = {
             nft_history: 'nft_histories',
             user_security: 'user_security',
             verification_codes: 'verification_codes',
-            user_auth_codes: 'user_auth_codes'
+            user_auth_codes: 'user_auth_codes',
+            account_logs: 'account_logs'
         }
     },
 

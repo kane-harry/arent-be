@@ -15,6 +15,7 @@ import SettingService from '@modules/setting/setting.service'
 import swaggerUI from 'swagger-ui-express'
 import { openApiV1Documents } from '@docs/openApiGenerator'
 import RateScheduler from '@modules/jobs/rate.schedule'
+import NftScheduler from '@modules/jobs/nft.scheduler'
 
 class App {
     public app: express.Application
@@ -87,7 +88,7 @@ class App {
     }
 
     private initSchedulers() {
-        return [new RateScheduler()]
+        return [new RateScheduler(), new NftScheduler()]
     }
 }
 

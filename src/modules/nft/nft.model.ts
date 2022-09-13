@@ -1,7 +1,7 @@
 import { config } from '@config'
 import { randomBytes } from 'crypto'
 import { Schema, Types, model } from 'mongoose'
-import { INft, INftImportLog, INftOwnershipLog, INftSaleLog } from './nft.interface'
+import { INft, INftBidLog, INftImportLog, INftOwnershipLog, INftSaleLog } from './nft.interface'
 
 const nftSchema = new Schema<INft>(
     {
@@ -25,6 +25,9 @@ const nftSchema = new Schema<INft>(
         animation: { type: Object, default: null },
         image: { type: Object, default: null },
         type: { type: String, default: 'erc721' },
+        price_type: { type: String, default: 'fixed' },
+        auction_start: Number,
+        auction_end: Number,
         num_sales: Number,
         quantity: Number,
         creator_key: String,
@@ -179,4 +182,46 @@ const nftSaleLogSchema = new Schema<INftSaleLog>(
 
 const NftSaleLogModel = model<INftSaleLog>('nft_sale_logs', nftSaleLogSchema)
 
-export { NftModel, NftImportLogModel, NftOwnershipLogModel, NftSaleLogModel }
+const nftBidLogSchema = new Schema<INftBidLog>(
+    {
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(8).toString('hex')
+            }
+        },
+        nft_key: String,
+        price: String,
+        user_key: String,
+        avatar: Object,
+        email: String,
+        first_name: String,
+        last_name: String,
+        lock_tnx: String,
+        secondary_market: Boolean,
+        removed: { type: Boolean, default: false }
+    },
+    {
+        toJSON: {
+            virtuals: true,
+            getters: true,
+            transform: (doc, ret) => {
+                delete ret._id
+                ret.price = parseFloat(ret.price.toString())
+                return ret
+            }
+        },
+        timestamps: {
+            createdAt: 'created',
+            updatedAt: 'modified'
+        },
+        versionKey: 'version'
+    }
+)
+
+const NftBidLogModel = model<INftBidLog>('nft_bid_logs', nftBidLogSchema)
+
+export { NftModel, NftImportLogModel, NftOwnershipLogModel, NftSaleLogModel, NftBidLogModel }

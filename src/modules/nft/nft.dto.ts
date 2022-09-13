@@ -1,4 +1,6 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsPositive } from 'class-validator'
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional } from 'class-validator'
+import { NftPriceType } from '@config/constants'
+import { map } from 'lodash'
 
 export class ImportNftDto {
     @IsNotEmpty()
@@ -125,12 +127,19 @@ export class NftOnMarketDto {
     @IsOptional()
     public price: string
 
-    // @IsOptional()
-    // public price_type: string
+    @IsOptional()
+    @IsEnum(NftPriceType, {
+        message: `type must be one of ${map(NftPriceType, el => el).join(' ')}`
+    })
+    public price_type: string
 
-    // reserved fields
-    // auction_start
-    // auction_end
+    @IsOptional()
+    @IsNumber()
+    public auction_start: number
+
+    @IsOptional()
+    @IsNumber()
+    public auction_end: number
 }
 
 export class BuyNftDto {
@@ -145,4 +154,12 @@ export class BuyNftDto {
 
     @IsOptional()
     public buyer_key: string
+}
+
+export class BidNftDto {
+    @IsNotEmpty()
+    public symbol: string
+
+    @IsNotEmpty()
+    public amount: string
 }
