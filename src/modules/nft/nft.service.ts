@@ -654,15 +654,15 @@ export default class NftService {
 
             await NftService.addNftBidLog({
                 nft_key: nft.key,
-                price: params.amount,
-                user_key: buyer.key,
-                avatar: buyer.avatar,
-                email: buyer.email,
-                first_name: buyer.first_name,
-                last_name: buyer.last_name,
-                lock_tnx: '',
-                secondary_market: nft.creator_key !== nft.owner_key,
-                note: `Bid Lock - item: ${nft.key} , lock amount: ${params.amount}`
+                collection_key: nft.collection_key,
+                price: Number(params.amount),
+                currency: nft.currency,
+                user: {
+                    key: buyer.key,
+                    chat_name: buyer.chat_name,
+                    avatar: buyer.avatar
+                },
+                secondary_market: nft.creator_key !== nft.owner_key
             })
 
             session.endSession()

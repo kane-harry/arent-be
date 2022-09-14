@@ -70,14 +70,10 @@ export interface INftSaleLog extends IBaseModel {
 
 export interface INftBidLog extends IBaseModel {
     nft_key: string | undefined
-    price: string
-    user_key: string | undefined
-    avatar: Object | null
-    note: string | null
-    email: string | undefined
-    first_name: string | undefined
-    last_name: string | undefined
-    lock_tnx: string | undefined
+    collection_key: string | undefined
+    price: number | Types.Decimal128
+    currency: string | undefined
+    user: Object | null
     secondary_market: boolean | undefined
 }
 
