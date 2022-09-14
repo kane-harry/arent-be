@@ -85,7 +85,8 @@ export const NftErrors = {
     purchase_auction_nft_error: { code: 7307, status: 400, message: 'Can not buy auction product directly.' },
     purchase_insufficient_funds_error: { code: 7308, status: 400, message: 'Insufficient funds to complete transaction.' },
     auction_nft_params_error: { code: 7309, status: 400, message: 'Invalid params for auction' },
-    product_highest_bidder_error: { code: 7310, status: 400, message: 'Nft highest bidder error' }
+    product_highest_bidder_error: { code: 7310, status: 400, message: 'You are already the highest bidder' },
+    nft_auction_closed_error: { code: 7311, status: 400, message: 'Auction closed.' }
 }
 
 export const CollectionErrors = {
