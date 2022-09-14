@@ -292,9 +292,9 @@ describe('NFT', () => {
             .post(`/api/v1/nfts/${shareData.nfts[0].key}/bid`)
             .set('Authorization', `Bearer ${secondBidderShareData.token}`)
             .send(buyData2)
-        expect(res.status).equal(400)
+        expect(res.status).equal(200)
         validResponse(res.body)
-        const nft = await NftModel.findOne({ key: secondBidderShareData.nfts[0].key })
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
         expect(nft.top_bid.user_key).equal(secondBidderShareData.user.key)
         expect(nft.top_bid.price).equal(buyData2.amount)
 
