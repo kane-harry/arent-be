@@ -257,15 +257,17 @@ export default class NftService {
                     new ErrorContext('nft.service', 'onMarket', { key, auction_start: params.auction_start })
                 )
             }
+            const auction_end = Number(params.auction_end)
+            const auction_start = Number(params.auction_start)
             const currentTime = generateUnixTimestamp()
-            if (params.auction_end > 0 && params.auction_end < currentTime) {
+            if (auction_end > 0 && auction_end < currentTime) {
                 throw new BizException(
                     NftErrors.auction_nft_params_error,
                     new ErrorContext('nft.service', 'onMarket', { key, auction_end: params.auction_end })
                 )
             }
-            nft.set('auction_start', params.auction_start)
-            nft.set('auction_end', params.auction_end)
+            nft.set('auction_start', auction_start)
+            nft.set('auction_end', auction_end)
         }
         if (params.price) {
             nft.set('price', params.price)
@@ -706,7 +708,7 @@ export default class NftService {
         return null
     }
 
-    static async getBidNft(nft_key: string) {
+    static async getNftBids(nft_key: string) {
         const bids = await NftBidLogModel.find({ nft_key }, { projection: { _id: 0 } }).sort({ _id: -1 })
         return bids
     }

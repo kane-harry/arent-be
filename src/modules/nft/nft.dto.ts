@@ -134,12 +134,10 @@ export class NftOnMarketDto {
     public price_type: string
 
     @IsOptional()
-    @IsNumber()
-    public auction_start: number
+    public auction_start: string
 
     @IsOptional()
-    @IsNumber()
-    public auction_end: number
+    public auction_end: string
 }
 
 export class BuyNftDto {
