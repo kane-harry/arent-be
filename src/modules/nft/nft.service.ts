@@ -26,6 +26,7 @@ import { PrimeCoinProvider } from '@providers/coin.provider'
 import { ISendCoinDto } from '@modules/transaction/transaction.interface'
 import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
 import EmailService from '@modules/emaill/email.service'
+import sendSms from '@utils/sms'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -611,6 +612,20 @@ export default class NftService {
                 )
 
                 // send notifications ， check out in xcur
+                const currentTimestamp = generateUnixTimestamp()
+                const lastBid = await NftService.getLastBidByNftAndUser(preBuyerKey, nft.key)
+                // @ts-ignore
+                if (!lastBid || currentTimestamp > lastBid.created.getTime() / 1000) {
+                    const preBuyer = await UserModel.findOne({ key: preBuyerKey, removed: false })
+                    if (preBuyer) {
+                        if (preBuyer.email) {
+                            EmailService.sendOutbidNotification({ address: preBuyer.email, nft })
+                        }
+                        if (preBuyer.phone) {
+                            sendSms('Out Bid', 'You have been out bid by another user.', preBuyer.phone)
+                        }
+                    }
+                }
             }
 
             const topBid = {
@@ -690,5 +705,13 @@ export default class NftService {
             const context = { address: seller.email, txn: seller_txn }
             EmailService.sendSaleProductSuccessNotification(context)
         }
+    }
+
+    static async getLastBidByNftAndUser(user_key: string, nft_key: any) {
+        const data = await NftBidLogModel.find({ user_key, nft_key }, { projection: { _id: 0 } }).sort({ created_at: -1 })
+        if (data && data.length > 0) {
+            return data[0]
+        }
+        return null
     }
 }
