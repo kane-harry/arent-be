@@ -670,7 +670,8 @@ export default class NftService {
                 first_name: buyer.first_name,
                 last_name: buyer.last_name,
                 lock_tnx: buyer_txn,
-                secondary_market: nft.creator_key !== nft.owner_key
+                secondary_market: nft.creator_key !== nft.owner_key,
+                note: `Bid Lock - item: ${nft.key} , lock amount: ${params.amount}`
             })
 
             session.endSession()

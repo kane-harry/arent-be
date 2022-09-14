@@ -197,6 +197,7 @@ const nftBidLogSchema = new Schema<INftBidLog>(
         price: String,
         user_key: String,
         avatar: Object,
+        note: String,
         email: String,
         first_name: String,
         last_name: String,

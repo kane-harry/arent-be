@@ -73,6 +73,7 @@ export interface INftBidLog extends IBaseModel {
     price: string
     user_key: string | undefined
     avatar: Object | null
+    note: string | null
     email: string | undefined
     first_name: string | undefined
     last_name: string | undefined
