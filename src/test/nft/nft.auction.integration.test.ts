@@ -32,7 +32,8 @@ let firstBidderShareData = {
     token: '',
     refreshToken: '',
     nfts: [],
-    collections: []
+    collections: [],
+    accounts: []
 }
 
 let secondBidderShareData = {
@@ -42,7 +43,8 @@ let secondBidderShareData = {
     token: '',
     refreshToken: '',
     nfts: [],
-    collections: []
+    collections: [],
+    accounts: []
 }
 
 let adminShareData = { user: { key: '' }, token: '', refreshToken: '', accounts: [], masterAccounts: [] }
@@ -134,7 +136,7 @@ describe('NFT', () => {
 
         const accounts2 = await AccountModel.find({ user_key: secondBidderShareData.user.key, removed: false, symbol: createNftData.currency })
         expect(accounts2.length).gt(0)
-        adminShareData.accounts = accounts2
+        secondBidderShareData.accounts = accounts2
     }).timeout(10000)
 
     it('MintMasterAccount', async () => {
