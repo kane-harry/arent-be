@@ -10,10 +10,11 @@ import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import { IUser } from '@modules/user/user.interface'
-import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections, MASTER_ACCOUNT_KEY } from '@config/constants'
+import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections, IAccountLogType, MASTER_ACCOUNT_KEY } from '@config/constants'
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
 import { RateModel } from '@modules/exchange_rate/rate.model'
 import { roundUp } from '@utils/utility'
+import AccountLogsService from '@modules/account_logs/account_log.service'
 
 export default class AccountService {
     private static async initAccounts(userKey: string, accountNameSuffix = 'Account') {
@@ -263,5 +264,43 @@ export default class AccountService {
     static async getAccountByUserKeyAndSymbol(user_key: string, symbol: string) {
         const account: IAccount | null = await AccountModel.findOne({ user_key, symbol })
         return await this.bindingAccountBalance(account)
+    }
+
+    static async lockAmount(key: string, amount: any, operator: IUser, note = '') {
+        const data = await AccountModel.findOneAndUpdate(
+            { key: key },
+            {
+                $inc: { amount_locked: amount },
+                $set: { modified: new Date() }
+            }
+        )
+
+        await AccountLogsService.createAccountLog({
+            type: IAccountLogType.Lock,
+            amount: amount,
+            operator: { key: operator.key, email: operator.email },
+            note: note ?? `Lock, lock amount: ${amount}`
+        })
+
+        return data
+    }
+
+    static async unlockAmount(key: string, amount: any, operator: IUser, note: string) {
+        const data = await AccountModel.findOneAndUpdate(
+            { key: key },
+            {
+                $inc: { amount_locked: amount * -1 },
+                $set: { modified: new Date() }
+            }
+        )
+
+        await AccountLogsService.createAccountLog({
+            type: IAccountLogType.UnLock,
+            amount: amount,
+            operator: { key: operator.key, email: operator.email },
+            note: note ?? `UnLock, unlock amount: ${amount}`
+        })
+
+        return data
     }
 }

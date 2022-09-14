@@ -244,4 +244,22 @@ export default class EmailService {
             console.error('sendSellProductSuccessNotification => ' + err.message)
         })
     }
+
+    static async sendOutbidNotification(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('outbid-notification.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
+                if (err) {
+                    reject(err)
+                }
+                // Send email
+                subject = `${config.emailNotification.emailParamClientName} - Bidding Notification`
+                sendEmail(subject, String(text), String(html), _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendOutbidNotification => ' + err.message)
+        })
+    }
 }

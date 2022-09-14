@@ -394,40 +394,6 @@ describe('NFT', () => {
         expect(nft.status).equal(NftStatus.Approved)
     }).timeout(10000)
 
-    it(`market/off NFT`, async () => {
-        const res = await request(server.app)
-            .put(`/api/v1/nfts/${shareData.nfts[0].key}/market/off`)
-            .set('Authorization', `Bearer ${shareData.token}`)
-            .send(sellData)
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.on_market).equal(false)
-    }).timeout(10000)
-
-    it(`market/on NFT`, async () => {
-        const res = await request(server.app)
-            .put(`/api/v1/nfts/${shareData.nfts[0].key}/market/on`)
-            .set('Authorization', `Bearer ${shareData.token}`)
-            .send(sellData)
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.on_market).equal(true)
-    }).timeout(10000)
-
-    it(`Buy NFT`, async () => {
-        const res = await request(server.app)
-            .post(`/api/v1/nfts/${shareData.nfts[0].key}/buy`)
-            .set('Authorization', `Bearer ${adminShareData.token}`)
-            .send(buyData)
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.on_market).equal(false)
-        expect(nft.owner).equal(adminShareData.user.token)
-    }).timeout(20000)
-
     it(`Burn NFT`, async () => {
         await NftModel.updateOne({ key: shareData.nfts[0].key }, { $set: { owner: shareData.user.key } }, { upsert: true }).exec()
         const res = await request(server.app).delete(`/api/v1/nfts/${shareData.nfts[0].key}`).set('Authorization', `Bearer ${adminShareData.token}`)

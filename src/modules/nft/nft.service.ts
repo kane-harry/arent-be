@@ -1,16 +1,15 @@
 import { IUser } from '@modules/user/user.interface'
-import { BuyNftDto, CreateNftDto, ImportNftDto, NftOnMarketDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
-import { NftImportLogModel, NftModel, NftOwnershipLogModel, NftSaleLogModel } from './nft.model'
-import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
+import { BidNftDto, CreateNftDto, ImportNftDto, NftOnMarketDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
+import { NftBidLogModel, NftImportLogModel, NftModel, NftOwnershipLogModel, NftSaleLogModel } from './nft.model'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
-import { INft, INftFilter, INftOwnershipLog, INftSaleLog } from '@modules/nft/nft.interface'
+import { INft, INftBidLog, INftFilter, INftOwnershipLog, INftSaleLog, ITopBid } from '@modules/nft/nft.interface'
 import BizException from '@exceptions/biz.exception'
 import { AccountErrors, AuthErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
-import { isAdmin, role, roleCan } from '@config/role'
+import { isAdmin, roleCan } from '@config/role'
 import UserService from '@modules/user/user.service'
-import { NftHistoryActions, NftStatus, MASTER_ACCOUNT_KEY, NftType, NFT_IMAGE_SIZES, NftOnwerShipType } from '@config/constants'
+import { MASTER_ACCOUNT_KEY, NFT_IMAGE_SIZES, NftHistoryActions, NftOnwerShipType, NftPriceType, NftStatus } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
@@ -20,13 +19,14 @@ import AccountService from '@modules/account/account.service'
 import { IAccount } from '@modules/account/account.interface'
 import { config } from '@config'
 import addToBuyProductQueue from '@modules/queues/nft_queue'
-import { roundUp } from '@utils/utility'
+import { generateUnixTimestamp } from '@utils/utility'
 import SettingService from '@modules/setting/setting.service'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import { ISendCoinDto } from '@modules/transaction/transaction.interface'
 import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
 import EmailService from '@modules/emaill/email.service'
+import sendSms from '@utils/sms'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
@@ -250,12 +250,30 @@ export default class NftService {
             throw new BizException(NftErrors.nft_is_not_approved_error, new ErrorContext('nft.service', 'onMarket', { key }))
         }
 
+        if (params.price_type === NftPriceType.Auction) {
+            if (params.auction_start > params.auction_end) {
+                throw new BizException(
+                    NftErrors.auction_nft_params_error,
+                    new ErrorContext('nft.service', 'onMarket', { key, auction_start: params.auction_start })
+                )
+            }
+            const auction_end = Number(params.auction_end)
+            const auction_start = Number(params.auction_start)
+            const currentTime = generateUnixTimestamp()
+            if (auction_end > 0 && auction_end < currentTime) {
+                throw new BizException(
+                    NftErrors.auction_nft_params_error,
+                    new ErrorContext('nft.service', 'onMarket', { key, auction_end: params.auction_end })
+                )
+            }
+            nft.set('auction_start', auction_start)
+            nft.set('auction_end', auction_end)
+        }
         if (params.price) {
             nft.set('price', params.price)
         }
+        nft.set('price_type', params.price_type)
         nft.set('on_market', true)
-
-        // TODO: AUCTION
 
         const postData = await nft.save()
         await new NftHistoryModel({
@@ -329,10 +347,9 @@ export default class NftService {
                 throw new BizException(NftErrors.item_not_on_market, new ErrorContext('nft.service', 'buyNft', { key }))
             }
 
-            // TODO : auction nft
-            // if (item.price_type === constants.product.price_type.auction) {
-            // throw new BizException(NftErrors.purchase_auction_nft_error, new ErrorContext('nft.service', 'buyNft', { key }))
-            // }
+            if (nft.price_type !== NftPriceType.Fixed) {
+                throw new BizException(NftErrors.purchase_auction_nft_error, new ErrorContext('nft.service', 'buyNft', { key }))
+            }
             const seller = await UserService.getBriefByKey(nft.owner_key)
             const buyer = await UserService.getBriefByKey(operator.key)
 
@@ -521,8 +538,144 @@ export default class NftService {
         }
     }
 
+    static async bidNft(key: string, params: BidNftDto, options: any) {
+        const operator = options.req.user
+        const session = await UserModel.startSession()
+        session.startTransaction()
+        try {
+            const nft = await NftModel.findOne({ key, removed: false }).exec()
+            if (!nft) {
+                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
+            if (nft.owner_key === operator.key) {
+                throw new BizException(
+                    NftErrors.product_buy_same_owner_error,
+                    new ErrorContext('nft.service', 'bidNft', { key, owner_key: nft.owner_key })
+                )
+            }
+            if (!nft.on_market) {
+                throw new BizException(NftErrors.item_not_on_market, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
+
+            if (nft.price_type !== NftPriceType.Auction) {
+                throw new BizException(NftErrors.purchase_auction_nft_error, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
+
+            const currentTimestamp = generateUnixTimestamp()
+            if (currentTimestamp > nft.auction_end) {
+                throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
+
+            const seller = await UserService.getBriefByKey(nft.owner_key)
+            const buyer = await UserService.getBriefByKey(options.req.user.key)
+
+            if (!seller || !buyer) {
+                throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
+
+            const buyerAccount: IAccount | null = await AccountService.getAccountByUserKeyAndSymbol(buyer.key, nft.currency)
+
+            if (!buyerAccount) {
+                throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
+
+            const buyerBalance = parsePrimeAmount(Number(buyerAccount.amount) - Number(buyerAccount.amount_locked))
+            const paymentOrderValue = parsePrimeAmount(nft.price)
+
+            if (buyerBalance.lt(paymentOrderValue)) {
+                throw new BizException(NftErrors.purchase_insufficient_funds_error, new ErrorContext('nft.service', 'bidNft', { price: nft.price }))
+            }
+
+            if (nft.top_bid) {
+                if (nft.top_bid.user_key === buyer.key) {
+                    throw new BizException(NftErrors.nft_auction_highest_price_error, new ErrorContext('nft.service', 'bidNft', { price: nft.price }))
+                }
+
+                // unlock last bidder's amount
+                const preBuyerKey = nft.top_bid.user_key
+                const preCurrency = nft.top_bid.currency
+                const preBidPrice = nft.top_bid.price
+                const preBuyerAccount = await AccountService.getAccountByUserKeyAndSymbol(preBuyerKey, preCurrency)
+
+                await AccountService.unlockAmount(
+                    preBuyerAccount.key,
+                    preBidPrice,
+                    operator,
+                    `Bid Unlock - item: ${nft.key}, unlock amount: ${nft.top_bid.price}`
+                )
+
+                // send notifications ， check out in xcur
+                const lastBid = await NftService.getLastBidByNftAndUser(preBuyerKey, nft.key)
+                // @ts-ignore
+                if (!lastBid || currentTimestamp - 60 > lastBid.created.getTime() / 1000) {
+                    const preBuyer = await UserModel.findOne({ key: preBuyerKey, removed: false })
+                    if (preBuyer) {
+                        if (preBuyer.email) {
+                            EmailService.sendOutbidNotification({ address: preBuyer.email, nft })
+                        }
+                        // TODO: App notification
+                        // if (preBuyer.phone) {
+                        //     sendSms('Out Bid', 'You have been out bid by another user.', preBuyer.phone)
+                        // }
+                    }
+                }
+            }
+
+            const topBid = {
+                user_key: buyer.key,
+                avatar: buyer.avatar,
+                chat_name: buyer.chat_name,
+                price: parseFloat(params.amount),
+                secondary_market: nft.creator_key !== nft.owner_key,
+                currency: nft.currency,
+                address: buyerAccount.address
+            }
+
+            await AccountService.lockAmount(buyerAccount.key, params.amount, operator, `Bid Lock - item: ${nft.key} , lock amount: ${params.amount}`)
+
+            nft.set('top_bid', topBid, Object) // update top bid
+            nft.set('price', params.amount, Number) // update nft price
+
+            // extend auction
+            if (nft.auction_end - currentTimestamp <= 5 * 60) {
+                const extend_seconds = 5 * 60
+                const endTimestamp = nft.auction_end + extend_seconds
+                nft.set('auction_end', endTimestamp, Number)
+            }
+
+            await nft.save()
+
+            await NftService.addNftBidLog({
+                nft_key: nft.key,
+                collection_key: nft.collection_key,
+                price: Number(params.amount),
+                currency: nft.currency,
+                user: {
+                    key: buyer.key,
+                    chat_name: buyer.chat_name,
+                    avatar: buyer.avatar
+                },
+                secondary_market: nft.creator_key !== nft.owner_key
+            })
+
+            session.endSession()
+            return nft
+        } catch (error) {
+            await session.abortTransaction()
+            session.endSession()
+            throw error
+        }
+    }
+
     static async addNftSaleLog(params: INftSaleLog) {
         const model = new NftSaleLogModel({
+            ...params
+        })
+        return await model.save()
+    }
+
+    static async addNftBidLog(params: INftBidLog) {
+        const model = new NftBidLogModel({
             ...params
         })
         return await model.save()
@@ -545,5 +698,18 @@ export default class NftService {
             const context = { address: seller.email, txn: seller_txn }
             EmailService.sendSaleProductSuccessNotification(context)
         }
+    }
+
+    static async getLastBidByNftAndUser(user_key: string, nft_key: any) {
+        const data = await NftBidLogModel.find({ user_key, nft_key }, { projection: { _id: 0 } }).sort({ created_at: -1 })
+        if (data && data.length > 0) {
+            return data[0]
+        }
+        return null
+    }
+
+    static async getNftBids(nft_key: string) {
+        const bids = await NftBidLogModel.find({ nft_key }, { projection: { _id: 0 } }).sort({ _id: -1 })
+        return bids
     }
 }
