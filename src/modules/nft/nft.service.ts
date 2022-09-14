@@ -555,12 +555,12 @@ export default class NftService {
             }
 
             if (nft.price_type !== NftPriceType.Auction) {
-                throw new BizException(NftErrors.purchase_auction_nft_error, new ErrorContext('nft.service', 'buyNft', { key }))
+                throw new BizException(NftErrors.purchase_auction_nft_error, new ErrorContext('nft.service', 'bidNft', { key }))
             }
 
             const currentTimestamp = generateUnixTimestamp()
             if (currentTimestamp > nft.auction_end) {
-                throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'buyNft', { key }))
+                throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'bidNft', { key }))
             }
 
             const seller = await UserService.getBriefByKey(nft.owner_key)
