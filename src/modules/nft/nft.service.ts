@@ -586,16 +586,7 @@ export default class NftService {
 
             if (nft.top_bid) {
                 if (nft.top_bid.user_key === buyer.key) {
-                    throw new BizException(
-                        NftErrors.purchase_insufficient_funds_error,
-                        new ErrorContext('nft.service', 'bidNft', { price: nft.price })
-                    )
-                }
-                if (nft.top_bid.price >= params.amount) {
-                    throw new BizException(
-                        NftErrors.purchase_insufficient_funds_error,
-                        new ErrorContext('nft.service', 'bidNft', { key: nft.key, amount: params.amount })
-                    )
+                    throw new BizException(NftErrors.nft_auction_highest_price_error, new ErrorContext('nft.service', 'bidNft', { price: nft.price }))
                 }
 
                 // unlock last bidder's amount
@@ -612,18 +603,18 @@ export default class NftService {
                 )
 
                 // send notifications ， check out in xcur
-                const currentTimestamp = generateUnixTimestamp()
                 const lastBid = await NftService.getLastBidByNftAndUser(preBuyerKey, nft.key)
                 // @ts-ignore
-                if (!lastBid || currentTimestamp > lastBid.created.getTime() / 1000) {
+                if (!lastBid || currentTimestamp - 60 > lastBid.created.getTime() / 1000) {
                     const preBuyer = await UserModel.findOne({ key: preBuyerKey, removed: false })
                     if (preBuyer) {
                         if (preBuyer.email) {
                             EmailService.sendOutbidNotification({ address: preBuyer.email, nft })
                         }
-                        if (preBuyer.phone) {
-                            sendSms('Out Bid', 'You have been out bid by another user.', preBuyer.phone)
-                        }
+                        // TODO: App notification
+                        // if (preBuyer.phone) {
+                        //     sendSms('Out Bid', 'You have been out bid by another user.', preBuyer.phone)
+                        // }
                     }
                 }
             }
