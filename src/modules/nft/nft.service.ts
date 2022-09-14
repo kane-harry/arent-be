@@ -590,6 +590,12 @@ export default class NftService {
                         new ErrorContext('nft.service', 'bidNft', { price: nft.price })
                     )
                 }
+                if (nft.top_bid.price >= params.amount) {
+                    throw new BizException(
+                        NftErrors.purchase_insufficient_funds_error,
+                        new ErrorContext('nft.service', 'bidNft', { key: nft.key, amount: params.amount })
+                    )
+                }
 
                 // unlock last bidder's amount
                 const preBuyerKey = nft.top_bid.user_key
