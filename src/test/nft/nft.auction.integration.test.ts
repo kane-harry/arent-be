@@ -309,8 +309,11 @@ describe('NFT', () => {
         expect(data?.royalty_txn).exist
         expect(data?.seller_txn).exist
 
-        const account = await AccountService.getAccountByUserKeyAndSymbol(secondBidderShareData.user.key, createNftData.currency)
-        expect(account.amount_locked.toString()).equal('0')
+        const firstBidderAccount = await AccountService.getAccountByUserKeyAndSymbol(firstBidderShareData.user.key, createNftData.currency)
+        expect(firstBidderAccount.amount_locked.toString()).equal('0')
+
+        const secondBidderAccount = await AccountService.getAccountByUserKeyAndSymbol(secondBidderShareData.user.key, createNftData.currency)
+        expect(secondBidderAccount.amount_locked.toString()).equal('0')
 
         const nft2 = await NftModel.findOne({ key: shareData.nfts[0].key })
         expect(nft2.owner_key).equal(secondBidderShareData.user.key)
