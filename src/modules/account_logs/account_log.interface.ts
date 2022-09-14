@@ -9,4 +9,5 @@ export interface IAccountLog extends IBaseModel {
         key: string
         email: string
     }
+    note: string
 }

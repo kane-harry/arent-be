@@ -14,7 +14,7 @@ import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections, IAcco
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
 import { RateModel } from '@modules/exchange_rate/rate.model'
 import { roundUp } from '@utils/utility'
-import AccountLogsService from '@modules/account_logs/admin_log.service'
+import AccountLogsService from '@modules/account_logs/account_log.service'
 
 export default class AccountService {
     private static async initAccounts(userKey: string, accountNameSuffix = 'Account') {
@@ -266,7 +266,7 @@ export default class AccountService {
         return await this.bindingAccountBalance(account)
     }
 
-    static async lockAmount(key: string, amount: any, operator: IUser) {
+    static async lockAmount(key: string, amount: any, operator: IUser, note = '') {
         const data = await AccountModel.findOneAndUpdate(
             { key: key },
             {
@@ -278,13 +278,14 @@ export default class AccountService {
         await AccountLogsService.createAccountLog({
             type: IAccountLogType.Lock,
             amount: amount,
-            operator: { key: operator.key, email: operator.email }
+            operator: { key: operator.key, email: operator.email },
+            note: note ?? `Lock, lock amount: ${amount}`
         })
 
         return data
     }
 
-    static async unlockAmount(key: string, amount: any, operator: IUser) {
+    static async unlockAmount(key: string, amount: any, operator: IUser, note: string) {
         const data = await AccountModel.findOneAndUpdate(
             { key: key },
             {
@@ -296,7 +297,8 @@ export default class AccountService {
         await AccountLogsService.createAccountLog({
             type: IAccountLogType.UnLock,
             amount: amount,
-            operator: { key: operator.key, email: operator.email }
+            operator: { key: operator.key, email: operator.email },
+            note: note ?? `UnLock, unlock amount: ${amount}`
         })
 
         return data

@@ -88,7 +88,7 @@ export default class NftScheduler implements IScheduler {
             if (buyerBalance.lt(paymentOrderValue)) {
                 throw new BizException(NftErrors.purchase_insufficient_funds_error, new ErrorContext('nft.service', 'buyNft', { price: nft.price }))
             }
-            await AccountService.unlockAmount(buyerAccount.key, topBid.price, buyer)
+            await AccountService.unlockAmount(buyerAccount.key, topBid.price, buyer, `Bid UnLock - item: ${nft.key} , unlock amount: ${topBid.price}`)
             // const transferFee = Number(setting.prime_transfer_fee || 0)
             const txnDetails = {
                 type: 'PRODUCT',

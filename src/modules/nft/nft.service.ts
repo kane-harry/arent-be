@@ -597,8 +597,12 @@ export default class NftService {
                 const preBidPrice = nft.top_bid.price
                 const preBuyerAccount = await AccountService.getAccountByUserKeyAndSymbol(preBuyerKey, preCurrency)
 
-                // TODO: add account unlock log> note: Bid Unlock - item: ${productkey}, unlock amount: ${lastAmount}
-                await AccountService.unlockAmount(preBuyerAccount.key, preBidPrice, operator)
+                await AccountService.unlockAmount(
+                    preBuyerAccount.key,
+                    preBidPrice,
+                    operator,
+                    `Bid Unlock - item: ${nft.key}, unlock amount: ${nft.top_bid.price}`
+                )
 
                 // send notifications ， check out in xcur
             }
@@ -613,8 +617,7 @@ export default class NftService {
                 address: buyerAccount.address
             }
 
-            await AccountService.lockAmount(buyerAccount.key, params.amount, operator)
-            // TODO: add account unlock log> note: Bid Lock - item: ${productkey} , lock amount: ${requiredXcurAmount}
+            await AccountService.lockAmount(buyerAccount.key, params.amount, operator, `Bid Lock - item: ${nft.key} , lock amount: ${params.amount}`)
 
             nft.set('top_bid', topBid, Object) // update top bid
             nft.set('price', params.amount, Number) // update nft price

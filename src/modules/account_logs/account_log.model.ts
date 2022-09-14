@@ -1,8 +1,8 @@
 import { config } from '@config'
 import { randomBytes } from 'crypto'
-import { IAccountLog } from '@modules/account_logs/admin_log.interface'
 import { IAccountLogType } from '@config/constants'
 import { Schema, Types, model } from 'mongoose'
+import { IAccountLog } from '@modules/account_logs/account_log.interface'
 
 const AccountLogsSchema = new Schema<IAccountLog>(
     {
@@ -20,7 +20,8 @@ const AccountLogsSchema = new Schema<IAccountLog>(
             required: true
         },
         type: { type: String, enum: IAccountLogType },
-        amount: { type: Types.Decimal128, default: new Types.Decimal128('0') }
+        amount: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        note: String
     },
     {
         timestamps: {
