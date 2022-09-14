@@ -714,4 +714,9 @@ export default class NftService {
         }
         return null
     }
+
+    static async getBidNft(nft_key: string) {
+        const bids = await NftBidLogModel.find({ nft_key }, { projection: { _id: 0 } }).sort({ _id: -1 })
+        return bids
+    }
 }
