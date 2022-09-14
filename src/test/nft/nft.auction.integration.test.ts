@@ -103,8 +103,8 @@ describe('NFT', () => {
 
     it('InitDataForUser', async () => {
         await initDataForUser(shareData)
-        await initDataForUser(firstBidderShareData, { email: 'abc-test-second@gmail.com' })
-        await initDataForUser(secondBidderShareData, { email: 'abc-test-third@gmail.com' })
+        await initDataForUser(firstBidderShareData, { email: 'abc-test-second@gmail.com', phone: '+84988085978' })
+        await initDataForUser(secondBidderShareData, { email: 'abc-test-third@gmail.com', phone: '+84988085979' })
     }).timeout(10000)
 
     it('InitDataForAdmin', async () => {
@@ -118,13 +118,23 @@ describe('NFT', () => {
     }).timeout(10000)
 
     it('GetMasterAccounts', async () => {
-        const accounts = await AccountModel.find({ user_key: AccountType.Master, removed: false })
+        const accounts = await AccountModel.find({ user_key: AccountType.Master, removed: false, symbol: createNftData.currency })
         expect(accounts.length).gt(0)
-        adminShareData.masterAccounts = accounts.filter(item => item.symbol === createNftData.currency)
+        adminShareData.masterAccounts = accounts
 
-        const accounts2 = await AccountModel.find({ user_key: adminShareData.user.key, removed: false })
+        const accounts2 = await AccountModel.find({ user_key: adminShareData.user.key, removed: false, symbol: createNftData.currency })
         expect(accounts2.length).gt(0)
-        adminShareData.accounts = accounts2.filter(item => item.symbol === createNftData.currency)
+        adminShareData.accounts = accounts2
+    }).timeout(10000)
+
+    it('Get Bidder Accounts', async () => {
+        const accounts = await AccountModel.find({ user_key: firstBidderShareData.user.key, removed: false, symbol: createNftData.currency })
+        expect(accounts.length).gt(0)
+        firstBidderShareData.accounts = accounts
+
+        const accounts2 = await AccountModel.find({ user_key: secondBidderShareData.user.key, removed: false, symbol: createNftData.currency })
+        expect(accounts2.length).gt(0)
+        adminShareData.accounts = accounts2
     }).timeout(10000)
 
     it('MintMasterAccount', async () => {
