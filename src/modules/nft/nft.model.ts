@@ -194,14 +194,10 @@ const nftBidLogSchema = new Schema<INftBidLog>(
             }
         },
         nft_key: String,
-        price: String,
-        user_key: String,
-        avatar: Object,
-        note: String,
-        email: String,
-        first_name: String,
-        last_name: String,
-        lock_tnx: String,
+        collection_key: String,
+        currency: String,
+        price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        user: Object,
         secondary_market: Boolean,
         removed: { type: Boolean, default: false }
     },

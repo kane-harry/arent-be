@@ -52,7 +52,8 @@ class NftController implements IController {
         this.router.put(`${this.path}/:key/market/on`, requireAuth, validationMiddleware(NftOnMarketDto), asyncHandler(this.onMarket))
         this.router.put(`${this.path}/:key/market/off`, requireAuth, asyncHandler(this.offMarket))
         this.router.post(`${this.path}/:key/buy`, requireAuth, asyncHandler(this.buyNft))
-        this.router.post(`${this.path}/:key/bid`, requireAuth, asyncHandler(this.bidNft))
+        this.router.post(`${this.path}/:key/bids`, requireAuth, asyncHandler(this.bidNft))
+        this.router.get(`${this.path}/:key/bids`, asyncHandler(this.getBidNft))
     }
 
     private async importNft(req: Request, res: Response) {
@@ -166,6 +167,12 @@ class NftController implements IController {
         const { key } = req.params
         const params: BidNftDto = req.body
         const data = await NftService.bidNft(key, params, { req })
+        return res.json(data)
+    }
+
+    private getBidNft = async (req: AuthenticationRequest, res: Response) => {
+        const { key } = req.params
+        const data = await NftService.getBidNft(key)
         return res.json(data)
     }
 }

@@ -25,7 +25,7 @@ export default class NftScheduler implements IScheduler {
     }
 
     private async handleEndAuctions() {
-        const task = cron.schedule('* * * * *', async () => {
+        const task = cron.schedule('*/2 * * * *', async () => {
             const timestamp = generateUnixTimestamp() - 60
             const nfts = await NftModel.find(
                 { price_type: NftPriceType.Auction, status: NftStatus.Approved, on_market: true, auction_end: { $lte: timestamp } },

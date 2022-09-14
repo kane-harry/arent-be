@@ -258,7 +258,7 @@ describe('NFT', () => {
 
     it(`Owner NFT Bid NFT`, async () => {
         const res = await request(server.app)
-            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bid`)
+            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bids`)
             .set('Authorization', `Bearer ${shareData.token}`)
             .send(buyData)
         expect(res.status).equal(400)
@@ -266,7 +266,7 @@ describe('NFT', () => {
 
     it(`First Bidder Bid NFT`, async () => {
         const res = await request(server.app)
-            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bid`)
+            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bids`)
             .set('Authorization', `Bearer ${firstBidderShareData.token}`)
             .send(buyData)
         expect(res.status).equal(200)
@@ -281,7 +281,7 @@ describe('NFT', () => {
 
     it(`First Bidder Bid NFT again`, async () => {
         const res = await request(server.app)
-            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bid`)
+            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bids`)
             .set('Authorization', `Bearer ${firstBidderShareData.token}`)
             .send(buyData2)
         expect(res.status).equal(400)
@@ -289,7 +289,7 @@ describe('NFT', () => {
 
     it(`Second Bidder Bid NFT`, async () => {
         const res = await request(server.app)
-            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bid`)
+            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bids`)
             .set('Authorization', `Bearer ${secondBidderShareData.token}`)
             .send(buyData2)
         expect(res.status).equal(200)
@@ -300,6 +300,13 @@ describe('NFT', () => {
 
         const account = await AccountService.getAccountByUserKeyAndSymbol(secondBidderShareData.user.key, createNftData.currency)
         expect(account.amount_locked.toString()).equal(buyData2.amount.toString())
+    }).timeout(20000)
+
+    it(`Get Bids`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts/${shareData.nfts[0].key}/bids`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.length).gt(0)
     }).timeout(20000)
 
     it(`Check winner auction NFT, winner is second bidder`, async () => {
