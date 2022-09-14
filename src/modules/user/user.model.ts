@@ -6,6 +6,7 @@ import { escapeRegExp, kebabCase } from 'lodash'
 import moment from 'moment'
 import { Schema, model } from 'mongoose'
 import { IUser } from './user.interface'
+import { uniqueNamesGenerator, Config, names, NumberDictionary } from 'unique-names-generator'
 
 const userSchema = new Schema<IUser>(
     {
@@ -97,15 +98,18 @@ const _UserModel = model<IUser>(config.database.tables.users, userSchema)
 
 export default class UserModel extends _UserModel {
     public static async generateRandomChatName(name?: string) {
-        if (!name) {
-            name = generateRandomCode(4, 4, true)
+        const numberDictionary = NumberDictionary.generate({ min: 100, max: 999 })
+        const customConfig: Config = {
+            dictionaries: [names, numberDictionary],
+            length: 2,
+            style: 'lowerCase'
         }
-        let chatName = kebabCase(escapeRegExp(name).toLowerCase())
+        let chatName: string = uniqueNamesGenerator(customConfig)
         const filter = { chat_name: chatName }
         let referenceInDatabase = await this.findOne(filter).select('key chat_name').exec()
 
         while (referenceInDatabase != null) {
-            chatName = `${chatName}-${generateRandomCode(2, 4, true)}`
+            chatName = uniqueNamesGenerator(customConfig)
             filter.chat_name = chatName
             referenceInDatabase = await this.findOne(filter).select('key chat_name').exec()
         }

@@ -97,19 +97,18 @@ export default class AccountService {
     protected static async bindingAccountBalance(account: any) {
         const rateData = await RateModel.findOne({ symbol: `${account.symbol}-USDT` }).exec()
         const rate = rateData ? rateData.rate : 1
-        let nonce
-        let amount = account.amount
+        const amount = account.amount
         if (account?.ext_type === AccountExtType.Prime) {
             const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
             if (wallet) {
-                nonce = wallet.nonce
-                amount = wallet.amount
+                account.nonce = wallet.nonce
+                account.amount = wallet.amount
             }
         }
         const amount_usd = roundUp(amount * rate, 8)
         const amount_locked_usd = roundUp(account.amount_locked * rate, 8)
 
-        return { ...account.toJSON(), amount, nonce, amount_usd, amount_locked_usd }
+        return { ...account.toJSON(), amount_usd, amount_locked_usd }
     }
 
     protected static mapConditions(fields: { [key: string]: any }) {
