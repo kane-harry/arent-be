@@ -1,7 +1,7 @@
 import { config } from '@config'
 import { randomBytes } from 'crypto'
-import { Schema, Types, model } from 'mongoose'
-import { INft, INftBidLog, INftImportLog, INftOwnershipLog, INftSaleLog } from './nft.interface'
+import { model, Schema, Types } from 'mongoose'
+import { INft, INftBidLog, INftImportLog, INftOfferLog, INftOwnershipLog, INftSaleLog, INftOffer } from './nft.interface'
 
 const nftSchema = new Schema<INft>(
     {
@@ -221,4 +221,45 @@ const nftBidLogSchema = new Schema<INftBidLog>(
 
 const NftBidLogModel = model<INftBidLog>('nft_bid_logs', nftBidLogSchema)
 
-export { NftModel, NftImportLogModel, NftOwnershipLogModel, NftSaleLogModel, NftBidLogModel }
+const nftOfferSchema = new Schema<INftOffer>(
+    {
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(8).toString('hex')
+            }
+        },
+        status: String,
+        user_key: String,
+        nft_key: String,
+        collection_key: String,
+        currency: String,
+        price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        user: Object,
+        secondary_market: Boolean,
+        removed: { type: Boolean, default: false }
+    },
+    {
+        toJSON: {
+            virtuals: true,
+            getters: true,
+            transform: (doc, ret) => {
+                delete ret._id
+                ret.price = parseFloat(ret.price.toString())
+                return ret
+            }
+        },
+        timestamps: {
+            createdAt: 'created',
+            updatedAt: 'modified'
+        },
+        versionKey: 'version'
+    }
+)
+
+const NftOfferModel = model<INftOffer>('nft_offers', nftOfferSchema)
+
+export { NftModel, NftImportLogModel, NftOwnershipLogModel, NftSaleLogModel, NftBidLogModel, NftOfferModel }

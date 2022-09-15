@@ -1,8 +1,15 @@
 // @ts-nocheck
-import { Router, Request, Response } from 'express'
+import { Request, Response, Router } from 'express'
 import asyncHandler from '@utils/asyncHandler'
 import IController from '@interfaces/controller.interface'
 import NftService from './nft.service'
+import { requireAuth } from '@utils/authCheck'
+import validationMiddleware from '@middlewares/validation.middleware'
+import { IUser } from '@modules/user/user.interface'
+import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
+import { INftFilter } from '@modules/nft/nft.interface'
+import { requireAdmin } from '@config/role'
+import Multer from 'multer'
 import {
     BulkDeleteNftDto,
     BulkUpdateNftStatusDto,
@@ -12,21 +19,9 @@ import {
     UpdateNftDto,
     UpdateNftStatusDto,
     NftOnMarketDto,
-    BidNftDto
+    BidNftDto,
+    MakeOfferDto
 } from './nft.dto'
-import { requireAuth } from '@utils/authCheck'
-import validationMiddleware from '@middlewares/validation.middleware'
-import { IUser } from '@modules/user/user.interface'
-import { handleFiles } from '@middlewares/files.middleware'
-import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
-import { INftFilter } from '@modules/nft/nft.interface'
-import { requireAdmin } from '@config/role'
-import { NFT_IMAGE_SIZES } from '@config/constants'
-import Multer from 'multer'
-import UserModel from '@modules/user/user.model'
-import TransactionService from '@modules/transaction/transaction.service'
-import { config } from '@config'
-import addToBuyProductQueue from '@modules/queues/nft_queue'
 
 const upload = Multer()
 
@@ -54,6 +49,11 @@ class NftController implements IController {
         this.router.post(`${this.path}/:key/buy`, requireAuth, asyncHandler(this.buyNft))
         this.router.post(`${this.path}/:key/bids`, requireAuth, asyncHandler(this.bidNft))
         this.router.get(`${this.path}/:key/bids`, asyncHandler(this.getNftBids))
+        this.router.post(`${this.path}/:key/offers`, requireAuth, asyncHandler(this.makeOffers))
+        this.router.get(`${this.path}/:key/offers`, asyncHandler(this.getOffers))
+        this.router.post(`${this.path}/offers/:key/accept`, requireAuth, asyncHandler(this.acceptOffers))
+        this.router.post(`${this.path}/offers/:key/reject`, requireAuth, asyncHandler(this.rejectOffers))
+        this.router.post(`${this.path}/offers/:key/cancel`, requireAuth, asyncHandler(this.cancelOffers))
     }
 
     private async importNft(req: Request, res: Response) {
@@ -173,6 +173,37 @@ class NftController implements IController {
     private getNftBids = async (req: AuthenticationRequest, res: Response) => {
         const { key } = req.params
         const data = await NftService.getNftBids(key)
+        return res.json(data)
+    }
+
+    private makeOffers = async (req: AuthenticationRequest, res: Response) => {
+        const { key } = req.params
+        const params: MakeOfferDto = req.body
+        const data = await NftService.makeOffers(key, params, { req })
+        return res.json(data)
+    }
+
+    private getOffers = async (req: AuthenticationRequest, res: Response) => {
+        const { key } = req.params
+        const data = await NftService.getOffers(key)
+        return res.json(data)
+    }
+
+    private acceptOffers = async (req: AuthenticationRequest, res: Response) => {
+        const { key } = req.params
+        const data = await NftService.processAcceptOffer(key, req.user, req.agent, req.ip_address)
+        return res.json(data)
+    }
+
+    private rejectOffers = async (req: AuthenticationRequest, res: Response) => {
+        const { key } = req.params
+        const data = await NftService.rejectOffers(key, { req })
+        return res.json(data)
+    }
+
+    private cancelOffers = async (req: AuthenticationRequest, res: Response) => {
+        const { key } = req.params
+        const data = await NftService.cancelOffers(key, { req })
         return res.json(data)
     }
 }

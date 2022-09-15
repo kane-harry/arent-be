@@ -161,3 +161,14 @@ export class BidNftDto {
     @IsNotEmpty()
     public amount: string
 }
+
+export class MakeOfferDto {
+    @IsNotEmpty()
+    public amount: string
+
+    @IsNotEmpty()
+    public symbol: string
+
+    @IsOptional()
+    public notes: string
+}
