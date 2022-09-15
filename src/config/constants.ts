@@ -161,3 +161,10 @@ export enum IAccountLogType {
     Lock = 'lock',
     UnLock = 'unlock'
 }
+
+export enum OfferStatusType {
+    Pending = 'pending',
+    Cancel = 'cancel',
+    Accept = 'accept',
+    Rejected = 'rejected'
+}

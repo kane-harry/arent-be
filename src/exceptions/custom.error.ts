@@ -86,7 +86,11 @@ export const NftErrors = {
     purchase_insufficient_funds_error: { code: 7308, status: 400, message: 'Insufficient funds to complete transaction.' },
     auction_nft_params_error: { code: 7309, status: 400, message: 'Invalid params for auction' },
     nft_auction_highest_price_error: { code: 7310, status: 400, message: 'You are already the highest bidder' },
-    nft_auction_closed_error: { code: 7311, status: 400, message: 'Auction closed.' }
+    nft_auction_closed_error: { code: 7311, status: 400, message: 'Auction closed.' },
+    offer_not_exists_error: { code: 7312, status: 400, message: 'Offer not exist' },
+    offer_status_error: { code: 7313, status: 400, message: 'Offer status error' },
+    offer_permissions_error: { code: 7314, status: 400, message: 'Wrong permissions on offer' },
+    purchase_offer_nft_error: { code: 7315, status: 400, message: 'Can not offer nft' }
 }
 
 export const CollectionErrors = {

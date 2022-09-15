@@ -96,3 +96,24 @@ export interface ITopBid {
     address: string
     account_key: string
 }
+
+export interface INftOfferLog extends IBaseModel {
+    action: string
+    nft_key: string | undefined
+    collection_key: string | undefined
+    price: number | Types.Decimal128
+    currency: string | undefined
+    user: Object | null
+    secondary_market: boolean | undefined
+}
+
+export interface INftOffer extends IBaseModel {
+    status: string
+    user_key: string
+    nft_key: string | undefined
+    collection_key: string | undefined
+    price: number | Types.Decimal128
+    currency: string
+    user: Object | null
+    secondary_market: boolean | undefined
+}

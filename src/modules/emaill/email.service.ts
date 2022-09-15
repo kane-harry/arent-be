@@ -262,4 +262,22 @@ export default class EmailService {
             console.error('sendOutbidNotification => ' + err.message)
         })
     }
+
+    static async sendReceivedOfferNotification(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('product-offer-received.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
+                if (err) {
+                    reject(err)
+                }
+                // Send email
+                subject = `${config.emailNotification.emailParamClientName} - Offer received`
+                sendEmail(subject, String(text), String(html), _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendReceivedOfferNotification => ' + err.message)
+        })
+    }
 }

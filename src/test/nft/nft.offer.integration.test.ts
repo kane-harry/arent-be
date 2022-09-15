@@ -6,11 +6,9 @@ import { dbTest, validResponse } from '../init/db'
 import server from '@app/server'
 import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authenticate'
 import { CollectionModel } from '@modules/collection/collection.model'
-import { NftModel } from '@modules/nft/nft.model'
-import { AccountType, FeeMode, NftPriceType, NftStatus } from '@config/constants'
+import { NftModel, NftOfferModel } from '@modules/nft/nft.model'
+import { AccountType, FeeMode, NftPriceType, NftStatus, OfferStatusType } from '@config/constants'
 import AccountModel from '@modules/account/account.model'
-import { generateUnixTimestamp } from '@utils/utility'
-import NftScheduler from '@modules/jobs/nft.scheduler'
 import AccountService from '@modules/account/account.service'
 
 chai.use(chaiAsPromised)
@@ -25,7 +23,7 @@ let shareData = {
     collections: []
 }
 
-let firstBidderShareData = {
+let firstOfferShareData = {
     user: {
         email: ''
     },
@@ -36,7 +34,7 @@ let firstBidderShareData = {
     accounts: []
 }
 
-let secondBidderShareData = {
+let secondOfferShareData = {
     user: {
         email: ''
     },
@@ -83,12 +81,8 @@ const createCollectionData = {
     description: 'collection description',
     type: 'sports'
 }
-const time = generateUnixTimestamp()
 const sellData = {
     price: 1,
-    price_type: NftPriceType.Auction,
-    auction_end: time + 3000,
-    auction_start: time,
     description_append: 'Sell description'
 }
 const buyData = { symbol: createNftData.currency, amount: 1 }
@@ -105,8 +99,8 @@ describe('NFT', () => {
 
     it('InitDataForUser', async () => {
         await initDataForUser(shareData)
-        await initDataForUser(firstBidderShareData, { email: 'abc-test-second@gmail.com', phone: '+84988085978' })
-        await initDataForUser(secondBidderShareData, { email: 'abc-test-third@gmail.com', phone: '+84988085979' })
+        await initDataForUser(firstOfferShareData, { email: 'abc-test-second@gmail.com', phone: '+84988085978' })
+        await initDataForUser(secondOfferShareData, { email: 'abc-test-third@gmail.com', phone: '+84988085979' })
     }).timeout(10000)
 
     it('InitDataForAdmin', async () => {
@@ -129,14 +123,14 @@ describe('NFT', () => {
         adminShareData.accounts = accounts2
     }).timeout(10000)
 
-    it('Get Bidder Accounts', async () => {
-        const accounts = await AccountModel.find({ user_key: firstBidderShareData.user.key, removed: false, symbol: createNftData.currency })
+    it('Get Offer Accounts', async () => {
+        const accounts = await AccountModel.find({ user_key: firstOfferShareData.user.key, removed: false, symbol: createNftData.currency })
         expect(accounts.length).gt(0)
-        firstBidderShareData.accounts = accounts
+        firstOfferShareData.accounts = accounts
 
-        const accounts2 = await AccountModel.find({ user_key: secondBidderShareData.user.key, removed: false, symbol: createNftData.currency })
+        const accounts2 = await AccountModel.find({ user_key: secondOfferShareData.user.key, removed: false, symbol: createNftData.currency })
         expect(accounts2.length).gt(0)
-        secondBidderShareData.accounts = accounts2
+        secondOfferShareData.accounts = accounts2
     }).timeout(10000)
 
     it('MintMasterAccount', async () => {
@@ -153,9 +147,9 @@ describe('NFT', () => {
         validResponse(res1.body)
     }).timeout(10000)
 
-    it('Send Funds to first bidder', async () => {
+    it('Send Funds to first offers', async () => {
         const sender = adminShareData.masterAccounts[0]
-        const recipient = firstBidderShareData.accounts[0]
+        const recipient = firstOfferShareData.accounts[0]
         const amountSend = 10
         const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${adminShareData.token}`).send({
             symbol: createNftData.currency,
@@ -169,9 +163,9 @@ describe('NFT', () => {
         expect(res.status).equal(200)
     }).timeout(30000)
 
-    it('Send Funds to second bidder', async () => {
+    it('Send Funds to second offers', async () => {
         const sender = adminShareData.masterAccounts[0]
-        const recipient = secondBidderShareData.accounts[0]
+        const recipient = secondOfferShareData.accounts[0]
         const amountSend = 10
         const res = await request(server.app).post(`/api/v1/transactions`).set('Authorization', `Bearer ${adminShareData.token}`).send({
             symbol: createNftData.currency,
@@ -256,73 +250,106 @@ describe('NFT', () => {
         expect(nft.on_market).equal(true)
     }).timeout(20000)
 
-    it(`Owner NFT Bid NFT`, async () => {
+    it(`Owner NFT offer NFT`, async () => {
         const res = await request(server.app)
-            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bids`)
+            .post(`/api/v1/nfts/${shareData.nfts[0].key}/offers`)
             .set('Authorization', `Bearer ${shareData.token}`)
             .send(buyData)
         expect(res.status).equal(400)
     }).timeout(20000)
 
-    it(`First Bidder Bid NFT`, async () => {
+    it(`First offer NFT`, async () => {
         const res = await request(server.app)
-            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bids`)
-            .set('Authorization', `Bearer ${firstBidderShareData.token}`)
+            .post(`/api/v1/nfts/${shareData.nfts[0].key}/offers`)
+            .set('Authorization', `Bearer ${firstOfferShareData.token}`)
             .send(buyData)
         expect(res.status).equal(200)
         validResponse(res.body)
-        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.top_bid.user_key).equal(firstBidderShareData.user.key)
-        expect(nft.top_bid.price).equal(buyData.amount)
 
-        const account = await AccountService.getAccountByUserKeyAndSymbol(firstBidderShareData.user.key, createNftData.currency)
+        const account = await AccountService.getAccountByUserKeyAndSymbol(firstOfferShareData.user.key, createNftData.currency)
         expect(account.amount_locked.toString()).equal(buyData.amount.toString())
     }).timeout(20000)
 
-    it(`First Bidder Bid NFT again`, async () => {
+    it(`First offer NFT again`, async () => {
         const res = await request(server.app)
-            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bids`)
-            .set('Authorization', `Bearer ${firstBidderShareData.token}`)
+            .post(`/api/v1/nfts/${shareData.nfts[0].key}/offers`)
+            .set('Authorization', `Bearer ${firstOfferShareData.token}`)
             .send(buyData2)
         expect(res.status).equal(400)
     }).timeout(20000)
 
-    it(`Second Bidder Bid NFT`, async () => {
+    it(`Second offer NFT`, async () => {
         const res = await request(server.app)
-            .post(`/api/v1/nfts/${shareData.nfts[0].key}/bids`)
-            .set('Authorization', `Bearer ${secondBidderShareData.token}`)
+            .post(`/api/v1/nfts/${shareData.nfts[0].key}/offers`)
+            .set('Authorization', `Bearer ${secondOfferShareData.token}`)
             .send(buyData2)
         expect(res.status).equal(200)
         validResponse(res.body)
-        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.top_bid.user_key).equal(secondBidderShareData.user.key)
-        expect(nft.top_bid.price).equal(buyData2.amount)
 
-        const account = await AccountService.getAccountByUserKeyAndSymbol(secondBidderShareData.user.key, createNftData.currency)
+        const account = await AccountService.getAccountByUserKeyAndSymbol(secondOfferShareData.user.key, createNftData.currency)
         expect(account.amount_locked.toString()).equal(buyData2.amount.toString())
     }).timeout(20000)
 
-    it(`Get Bids`, async () => {
-        const res = await request(server.app).get(`/api/v1/nfts/${shareData.nfts[0].key}/bids`).send()
+    it(`Get Offers`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts/${shareData.nfts[0].key}/offers`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.length).gt(0)
+        shareData.offers = res.body
     }).timeout(20000)
 
-    it(`Check winner auction NFT, winner is second bidder`, async () => {
-        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        const data = await NftScheduler.checkWinnerBidNft(nft)
-        expect(data?.buyer_txn).exist
-        expect(data?.royalty_txn).exist
-        expect(data?.seller_txn).exist
+    it(`Reject first offer`, async () => {
+        const offer = shareData.offers[1]
+        const res = await request(server.app).post(`/api/v1/nfts/offers/${offer.key}/reject`).set('Authorization', `Bearer ${shareData.token}`).send()
+        expect(res.status).equal(200)
 
-        const firstBidderAccount = await AccountService.getAccountByUserKeyAndSymbol(firstBidderShareData.user.key, createNftData.currency)
-        expect(firstBidderAccount.amount_locked.toString()).equal('0')
+        const firstOfferAccount = await AccountService.getAccountByUserKeyAndSymbol(firstOfferShareData.user.key, createNftData.currency)
+        expect(firstOfferAccount.amount_locked.toString()).equal('0')
+    }).timeout(20000)
 
-        const secondBidderAccount = await AccountService.getAccountByUserKeyAndSymbol(secondBidderShareData.user.key, createNftData.currency)
-        expect(secondBidderAccount.amount_locked.toString()).equal('0')
+    it(`Accept second offer`, async () => {
+        const offer = shareData.offers[0]
+        const res = await request(server.app).post(`/api/v1/nfts/offers/${offer.key}/accept`).set('Authorization', `Bearer ${shareData.token}`).send()
+        expect(res.status).equal(200)
+
+        const secondOfferAccount = await AccountService.getAccountByUserKeyAndSymbol(secondOfferShareData.user.key, createNftData.currency)
+        expect(secondOfferAccount.amount_locked.toString()).equal('0')
 
         const nft2 = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft2.owner_key).equal(secondBidderShareData.user.key)
+        expect(nft2.owner_key).equal(secondOfferShareData.user.key)
+    }).timeout(20000)
+
+    it(`market/on NFT`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/nfts/${shareData.nfts[0].key}/market/on`)
+            .set('Authorization', `Bearer ${secondOfferShareData.token}`)
+            .send(sellData)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.on_market).equal(true)
+    }).timeout(20000)
+
+    it(`First offer NFT again`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts/${shareData.nfts[0].key}/offers`)
+            .set('Authorization', `Bearer ${firstOfferShareData.token}`)
+            .send(buyData2)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const account = await AccountService.getAccountByUserKeyAndSymbol(firstOfferShareData.user.key, createNftData.currency)
+        expect(account.amount_locked.toString()).equal(buyData2.amount.toString())
+    }).timeout(20000)
+
+    it(`Cancel First offer`, async () => {
+        const offers = await NftOfferModel.find({ status: OfferStatusType.Pending, user_key: firstOfferShareData.user.key })
+        const res = await request(server.app)
+            .post(`/api/v1/nfts/offers/${offers[0].key}/cancel`)
+            .set('Authorization', `Bearer ${firstOfferShareData.token}`)
+            .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const account = await AccountService.getAccountByUserKeyAndSymbol(firstOfferShareData.user.key, createNftData.currency)
+        expect(account.amount_locked.toString()).equal('0')
     }).timeout(20000)
 })
