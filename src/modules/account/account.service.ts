@@ -106,6 +106,8 @@ export default class AccountService {
                 account.amount = wallet.amount
                 amount = wallet.amount
             }
+        } else {
+            account.amount_usd = roundUp(account.amount * rate, 8)
         }
         const amount_usd = roundUp(amount * rate, 8)
         const amount_locked_usd = roundUp(account.amount_locked * rate, 8)
