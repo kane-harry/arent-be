@@ -1,34 +1,14 @@
-import asyncHandler from '@utils/asyncHandler'
-import { Router, Request, Response } from 'express'
-import IController from '@interfaces/controller.interface'
-import validationMiddleware from '@middlewares/validation.middleware'
+import { Request, Response } from 'express'
 import { CustomRequest } from '@middlewares/request.middleware'
 import TransactionService from './transaction.service'
 import { SendPrimeCoinsDto } from './transaction.dto'
 import { ITransactionFilter } from './transaction.interface'
 import { downloadResource } from '@utils/utility'
-import { requireAuth } from '@utils/authCheck'
 import UserModel from '@modules/user/user.model'
-import { requireAdmin } from '@config/role'
 import { IUser } from '@modules/user/user.interface'
 
-class TransactionController implements IController {
-    public path = '/transactions'
-    public router = Router()
-
-    constructor() {
-        this.initRoutes()
-    }
-
-    private initRoutes() {
-        this.router.post(`${this.path}`, requireAuth, validationMiddleware(SendPrimeCoinsDto), asyncHandler(this.sendPrimeCoins))
-        this.router.get(`${this.path}`, asyncHandler(this.queryTxns)) // get recently txns
-        this.router.get(`${this.path}/accounts/:key`, asyncHandler(this.queryTxnsByAccount))
-        this.router.get(`${this.path}/:key`, asyncHandler(this.getTxnDetails))
-        this.router.get(`${this.path}/export`, requireAuth, requireAdmin(), asyncHandler(this.exportTxnsByAccount))
-    }
-
-    private async sendPrimeCoins(req: Request, res: Response) {
+export default class TransactionController {
+    static async sendPrimeCoins(req: Request, res: Response) {
         const params: SendPrimeCoinsDto = req.body
         const operator = req.user as IUser
         const session = await UserModel.startSession()
@@ -45,27 +25,27 @@ class TransactionController implements IController {
         }
     }
 
-    private async queryTxns(req: CustomRequest, res: Response) {
+    static async queryTxns(req: CustomRequest, res: Response) {
         const filter = req.query as ITransactionFilter
         const data = await TransactionService.queryTxns(filter)
         return res.json(data)
     }
 
-    private async queryTxnsByAccount(req: CustomRequest, res: Response) {
+    static async queryTxnsByAccount(req: CustomRequest, res: Response) {
         const key: string = req.params.key
         const filter = req.query as ITransactionFilter
         const data = await TransactionService.queryTxnsByAccount(key, filter)
         return res.json(data)
     }
 
-    private async getTxnDetails(req: Request, res: Response) {
+    static async getTxnDetails(req: Request, res: Response) {
         const key: string = req.params.key
         const data = await TransactionService.getTxnDetails(key)
 
         return res.json(data)
     }
 
-    private async exportTxnsByAccount(req: CustomRequest, res: Response) {
+    static async exportTxnsByAccount(req: CustomRequest, res: Response) {
         const key: string = req.query.key
         const filter = req.query as ITransactionFilter
         const data = await TransactionService.queryTxnsByAccount(key, filter)
@@ -89,5 +69,3 @@ class TransactionController implements IController {
         return downloadResource(res, 'transactions.csv', fields, data.txns.items)
     }
 }
-
-export default TransactionController

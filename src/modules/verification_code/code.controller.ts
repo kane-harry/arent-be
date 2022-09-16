@@ -1,27 +1,12 @@
-import asyncHandler from '@utils/asyncHandler'
-import { Request, Response, Router } from 'express'
-import validationMiddleware from '@middlewares/validation.middleware'
-import IController from '@interfaces/controller.interface'
+import { Request, Response } from 'express'
 import { CreateCodeDto, VerifyCodeDto } from './code.dto'
 import VerificationCodeService from './code.service'
 import EmailService from '@modules/emaill/email.service'
 import { CodeType } from '@config/constants'
 import sendSms from '@utils/sms'
 
-export default class VerificationCodeController implements IController {
-    public path = '/verification'
-    public router = Router()
-
-    constructor() {
-        this.initializeRoutes()
-    }
-
-    private initializeRoutes() {
-        this.router.post(`${this.path}/code/generate`, validationMiddleware(CreateCodeDto), asyncHandler(this.generateCode))
-        this.router.post(`${this.path}/code/verify`, validationMiddleware(VerifyCodeDto), asyncHandler(this.verifyCode))
-    }
-
-    private generateCode = async (req: Request, res: Response) => {
+export default class VerificationCodeController {
+    static async generateCode(req: Request, res: Response) {
         const params: CreateCodeDto = req.body
 
         const deliveryMethod = (owner: any, code: string) => {
@@ -51,7 +36,7 @@ export default class VerificationCodeController implements IController {
         return res.send(data)
     }
 
-    private verifyCode = async (req: Request, res: Response) => {
+    static async verifyCode(req: Request, res: Response) {
         const params: VerifyCodeDto = req.body
         const data = await VerificationCodeService.verifyCode(params)
         return res.send(data)

@@ -1,19 +1,12 @@
 // @ts-nocheck
-import { Request, Response, Router } from 'express'
-import asyncHandler from '@utils/asyncHandler'
-import IController from '@interfaces/controller.interface'
+import { Request, Response } from 'express'
 import NftService from './nft.service'
-import { requireAuth } from '@utils/authCheck'
-import validationMiddleware from '@middlewares/validation.middleware'
 import { IUser } from '@modules/user/user.interface'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { INftFilter } from '@modules/nft/nft.interface'
-import { requireAdmin } from '@config/role'
-import Multer from 'multer'
 import {
     BulkDeleteNftDto,
     BulkUpdateNftStatusDto,
-    BuyNftDto,
     CreateNftDto,
     ImportNftDto,
     UpdateNftDto,
@@ -23,47 +16,15 @@ import {
     MakeOfferDto
 } from './nft.dto'
 
-const upload = Multer()
-
-class NftController implements IController {
-    public path = '/nfts'
-    public router = Router()
-
-    constructor() {
-        this.initRoutes()
-    }
-
-    private initRoutes() {
-        this.router.post(`${this.path}`, requireAuth, upload.any(), validationMiddleware(CreateNftDto), asyncHandler(this.createNft))
-        this.router.post(`${this.path}/external/import`, requireAuth, validationMiddleware(ImportNftDto), asyncHandler(this.importNft))
-        this.router.get(`${this.path}/`, asyncHandler(this.queryNFTs))
-        this.router.get(`${this.path}/users/:key`, asyncHandler(this.queryMyNFTs))
-        this.router.get(`${this.path}/:key`, asyncHandler(this.getNftDetail))
-        this.router.put(`${this.path}/:key`, requireAuth, asyncHandler(this.updateNft))
-        this.router.put(`${this.path}/:key/status`, requireAuth, requireAdmin(), asyncHandler(this.updateNftStatus))
-        this.router.post(`${this.path}/status`, requireAuth, requireAdmin(), asyncHandler(this.bulkUpdateNftStatus))
-        this.router.delete(`${this.path}/:key`, requireAuth, asyncHandler(this.deleteNft))
-        this.router.delete(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(this.bulkDeleteNft))
-        this.router.put(`${this.path}/:key/market/on`, requireAuth, validationMiddleware(NftOnMarketDto), asyncHandler(this.onMarket))
-        this.router.put(`${this.path}/:key/market/off`, requireAuth, asyncHandler(this.offMarket))
-        this.router.post(`${this.path}/:key/buy`, requireAuth, asyncHandler(this.buyNft))
-        this.router.post(`${this.path}/:key/bids`, requireAuth, asyncHandler(this.bidNft))
-        this.router.get(`${this.path}/:key/bids`, asyncHandler(this.getNftBids))
-        this.router.post(`${this.path}/:key/offers`, requireAuth, asyncHandler(this.makeOffers))
-        this.router.get(`${this.path}/:key/offers`, asyncHandler(this.getOffers))
-        this.router.post(`${this.path}/offers/:key/accept`, requireAuth, asyncHandler(this.acceptOffers))
-        this.router.post(`${this.path}/offers/:key/reject`, requireAuth, asyncHandler(this.rejectOffers))
-        this.router.post(`${this.path}/offers/:key/cancel`, requireAuth, asyncHandler(this.cancelOffers))
-    }
-
-    private async importNft(req: Request, res: Response) {
+export default class NftController {
+    static async importNft(req: Request, res: Response) {
         const payload: ImportNftDto = req.body // should be an arrary since we support bulk import
         const operator = req.user as IUser
         const data = await NftService.importNft(payload, operator)
         return res.send(data)
     }
 
-    private createNft = async (req: AuthenticationRequest, res: Response) => {
+    static async createNft(req: AuthenticationRequest, res: Response) {
         const createNftDto: CreateNftDto = req.body
         createNftDto.attributes = createNftDto.attributes && createNftDto.attributes.length ? JSON.parse(createNftDto.attributes) : []
         createNftDto.meta_data = createNftDto.meta_data && createNftDto.meta_data.length ? JSON.parse(createNftDto.meta_data) : []
@@ -72,13 +33,13 @@ class NftController implements IController {
         return res.json(nft)
     }
 
-    private async queryNFTs(req: CustomRequest, res: Response) {
+    static async queryNFTs(req: CustomRequest, res: Response) {
         const filter = req.query as INftFilter
         const data = await NftService.queryNfts(filter)
         return res.json(data)
     }
 
-    private async queryMyNFTs(req: CustomRequest, res: Response) {
+    static async queryMyNFTs(req: CustomRequest, res: Response) {
         const { key } = req.params
         const filter = req.query as INftFilter
         filter.owner_key = key
@@ -86,13 +47,13 @@ class NftController implements IController {
         return res.json(data)
     }
 
-    private async getNftDetail(req: CustomRequest, res: Response) {
+    static async getNftDetail(req: CustomRequest, res: Response) {
         const { key } = req.params
         const data = await NftService.getNftDetail(key)
         return res.json(data)
     }
 
-    private async updateNft(req: CustomRequest, res: Response) {
+    static async updateNft(req: CustomRequest, res: Response) {
         const { key } = req.params
         const updateNftDto: UpdateNftDto = req.body
         updateNftDto.attributes = updateNftDto.attributes && updateNftDto.attributes.length ? JSON.parse(updateNftDto.attributes) : null
@@ -101,14 +62,14 @@ class NftController implements IController {
         return res.json(data)
     }
 
-    private async updateNftStatus(req: CustomRequest, res: Response) {
+    static async updateNftStatus(req: CustomRequest, res: Response) {
         const { key } = req.params
         const updateNftDto: UpdateNftStatusDto = req.body
         const data = await NftService.updateNftStatus(key, updateNftDto, req.user, { req })
         return res.json(data)
     }
 
-    private async bulkUpdateNftStatus(req: CustomRequest, res: Response) {
+    static async bulkUpdateNftStatus(req: CustomRequest, res: Response) {
         const updateNftDto: BulkUpdateNftStatusDto = req.body
         const { keys, status } = updateNftDto
         const data = []
@@ -123,13 +84,13 @@ class NftController implements IController {
         return res.json(data)
     }
 
-    private async deleteNft(req: CustomRequest, res: Response) {
+    static async deleteNft(req: CustomRequest, res: Response) {
         const { key } = req.params
         const nft = await NftService.deleteNft(key, req.user, { req })
         return res.json(nft)
     }
 
-    private async bulkDeleteNft(req: CustomRequest, res: Response) {
+    static async bulkDeleteNft(req: CustomRequest, res: Response) {
         const deleteNftDto: BulkDeleteNftDto = req.body
         const { keys } = deleteNftDto
         const data = []
@@ -144,68 +105,66 @@ class NftController implements IController {
         return res.json(data)
     }
 
-    private onMarket = async (req: AuthenticationRequest, res: Response) => {
+    static async onMarket(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
         const params: NftOnMarketDto = req.body
         const data = await NftService.onMarket(key, params, { req })
         return res.json(data)
     }
 
-    private offMarket = async (req: AuthenticationRequest, res: Response) => {
+    static async offMarket(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
         const data = await NftService.offMarket(key, { req })
         return res.json(data)
     }
 
-    private buyNft = async (req: AuthenticationRequest, res: Response) => {
+    static async buyNft(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
         const data = await NftService.processPurchase(key, req.user, req.agent, req.ip_address)
         return res.json(data)
     }
 
-    private bidNft = async (req: AuthenticationRequest, res: Response) => {
+    static async bidNft(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
         const params: BidNftDto = req.body
         const data = await NftService.bidNft(key, params, { req })
         return res.json(data)
     }
 
-    private getNftBids = async (req: AuthenticationRequest, res: Response) => {
+    static async getNftBids(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
         const data = await NftService.getNftBids(key)
         return res.json(data)
     }
 
-    private makeOffers = async (req: AuthenticationRequest, res: Response) => {
+    static async makeOffers(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
         const params: MakeOfferDto = req.body
         const data = await NftService.makeOffers(key, params, { req })
         return res.json(data)
     }
 
-    private getOffers = async (req: AuthenticationRequest, res: Response) => {
+    static async getOffers(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
         const data = await NftService.getOffers(key)
         return res.json(data)
     }
 
-    private acceptOffers = async (req: AuthenticationRequest, res: Response) => {
+    static async acceptOffers(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
         const data = await NftService.processAcceptOffer(key, req.user, req.agent, req.ip_address)
         return res.json(data)
     }
 
-    private rejectOffers = async (req: AuthenticationRequest, res: Response) => {
+    static async rejectOffers(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
         const data = await NftService.rejectOffers(key, { req })
         return res.json(data)
     }
 
-    private cancelOffers = async (req: AuthenticationRequest, res: Response) => {
+    static async cancelOffers(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
         const data = await NftService.cancelOffers(key, { req })
         return res.json(data)
     }
 }
-
-export default NftController

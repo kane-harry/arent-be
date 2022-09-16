@@ -1,31 +1,31 @@
 import 'dotenv/config'
 import App from './app'
-import AuthController from '@modules/auth/auth.controller'
-import UserController from '@modules/user/user.controller'
-import AccountController from '@modules/account/account.controller'
-import TransactionController from '@modules/transaction/transaction.controller'
-import BlockchainController from '@modules/blockchain/blockchain.controller'
-import VerificationCodeController from '@modules/verification_code/code.controller'
-import SiteController from '@modules/site/site.controller'
-import SettingController from '@modules/setting/setting.controller'
-import AdminLogController from '@modules/admin_logs/admin_log.controller'
-import NftController from '@modules/nft/nft.controller'
-import CollectionController from '@modules/collection/collection.controller'
-import RateController from '@modules/exchange_rate/rate.controller'
+import UserRouter from '@modules/user/user.router'
+import AuthRouter from '@modules/auth/auth.router'
+import AccountRouter from '@modules/account/account.router'
+import TransactionRouter from '@modules/transaction/transaction.router'
+import BlockchainRouter from '@modules/blockchain/blockchain.router'
+import VerificationCodeRouter from '@modules/verification_code/code.router'
+import SiteRouter from '@modules/site/site.router'
+import SettingRouter from '@modules/setting/setting.router'
+import AdminLogRouter from '@modules/admin_logs/admin_log.router'
+import NftRouter from '@modules/nft/nft.router'
+import CollectionRouter from '@modules/collection/collection.router'
+import RateRouter from '@modules/exchange_rate/rate.router'
 
 const app = new App([
-    new VerificationCodeController(),
-    new AuthController(),
-    new UserController(),
-    new AccountController(),
-    new TransactionController(),
-    new BlockchainController(),
-    new SiteController(),
-    new SettingController(),
-    new AdminLogController(),
-    new NftController(),
-    new CollectionController(),
-    new RateController()
+    new UserRouter(),
+    new AccountRouter(),
+    new AuthRouter(),
+    new AdminLogRouter(),
+    new BlockchainRouter(),
+    new CollectionRouter(),
+    new NftRouter(),
+    new SettingRouter(),
+    new RateRouter(),
+    new SiteRouter(),
+    new TransactionRouter(),
+    new VerificationCodeRouter()
 ])
 
 app.listen()

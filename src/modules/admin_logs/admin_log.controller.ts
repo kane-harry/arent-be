@@ -1,34 +1,17 @@
-import asyncHandler from '@utils/asyncHandler'
-import { Router, Response } from 'express'
-import IController from '@interfaces/controller.interface'
+import { Response } from 'express'
 import AdminLogService from './admin_log.service'
 import { CustomRequest } from '@middlewares/request.middleware'
 import { downloadResource } from '@utils/utility'
-import { requireAuth } from '@utils/authCheck'
-import { requireAdmin } from '@config/role'
 import { ILogFilter } from '@modules/admin_logs/admin_log.interface'
 
-class AdminLogController implements IController {
-    public path = '/admin-logs'
-    public router = Router()
-
-    constructor() {
-        this.initRoutes()
-    }
-
-    // all for admin only
-    private initRoutes() {
-        this.router.get(`${this.path}/`, requireAuth, requireAdmin(), asyncHandler(this.queryLogs))
-        this.router.get(`${this.path}/export`, requireAuth, requireAdmin(), asyncHandler(this.exportLogs))
-    }
-
-    private async queryLogs(req: CustomRequest, res: Response) {
+export default class AdminLogController {
+    static async queryLogs(req: CustomRequest, res: Response) {
         const filter = req.query as ILogFilter
         const data = await AdminLogService.queryLogs(filter)
         return res.json(data)
     }
 
-    private async exportLogs(req: CustomRequest, res: Response) {
+    static async exportLogs(req: CustomRequest, res: Response) {
         const filter = req.query as ILogFilter
         const data = await AdminLogService.queryLogs(filter)
 
@@ -47,5 +30,3 @@ class AdminLogController implements IController {
         return downloadResource(res, 'logs.csv', fields, data.items)
     }
 }
-
-export default AdminLogController

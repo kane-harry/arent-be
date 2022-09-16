@@ -16,15 +16,16 @@ import swaggerUI from 'swagger-ui-express'
 import { openApiV1Documents } from '@docs/openApiGenerator'
 import RateScheduler from '@modules/jobs/rate.schedule'
 import NftScheduler from '@modules/jobs/nft.scheduler'
+import ICustomRouter from '@interfaces/custom.router.interface'
 
 class App {
     public app: express.Application
-    constructor(controllers: IController[]) {
+    constructor(routers: ICustomRouter[]) {
         this.app = express()
 
         this.connectToDb()
         this.initMiddlewares()
-        this.initControllers(controllers)
+        this.initRouters(routers)
         this.initErrorHandling()
         this.initSwaggerDocs()
         this.initSchedulers()
@@ -58,9 +59,9 @@ class App {
         this.app.use(errorMiddleware)
     }
 
-    private initControllers(controllers: IController[]) {
-        controllers.forEach(controller => {
-            this.app.use('/api/v1', controller.router)
+    private initRouters(customRouters: ICustomRouter[]) {
+        customRouters.forEach(router => {
+            this.app.use('/api/v1', router.router)
         })
     }
 
