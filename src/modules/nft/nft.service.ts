@@ -26,6 +26,7 @@ import { PrimeCoinProvider } from '@providers/coin.provider'
 import { ISendCoinDto } from '@modules/transaction/transaction.interface'
 import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
 import EmailService from '@modules/emaill/email.service'
+import sendSms from '@utils/sms'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IUser) {
