@@ -1,6 +1,21 @@
 import { IsOptional, IsString, Length, IsEmail, MinLength, Matches, IsEnum, IsNotEmpty } from 'class-validator'
 import { MFAType, UserStatus } from '@config/constants'
 import { map } from 'lodash'
+import { IUser } from './user.interface'
+
+export class UserBriefRO {
+    key: string
+    first_name: string
+    last_name: string
+    chat_name: string
+    avatar: object | undefined
+    constructor(user: IUser) {
+        this.key = user.key
+        this.first_name = user.first_name
+        this.last_name = user.last_name
+        this.chat_name = user.chat_name
+    }
+}
 
 export class CreateUserDto {
     @IsString()

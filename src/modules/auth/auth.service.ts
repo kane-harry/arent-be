@@ -248,11 +248,18 @@ export default class AuthService {
 
         let user = await UserModel.findOne({ phone: params.owner, removed: false }).exec()
         if (!user) {
+            const setting: ISetting = await SettingService.getGlobalSetting()
+            const mfaSettings = { type: MFAType.SMS, login_enabled: setting.login_require_mfa, withdraw_enabled: setting.withdraw_require_mfa }
             user = new UserModel()
             user.phone = params.owner
+            user.phone_verified = true
             user.chat_name = await UserModel.generateRandomChatName()
             user.source = 'phone'
             user.country = phoneInfo.country
+            user.avatar = null
+            user.role = 0
+            user.mfa_settings = mfaSettings
+
             await user.save()
             await AccountService.initUserAccounts(user.key)
         }
@@ -265,12 +272,18 @@ export default class AuthService {
 
         let user = await UserModel.findOne({ email: params.owner, removed: false }).exec()
         if (!user) {
+            const setting: ISetting = await SettingService.getGlobalSetting()
+            const mfaSettings = { type: MFAType.EMAIL, login_enabled: setting.login_require_mfa, withdraw_enabled: setting.withdraw_require_mfa }
+
             const defaultChatname = first(params.owner.split('@'))
             user = new UserModel()
             user.email = params.owner
             user.chat_name = await UserModel.generateRandomChatName(defaultChatname)
             user.source = 'email'
             user.email_verified = true
+            user.avatar = null
+            user.role = 0
+            user.mfa_settings = mfaSettings
             await user.save()
             await AccountService.initUserAccounts(user.key)
         }

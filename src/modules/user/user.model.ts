@@ -91,7 +91,7 @@ const userSchema = new Schema<IUser>(
 )
 
 userSchema.virtual('full_name').get(function (this: { first_name: string; last_name: string }) {
-    return `${this.first_name} ${this.last_name}`
+    return `${this.first_name || ''} ${this.last_name || ''}`
 })
 
 const _UserModel = model<IUser>(config.database.tables.users, userSchema)

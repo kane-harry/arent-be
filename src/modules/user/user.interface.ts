@@ -33,6 +33,14 @@ export interface IUser extends IBaseModel {
     token_version: number
 }
 
+export interface IUserBrief {
+    key: string
+    first_name: string
+    last_name: string
+    chat_name: string
+    avatar: object | undefined
+}
+
 export interface IUserQueryFilter extends IFilterModel {
     type: string
     status: string

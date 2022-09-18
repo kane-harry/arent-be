@@ -24,7 +24,7 @@ import {
 import UserModel from './user.model'
 import * as bcrypt from 'bcrypt'
 import { unixTimestampToDate, generateRandomCode, generateUnixTimestamp } from '@utils/utility'
-import { IUser, IUserQueryFilter } from '@modules/user/user.interface'
+import { IUser, IUserBrief, IUserQueryFilter } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
 import { stripPhoneNumber } from '@utils/phoneNumber'
@@ -50,7 +50,6 @@ import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
 import AccountService from '@modules/account/account.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
-import { BriefUserRO } from '@interfaces/public.model'
 
 export default class UserService extends AuthService {
     public static async authorize(params: AuthorizeDto, options?: any) {
@@ -574,8 +573,12 @@ export default class UserService extends AuthService {
             sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1
         }
         const totalCount = await UserModel.countDocuments(filter)
-        const items = await UserModel.find<IUser>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
-        return new BriefUserRO(totalCount, params.page_index, params.page_size, items)
+        const items = await UserModel.find<IUserBrief>(filter, { key: 1, first_name: 1, last_name: 1, chat_name: 1, avatar: 1 })
+            .sort(sorting)
+            .skip(offset)
+            .limit(params.page_size)
+            .exec()
+        return new QueryRO<IUserBrief>(totalCount, params.page_index, params.page_size, items)
     }
 
     public static getAllUser = async () => {
