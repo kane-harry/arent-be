@@ -1,4 +1,4 @@
-import { IUser } from '@modules/user/user.interface'
+import { IOperator, IUser } from '@modules/user/user.interface'
 import { AssignCollectionDto, CreateCollectionDto, UpdateCollectionDto } from './collection.dto'
 import { CollectionModel } from './collection.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
@@ -50,7 +50,7 @@ export default class CollectionService {
         return await model.save()
     }
 
-    static async createDefaultCollection(createNftDto: CreateNftDto, operator: IUser) {
+    static async createDefaultCollection(createNftDto: CreateNftDto, operator: IOperator) {
         const collection = await CollectionModel.findOne({ owner_key: operator.key, type: 'default' })
         if (collection) {
             return collection

@@ -76,21 +76,24 @@ export const UpdatePhoneEmailErrors = {
 }
 
 export const NftErrors = {
-    nft_not_exists_error: { code: 7001, status: 400, message: 'Nft not found.' },
+    nft_not_exists_error: { code: 7001, status: 400, message: 'NFT does not exist.' },
     nft_image_error: { code: 7002, status: 400, message: 'Nft Image is required.' },
     nft_image_required_error: { code: 7303, status: 400, message: 'please upload NFT picture.' },
-    product_buy_same_owner_error: { code: 7304, status: 400, message: 'Can not buy own nft.' },
+    product_buy_same_owner_error: { code: 7304, status: 400, message: 'You can not buy your own product.' },
     item_not_on_market: { code: 7305, status: 400, message: 'Item not on market' },
     nft_is_not_approved_error: { code: 7306, status: 400, message: 'Nft is not approved.' },
     purchase_auction_nft_error: { code: 7307, status: 400, message: 'Can not buy auction product directly.' },
     purchase_insufficient_funds_error: { code: 7308, status: 400, message: 'Insufficient funds to complete transaction.' },
-    auction_nft_params_error: { code: 7309, status: 400, message: 'Invalid params for auction' },
-    nft_auction_highest_price_error: { code: 7310, status: 400, message: 'You are already the highest bidder' },
+    nft_auction_start_time_less_than_end_time_error: { message: 'Auction start time should before end time.', code: 1715, status: 400 },
+    nft_auction_end_time_less_than_current_time_error: { message: 'Auction end time should in the feature.', code: 1716, status: 400 },
+    nft_auction_highest_price_error: { code: 7310, status: 400, message: 'You are already the highest bidder.' },
     nft_auction_closed_error: { code: 7311, status: 400, message: 'Auction closed.' },
-    offer_not_exists_error: { code: 7312, status: 400, message: 'Offer not exist' },
-    offer_status_error: { code: 7313, status: 400, message: 'Offer status error' },
+    offer_not_exists_error: { code: 7312, status: 400, message: 'Offer not exist.' },
+    offer_status_error: { code: 7313, status: 400, message: 'Invalid offer status.' },
     offer_permissions_error: { code: 7314, status: 400, message: 'Wrong permissions on offer' },
-    purchase_offer_nft_error: { code: 7315, status: 400, message: 'Can not offer nft' }
+    offer_duplicate_request_error: { code: 7315, status: 400, message: 'You have made an offer against this product.' },
+    offer_owner_error: { message: 'You can not make offer to your own product.', code: 7316, status: 400 },
+    offer_auction_nft_error: { message: 'Can not make offer to an auction product.', code: 7316, status: 400 }
 }
 
 export const CollectionErrors = {

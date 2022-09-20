@@ -1,5 +1,5 @@
 import { IAccount, IAccountRO } from './account.interface'
-import AccountModel from './account.model'
+import { AccountModel, AccountSnapshotModel } from '@modules/account/account.model'
 import { createEtherWallet } from '@utils/wallet'
 import { QueryRO } from '@interfaces/query.model'
 import { config } from '@config'
@@ -9,12 +9,14 @@ import { AccountErrors, AuthErrors } from '@exceptions/custom.error'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { PrimeCoinProvider } from '@providers/coin.provider'
-import { IUser } from '@modules/user/user.interface'
-import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections, IAccountLogType, MASTER_ACCOUNT_KEY } from '@config/constants'
+import { IOperator, IUser } from '@modules/user/user.interface'
+import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections, AccountActionType, MASTER_ACCOUNT_KEY } from '@config/constants'
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
 import { RateModel } from '@modules/exchange_rate/rate.model'
 import { roundUp } from '@utils/utility'
-import AccountLogsService from '@modules/account_logs/account_log.service'
+import AccountSnapshotService from '@modules/account/account.snapshot.service'
+import IOptions from '@interfaces/options.interface'
+import moment from 'moment'
 
 export default class AccountService {
     private static async initAccounts(userKey: string, accountNameSuffix = 'Account') {
@@ -96,6 +98,9 @@ export default class AccountService {
     }
 
     protected static async bindingAccountBalance(account: any) {
+        if (!account) {
+            return account
+        }
         const rateData = await RateModel.findOne({ symbol: `${account.symbol}-USDT` }).exec()
         const rate = rateData ? rateData.rate : 1
         let amount = account.amount
@@ -107,12 +112,33 @@ export default class AccountService {
                 amount = wallet.amount
             }
         } else {
-            account.amount_usd = roundUp(account.amount * rate, 8)
+            account.amount_usd = roundUp(account.amount * rate, 2)
         }
-        const amount_usd = roundUp(amount * rate, 8)
-        const amount_locked_usd = roundUp(account.amount_locked * rate, 8)
+        const amount_usd = roundUp(amount * rate, 2)
+        const amount_locked_usd = roundUp(account.amount_locked * rate, 2)
 
-        return { ...account.toJSON(), amount_usd, amount_locked_usd }
+        const currency_values = [{ currency: 'USD', symbol: '$', amount: amount_usd, amount_locked: amount_locked_usd }]
+        const oneDayAgo = moment().add(-1, 'day').toDate()
+
+        const balanceSnapshots = await AccountSnapshotModel.find({ account_key: account.key, created: { $gt: oneDayAgo } })
+            .sort({ created: 1 })
+            .exec()
+        const balanceSnapshot = balanceSnapshots && balanceSnapshots[0]
+
+        const balance24hrsChange = { pre_balance: Number(amount), balance: Number(amount), oscillation: 0 }
+        if (balanceSnapshot) {
+            balance24hrsChange.pre_balance = Number(balanceSnapshot.post_amount)
+            if (balance24hrsChange.pre_balance === 0) {
+                balance24hrsChange.oscillation = 1
+            } else {
+                balance24hrsChange.oscillation = roundUp(
+                    (balance24hrsChange.balance - balance24hrsChange.pre_balance) / balance24hrsChange.pre_balance,
+                    4
+                )
+            }
+        }
+
+        return { ...account.toJSON(), currency_values, balance_24hrs_change: balance24hrsChange }
     }
 
     protected static mapConditions(fields: { [key: string]: any }) {
@@ -145,6 +171,11 @@ export default class AccountService {
                     case 'addresses': {
                         return {
                             address: { $in: split(value, ',') }
+                        }
+                    }
+                    case 'type': {
+                        return {
+                            [key]: value.toUpperCase()
                         }
                     }
                     default: {
@@ -234,7 +265,7 @@ export default class AccountService {
         return await this.initAccounts(MASTER_ACCOUNT_KEY, 'Master')
     }
 
-    static async mintMasterAccount(key: string, params: MintDto, options: { userKey: string; email: string }) {
+    static async mintMasterAccount(key: string, params: MintDto, operator: IOperator, options: IOptions) {
         const account = await AccountModel.findOne({ key }).select('-key_store -salt').exec()
         if (!account) {
             throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
@@ -249,16 +280,29 @@ export default class AccountService {
             type: params.type || 'MINT'
         })
 
-        // todo : mint log
         await new AdminLogModel({
-            operator: {
-                key: options.userKey,
-                email: options.email
-            },
+            operator,
             userKey: account.user_key,
             action: AdminLogsActions.MintMasterAccount,
             section: AdminLogsSections.Account
         }).save()
+
+        await AccountSnapshotService.createAccountSnapshot({
+            key: undefined,
+            user_key: account.user_key,
+            account_key: account.key,
+            symbol: account.symbol,
+            address: account.address,
+            type: AccountActionType.Mint,
+            amount: Number(params.amount),
+            pre_amount: data.recipient_wallet.pre_balance,
+            pre_amount_locked: account.amount_locked,
+            post_amount: data.recipient_wallet.post_balance,
+            post_amount_locked: account.amount_locked,
+            txn: data.key,
+            operator: operator,
+            options
+        })
 
         return data
     }
@@ -268,7 +312,7 @@ export default class AccountService {
         return await this.bindingAccountBalance(account)
     }
 
-    static async lockAmount(key: string, amount: any, operator: IUser, note = '') {
+    static async lockAmount(key: string, amount: any) {
         const data = await AccountModel.findOneAndUpdate(
             { key: key },
             {
@@ -277,32 +321,18 @@ export default class AccountService {
             }
         )
 
-        await AccountLogsService.createAccountLog({
-            type: IAccountLogType.Lock,
-            amount: amount,
-            operator: { key: operator.key, email: operator.email },
-            note: note ?? `Lock, lock amount: ${amount}`
-        })
-
         return data
     }
 
-    static async unlockAmount(key: string, amount: any, operator: IUser, note: string) {
+    static async unlockAmount(key: string, amount: any) {
         const data = await AccountModel.findOneAndUpdate(
             { key: key },
             {
                 $inc: { amount_locked: amount * -1 },
                 $set: { modified: new Date() }
-            }
+            },
+            { new: true }
         )
-
-        await AccountLogsService.createAccountLog({
-            type: IAccountLogType.UnLock,
-            amount: amount,
-            operator: { key: operator.key, email: operator.email },
-            note: note ?? `UnLock, unlock amount: ${amount}`
-        })
-
         return data
     }
 }

@@ -17,19 +17,33 @@ import {
 } from './nft.dto'
 
 export default class NftController {
-    static async importNft(req: Request, res: Response) {
+    static async importNft(req: AuthenticationRequest, res: Response) {
         const payload: ImportNftDto = req.body // should be an arrary since we support bulk import
-        const operator = req.user as IUser
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key
+        }
         const data = await NftService.importNft(payload, operator)
         return res.send(data)
     }
 
     static async createNft(req: AuthenticationRequest, res: Response) {
         const createNftDto: CreateNftDto = req.body
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role,
+            avatar: req.user.avatar,
+            chat_name: req.user.chat_name
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         createNftDto.attributes = createNftDto.attributes && createNftDto.attributes.length ? JSON.parse(createNftDto.attributes) : []
         createNftDto.meta_data = createNftDto.meta_data && createNftDto.meta_data.length ? JSON.parse(createNftDto.meta_data) : []
         const files = req.files
-        const nft = await NftService.createNft(createNftDto, files, req.user, { req })
+        const nft = await NftService.createNft(createNftDto, files, operator, options)
         return res.json(nft)
     }
 
@@ -55,27 +69,55 @@ export default class NftController {
 
     static async updateNft(req: CustomRequest, res: Response) {
         const { key } = req.params
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const updateNftDto: UpdateNftDto = req.body
         updateNftDto.attributes = updateNftDto.attributes && updateNftDto.attributes.length ? JSON.parse(updateNftDto.attributes) : null
         updateNftDto.meta_data = updateNftDto.meta_data && updateNftDto.meta_data.length ? JSON.parse(updateNftDto.meta_data) : null
-        const data = await NftService.updateNft(key, updateNftDto, req.user, { req })
+        const data = await NftService.updateNft(key, updateNftDto, operator, options)
         return res.json(data)
     }
 
     static async updateNftStatus(req: CustomRequest, res: Response) {
         const { key } = req.params
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const updateNftDto: UpdateNftStatusDto = req.body
-        const data = await NftService.updateNftStatus(key, updateNftDto, req.user, { req })
+        const data = await NftService.updateNftStatus(key, updateNftDto, operator, options)
         return res.json(data)
     }
 
     static async bulkUpdateNftStatus(req: CustomRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
+
         const updateNftDto: BulkUpdateNftStatusDto = req.body
         const { keys, status } = updateNftDto
         const data = []
         for (const key of keys) {
             try {
-                const item = await NftService.updateNftStatus(key, { status: status }, req.user, { req })
+                const item = await NftService.updateNftStatus(key, { status: status }, operator, options)
                 data.push(item)
             } catch (e) {
                 data.push(e)
@@ -85,18 +127,36 @@ export default class NftController {
     }
 
     static async deleteNft(req: CustomRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const { key } = req.params
-        const nft = await NftService.deleteNft(key, req.user, { req })
+        const nft = await NftService.deleteNft(key, operator, options)
         return res.json(nft)
     }
 
     static async bulkDeleteNft(req: CustomRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const deleteNftDto: BulkDeleteNftDto = req.body
         const { keys } = deleteNftDto
         const data = []
         for (const key of keys) {
             try {
-                const item = await NftService.deleteNft(key, req.user, { req })
+                const item = await NftService.deleteNft(key, operator, options)
                 data.push(item)
             } catch (e) {
                 data.push(e)
@@ -106,28 +166,68 @@ export default class NftController {
     }
 
     static async onMarket(req: AuthenticationRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const { key } = req.params
         const params: NftOnMarketDto = req.body
-        const data = await NftService.onMarket(key, params, { req })
+        const data = await NftService.onMarket(key, params, operator, options)
         return res.json(data)
     }
 
     static async offMarket(req: AuthenticationRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const { key } = req.params
-        const data = await NftService.offMarket(key, { req })
+        const data = await NftService.offMarket(key, operator, options)
         return res.json(data)
     }
 
     static async buyNft(req: AuthenticationRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role,
+            avatar: req.user.avatar,
+            chat_name: req.user.chat_name
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const { key } = req.params
-        const data = await NftService.processPurchase(key, req.user, req.agent, req.ip_address)
+        const data = await NftService.processPurchase(key, operator, options)
         return res.json(data)
     }
 
     static async bidNft(req: AuthenticationRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role,
+            avatar: req.user.avatar,
+            chat_name: req.user.chat_name
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const { key } = req.params
         const params: BidNftDto = req.body
-        const data = await NftService.bidNft(key, params, { req })
+        const data = await NftService.bidNft(key, params, operator, options)
         return res.json(data)
     }
 
@@ -137,10 +237,21 @@ export default class NftController {
         return res.json(data)
     }
 
-    static async makeOffers(req: AuthenticationRequest, res: Response) {
+    static async makeOffer(req: AuthenticationRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role,
+            avatar: req.user.avatar,
+            chat_name: req.user.chat_name
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const { key } = req.params
         const params: MakeOfferDto = req.body
-        const data = await NftService.makeOffers(key, params, { req })
+        const data = await NftService.makeOffer(key, params, operator, options)
         return res.json(data)
     }
 
@@ -150,21 +261,54 @@ export default class NftController {
         return res.json(data)
     }
 
-    static async acceptOffers(req: AuthenticationRequest, res: Response) {
+    static async acceptOffer(req: AuthenticationRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role,
+            avatar: req.user.avatar,
+            chat_name: req.user.chat_name
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const { key } = req.params
-        const data = await NftService.processAcceptOffer(key, req.user, req.agent, req.ip_address)
+        const data = await NftService.processAcceptOffer(key, operator, options)
         return res.json(data)
     }
 
-    static async rejectOffers(req: AuthenticationRequest, res: Response) {
+    static async rejectOffer(req: AuthenticationRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role,
+            avatar: req.user.avatar,
+            chat_name: req.user.chat_name
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const { key } = req.params
-        const data = await NftService.rejectOffers(key, { req })
+        const data = await NftService.rejectOffer(key, operator, options)
         return res.json(data)
     }
 
-    static async cancelOffers(req: AuthenticationRequest, res: Response) {
+    static async cancelOffer(req: AuthenticationRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role,
+            avatar: req.user.avatar,
+            chat_name: req.user.chat_name
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const { key } = req.params
-        const data = await NftService.cancelOffers(key, { req })
+        const data = await NftService.cancelOffer(key, operator, options)
         return res.json(data)
     }
 }
