@@ -929,7 +929,7 @@ export default class NftService {
             await offer.save()
 
             const preBuyerLockedAmount = buyerAccount.amount_locked
-            buyerAccount = await AccountService.lockAmount(buyerAccount.key, offer.price)
+            buyerAccount = await AccountService.unlockAmount(buyerAccount.key, offer.price)
             await AccountSnapshotService.createAccountSnapshot({
                 key: undefined,
                 user_key: buyerAccount.user_key,
