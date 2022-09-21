@@ -1,4 +1,5 @@
 import AccountService from '@modules/account/account.service'
+import AccountSnapshotService from '@modules/account/account.snapshot.service'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { SendPrimeCoinsDto } from './transaction.dto'
@@ -8,14 +9,16 @@ import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import { ISendCoinDto, ITransactionFilter } from './transaction.interface'
 import { parsePrimeAmount } from '@utils/number'
-import { IUser } from '@modules/user/user.interface'
+import { IOperator, IUser } from '@modules/user/user.interface'
 import { isAdmin } from '@config/role'
 import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
-import { UserStatus } from '@config/constants'
+import { AccountActionType, UserStatus } from '@config/constants'
+import IOptions from '@interfaces/options.interface'
+import { Types } from 'mongoose'
 
 export default class TransactionService {
-    static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: IUser) {
+    static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: IOperator, options: IOptions) {
         params.notes = params.notes || ''
         const symbol = toUpper(trim(params.symbol))
 
@@ -24,20 +27,26 @@ export default class TransactionService {
 
         // this should be store as a string in wei (big number - string)
         const senderAccount = await AccountService.getAccountDetailByFields({ symbol, address: params.sender })
-        // recipient can be raw wallet
-        const recipientWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(symbol, params.recipient)
         if (!senderAccount) {
             throw new BizException(
                 TransactionErrors.sender_account_not_exists_error,
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
             )
         }
-        if (!recipientWallet) {
-            throw new BizException(
-                TransactionErrors.recipient_account_not_exists_error,
-                new ErrorContext('transaction.service', 'sendPrimeCoins', { recipient: params.recipient })
-            )
+
+        const recipientAccount = await AccountService.getAccountDetailByFields({ symbol, address: params.recipient })
+        if (!recipientAccount) {
+            // recipient can be raw wallet
+            const recipientWallet = await PrimeCoinProvider.getWalletBySymbolAndAddress(symbol, params.recipient)
+
+            if (!recipientWallet) {
+                throw new BizException(
+                    TransactionErrors.recipient_account_not_exists_error,
+                    new ErrorContext('transaction.service', 'sendPrimeCoins', { recipient: params.recipient })
+                )
+            }
         }
+
         if (operator.key !== senderAccount?.user_key) {
             if (senderAccount.type === 'MASTER' && isAdmin(operator.role)) {
                 // continue
@@ -98,7 +107,62 @@ export default class TransactionService {
             fee: String(transferFee),
             mode: params.mode
         }
-        return await PrimeCoinProvider.sendPrimeCoins(sendData)
+        const txn = await PrimeCoinProvider.sendPrimeCoins(sendData)
+
+        await AccountSnapshotService.createAccountSnapshot({
+            key: undefined,
+            user_key: senderAccount.user_key,
+            account_key: senderAccount.key,
+            symbol: params.symbol,
+            address: params.sender,
+            type: AccountActionType.Transfer,
+            amount: txn.sender_wallet.amount,
+            pre_amount: txn.sender_wallet.pre_balance,
+            pre_amount_locked: senderAccount.amount_locked,
+            post_amount: txn.sender_wallet.post_balance,
+            post_amount_locked: senderAccount.amount_locked,
+            txn: txn.key,
+            operator: operator,
+            options
+        })
+
+        await AccountSnapshotService.createAccountSnapshot({
+            key: undefined,
+            user_key: recipientAccount?.user_key,
+            account_key: recipientAccount?.key,
+            symbol: params.symbol,
+            address: params.recipient,
+            type: AccountActionType.Transfer,
+            amount: txn.recipient_wallet.amount,
+            pre_amount: txn.recipient_wallet.pre_balance,
+            pre_amount_locked: senderAccount.amount_locked,
+            post_amount: txn.recipient_wallet.post_balance,
+            post_amount_locked: senderAccount.amount_locked,
+            txn: txn.key,
+            operator: operator,
+            options
+        })
+
+        if (txn.fee_wallet) {
+            await AccountSnapshotService.createAccountSnapshot({
+                key: undefined,
+                user_key: masterAccount.user_key,
+                account_key: masterAccount.key,
+                symbol: masterAccount.symbol,
+                address: masterAccount.address,
+                type: AccountActionType.Transfer,
+                amount: txn.fee_wallet.amount,
+                pre_amount: txn.fee_wallet.pre_balance,
+                pre_amount_locked: masterAccount.amount_locked,
+                post_amount: txn.fee_wallet.post_balance,
+                post_amount_locked: masterAccount.amount_locked,
+                txn: txn.key,
+                operator: operator,
+                options
+            })
+        }
+
+        return txn
     }
 
     static async queryTxns(filter: ITransactionFilter) {

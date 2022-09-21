@@ -1,20 +1,30 @@
 import { Request, Response } from 'express'
-import { CustomRequest } from '@middlewares/request.middleware'
+import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import TransactionService from './transaction.service'
 import { SendPrimeCoinsDto } from './transaction.dto'
 import { ITransactionFilter } from './transaction.interface'
 import { downloadResource } from '@utils/utility'
 import UserModel from '@modules/user/user.model'
-import { IUser } from '@modules/user/user.interface'
+import { IOperator, IUser } from '@modules/user/user.interface'
+import IOptions from '@interfaces/options.interface'
 
 export default class TransactionController {
-    static async sendPrimeCoins(req: Request, res: Response) {
+    static async sendPrimeCoins(req: AuthenticationRequest, res: Response) {
         const params: SendPrimeCoinsDto = req.body
-        const operator = req.user as IUser
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role,
+            status: req.user.status
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
         const session = await UserModel.startSession()
         session.startTransaction()
         try {
-            const data = await TransactionService.sendPrimeCoins(params, operator)
+            const data = await TransactionService.sendPrimeCoins(params, operator, options)
             await session.commitTransaction()
             session.endSession()
             return res.json(data)

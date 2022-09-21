@@ -8,7 +8,7 @@ import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authentica
 import { CollectionModel } from '@modules/collection/collection.model'
 import { NftModel } from '@modules/nft/nft.model'
 import { AccountType, FeeMode, NftPriceType, NftStatus } from '@config/constants'
-import AccountModel from '@modules/account/account.model'
+import { AccountModel } from '@modules/account/account.model'
 import { generateUnixTimestamp } from '@utils/utility'
 import NftScheduler from '@modules/jobs/nft.scheduler'
 import AccountService from '@modules/account/account.service'

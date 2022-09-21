@@ -3,6 +3,8 @@ import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { MintDto, WithdrawDto } from './account.dto'
 import { IAdminAccountsFilter, IUserAccountsFilter } from './account.interface'
 import AccountService from './account.service'
+import { IOperator } from '@modules/user/user.interface'
+import IOptions from '@interfaces/options.interface'
 
 export default class AccountController {
     /** MASTER */
@@ -14,7 +16,15 @@ export default class AccountController {
     static async mintMasterAccount(req: AuthenticationRequest, res: Response) {
         const key = req.params.key
         const params: MintDto = req.body
-        const data = await AccountService.mintMasterAccount(key, params, { email: req.user?.email, userKey: req.user?.key })
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
+        const data = await AccountService.mintMasterAccount(key, params, operator, options)
         return res.json(data)
     }
 

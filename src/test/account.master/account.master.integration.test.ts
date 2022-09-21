@@ -6,7 +6,7 @@ import { dbTest, validResponse } from '../init/db'
 import server from '@app/server'
 import { config } from '@config'
 import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authenticate'
-import AccountModel from '@modules/account/account.model'
+import { AccountModel } from '@modules/account/account.model'
 import { AccountType } from '@config/constants'
 
 chai.use(chaiAsPromised)

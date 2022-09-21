@@ -34,10 +34,10 @@ export default class NftRouter implements ICustomRouter {
         this.router.post(`${this.path}/:key/buy`, requireAuth, asyncHandler(NftController.buyNft))
         this.router.post(`${this.path}/:key/bids`, requireAuth, asyncHandler(NftController.bidNft))
         this.router.get(`${this.path}/:key/bids`, asyncHandler(NftController.getNftBids))
-        this.router.post(`${this.path}/:key/offers`, requireAuth, asyncHandler(NftController.makeOffers))
+        this.router.post(`${this.path}/:key/offers`, requireAuth, asyncHandler(NftController.makeOffer))
         this.router.get(`${this.path}/:key/offers`, asyncHandler(NftController.getOffers))
-        this.router.post(`${this.path}/offers/:key/accept`, requireAuth, asyncHandler(NftController.acceptOffers))
-        this.router.post(`${this.path}/offers/:key/reject`, requireAuth, asyncHandler(NftController.rejectOffers))
-        this.router.post(`${this.path}/offers/:key/cancel`, requireAuth, asyncHandler(NftController.cancelOffers))
+        this.router.post(`${this.path}/offers/:key/accept`, requireAuth, asyncHandler(NftController.acceptOffer))
+        this.router.post(`${this.path}/offers/:key/reject`, requireAuth, asyncHandler(NftController.rejectOffer))
+        this.router.post(`${this.path}/offers/:key/cancel`, requireAuth, asyncHandler(NftController.cancelOffer))
     }
 }

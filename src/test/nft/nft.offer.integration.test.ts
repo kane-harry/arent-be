@@ -8,7 +8,7 @@ import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authentica
 import { CollectionModel } from '@modules/collection/collection.model'
 import { NftModel, NftOfferModel } from '@modules/nft/nft.model'
 import { AccountType, FeeMode, NftPriceType, NftStatus, OfferStatusType } from '@config/constants'
-import AccountModel from '@modules/account/account.model'
+import { AccountModel } from '@modules/account/account.model'
 import AccountService from '@modules/account/account.service'
 
 chai.use(chaiAsPromised)

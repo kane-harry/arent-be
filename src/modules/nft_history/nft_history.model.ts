@@ -14,22 +14,15 @@ const nftHistorySchema = new Schema<INftHistory>(
                 return randomBytes(16).toString('hex')
             }
         },
-        user_key: {
-            type: String,
-            required: true
-        },
         nft_key: {
             type: String,
             required: true
         },
-        ip_address: {
-            type: String
+        operator: {
+            type: Object
         },
-        country: {
-            type: String
-        },
-        agent: {
-            type: String
+        options: {
+            type: Object
         },
         action: {
             type: String,

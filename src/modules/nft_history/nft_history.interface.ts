@@ -1,14 +1,13 @@
-import { NftHistoryActions } from '@config/constants'
+import { NftActions } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
+import IOptions from '@interfaces/options.interface'
+import { IOperator } from '@modules/user/user.interface'
 
 export interface INftHistory extends IBaseModel {
-    key: string
-    user_key: string
     nft_key: string
-    ip_address: string
-    agent: string
-    country: string
-    action: NftHistoryActions
+    operator: IOperator
+    options: IOptions
+    action: NftActions
     pre_data: Object
     post_data: Object
 }

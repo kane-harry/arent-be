@@ -34,7 +34,7 @@ export enum UserHistoryActions {
     SetupTOTP = 'SetupTOTP'
 }
 
-export enum NftHistoryActions {
+export enum NftActions {
     Create = 'Create',
     Update = 'Update',
     Delete = 'Delete',
@@ -157,14 +157,24 @@ export enum NftPriceType {
     Auction = 'auction'
 }
 
-export enum IAccountLogType {
-    Lock = 'lock',
-    UnLock = 'unlock'
+export enum AccountActionType {
+    Mint = 'Mint',
+    Transfer = 'Transfer',
+    NftBought = 'NftBought',
+    NftSold = 'NftSold',
+    NftRoyalty = 'NftRoyalty',
+    NftBid = 'NftBid',
+    NftOutBid = 'NftOutBid',
+    MakeOffer = 'MakeOffer',
+    AcceptOffer = 'AcceptOffer',
+    RejectOffer = 'RejectOffer',
+    LockAmount = 'LockAmount',
+    UnLockAmount = 'UnLockAmount'
 }
 
 export enum OfferStatusType {
     Pending = 'pending',
-    Cancel = 'cancel',
-    Accept = 'accept',
+    Canceled = 'Canceled',
+    Accepted = 'Accepted',
     Rejected = 'rejected'
 }

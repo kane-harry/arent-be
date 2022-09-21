@@ -114,6 +114,7 @@ export const config = {
 
         tables: {
             accounts: 'accounts',
+            account_snapshots: 'account_snapshots',
             admin_logs: 'admin_logs',
             auth_tokens: 'auth_tokens',
             collections: 'collections',

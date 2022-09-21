@@ -39,6 +39,7 @@ export interface IUserBrief {
     last_name: string
     chat_name: string
     avatar: object | undefined
+    email?: string
 }
 
 export interface IUserQueryFilter extends IFilterModel {
@@ -47,4 +48,13 @@ export interface IUserQueryFilter extends IFilterModel {
     terms: string
     date_from: string
     date_to: string
+}
+
+export interface IOperator {
+    key: string
+    email?: string
+    role?: number
+    avatar?: object
+    chat_name?: string
+    status?: string
 }
