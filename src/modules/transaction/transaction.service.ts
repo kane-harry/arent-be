@@ -57,6 +57,12 @@ export default class TransactionService {
                 )
             }
         }
+        if (operator?.status === UserStatus.Suspend) {
+            throw new BizException(
+                TransactionErrors.account_is_suspend,
+                new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
+            )
+        }
         const senderBalance = parsePrimeAmount(senderAccount.amount).sub(parsePrimeAmount(senderAccount.amount_locked))
         if (senderBalance.lt(amount)) {
             throw new BizException(

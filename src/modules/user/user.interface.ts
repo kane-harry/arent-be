@@ -56,4 +56,5 @@ export interface IOperator {
     role?: number
     avatar?: object
     chat_name?: string
+    status?: string
 }

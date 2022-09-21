@@ -14,7 +14,8 @@ export default class TransactionController {
         const operator: IOperator = {
             email: req.user?.email,
             key: req.user?.key,
-            role: req.user.role
+            role: req.user.role,
+            status: req.user.status
         }
         const options: IOptions = {
             agent: req.agent,
