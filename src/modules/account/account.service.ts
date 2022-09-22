@@ -117,28 +117,53 @@ export default class AccountService {
         const amount_usd = roundUp(amount * rate, 2)
         const amount_locked_usd = roundUp(account.amount_locked * rate, 2)
 
-        const currency_values = [{ currency: 'USD', symbol: '$', amount: amount_usd, amount_locked: amount_locked_usd }]
+        const currency_value_statements = [{ currency: 'USD', symbol: '$', amount: amount_usd, amount_locked: amount_locked_usd }]
+
+        const balance_change_statements = []
+
         const oneDayAgo = moment().add(-1, 'day').toDate()
 
-        const balanceSnapshots = await AccountSnapshotModel.find({ account_key: account.key, created: { $gt: oneDayAgo } })
+        const dailySnapshots = await AccountSnapshotModel.find({ account_key: account.key, created: { $gt: oneDayAgo } })
             .sort({ created: 1 })
             .exec()
-        const balanceSnapshot = balanceSnapshots && balanceSnapshots[0]
+        const dailySnapshot = dailySnapshots && dailySnapshots[0]
 
-        const balance24hrsChange = { pre_balance: Number(amount), balance: Number(amount), oscillation: 0 }
-        if (balanceSnapshot) {
-            balance24hrsChange.pre_balance = Number(balanceSnapshot.post_amount)
-            if (balance24hrsChange.pre_balance === 0) {
-                balance24hrsChange.oscillation = 1
-            } else {
-                balance24hrsChange.oscillation = roundUp(
-                    (balance24hrsChange.balance - balance24hrsChange.pre_balance) / balance24hrsChange.pre_balance,
-                    4
-                )
-            }
+        if (dailySnapshot) {
+            const pre_amount = Number(dailySnapshot.post_amount)
+            const amount_change = roundUp(amount - pre_amount, 8)
+            const percentage_change = pre_amount === 0 ? 0 : roundUp(amount_change / pre_amount, 4)
+
+            balance_change_statements.push({
+                period: 'day',
+                pre_amount: Number(dailySnapshot.post_amount),
+                amount_change: amount_change,
+                percentage_change: percentage_change
+            })
+        } else {
+            balance_change_statements.push({ period: 'day', pre_amount: Number(amount), amount_change: 0, percentage_change: 0 })
+        }
+        const oneWeekAgo = moment().add(-1, 'week').toDate()
+        const weeklySnapshots = await AccountSnapshotModel.find({ account_key: account.key, created: { $gt: oneWeekAgo } })
+            .sort({ created: 1 })
+            .exec()
+        const weeklySnapshot = weeklySnapshots && weeklySnapshots[0]
+
+        if (weeklySnapshot) {
+            const pre_amount = Number(weeklySnapshot.post_amount)
+            const amount_change = roundUp(amount - pre_amount, 8)
+            const percentage_change = pre_amount === 0 ? 0 : roundUp(amount_change / pre_amount, 4)
+
+            balance_change_statements.push({
+                period: 'week',
+                pre_amount: Number(weeklySnapshot.post_amount),
+                amount_change: amount_change,
+                percentage_change: percentage_change
+            })
+        } else {
+            balance_change_statements.push({ period: 'week', pre_amount: Number(amount), amount_change: 0, percentage_change: 0 })
         }
 
-        return { ...account.toJSON(), currency_values, balance_24hrs_change: balance24hrsChange }
+        return { ...account.toJSON(), currency_value_statements, balance_change_statements }
     }
 
     protected static mapConditions(fields: { [key: string]: any }) {
