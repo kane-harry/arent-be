@@ -101,11 +101,6 @@ export enum AccountType {
     Ext = 'EXT'
 }
 
-export enum TransactionChain {
-    Prime = 'prime',
-    Ext = 'ext'
-}
-
 export enum AccountExtType {
     Prime = 'PRIME',
     Ext = 'EXT'
@@ -113,6 +108,16 @@ export enum AccountExtType {
 
 export const MASTER_ACCOUNT_KEY = 'MASTER'
 
+export enum TransactionChain {
+    Prime = 'prime',
+    Ext = 'ext'
+}
+
+export enum TransactionType {
+    Mint = 'MINT',
+    Transfer = 'TRANSFER',
+    Withdraw = 'WITHDRAW'
+}
 export enum NftStatus {
     Pending = 'Pending',
     Approved = 'Approved',
