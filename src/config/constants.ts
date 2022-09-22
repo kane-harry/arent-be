@@ -101,6 +101,11 @@ export enum AccountType {
     Ext = 'EXT'
 }
 
+export enum TransactionChain {
+    Prime = 'prime',
+    Ext = 'ext'
+}
+
 export enum AccountExtType {
     Prime = 'PRIME',
     Ext = 'EXT'

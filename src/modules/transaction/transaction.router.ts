@@ -18,6 +18,7 @@ export default class TransactionRouter implements ICustomRouter {
     private initRoutes() {
         this.router.post(`${this.path}`, requireAuth, validationMiddleware(SendPrimeCoinsDto), asyncHandler(TransactionController.sendPrimeCoins))
         this.router.get(`${this.path}`, asyncHandler(TransactionController.queryTxns)) // get recently txns
+        // this.router.get(`${this.path}/accounts/history`, asyncHandler(TransactionController.getTxnHistory))
         this.router.get(`${this.path}/accounts/:key`, asyncHandler(TransactionController.queryTxnsByAccount))
         this.router.get(`${this.path}/:key`, asyncHandler(TransactionController.getTxnDetails))
         this.router.get(`${this.path}/export`, requireAuth, requireAdmin(), asyncHandler(TransactionController.exportTxnsByAccount))
