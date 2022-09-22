@@ -22,6 +22,7 @@ export interface ITransactionFilter extends IFilterModel {
     keys?: string
     owner?: string
     address?: string
+    chain?: string
 }
 
 export interface ISendCoinDto {

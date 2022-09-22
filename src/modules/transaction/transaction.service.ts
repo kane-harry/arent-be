@@ -13,9 +13,8 @@ import { IOperator, IUser } from '@modules/user/user.interface'
 import { isAdmin } from '@config/role'
 import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
-import { AccountActionType, UserStatus } from '@config/constants'
+import { AccountActionType, TransactionChain, UserStatus } from '@config/constants'
 import IOptions from '@interfaces/options.interface'
-import { Types } from 'mongoose'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: IOperator, options: IOptions) {
@@ -166,6 +165,9 @@ export default class TransactionService {
     }
 
     static async queryTxns(filter: ITransactionFilter) {
+        if (filter.chain === TransactionChain.Ext) {
+            return []
+        }
         return await PrimeCoinProvider.queryPrimeTxns(filter)
     }
 
