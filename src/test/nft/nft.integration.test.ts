@@ -184,6 +184,31 @@ describe('NFT', () => {
         shareData.collections = res.body.items
     }).timeout(10000)
 
+    it(`Get Featured Collection`, async () => {
+        const res = await request(server.app).get(`/api/v1/collections/featured`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).equal(0)
+    }).timeout(10000)
+
+    it(`Featured Collection`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/collections/${shareData.collections[0].key}/featured`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ featured: true })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const collection = await CollectionModel.findOne({ key: shareData.collections[0].key })
+        expect(collection.featured).equal(true)
+    }).timeout(10000)
+
+    it(`Get Featured Collection`, async () => {
+        const res = await request(server.app).get(`/api/v1/collections/featured`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).equal(1)
+    }).timeout(10000)
+
     it(`Get Collection Detail`, async () => {
         const res = await request(server.app).get(`/api/v1/collections/${shareData.collections[0].key}`)
         expect(res.status).equal(200)

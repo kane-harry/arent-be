@@ -2,11 +2,19 @@ import { Router, Response } from 'express'
 import asyncHandler from '@utils/asyncHandler'
 import IController from '@interfaces/controller.interface'
 import CollectionService from './collection.service'
-import { AssignCollectionDto, CreateCollectionDto, UpdateCollectionDto } from './collection.dto'
+import {
+    AssignCollectionDto,
+    BulkUpdateCollectionFeaturedDto,
+    CreateCollectionDto,
+    UpdateCollectionDto,
+    UpdateCollectionFeaturedDto
+} from './collection.dto'
 import { requireAuth } from '@utils/authCheck'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
 import validationMiddleware from '@middlewares/validation.middleware'
+import { IOperator } from '@modules/user/user.interface'
+import IOptions from '@interfaces/options.interface'
 
 export default class CollectionController {
     static async createCollection(req: AuthenticationRequest, res: Response) {
@@ -52,6 +60,54 @@ export default class CollectionController {
         const { key } = req.params
         const assignCollectionDto: AssignCollectionDto = req.body
         const data = await CollectionService.assignCollection(key, assignCollectionDto, req.user)
+        return res.json(data)
+    }
+
+    static async getCollectionFeatured(req: CustomRequest, res: Response) {
+        const filter = req.query as ICollectionFilter
+        filter.featured = true
+        const data = await CollectionService.queryCollections(filter)
+        return res.json(data)
+    }
+
+    static async updateCollectionFeatured(req: AuthenticationRequest, res: Response) {
+        const { key } = req.params
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
+        const updateCollectionDto: UpdateCollectionFeaturedDto = req.body
+        const data = await CollectionService.updateCollectionFeatured(key, updateCollectionDto, operator, options)
+        return res.json(data)
+    }
+
+    static async bulkUpdateCollectionFeatured(req: AuthenticationRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
+
+        const updateCollectionDto: BulkUpdateCollectionFeaturedDto = req.body
+        const { keys, featured } = updateCollectionDto
+        const data = []
+        for (const key of keys) {
+            try {
+                const item = await CollectionService.updateCollectionFeatured(key, { featured: featured }, operator, options)
+                data.push(item)
+            } catch (e) {
+                data.push(e)
+            }
+        }
         return res.json(data)
     }
 }

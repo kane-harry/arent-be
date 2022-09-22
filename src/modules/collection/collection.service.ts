@@ -1,5 +1,5 @@
 import { IOperator, IUser } from '@modules/user/user.interface'
-import { AssignCollectionDto, CreateCollectionDto, UpdateCollectionDto } from './collection.dto'
+import { AssignCollectionDto, CreateCollectionDto, UpdateCollectionDto, UpdateCollectionFeaturedDto } from './collection.dto'
 import { CollectionModel } from './collection.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { QueryRO } from '@interfaces/query.model'
@@ -13,6 +13,7 @@ import { COLLECTION_LOGO_SIZES, NftStatus } from '@config/constants'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
 import { filter } from 'lodash'
 import { CreateNftDto } from '@modules/nft/nft.dto'
+import IOptions from '@interfaces/options.interface'
 
 export default class CollectionService {
     static async createCollection(createCollectionDto: CreateCollectionDto, files: any, operator: IUser) {
@@ -84,6 +85,10 @@ export default class CollectionService {
         if (!params.include_all) {
             filter.$and = filter.$and ?? []
             filter.$and.push({ items_count: { $gte: 0 } })
+        }
+        if (params.featured) {
+            filter.$and = filter.$and ?? []
+            filter.$and.push({ featured: { $eq: params.featured } })
         }
         if (params.sort_by) {
             delete sorting._id
@@ -161,5 +166,23 @@ export default class CollectionService {
         }
         collection.set('owner_key', assignCollectionDto.user_key, String)
         return await collection.save()
+    }
+
+    static async updateCollectionFeatured(
+        key: string,
+        updateCollectionFeaturedDto: UpdateCollectionFeaturedDto,
+        operator: IOperator,
+        options: IOptions
+    ) {
+        const collection = await CollectionModel.findOne({ key })
+        if (!collection) {
+            throw new BizException(
+                CollectionErrors.collection_not_exists_error,
+                new ErrorContext('collection.service', 'updateCollectionFeatured', { key })
+            )
+        }
+        collection.set('featured', updateCollectionFeaturedDto.featured ?? collection.featured, Boolean)
+        const updateCollection = await collection.save()
+        return updateCollection
     }
 }

@@ -10,10 +10,12 @@ export interface ICollection extends IBaseModel {
     background: object
     type: string
     items_count: number
+    featured: boolean
 }
 
 export interface ICollectionFilter extends IFilterModel {
     terms?: string
     owner_key?: string
     include_all?: boolean
+    featured?: boolean
 }

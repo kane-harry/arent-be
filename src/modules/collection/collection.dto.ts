@@ -34,3 +34,16 @@ export class UpdateCollectionDto {
 export class AssignCollectionDto {
     public user_key: string
 }
+
+export class UpdateCollectionFeaturedDto {
+    @IsNotEmpty()
+    public featured: boolean
+}
+
+export class BulkUpdateCollectionFeaturedDto {
+    @IsNotEmpty()
+    public featured: boolean
+
+    @IsNotEmpty()
+    public keys: any
+}
