@@ -23,6 +23,7 @@ export default class NftRouter implements ICustomRouter {
         this.router.post(`${this.path}/external/import`, requireAuth, validationMiddleware(ImportNftDto), asyncHandler(NftController.importNft))
         this.router.get(`${this.path}/`, asyncHandler(NftController.queryNFTs))
         this.router.get(`${this.path}/users/:key`, asyncHandler(NftController.queryMyNFTs))
+        this.router.get(`${this.path}/featured`, asyncHandler(NftController.getNftFeatured))
         this.router.get(`${this.path}/:key`, asyncHandler(NftController.getNftDetail))
         this.router.put(`${this.path}/:key`, requireAuth, asyncHandler(NftController.updateNft))
         this.router.put(`${this.path}/:key/status`, requireAuth, requireAdmin(), asyncHandler(NftController.updateNftStatus))
@@ -39,5 +40,7 @@ export default class NftRouter implements ICustomRouter {
         this.router.post(`${this.path}/offers/:key/accept`, requireAuth, asyncHandler(NftController.acceptOffer))
         this.router.post(`${this.path}/offers/:key/reject`, requireAuth, asyncHandler(NftController.rejectOffer))
         this.router.post(`${this.path}/offers/:key/cancel`, requireAuth, asyncHandler(NftController.cancelOffer))
+        this.router.put(`${this.path}/:key/featured`, requireAuth, requireAdmin(), asyncHandler(NftController.updateNftFeatured))
+        this.router.put(`${this.path}/featured`, requireAuth, requireAdmin(), asyncHandler(NftController.bulkUpdateNftFeatured))
     }
 }

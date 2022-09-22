@@ -394,6 +394,31 @@ describe('NFT', () => {
         expect(nft.status).equal(NftStatus.Approved)
     }).timeout(10000)
 
+    it(`Get Featured NFT`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts/featured`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).equal(0)
+    }).timeout(10000)
+
+    it(`Featured NFT`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/nfts/${shareData.nfts[0].key}/featured`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ featured: true })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.featured).equal(true)
+    }).timeout(10000)
+
+    it(`Get Featured NFT`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts/featured`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).equal(1)
+    }).timeout(10000)
+
     it(`Burn NFT`, async () => {
         await NftModel.updateOne({ key: shareData.nfts[0].key }, { $set: { owner: shareData.user.key } }, { upsert: true }).exec()
         const res = await request(server.app).delete(`/api/v1/nfts/${shareData.nfts[0].key}`).set('Authorization', `Bearer ${adminShareData.token}`)

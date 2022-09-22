@@ -39,6 +39,7 @@ const nftSchema = new Schema<INft>(
         token_id: String,
         status: String,
         is_presale: Boolean,
+        featured: Boolean,
         top_bid: { type: Object, default: null },
         removed: { type: Boolean, default: false }
     },

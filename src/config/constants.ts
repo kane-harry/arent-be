@@ -39,6 +39,7 @@ export enum NftActions {
     Update = 'Update',
     Delete = 'Delete',
     UpdateStatus = 'UpdateStatus',
+    UpdateFeatured = 'UpdateFeatured',
     OnMarket = 'OnMarket',
     OffMarket = 'OffMarket',
     Purchase = 'Purchase',

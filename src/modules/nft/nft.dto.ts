@@ -93,9 +93,22 @@ export class UpdateNftStatusDto {
     public status: string
 }
 
+export class UpdateNftFeaturedDto {
+    @IsNotEmpty()
+    public featured: boolean
+}
+
 export class BulkUpdateNftStatusDto {
     @IsNotEmpty()
     public status: string
+
+    @IsNotEmpty()
+    public keys: any
+}
+
+export class BulkUpdateNftFeaturedDto {
+    @IsNotEmpty()
+    public featured: boolean
 
     @IsNotEmpty()
     public keys: any

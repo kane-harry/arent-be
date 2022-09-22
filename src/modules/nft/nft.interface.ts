@@ -29,6 +29,7 @@ export interface INft extends IBaseModel {
     token_id: string
     status: string
     is_presale: boolean
+    featured: boolean
     top_bid: ITopBid | undefined
     // auctions
 }
@@ -84,6 +85,7 @@ export interface INftFilter extends IFilterModel {
     price_max?: number
     collection_key?: string
     on_market?: boolean
+    featured?: boolean
 }
 
 export interface ITopBid {

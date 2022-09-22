@@ -13,7 +13,9 @@ import {
     UpdateNftStatusDto,
     NftOnMarketDto,
     BidNftDto,
-    MakeOfferDto
+    MakeOfferDto,
+    UpdateNftFeaturedDto,
+    BulkUpdateNftFeaturedDto
 } from './nft.dto'
 
 export default class NftController {
@@ -309,6 +311,54 @@ export default class NftController {
         }
         const { key } = req.params
         const data = await NftService.cancelOffer(key, operator, options)
+        return res.json(data)
+    }
+
+    static async getNftFeatured(req: CustomRequest, res: Response) {
+        const filter = req.query as INftFilter
+        filter.featured = true
+        const data = await NftService.queryNfts(filter)
+        return res.json(data)
+    }
+
+    static async updateNftFeatured(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
+        const updateNftDto: UpdateNftFeaturedDto = req.body
+        const data = await NftService.updateNftFeatured(key, updateNftDto, operator, options)
+        return res.json(data)
+    }
+
+    static async bulkUpdateNftFeatured(req: CustomRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
+
+        const updateNftDto: BulkUpdateNftFeaturedDto = req.body
+        const { keys, featured } = updateNftDto
+        const data = []
+        for (const key of keys) {
+            try {
+                const item = await NftService.updateNftFeatured(key, { featured: featured }, operator, options)
+                data.push(item)
+            } catch (e) {
+                data.push(e)
+            }
+        }
         return res.json(data)
     }
 }

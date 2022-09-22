@@ -1,5 +1,15 @@
 import { IOperator } from '@modules/user/user.interface'
-import { BidNftDto, CreateNftDto, ImportNftDto, MakeOfferDto, NftOnMarketDto, NftRO, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
+import {
+    BidNftDto,
+    CreateNftDto,
+    ImportNftDto,
+    MakeOfferDto,
+    NftOnMarketDto,
+    NftRO,
+    UpdateNftDto,
+    UpdateNftFeaturedDto,
+    UpdateNftStatusDto
+} from './nft.dto'
 import { NftBidLogModel, NftImportLogModel, NftModel, NftOfferModel, NftOwnershipLogModel, NftSaleLogModel } from './nft.model'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
@@ -136,6 +146,10 @@ export default class NftService {
         if (params.on_market) {
             filter.$and = filter.$and ?? []
             filter.$and.push({ on_market: { $eq: params.on_market } })
+        }
+        if (params.featured) {
+            filter.$and = filter.$and ?? []
+            filter.$and.push({ featured: { $eq: params.featured } })
         }
         if (params.sort_by) {
             delete sorting._id
@@ -954,5 +968,28 @@ export default class NftService {
             session.endSession()
             throw error
         }
+    }
+
+    static async updateNftFeatured(key: string, updateNftFeaturedDto: UpdateNftFeaturedDto, operator: IOperator, options: IOptions) {
+        const nft = await NftModel.findOne({ key })
+        if (!nft) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('account.service', 'updateNftFeatured', { key }))
+        }
+        const preNft = nft
+        nft.set('featured', updateNftFeaturedDto.featured ?? nft.featured, Boolean)
+
+        const updateNft = await nft.save()
+
+        // create log
+        await new NftHistoryModel({
+            nft_key: key,
+            action: NftActions.UpdateFeatured,
+            operator: operator,
+            options: options,
+            pre_data: { status: preNft.featured },
+            post_data: { status: updateNft.featured }
+        }).save()
+
+        return updateNft
     }
 }
