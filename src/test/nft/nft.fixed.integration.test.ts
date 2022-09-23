@@ -6,7 +6,7 @@ import { dbTest, validResponse } from '../init/db'
 import server from '@app/server'
 import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authenticate'
 import { CollectionModel } from '@modules/collection/collection.model'
-import { NftModel } from '@modules/nft/nft.model'
+import { NftModel, NftOwnershipLogModel } from '@modules/nft/nft.model'
 import { AccountType, FeeMode, NftStatus } from '@config/constants'
 import { AccountModel } from '@modules/account/account.model'
 
@@ -211,4 +211,12 @@ describe('NFT', () => {
         expect(nft.on_market).equal(false)
         expect(nft.owner).equal(adminShareData.user.token)
     }).timeout(20000)
+
+    it(`Price History`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts/${shareData.nfts[0].key}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const histories = await NftOwnershipLogModel.find({ nft_key: shareData.nfts[0].key })
+        expect(histories.length).equal(res.body.price_histories.length)
+    }).timeout(10000)
 })

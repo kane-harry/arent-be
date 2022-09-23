@@ -124,7 +124,8 @@ export class NftRO<T> {
     collection: any
     creator: any
     owner: any
-    constructor(nft: any, owner: any, creator: any, collection: any) {
+    price_histories: any
+    constructor(nft: any, owner: any, creator: any, collection: any, histories: any) {
         this.nft = nft
         this.collection = collection
         if (creator) {
@@ -133,6 +134,11 @@ export class NftRO<T> {
         if (owner) {
             this.owner = { key: owner.key, chat_name: owner.chat_name, avatar: owner.avatar }
         }
+        const price_histories = []
+        for (let i = 0; i < histories.length; i++) {
+            price_histories.push({ time: histories[i].created, value: histories[i].price.toString() })
+        }
+        this.price_histories = price_histories
     }
 }
 

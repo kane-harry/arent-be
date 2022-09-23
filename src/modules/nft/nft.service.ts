@@ -248,7 +248,8 @@ export default class NftService {
         const owner = await UserService.getBriefByKey(nft.owner_key)
         const creator = await UserService.getBriefByKey(nft.creator_key)
         const collection = await CollectionModel.findOne({ key: nft.collection_key })
-        return new NftRO<INft>(nft, owner, creator, collection)
+        const histories = await NftOwnershipLogModel.find({ nft_key: nft.key }).sort({ created: -1 })
+        return new NftRO<INft>(nft, owner, creator, collection, histories)
     }
 
     static async onMarket(key: string, params: NftOnMarketDto, operator: IOperator, options: IOptions) {
