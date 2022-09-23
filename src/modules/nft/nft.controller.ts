@@ -69,6 +69,13 @@ export default class NftController {
         return res.json(data)
     }
 
+    static async getRelatedNfts(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const limit = Number(req.query.limit || 4)
+        const data = await NftService.getRelatedNfts(key, limit)
+        return res.json(data)
+    }
+
     static async updateNft(req: CustomRequest, res: Response) {
         const { key } = req.params
         const operator: IOperator = {

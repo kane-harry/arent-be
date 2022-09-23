@@ -15,7 +15,7 @@ import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
 import { INft, INftBidLog, INftFilter, INftOffer, INftOwnershipLog, INftSaleLog } from '@modules/nft/nft.interface'
 import BizException from '@exceptions/biz.exception'
-import { AccountErrors, AuthErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
+import { AccountErrors, AuthErrors, CollectionErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { isAdmin, roleCan } from '@config/role'
 import UserService from '@modules/user/user.service'
@@ -32,7 +32,7 @@ import {
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
-import { filter } from 'lodash'
+import { filter, shuffle } from 'lodash'
 import UserModel from '@modules/user/user.model'
 import AccountService from '@modules/account/account.service'
 import { config } from '@config'
@@ -992,5 +992,23 @@ export default class NftService {
         }).save()
 
         return updateNft
+    }
+
+    static async getRelatedNfts(key: string, limit: number) {
+        const nft = await NftModel.findOne({ key })
+        if (!nft) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'getRelatedNfts', { key }))
+        }
+
+        const filter: any = {
+            key: { $ne: nft.key },
+            $or: [{ creator_key: nft.creator_key }]
+        }
+        if (nft.collection_key) {
+            filter.$or.push({ collection_key: nft.collection_key })
+        }
+
+        const nfts = await NftModel.find(filter).sort({ collection_key: 1, created: -1 }).limit(limit)
+        return nfts
     }
 }

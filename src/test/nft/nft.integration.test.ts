@@ -273,6 +273,48 @@ describe('NFT', () => {
         expect(nft.owner_key).equal(shareData.user.key)
     }).timeout(30000)
 
+    it(`Create NFT`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .field('name', createNftData.name)
+            .field('description', createNftData.description)
+            .field('price', createNftData.price)
+            .field('currency', createNftData.currency)
+            .field('meta_data', JSON.stringify(createNftData.meta_data))
+            .field('type', createNftData.type)
+            .field('attributes', JSON.stringify(createNftData.attributes))
+            .field('collection_key', shareData.collections[0].key)
+            .field('num_sales', createNftData.num_sales)
+            .field('quantity', createNftData.quantity)
+            .field('royalty', createNftData.royalty)
+            .attach('animation', './src/test/init/test.mp4')
+            .attach('image', './src/test/init/test.jpeg')
+        expect(res.status).equal(200)
+        validResponse(res.body)
+    }).timeout(30000)
+
+    it(`Create NFT`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .field('name', createNftData.name)
+            .field('description', createNftData.description)
+            .field('price', createNftData.price)
+            .field('currency', createNftData.currency)
+            .field('meta_data', JSON.stringify(createNftData.meta_data))
+            .field('type', createNftData.type)
+            .field('attributes', JSON.stringify(createNftData.attributes))
+            .field('collection_key', shareData.collections[0].key)
+            .field('num_sales', createNftData.num_sales)
+            .field('quantity', createNftData.quantity)
+            .field('royalty', createNftData.royalty)
+            .attach('animation', './src/test/init/test.mp4')
+            .attach('image', './src/test/init/test.jpeg')
+        expect(res.status).equal(200)
+        validResponse(res.body)
+    }).timeout(30000)
+
     it(`List User Collections`, async () => {
         const res = await request(server.app).get(`/api/v1/collections/user/${shareData.user.key}`)
         expect(res.status).equal(200)
@@ -397,6 +439,13 @@ describe('NFT', () => {
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
         expect(nft.name).equal(updateNftData.name)
         expect(nft.description).equal(updateNftData.description)
+    }).timeout(10000)
+
+    it(`Related NFT`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts/${shareData.nfts[0].key}/related`).send(updateNftData)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.length).gt(0)
     }).timeout(10000)
 
     it(`Bulk Rejected NFT`, async () => {
