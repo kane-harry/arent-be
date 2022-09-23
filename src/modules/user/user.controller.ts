@@ -243,4 +243,10 @@ export default class UserController {
         const data = await UserService.updateEmail(userKey, params, { req })
         return res.json(data)
     }
+
+    static async getUserAssets(req: AuthenticationRequest, res: Response) {
+        const key = req.params.key
+        const data = await UserService.getUserAssets(key)
+        return res.send(data)
+    }
 }

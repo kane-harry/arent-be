@@ -3,7 +3,7 @@ import { AuthErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
-import { forEach, toLower, trim } from 'lodash'
+import { find, forEach, toLower, trim } from 'lodash'
 import {
     AdminUpdateProfileDto,
     CreateUserDto,
@@ -23,7 +23,7 @@ import {
 } from './user.dto'
 import UserModel from './user.model'
 import * as bcrypt from 'bcrypt'
-import { unixTimestampToDate, generateRandomCode, generateUnixTimestamp } from '@utils/utility'
+import { unixTimestampToDate, generateRandomCode, generateUnixTimestamp, roundUp } from '@utils/utility'
 import { IUser, IUserBrief, IUserQueryFilter } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
@@ -50,6 +50,9 @@ import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
 import AccountService from '@modules/account/account.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
+import { NftModel } from '@modules/nft/nft.model'
+import { RateModel } from '@modules/exchange_rate/rate.model'
+import { config } from '@config'
 
 export default class UserService extends AuthService {
     public static async authorize(params: AuthorizeDto, options?: any) {
@@ -900,5 +903,54 @@ export default class UserService extends AuthService {
         EmailService.sendUserChangeEmailCompletedEmail({ address: email })
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
         return user
+    }
+
+    public static async getUserAssets(key: string) {
+        const user = await UserModel.findOne({ key, removed: false }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateEmail', {}))
+        }
+
+        const rateData = await RateModel.findOne({ symbol: `${config.system.primeToken}-USDT` }).exec()
+        const rate = rateData ? rateData.rate : 1
+
+        const accountsData = await AccountService.queryAccounts({ user_key: key }, { page_index: 1, page_size: 999 })
+        const accounts: any = accountsData.items
+
+        let amount_usd = 0
+        let amount_usd_change = 0
+        let percentage_change = 0
+        for (const account of accounts) {
+            const dailyChange = find(account.balance_change_statements, { period: 'day' })
+            amount_usd += dailyChange.amount_usd
+            amount_usd_change += dailyChange.amount_usd_change
+        }
+        percentage_change = amount_usd === 0 ? 0 : roundUp(amount_usd_change / amount_usd, 4)
+
+        const tokens = {
+            amount: amount_usd,
+            amount_change: amount_usd_change,
+            percentage_change,
+            currency: 'USD'
+        }
+
+        const nftsAggre = await NftModel.aggregate([
+            { $match: { owner_key: key, removed: false } },
+            {
+                $group: {
+                    _id: null,
+                    total_value: { $sum: '$price' },
+                    number_of_nfts: { $sum: 1 }
+                }
+            }
+        ])
+        const nfts = { total_value: 0, total_usd_value: 0, number_of_nfts: 0, currency: 'USD' }
+        if (nftsAggre && nftsAggre[0]) {
+            nfts.total_value = nftsAggre[0].total_value
+            nfts.number_of_nfts = nftsAggre[0].number_of_nfts
+            nfts.total_usd_value = roundUp(nftsAggre[0].total_value * rate, 2)
+        }
+
+        return { tokens, nfts }
     }
 }

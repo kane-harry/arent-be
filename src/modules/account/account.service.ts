@@ -130,17 +130,32 @@ export default class AccountService {
 
         if (dailySnapshot) {
             const pre_amount = Number(dailySnapshot.post_amount)
+            const pre_amount_usd = roundUp(pre_amount * rate, 2)
             const amount_change = roundUp(amount - pre_amount, 8)
+            const amount_usd_change = roundUp(amount_change * rate, 2)
             const percentage_change = pre_amount === 0 ? 0 : roundUp(amount_change / pre_amount, 4)
 
             balance_change_statements.push({
                 period: 'day',
-                pre_amount: Number(dailySnapshot.post_amount),
+                pre_amount,
+                pre_amount_usd,
+                amount,
+                amount_usd,
                 amount_change: amount_change,
+                amount_usd_change,
                 percentage_change: percentage_change
             })
         } else {
-            balance_change_statements.push({ period: 'day', pre_amount: Number(amount), amount_change: 0, percentage_change: 0 })
+            balance_change_statements.push({
+                period: 'day',
+                pre_amount: amount,
+                pre_amount_usd: amount_usd,
+                amount,
+                amount_usd,
+                amount_change: 0,
+                amount_usd_change: 0,
+                percentage_change: 0
+            })
         }
         const oneWeekAgo = moment().add(-1, 'week').toDate()
         const weeklySnapshots = await AccountSnapshotModel.find({ account_key: account.key, created: { $gt: oneWeekAgo } })
@@ -150,17 +165,32 @@ export default class AccountService {
 
         if (weeklySnapshot) {
             const pre_amount = Number(weeklySnapshot.post_amount)
+            const pre_amount_usd = roundUp(pre_amount * rate, 2)
             const amount_change = roundUp(amount - pre_amount, 8)
+            const amount_usd_change = roundUp(amount_change * rate, 2)
             const percentage_change = pre_amount === 0 ? 0 : roundUp(amount_change / pre_amount, 4)
 
             balance_change_statements.push({
                 period: 'week',
-                pre_amount: Number(weeklySnapshot.post_amount),
-                amount_change: amount_change,
+                pre_amount,
+                pre_amount_usd,
+                amount,
+                amount_usd,
+                amount_change,
+                amount_usd_change,
                 percentage_change: percentage_change
             })
         } else {
-            balance_change_statements.push({ period: 'week', pre_amount: Number(amount), amount_change: 0, percentage_change: 0 })
+            balance_change_statements.push({
+                period: 'week',
+                pre_amount: amount,
+                pre_amount_usd: amount_usd,
+                amount,
+                amount_usd,
+                amount_change: 0,
+                amount_usd_change: 0,
+                percentage_change: 0
+            })
         }
 
         return { ...account.toJSON(), currency_value_statements, balance_change_statements }

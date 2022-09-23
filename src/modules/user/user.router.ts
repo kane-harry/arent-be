@@ -76,6 +76,8 @@ class UserRouter implements ICustomRouter {
         this.router.post(`${this.path}/:key/phone/update`, requireAuth, requireOwner('users'), asyncHandler(UserController.updatePhone))
         this.router.post(`${this.path}/:key/email/update`, requireAuth, requireOwner('users'), asyncHandler(UserController.updateEmail))
         this.router.get(`${this.path}/list/export`, requireAuth, requireAdmin(), asyncHandler(UserController.exportAllUser))
+
+        this.router.get(`${this.path}/:key/assets`, requireAuth, requireOwner('users'), asyncHandler(UserController.getUserAssets))
     }
 }
 
