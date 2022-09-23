@@ -294,7 +294,7 @@ describe('NFT', () => {
         validResponse(res.body)
     }).timeout(30000)
 
-    it(`Create NFT`, async () => {
+    it(`Create gift NFT`, async () => {
         const res = await request(server.app)
             .post(`/api/v1/nfts`)
             .set('Authorization', `Bearer ${shareData.token}`)
@@ -310,10 +310,10 @@ describe('NFT', () => {
             .field('quantity', createNftData.quantity)
             .field('royalty', createNftData.royalty)
             .attach('animation', './src/test/init/test.mp4')
-            .attach('image', './src/test/init/test.jpeg')
+            .attach('image', './src/test/init/test.gif')
         expect(res.status).equal(200)
         validResponse(res.body)
-    }).timeout(30000)
+    }).timeout(40000)
 
     it(`List User Collections`, async () => {
         const res = await request(server.app).get(`/api/v1/collections/user/${shareData.user.key}`)

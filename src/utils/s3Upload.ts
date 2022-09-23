@@ -33,7 +33,7 @@ export const uploadFiles = async (files: any, folder: string): Promise<IUploadRe
         return s3
             .upload({
                 ...defaultParams,
-                Key: folder ? `${folder}/${file.fieldname}/${filename}` : `upload/${filename}`,
+                Key: folder ? `${folder}/${file.fieldname}/${file.type}/${file.originalname}` : `upload/${filename}`,
                 Body: file.buffer
             })
             .promise()
@@ -62,11 +62,13 @@ export const resizeImages = async (
 ) => {
     let newFilesOps: any[] = []
     for (const file of files) {
+        const uuid = uuidV4()
         const suffix = file.originalname.slice(file.originalname.lastIndexOf('.'))
-        const fileName = uuidV4() + suffix
+        const fileName = uuid + suffix
 
         const sizes = resizeOptions[file.fieldname]
         if (!isArray(sizes)) {
+            file.originalname = fileName
             file.type = 'original'
             newFilesOps.push(file)
             continue
@@ -74,18 +76,22 @@ export const resizeImages = async (
         const originalFile = {
             ...file,
             type: file.type ?? 'original',
-            originalname: 'original' + '-' + fileName
+            originalname: fileName
         }
         newFilesOps.push(originalFile)
 
         const shouldTransform = file.mimetype.toLowerCase() !== 'image/gif' && /^image/i.test(file.mimetype)
         if (shouldTransform) {
+            const fileName = uuid + '.webp'
             const newFiles = map(sizes, async curSize => {
-                const data = await sharp(file.buffer).resize(curSize.maxSize, curSize.maxSize, { fit: sharp.fit.inside }).jpeg().toBuffer()
+                const data = await sharp(file.buffer)
+                    .resize(curSize.maxSize, curSize.maxSize, { fit: sharp.fit.inside, withoutEnlargement: true })
+                    .webp()
+                    .toBuffer()
                 return {
                     ...file,
                     buffer: data,
-                    originalname: curSize.id + '-' + fileName,
+                    originalname: fileName,
                     type: curSize.id,
                     size: data.length
                 }
@@ -93,15 +99,22 @@ export const resizeImages = async (
             const thumbs = await Promise.all(newFiles)
             newFilesOps = [...newFilesOps, ...thumbs]
         } else {
-            const newFiles = map(sizes, curSize => {
+            const fileName = uuid + '.gif'
+            const newFiles = map(sizes, async curSize => {
+                const data = await sharp(file.buffer, { animated: true })
+                    .resize(curSize.maxSize, curSize.maxSize, { fit: sharp.fit.inside, withoutEnlargement: true })
+                    .gif()
+                    .toBuffer()
                 return {
                     ...file,
-                    originalname: curSize.id + '-' + fileName,
+                    buffer: data,
+                    originalname: fileName,
                     type: curSize.id,
-                    size: file.size
+                    size: data.length
                 }
             })
-            newFilesOps = [...newFilesOps, ...newFiles]
+            const thumbs = await Promise.all(newFiles)
+            newFilesOps = [...newFilesOps, ...thumbs]
         }
     }
     return newFilesOps
