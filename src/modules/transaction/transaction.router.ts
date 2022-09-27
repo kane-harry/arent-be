@@ -21,6 +21,6 @@ export default class TransactionRouter implements ICustomRouter {
         // this.router.get(`${this.path}/accounts/history`, asyncHandler(TransactionController.getTxnHistory))
         this.router.get(`${this.path}/accounts/:key`, asyncHandler(TransactionController.queryTxnsByAccount))
         this.router.get(`${this.path}/:key`, asyncHandler(TransactionController.getTxnDetails))
-        this.router.get(`${this.path}/export`, requireAuth, requireAdmin(), asyncHandler(TransactionController.exportTxnsByAccount))
+        this.router.get(`${this.path}/report/export`, requireAuth, requireAdmin(), asyncHandler(TransactionController.exportTxnsByAccount))
     }
 }

@@ -112,11 +112,11 @@ export default class AuthService {
         }
 
         const filter: { [key: string]: any } = {
-            $or: [
-                { email: userData.email }, //
-                userData.phone ? { phone: userData.phone } : {}
-            ],
+            $or: [{ email: userData.email }],
             removed: false
+        }
+        if (userData.phone) {
+            filter.$or.push({ phone: userData.phone })
         }
         const user = await UserModel.findOne(filter).select('key email phone').exec()
         if (!user) {
@@ -136,6 +136,7 @@ export default class AuthService {
                 new ErrorContext('auth.service', 'verifyRegistration', { phone: userData.phone })
             )
         }
+        return { success: true }
     }
 
     static async logIn(logInData: LogInDto, options?: any) {

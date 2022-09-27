@@ -89,6 +89,7 @@ export default class UserService extends AuthService {
         const currentTimestamp = generateUnixTimestamp()
 
         const mode = new UserModel({
+            key: undefined,
             ...userData,
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
@@ -101,7 +102,9 @@ export default class UserService extends AuthService {
         })
 
         // create accounts before save data
-        await AccountService.initUserAccounts(mode.key)
+        if (mode.key) {
+            await AccountService.initUserAccounts(mode.key)
+        }
 
         await mode.save()
 

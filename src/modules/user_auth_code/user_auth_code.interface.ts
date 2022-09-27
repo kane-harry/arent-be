@@ -2,7 +2,6 @@ import { CodeType } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
 
 export interface IUserAuthCode extends IBaseModel {
-    key: string
     owner: string // email|phone
     type: CodeType
     code: string

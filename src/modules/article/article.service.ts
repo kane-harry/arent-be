@@ -39,6 +39,7 @@ export default class ArticleService {
             small: smallImg?.key
         }
         const model = new ArticleModel({
+            key: undefined,
             ...params,
             cover_image: cover_image,
             author_key: operator.key,

@@ -191,6 +191,7 @@ export enum OfferStatusType {
 }
 
 export enum ArticleType {
+    News = 'News',
     Guide = 'Guide'
 }
 
