@@ -189,3 +189,13 @@ export enum OfferStatusType {
     Accepted = 'Accepted',
     Rejected = 'rejected'
 }
+
+export enum ArticleType {
+    Guide = 'Guide'
+}
+
+export const ARTICLE_COVER_IMAGE_SIZES = [
+    { maxSize: 1280, id: 'large' },
+    { maxSize: 600, id: 'medium' },
+    { maxSize: 300, id: 'small' }
+]

@@ -108,3 +108,8 @@ export const UserAuthCodeErrors = {
     verification_code_duplicate_request_in_hour_error: { code: 9003, status: 400, message: 'Please request verification code after 1 hour.' },
     verification_code_invalid_error: { code: 9004, status: 400, message: 'Invalid verification code.' }
 }
+
+export const ArticleErrors = {
+    cover_image_required_error: { code: 10001, status: 400, message: 'Cover image is required.' },
+    item_not_found_error: { code: 10002, status: 400, message: 'Article does not exist.' }
+}

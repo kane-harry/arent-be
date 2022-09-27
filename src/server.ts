@@ -12,6 +12,7 @@ import AdminLogRouter from '@modules/admin_logs/admin_log.router'
 import NftRouter from '@modules/nft/nft.router'
 import CollectionRouter from '@modules/collection/collection.router'
 import RateRouter from '@modules/exchange_rate/rate.router'
+import ArticleRouter from '@modules/article/article.router'
 
 const app = new App([
     new UserRouter(),
@@ -25,7 +26,8 @@ const app = new App([
     new RateRouter(),
     new SiteRouter(),
     new TransactionRouter(),
-    new VerificationCodeRouter()
+    new VerificationCodeRouter(),
+    new ArticleRouter()
 ])
 
 app.listen()
