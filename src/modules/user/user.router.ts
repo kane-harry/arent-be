@@ -12,7 +12,9 @@ import {
     ForgotPinDto,
     ResetPasswordDto,
     ResetPinDto,
-    AuthorizeDto
+    AuthorizeDto,
+    UpdatePhoneDto,
+    UpdateEmailDto
 } from './user.dto'
 import { requireAdmin, requireOwner } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
@@ -47,11 +49,18 @@ class UserRouter implements ICustomRouter {
         this.router.put(`${this.path}/profile`, requireAuth, validationMiddleware(UpdateProfileDto), asyncHandler(UserController.updateProfile))
         this.router.get(`${this.path}/:key/profile`, requireAuth, requireOwner('users'), asyncHandler(UserController.getProfile))
         this.router.get(`${this.path}/:name/brief`, asyncHandler(UserController.getBriefByName)) // public route
-        this.router.get(`${this.path}/:key/totp`, requireAuth, asyncHandler(UserController.getTotp))
-        this.router.post(`${this.path}/:key/totp`, requireAuth, validationMiddleware(SetupTotpDto), asyncHandler(UserController.setTotp))
+        this.router.get(`${this.path}/:key/totp`, requireAuth, requireOwner('users'), asyncHandler(UserController.getTotp))
+        this.router.post(
+            `${this.path}/:key/totp`,
+            requireAuth,
+            requireOwner('users'),
+            validationMiddleware(SetupTotpDto),
+            asyncHandler(UserController.setTotp)
+        )
         this.router.post(
             `${this.path}/:key/security`,
             requireAuth,
+            requireOwner('users'),
             validationMiddleware(UpdateSecurityDto),
             asyncHandler(UserController.updateSecurity)
         )
@@ -73,8 +82,20 @@ class UserRouter implements ICustomRouter {
         this.router.post(`${this.path}/:key/remove`, requireAuth, requireAdmin(), asyncHandler(UserController.removeUser))
         this.router.post(`${this.path}/:key/totp/reset`, requireAuth, requireAdmin(), asyncHandler(UserController.resetTotp))
         this.router.post(`${this.path}/:key/role/update`, requireAuth, requireAdmin(), asyncHandler(UserController.updateUserRole))
-        this.router.post(`${this.path}/:key/phone/update`, requireAuth, requireOwner('users'), asyncHandler(UserController.updatePhone))
-        this.router.post(`${this.path}/:key/email/update`, requireAuth, requireOwner('users'), asyncHandler(UserController.updateEmail))
+        this.router.post(
+            `${this.path}/:key/phone/update`,
+            requireAuth,
+            requireOwner('users'),
+            validationMiddleware(UpdatePhoneDto),
+            asyncHandler(UserController.updatePhone)
+        )
+        this.router.post(
+            `${this.path}/:key/email/update`,
+            requireAuth,
+            requireOwner('users'),
+            validationMiddleware(UpdateEmailDto),
+            asyncHandler(UserController.updateEmail)
+        )
         this.router.get(`${this.path}/list/export`, requireAuth, requireAdmin(), asyncHandler(UserController.exportAllUser))
 
         this.router.get(`${this.path}/:key/assets`, requireAuth, requireOwner('users'), asyncHandler(UserController.getUserAssets))

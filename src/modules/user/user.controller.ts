@@ -162,7 +162,6 @@ export default class UserController {
 
     static async searchUser(req: CustomRequest, res: Response) {
         const filter = req.query as IUserQueryFilter
-        filter.terms = req.query.search
         const data = await UserService.searchUser(filter)
         return res.send(data)
     }

@@ -210,11 +210,11 @@ export default class UserService extends AuthService {
         const postChatName = trim(toLower(params.chat_name))
         const preChatName = trim(toLower(user.chat_name))
         if (preChatName !== postChatName) {
-            const existUser = await UserModel.findOne({ chatName: new RegExp(postChatName, 'i'), removed: false }).exec()
+            const existUser = await UserModel.findOne({ chat_name: new RegExp(postChatName, 'i'), removed: false }).exec()
             if (existUser) {
                 throw new BizException(
                     AuthErrors.registration_chatname_exist_error,
-                    new ErrorContext('user.service', 'updateProfile', { chatName: postChatName })
+                    new ErrorContext('user.service', 'updateProfile', { chat_name: postChatName })
                 )
             }
         }
@@ -224,6 +224,8 @@ export default class UserService extends AuthService {
             if (existingUser && existingUser.key !== user.key) {
                 throw new BizException(AuthErrors.registration_email_exists_error, new ErrorContext('user.service', 'updateEmail', { email }))
             }
+            user.set('email', email, String)
+            user.set('email_verified', true, Boolean)
         }
         const phone = await stripPhoneNumber(params.phone)
         if (phone) {
@@ -231,6 +233,8 @@ export default class UserService extends AuthService {
             if (existingUser && existingUser.key !== user.key) {
                 throw new BizException(AuthErrors.registration_phone_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
             }
+            user.set('phone', phone, String)
+            user.set('phone_verified', true, Boolean)
         }
 
         // create log
@@ -262,8 +266,7 @@ export default class UserService extends AuthService {
         user.set('first_name', params.first_name || user.first_name, String)
         user.set('last_name', params.last_name || user.last_name, String)
         user.set('chat_name', params.chat_name || user.chat_name, String)
-        user.set('phone', phone || user.phone, String)
-        user.set('email', email || user.email, String)
+
         await user.save()
 
         return user
@@ -576,7 +579,6 @@ export default class UserService extends AuthService {
         const reg = new RegExp(params.terms)
         const filter: { [key: string]: any } = {
             $or: [{ first_name: reg }, { last_name: reg }, { chat_name: reg }],
-            $and: [{ created: { $exists: true } }],
             removed: false
         }
         const sorting: any = { _id: 1 }
@@ -863,6 +865,7 @@ export default class UserService extends AuthService {
         }).save()
 
         // save
+        user?.set('phone_verified', true, Boolean)
         user?.set('phone', phone, String)
         user?.save()
 
@@ -900,6 +903,7 @@ export default class UserService extends AuthService {
 
         // save
         user?.set('email', email, String)
+        user?.set('email_verified', true, Boolean)
         await user?.save()
 
         // logout & send email notifications
