@@ -25,7 +25,7 @@ export default class NftScheduler implements IScheduler {
             const timestamp = generateUnixTimestamp() - 60
             const nfts = await NftModel.find(
                 { price_type: NftPriceType.Auction, status: NftStatus.Approved, on_market: true, auction_end: { $lte: timestamp } },
-                { projection: { _id: 0 } }
+                { _id: 0 }
             )
                 .sort({ auction_end: 1 })
                 .limit(100)
@@ -93,7 +93,7 @@ export default class NftScheduler implements IScheduler {
                 {
                     $set: updateData
                 },
-                { projection: { _id: 0 }, returnOriginal: false }
+                { new: true }
             )
 
             await new NftHistoryModel({

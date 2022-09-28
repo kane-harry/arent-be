@@ -19,3 +19,9 @@ const shortName = uniqueNamesGenerator({
 console.log(randomName)
 
 console.log(shortName)
+
+const moment = require('moment')
+
+console.log(moment().format('x'))
+
+console.log(moment().add(1, 'w').format('x'))

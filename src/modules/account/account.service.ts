@@ -373,7 +373,8 @@ export default class AccountService {
             {
                 $inc: { amount_locked: amount },
                 $set: { modified: new Date() }
-            }
+            },
+            { new: true }
         )
 
         return data

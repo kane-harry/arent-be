@@ -156,7 +156,7 @@ export default class CollectionService {
         return await collection.save()
     }
 
-    static async assignCollection(key: string, assignCollectionDto: AssignCollectionDto, operator: IUser) {
+    static async assignCollection(key: string, params: AssignCollectionDto, operator: IUser) {
         const collection = await CollectionModel.findOne({ key })
         if (!collection) {
             throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'assignCollection', { key }))
@@ -164,7 +164,14 @@ export default class CollectionService {
         if (!isAdmin(operator?.role) && operator?.key !== collection.owner_key) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'assignCollection', { key }))
         }
-        collection.set('owner_key', assignCollectionDto.user_key, String)
+        const user = await UserService.getBriefByKey(params.user_key)
+        if (!user) {
+            throw new BizException(
+                AuthErrors.user_not_exists_error,
+                new ErrorContext('collection.service', 'assignCollection', { user_key: params.user_key })
+            )
+        }
+        collection.set('owner_key', params.user_key, String)
         return await collection.save()
     }
 

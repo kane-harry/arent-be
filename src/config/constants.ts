@@ -184,10 +184,10 @@ export enum AccountActionType {
 }
 
 export enum OfferStatusType {
-    Pending = 'pending',
+    Pending = 'Pending',
     Canceled = 'Canceled',
     Accepted = 'Accepted',
-    Rejected = 'rejected'
+    Rejected = 'Rejected'
 }
 
 export enum ArticleType {

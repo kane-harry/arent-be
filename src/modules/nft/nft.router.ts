@@ -3,7 +3,7 @@ import { Router } from 'express'
 import ICustomRouter from '@interfaces/custom.router.interface'
 import { requireAuth } from '@utils/authCheck'
 import Multer from 'multer'
-import { CreateNftDto, ImportNftDto, NftOnMarketDto } from './nft.dto'
+import { BidNftDto, CreateNftDto, ImportNftDto, MakeOfferDto, NftOnMarketDto, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { requireAdmin } from '@config/role'
 import NftController from './nft.controller'
@@ -26,17 +26,23 @@ export default class NftRouter implements ICustomRouter {
         this.router.get(`${this.path}/featured`, asyncHandler(NftController.getNftFeatured))
         this.router.get(`${this.path}/:key`, asyncHandler(NftController.getNftDetail))
         this.router.get(`${this.path}/:key/related`, asyncHandler(NftController.getRelatedNfts))
-        this.router.put(`${this.path}/:key`, requireAuth, asyncHandler(NftController.updateNft))
-        this.router.put(`${this.path}/:key/status`, requireAuth, requireAdmin(), asyncHandler(NftController.updateNftStatus))
+        this.router.put(`${this.path}/:key`, requireAuth, validationMiddleware(UpdateNftDto), asyncHandler(NftController.updateNft))
+        this.router.put(
+            `${this.path}/:key/status`,
+            requireAuth,
+            requireAdmin(),
+            validationMiddleware(UpdateNftStatusDto),
+            asyncHandler(NftController.updateNftStatus)
+        )
         this.router.post(`${this.path}/status`, requireAuth, requireAdmin(), asyncHandler(NftController.bulkUpdateNftStatus))
         this.router.delete(`${this.path}/:key`, requireAuth, asyncHandler(NftController.deleteNft))
         this.router.delete(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(NftController.bulkDeleteNft))
         this.router.put(`${this.path}/:key/market/on`, requireAuth, validationMiddleware(NftOnMarketDto), asyncHandler(NftController.onMarket))
         this.router.put(`${this.path}/:key/market/off`, requireAuth, asyncHandler(NftController.offMarket))
         this.router.post(`${this.path}/:key/buy`, requireAuth, asyncHandler(NftController.buyNft))
-        this.router.post(`${this.path}/:key/bids`, requireAuth, asyncHandler(NftController.bidNft))
+        this.router.post(`${this.path}/:key/bids`, requireAuth, validationMiddleware(BidNftDto), asyncHandler(NftController.bidNft))
         this.router.get(`${this.path}/:key/bids`, asyncHandler(NftController.getNftBids))
-        this.router.post(`${this.path}/:key/offers`, requireAuth, asyncHandler(NftController.makeOffer))
+        this.router.post(`${this.path}/:key/offers`, requireAuth, validationMiddleware(MakeOfferDto), asyncHandler(NftController.makeOffer))
         this.router.get(`${this.path}/:key/offers`, asyncHandler(NftController.getOffers))
         this.router.post(`${this.path}/offers/:key/accept`, requireAuth, asyncHandler(NftController.acceptOffer))
         this.router.post(`${this.path}/offers/:key/reject`, requireAuth, asyncHandler(NftController.rejectOffer))

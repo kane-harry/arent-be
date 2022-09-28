@@ -83,6 +83,7 @@ export default class NftService {
             createNftDto.collection_key = collection?.key ?? ''
         }
         const model = new NftModel({
+            key: undefined,
             ...createNftDto,
             image: image,
             animation: animation,
@@ -381,7 +382,7 @@ export default class NftService {
                 {
                     $set: updateData
                 },
-                { projection: { _id: 0 }, returnOriginal: false }
+                { new: true }
             )
 
             await new NftHistoryModel({
@@ -453,6 +454,10 @@ export default class NftService {
             const currentTimestamp = generateUnixTimestamp()
             if (currentTimestamp > nft.auction_end) {
                 throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
+
+            if (Number(params.amount) < nft.price) {
+                throw new BizException(NftErrors.nft_bidding_amount_less_than_price_error, new ErrorContext('nft.service', 'bidNft', { key }))
             }
 
             const seller = await UserService.getBriefByKey(nft.owner_key)
@@ -619,7 +624,7 @@ export default class NftService {
     }
 
     static async getLastBidByNftAndUser(user_key: string, nft_key: any) {
-        const data = await NftBidLogModel.find({ user_key, nft_key }, { projection: { _id: 0 } }).sort({ created_at: -1 })
+        const data = await NftBidLogModel.find({ user_key, nft_key }, { _id: 0 }).sort({ created_at: -1 })
         if (data && data.length > 0) {
             return data[0]
         }
@@ -627,12 +632,12 @@ export default class NftService {
     }
 
     static async getNftBids(nft_key: string) {
-        const bids = await NftBidLogModel.find({ nft_key }, { projection: { _id: 0 } }).sort({ _id: -1 })
+        const bids = await NftBidLogModel.find({ nft_key }, { _id: 0 }).sort({ _id: -1 })
         return bids
     }
 
     static async getOffers(nft_key: string) {
-        const bids = await NftOfferModel.find({ nft_key }, { projection: { _id: 0 } }).sort({ _id: -1 })
+        const bids = await NftOfferModel.find({ nft_key }, { _id: 0 }).sort({ _id: -1 })
         return bids
     }
 
@@ -709,6 +714,7 @@ export default class NftService {
             })
 
             await NftService.addNftOffer({
+                key: undefined,
                 status: OfferStatusType.Pending,
                 user_key: buyer.key,
                 nft_key: nft.key,
@@ -727,7 +733,7 @@ export default class NftService {
                 EmailService.sendReceivedOfferNotification({ address: seller.email, nft })
             }
             session.endSession()
-            return nft
+            return { success: true }
         } catch (error) {
             await session.abortTransaction()
             session.endSession()
@@ -789,6 +795,7 @@ export default class NftService {
                 operator: operator,
                 options
             })
+            return { success: true }
         } catch (error) {
             await session.abortTransaction()
             session.endSession()
@@ -840,6 +847,7 @@ export default class NftService {
                 operator: operator,
                 options
             })
+            return { success: true }
         } catch (error) {
             await session.abortTransaction()
             session.endSession()
@@ -902,7 +910,7 @@ export default class NftService {
                 {
                     $set: updateData
                 },
-                { projection: { _id: 0 }, returnOriginal: false }
+                { new: true }
             )
 
             await new NftHistoryModel({
