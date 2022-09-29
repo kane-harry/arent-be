@@ -31,6 +31,7 @@ export interface IUser extends IBaseModel {
     totp_secret: string
     totp_setup: boolean
     token_version: number
+    number_of_followers: number
 }
 
 export interface IUserBrief {

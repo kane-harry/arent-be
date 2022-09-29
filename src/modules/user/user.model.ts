@@ -73,6 +73,7 @@ const userSchema = new Schema<IUser>(
         change_password_next_login_attempts: { type: Number, default: 0 },
         locked_timestamp: { type: Number, default: 0 },
         login_count: { type: Number, default: 0 },
+        number_of_followers: { type: Number, default: 0 },
         removed: { type: Boolean, default: false },
         token_version: { type: Number }
     },
