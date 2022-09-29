@@ -30,6 +30,7 @@ export interface INft extends IBaseModel {
     status: string
     is_presale: boolean
     featured: boolean
+    number_of_likes: number
     top_bid: ITopBid | undefined
     // auctions
 }

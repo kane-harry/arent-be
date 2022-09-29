@@ -13,6 +13,7 @@ import NftRouter from '@modules/nft/nft.router'
 import CollectionRouter from '@modules/collection/collection.router'
 import RateRouter from '@modules/exchange_rate/rate.router'
 import ArticleRouter from '@modules/article/article.router'
+import NftFavoriteRouter from '@modules/nft_favorite/nft.favorite.router'
 
 const app = new App([
     new UserRouter(),
@@ -27,7 +28,8 @@ const app = new App([
     new SiteRouter(),
     new TransactionRouter(),
     new VerificationCodeRouter(),
-    new ArticleRouter()
+    new ArticleRouter(),
+    new NftFavoriteRouter()
 ])
 
 app.listen()

@@ -90,7 +90,8 @@ export default class NftService {
             status: isAdmin(operator.role) ? NftStatus.Approved : NftStatus.Pending,
             creator_key: operator.key,
             owner_key: isAdmin(operator.role) ? MASTER_ACCOUNT_KEY : operator.key,
-            on_market: false
+            on_market: false,
+            number_of_likes: 0
         })
         const nft = await model.save()
         await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: 1 } }, { new: true }).exec()
