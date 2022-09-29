@@ -27,6 +27,11 @@ const collectionSchema = new Schema<ICollection>(
     },
     {
         toJSON: {
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            },
             virtuals: true,
             getters: true
         },

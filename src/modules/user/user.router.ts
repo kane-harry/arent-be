@@ -14,7 +14,8 @@ import {
     ResetPinDto,
     AuthorizeDto,
     UpdatePhoneDto,
-    UpdateEmailDto
+    UpdateEmailDto,
+    EmailVerifyDto
 } from './user.dto'
 import { requireAdmin, requireOwner } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
@@ -99,6 +100,14 @@ class UserRouter implements ICustomRouter {
         this.router.get(`${this.path}/list/export`, requireAuth, requireAdmin(), asyncHandler(UserController.exportAllUser))
 
         this.router.get(`${this.path}/:key/assets`, requireAuth, requireOwner('users'), asyncHandler(UserController.getUserAssets))
+
+        this.router.get(`${this.path}/email/verify`, requireAuth, asyncHandler(UserController.getEmailVerificationCode))
+        this.router.post(
+            `${this.path}/email/verify`,
+            requireAuth,
+            validationMiddleware(EmailVerifyDto),
+            asyncHandler(UserController.verifyEmailAddress)
+        )
     }
 }
 

@@ -28,6 +28,13 @@ const articleSchema = new Schema<IArticle>(
         editor_key: String
     },
     {
+        toJSON: {
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            }
+        },
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'

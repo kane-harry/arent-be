@@ -19,7 +19,8 @@ import {
     ForgotPinDto,
     ResetPasswordDto,
     ResetPinDto,
-    AuthorizeDto
+    AuthorizeDto,
+    EmailVerifyDto
 } from './user.dto'
 import UserModel from './user.model'
 import * as bcrypt from 'bcrypt'
@@ -68,7 +69,7 @@ export default class UserService extends AuthService {
         if (params.type === UserAuthType.Apple) {
             return AuthService.authorizeViaApple(params, options)
         }
-        throw new BizException(AuthErrors.user_auth_not_exists_error, new ErrorContext('user.service', 'userAuth', {}))
+        throw new BizException(AuthErrors.user_authorize_method_error, new ErrorContext('user.service', 'userAuth', {}))
     }
 
     public static async register(userData: CreateUserDto, options?: any) {
@@ -959,5 +960,48 @@ export default class UserService extends AuthService {
         }
 
         return { tokens, nfts }
+    }
+
+    static async getEmailVerificationCode(userKey: string) {
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'getEmailVerificationCode', {}))
+        }
+        if (!user.email) {
+            throw new BizException(AuthErrors.user_has_no_email_error, new ErrorContext('user.service', 'getEmailVerificationCode', {}))
+        }
+        if (user.email_verified) {
+            throw new BizException(AuthErrors.user_email_already_verified_error, new ErrorContext('user.service', 'getEmailVerificationCode', {}))
+        }
+
+        const deliveryMethod = (owner: any, code: string) => {
+            EmailService.sendEmailVerificationCode({ address: user.email, code: code })
+        }
+        await VerificationCodeService.generateCode(
+            {
+                owner: user.key,
+                user_key: user.key,
+                code_type: CodeType.EmailVerification
+            },
+            deliveryMethod
+        )
+        return { success: true }
+    }
+
+    static async verifyEmailAddress(userKey: string, params: EmailVerifyDto) {
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'verifyEmailAddress', { userKey }))
+        }
+        const { success } = await VerificationCodeService.verifyCode({
+            owner: user.key,
+            code: params.code,
+            code_type: CodeType.EmailVerification
+        })
+        if (success) {
+            user.set('email_verified', true, Boolean)
+            user.save()
+        }
+        return { success }
     }
 }

@@ -3,7 +3,16 @@ import { Router } from 'express'
 import ICustomRouter from '@interfaces/custom.router.interface'
 import { requireAuth } from '@utils/authCheck'
 import Multer from 'multer'
-import { BidNftDto, CreateNftDto, ImportNftDto, MakeOfferDto, NftOnMarketDto, UpdateNftDto, UpdateNftStatusDto } from './nft.dto'
+import {
+    BidNftDto,
+    BulkUpdateNftStatusDto,
+    CreateNftDto,
+    ImportNftDto,
+    MakeOfferDto,
+    NftOnMarketDto,
+    UpdateNftDto,
+    UpdateNftStatusDto
+} from './nft.dto'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { requireAdmin } from '@config/role'
 import NftController from './nft.controller'
@@ -34,7 +43,13 @@ export default class NftRouter implements ICustomRouter {
             validationMiddleware(UpdateNftStatusDto),
             asyncHandler(NftController.updateNftStatus)
         )
-        this.router.post(`${this.path}/status`, requireAuth, requireAdmin(), asyncHandler(NftController.bulkUpdateNftStatus))
+        this.router.post(
+            `${this.path}/status`,
+            requireAuth,
+            requireAdmin(),
+            validationMiddleware(BulkUpdateNftStatusDto),
+            asyncHandler(NftController.bulkUpdateNftStatus)
+        )
         this.router.delete(`${this.path}/:key`, requireAuth, asyncHandler(NftController.deleteNft))
         this.router.delete(`${this.path}`, requireAuth, requireAdmin(), asyncHandler(NftController.bulkDeleteNft))
         this.router.put(`${this.path}/:key/market/on`, requireAuth, validationMiddleware(NftOnMarketDto), asyncHandler(NftController.onMarket))

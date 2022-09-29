@@ -38,6 +38,7 @@ const accountSchema = new Schema<IAccount>(
         toJSON: {
             transform: (doc, ret) => {
                 delete ret._id
+                delete ret.id
                 ret.amount = parseFloat(ret.amount)
                 ret.amount_locked = parseFloat(ret.amount_locked)
                 ret.deposited = parseFloat(ret.deposited)

@@ -37,6 +37,13 @@ const AdminLogsSchema = new Schema<IAdminLog>(
             createdAt: 'created',
             updatedAt: 'modified'
         },
+        toJSON: {
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            }
+        },
         versionKey: 'version',
         collection: config.database.tables.admin_logs
     }

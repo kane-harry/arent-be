@@ -280,4 +280,22 @@ export default class EmailService {
             console.error('sendReceivedOfferNotification => ' + err.message)
         })
     }
+
+    static async sendEmailVerificationCode(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('email-verification.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
+                if (err) {
+                    reject(err)
+                }
+                // Send email
+                subject = `${config.emailNotification.emailParamClientName} - Email Verification Code`
+                sendEmail(subject, String(text), String(html), _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendEmailVerificationCode => ' + err.message)
+        })
+    }
 }

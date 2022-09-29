@@ -32,7 +32,9 @@ export const AuthErrors = {
     user_token_setup_error: { message: 'We could not verify your tokens, please try again', code: 2020, status: 400 },
     user_permission_error: { message: 'You do not have permission', code: 2021, status: 400 },
     image_required_error: { code: 2022, status: 400, message: 'Please upload picture.' },
-    user_auth_not_exists_error: { message: 'Not support login method. Choose one from email, phone or token', status: 400, code: 2023 }
+    user_authorize_method_error: { message: 'Unsupport authorize method.', status: 400, code: 2023 },
+    user_has_no_email_error: { message: 'You have not set your email address. ', status: 400, code: 2023 },
+    user_email_already_verified_error: { message: 'Your email has been verified. ', status: 400, code: 2024 }
 }
 
 export const AccountErrors = {

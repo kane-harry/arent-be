@@ -79,7 +79,12 @@ const userSchema = new Schema<IUser>(
     {
         toJSON: {
             virtuals: true,
-            getters: true
+            getters: true,
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            }
         },
         timestamps: {
             createdAt: 'created',

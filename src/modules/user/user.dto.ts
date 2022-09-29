@@ -236,3 +236,8 @@ export class AuthorizeDto {
     @IsNotEmpty()
     public code: string
 }
+
+export class EmailVerifyDto {
+    @IsString()
+    public code: string
+}

@@ -49,6 +49,7 @@ const nftSchema = new Schema<INft>(
             getters: true,
             transform: (doc, ret) => {
                 delete ret._id
+                delete ret.id
                 ret.price = ret.price.toString()
                 ret.royalty = ret.royalty.toString()
                 return ret
@@ -85,6 +86,15 @@ const nftImportLogSchema = new Schema<INftImportLog>(
         removed: { type: Boolean, default: false }
     },
     {
+        toJSON: {
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            },
+            virtuals: true,
+            getters: true
+        },
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'
@@ -121,6 +131,7 @@ const nftOwnershipLogSchema = new Schema<INftOwnershipLog>(
             getters: true,
             transform: (doc, ret) => {
                 delete ret._id
+                delete ret.id
                 ret.price = parseFloat(ret.price.toString())
                 return ret
             }
@@ -166,6 +177,7 @@ const nftSaleLogSchema = new Schema<INftSaleLog>(
             getters: true,
             transform: (doc, ret) => {
                 delete ret._id
+                delete ret.id
                 ret.unit_price = parseFloat(ret.unit_price.toString())
                 ret.order_value = parseFloat(ret.order_value.toString())
                 ret.commission_fee = parseFloat(ret.commission_fee.toString())
@@ -208,6 +220,7 @@ const nftBidLogSchema = new Schema<INftBidLog>(
             getters: true,
             transform: (doc, ret) => {
                 delete ret._id
+                delete ret.id
                 ret.price = parseFloat(ret.price.toString())
                 return ret
             }
@@ -249,6 +262,7 @@ const nftOfferSchema = new Schema<INftOffer>(
             getters: true,
             transform: (doc, ret) => {
                 delete ret._id
+                delete ret.id
                 ret.price = parseFloat(ret.price.toString())
                 return ret
             }

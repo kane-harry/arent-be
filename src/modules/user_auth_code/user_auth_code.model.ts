@@ -46,6 +46,15 @@ const codeSchema = new Schema<IUserAuthCode>(
         sent_attempts: { type: Number, default: 0 }
     },
     {
+        toJSON: {
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            },
+            virtuals: true,
+            getters: true
+        },
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'

@@ -8,7 +8,8 @@ export enum CodeType {
     Login = 'Login',
     Withdraw = 'Withdraw',
     Trade = 'Trade',
-    Security = 'Security'
+    Security = 'Security',
+    EmailVerification = 'EmailVerification'
 }
 
 export enum UserAuthCodeType {

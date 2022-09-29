@@ -146,7 +146,7 @@ export default class AuthService {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
         }
 
-        if (user.status === UserStatus.Locked) {
+        if (user.status === UserStatus.Locked || user.status === UserStatus.Suspend) {
             throw new BizException(AuthErrors.user_locked_error, new ErrorContext('user.service', 'logIn', { email: logInData.email }))
         }
 
@@ -194,8 +194,18 @@ export default class AuthService {
                 new ErrorContext('auth.service', 'logIn', { email: logInData.email })
             )
         }
-
-        const isPasswordMatching = await bcrypt.compare(logInData.password, user.get('password', null, { getters: false }))
+        const passwordHash = user.get('password', null, { getters: false })
+        if (!passwordHash || !passwordHash.length) {
+            throw new BizException(
+                {
+                    message: 'You have not setup password, please log in with verification code',
+                    code: 0,
+                    status: 400
+                },
+                new ErrorContext('auth.service', 'logIn', { email: logInData.email })
+            )
+        }
+        const isPasswordMatching = await bcrypt.compare(logInData.password, passwordHash)
         if (!isPasswordMatching) {
             loginCount = loginCount + 1
             user.set('login_count', loginCount, Number)
@@ -353,6 +363,9 @@ export default class AuthService {
     }
 
     static async generateToken(user: any, options?: any) {
+        if (user.status === UserStatus.Locked || user.status === UserStatus.Suspend) {
+            throw new BizException(AuthErrors.user_locked_error, new ErrorContext('auth.service', 'generateToken', { key: user.key }))
+        }
         const currentTimestamp = generateUnixTimestamp()
         // create token
         const accessToken = AuthModel.createAccessToken(user.key, currentTimestamp)

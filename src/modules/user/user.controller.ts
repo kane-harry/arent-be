@@ -14,6 +14,7 @@ import {
     AdminUpdateProfileDto,
     AuthorizeDto,
     CreateUserDto,
+    EmailVerifyDto,
     ForgotPasswordDto,
     ForgotPinDto,
     ResetPasswordDto,
@@ -246,6 +247,21 @@ export default class UserController {
     static async getUserAssets(req: AuthenticationRequest, res: Response) {
         const key = req.params.key
         const data = await UserService.getUserAssets(key)
+        return res.send(data)
+    }
+
+    static async getEmailVerificationCode(req: AuthenticationRequest, res: Response) {
+        const userKey = req.user.key
+        const data = await UserService.getEmailVerificationCode(userKey)
+
+        return res.send(data)
+    }
+
+    static async verifyEmailAddress(req: AuthenticationRequest, res: Response) {
+        const userKey = req.user.key
+        const params: EmailVerifyDto = req.body
+        const data = await UserService.verifyEmailAddress(userKey, params)
+
         return res.send(data)
     }
 }
