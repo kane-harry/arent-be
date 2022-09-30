@@ -33,8 +33,11 @@ export default class NftFavoriteService {
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.favorite.service', 'unlikeNft', {}))
         }
-        await NftFavoriteModel.deleteOne({ user_key: userKey, nft_key: nftKey })
-        await NftModel.updateOne({ key: nftKey }, { $inc: { number_of_likes: -1 } }, { upsert: true }).exec()
+        const nftFavorite = await NftFavoriteModel.findOne({ user_key: userKey, nft_key: nftKey })
+        if (nftFavorite) {
+            await NftFavoriteModel.deleteOne({ user_key: userKey, nft_key: nftKey })
+            await NftModel.updateOne({ key: nftKey }, { $inc: { number_of_likes: -1 } }, { upsert: true }).exec()
+        }
         return { success: true }
     }
 
