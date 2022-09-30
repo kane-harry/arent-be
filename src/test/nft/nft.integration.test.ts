@@ -635,10 +635,10 @@ describe('NFT', () => {
     }).timeout(10000)
 
     it(`Assign collection`, async () => {
-        const new_owner = 'new_owner'
+        const new_owner = adminShareData.user.key
         const res = await request(server.app)
             .put(`/api/v1/collections/${shareData.collections[0].key}/assign`)
-            .set('Authorization', `Bearer ${shareData.token}`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
             .send({ user_key: new_owner })
         expect(res.status).equal(200)
         validResponse(res.body)
