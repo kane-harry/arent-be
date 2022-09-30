@@ -70,6 +70,18 @@ export class UpdateProfileDto {
     @IsString()
     @Length(2, 8)
     public chat_name: string
+
+    @IsString()
+    @IsOptional()
+    public bio?: string
+
+    @IsString()
+    @IsOptional()
+    public twitter_url?: string
+
+    @IsString()
+    @IsOptional()
+    public instagram_url?: string
 }
 
 export class AdminUpdateProfileDto {

@@ -502,7 +502,7 @@ describe('NFT', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         const nftFavorite = await NftFavoriteModel.findOne({ nft_key: shareData.nfts[0].key, user_key: shareData.user.key })
-        expect(nftFavorite.liked).equal(true)
+        expect(nftFavorite).exist
 
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
         expect(nft.number_of_likes).gt(0)
@@ -546,7 +546,7 @@ describe('NFT', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         const nftFavorite = await NftFavoriteModel.findOne({ nft_key: shareData.nfts[0].key, user_key: shareData.user.key })
-        expect(nftFavorite.liked).equal(false)
+        expect(nftFavorite).not.exist
 
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
         expect(nft.number_of_likes).equal(0)

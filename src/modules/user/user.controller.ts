@@ -269,4 +269,11 @@ export default class UserController {
 
         return res.send(data)
     }
+
+    static async getUserAnalytics(req: AuthenticationRequest, res: Response) {
+        const userKey = req.user.key
+        const data = await UserService.getUserAnalytics(userKey)
+
+        return res.send(data)
+    }
 }

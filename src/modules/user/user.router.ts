@@ -109,6 +109,7 @@ class UserRouter implements ICustomRouter {
             validationMiddleware(EmailVerifyDto),
             asyncHandler(UserController.verifyEmailAddress)
         )
+        this.router.get(`${this.path}/:key/analytics`, requireAuth, asyncHandler(UserController.getUserAnalytics))
     }
 }
 

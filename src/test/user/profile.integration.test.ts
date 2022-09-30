@@ -34,7 +34,10 @@ const updateData = {
     country: 'country',
     playerId: 'playerId',
     newEmailCode: '',
-    newPhoneCode: ''
+    newPhoneCode: '',
+    bio: 'bio',
+    instagram_url: 'instagram_url',
+    twitter_url: 'twitter_url'
 }
 
 describe('Profile', () => {
@@ -167,6 +170,9 @@ describe('Profile', () => {
             expect(user?.first_name).equal(updateData.first_name)
             expect(user?.last_name).equal(updateData.last_name)
             expect(user?.chat_name).equal(updateData.chat_name)
+            expect(user?.bio).equal(updateData.bio)
+            expect(user?.twitter_url).equal(updateData.twitter_url)
+            expect(user?.instagram_url).equal(updateData.instagram_url)
         })
     })
 
@@ -209,5 +215,19 @@ describe('Profile', () => {
         const res = await request(server.app).get(`/api/v1/users/username?search=${searchKey}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
+    }).timeout(10000)
+
+    it('Get User Analytics', async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/users/${shareData.user.key}/analytics`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.brief?.key).equal(shareData.user.key)
+        expect(res.body.followers).exist
+        expect(res.body.followings).exist
+        expect(res.body.nft_liked).exist
+        expect(res.body.nft_created).exist
     }).timeout(10000)
 })

@@ -60,14 +60,20 @@ describe('User Follower', () => {
     }).timeout(10000)
 
     it(`Get followers`, async () => {
-        const res = await request(server.app).get(`/api/v1/users/${shareData.user.key}/followers`).send()
+        const res = await request(server.app)
+            .get(`/api/v1/users/${shareData.user.key}/followers`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items.length).gt(0)
     }).timeout(10000)
 
     it(`Get following`, async () => {
-        const res = await request(server.app).get(`/api/v1/users/${adminShareData.user.key}/following`).send()
+        const res = await request(server.app)
+            .get(`/api/v1/users/${adminShareData.user.key}/following`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items.length).gt(0)
@@ -101,14 +107,20 @@ describe('User Follower', () => {
     }).timeout(10000)
 
     it(`Get followers`, async () => {
-        const res = await request(server.app).get(`/api/v1/users/${shareData.user.key}/followers`).send()
+        const res = await request(server.app)
+            .get(`/api/v1/users/${shareData.user.key}/followers`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items.length).equal(0)
     }).timeout(10000)
 
     it(`Get following`, async () => {
-        const res = await request(server.app).get(`/api/v1/users/${adminShareData.user.key}/following`).send()
+        const res = await request(server.app)
+            .get(`/api/v1/users/${adminShareData.user.key}/following`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.items.length).equal(0)

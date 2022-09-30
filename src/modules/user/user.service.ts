@@ -55,6 +55,9 @@ import { resizeImages, uploadFiles } from '@utils/s3Upload'
 import { NftModel } from '@modules/nft/nft.model'
 import { RateModel } from '@modules/exchange_rate/rate.model'
 import { config } from '@config'
+import UserFollowerModel from '@modules/user_follower/user.follower.model'
+import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
+import { UserAnalyticRO } from '@modules/user/user.ro'
 
 export default class UserService extends AuthService {
     public static async authorize(params: AuthorizeDto, options?: any) {
@@ -213,12 +216,18 @@ export default class UserService extends AuthService {
             pre_data: {
                 first_name: user.first_name,
                 last_name: user.last_name,
-                chat_name: user.chat_name
+                chat_name: user.chat_name,
+                bio: user.bio,
+                twitter_url: user.twitter_url,
+                instagram_url: user.instagram_url
             },
             post_data: {
                 first_name: params.first_name,
                 last_name: params.last_name,
-                chat_name: params.chat_name
+                chat_name: params.chat_name,
+                bio: params.bio,
+                twitter_url: params.twitter_url,
+                instagram_url: params.instagram_url
             }
         }).save()
 
@@ -226,6 +235,9 @@ export default class UserService extends AuthService {
         user.set('first_name', params.first_name || user.first_name, String)
         user.set('last_name', params.last_name || user.last_name, String)
         user.set('chat_name', params.chat_name || user.chat_name, String)
+        user.set('bio', params.bio || user.bio, String)
+        user.set('twitter_url', params.twitter_url || user.twitter_url, String)
+        user.set('instagram_url', params.instagram_url || user.instagram_url, String)
         await user.save()
 
         return user
@@ -1031,5 +1043,18 @@ export default class UserService extends AuthService {
             user.save()
         }
         return { success }
+    }
+
+    static async getUserAnalytics(userKey: string) {
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'verifyEmailAddress', { userKey }))
+        }
+        const followers = await UserFollowerModel.countDocuments({ user_key: user.key })
+        const followings = await UserFollowerModel.countDocuments({ follower_key: user.key })
+        const nftLiked = await NftFavoriteModel.countDocuments({ user_key: user.key })
+        const nftCreated = await NftModel.countDocuments({ creator_key: user.key })
+
+        return new UserAnalyticRO(user, followers, followings, nftLiked, nftCreated)
     }
 }

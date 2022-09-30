@@ -76,7 +76,10 @@ const userSchema = new Schema<IUser>(
         login_count: { type: Number, default: 0 },
         number_of_followers: { type: Number, default: 0 },
         removed: { type: Boolean, default: false },
-        token_version: { type: Number }
+        token_version: { type: Number },
+        bio: String,
+        twitter_url: String,
+        instagram_url: String
     },
     {
         toJSON: {
@@ -99,6 +102,20 @@ const userSchema = new Schema<IUser>(
 
 userSchema.virtual('full_name').get(function (this: { first_name: string; last_name: string }) {
     return `${this.first_name || ''} ${this.last_name || ''}`
+})
+
+userSchema.virtual('brief').get(function (this: IUser) {
+    return {
+        key: this.key,
+        first_name: this.first_name,
+        last_name: this.last_name,
+        chat_name: this.chat_name,
+        avatar: this.avatar,
+        email: this.email,
+        bio: this.bio,
+        instagram_url: this.instagram_url,
+        twitter_url: this.twitter_url
+    }
 })
 
 const _UserModel = model<IUser>(config.database.tables.users, userSchema)
