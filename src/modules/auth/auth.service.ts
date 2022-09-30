@@ -267,7 +267,6 @@ export default class AuthService {
             user.chat_name = await UserModel.generateRandomChatName()
             user.source = 'phone'
             user.country = phoneInfo.country
-            user.avatar = null
             user.role = 0
             user.mfa_settings = mfaSettings
 
@@ -292,7 +291,6 @@ export default class AuthService {
             user.chat_name = await UserModel.generateRandomChatName(defaultChatname)
             user.source = 'email'
             user.email_verified = true
-            user.avatar = null
             user.role = 0
             user.mfa_settings = mfaSettings
             await user.save()
