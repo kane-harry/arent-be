@@ -3,8 +3,6 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
-import AWS from 'aws-sdk'
-import sinon from 'sinon'
 import { adminData, initDataForUser, makeAdmin, userData } from '@app/test/init/authenticate'
 import { stripPhoneNumber } from '@utils/phoneNumber'
 import { CodeType } from '@config/constants'
@@ -66,19 +64,6 @@ describe('Profile', () => {
         })
 
         it('uploadAvatar should be success', async () => {
-            const avatarKey = 'avatar/25162a7e-972c-4338-9bbc-b654f81a70a9.jpeg'
-            sinon.stub(AWS, 'S3').callsFake(() => {
-                const upload = () => {
-                    const promise = async () => {
-                        return {
-                            Location: 'https://abc.amazonaws.com/upload/avatar/file.jpeg',
-                            Key: avatarKey
-                        }
-                    }
-                    return { promise }
-                }
-                return { upload }
-            })
             const res = await request(server.app)
                 .post('/api/v1/users/avatar')
                 .set('Authorization', `Bearer ${shareData.token}`)
@@ -86,17 +71,22 @@ describe('Profile', () => {
 
             expect(res.status).equal(200)
             validResponse(res.body)
-            expect(res.body.original).equal(avatarKey)
-            expect(res.body.normal).equal(avatarKey)
-            expect(res.body.small).equal(avatarKey)
 
             const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
-            assert.deepEqual(user?.avatar, {
-                original: avatarKey,
-                normal: avatarKey,
-                small: avatarKey
-            })
-        })
+            expect(user?.avatar).exist
+        }).timeout(20000)
+
+        it('uploadBackground should be success', async () => {
+            const res = await request(server.app)
+                .post('/api/v1/users/background')
+                .set('Authorization', `Bearer ${shareData.token}`)
+                .attach('background', './src/test/init/test.jpeg')
+
+            expect(res.status).equal(200)
+            validResponse(res.body)
+            const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
+            expect(user?.background).exist
+        }).timeout(20000)
     })
 
     it(`GetVerificationCode EmailUpdate`, async () => {

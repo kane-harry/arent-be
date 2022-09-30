@@ -47,6 +47,7 @@ const userSchema = new Schema<IUser>(
         phone: String,
         country: String,
         avatar: Object,
+        background: { type: Object, default: null },
         player_id: String,
         status: {
             type: String,

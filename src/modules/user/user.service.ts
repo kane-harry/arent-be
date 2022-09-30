@@ -45,7 +45,8 @@ import {
     MFAType,
     NFT_IMAGE_SIZES,
     USER_AVATAR_SIZES,
-    UserAuthType
+    UserAuthType,
+    USER_BACKGROUND_IMAGE_SIZES
 } from '@config/constants'
 import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
@@ -143,7 +144,7 @@ export default class UserService extends AuthService {
         }
 
         files = await resizeImages(files, { avatar: USER_AVATAR_SIZES })
-        const assets = await uploadFiles(files, 'avatar')
+        const assets = await uploadFiles(files, 'user')
 
         let avatars: { [key: string]: string } = {}
         forEach(assets, file => {
@@ -156,6 +157,33 @@ export default class UserService extends AuthService {
         user?.set('avatar', avatars, Object)
         await user?.save()
         return avatars
+    }
+
+    public static uploadBackground = async (files: any, options: { req: AuthenticationRequest }) => {
+        const user = await UserModel.findOne({ email: options.req.user?.email, removed: false }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'uploadBackgroundImage', {}))
+        }
+
+        if (!files || !files.length) {
+            throw new BizException(AuthErrors.image_required_error, new ErrorContext('user.service', 'uploadBackgroundImage', {}))
+        }
+
+        files = await resizeImages(files, { background: USER_BACKGROUND_IMAGE_SIZES })
+        const assets = await uploadFiles(files, 'user')
+
+        let background: { [key: string]: string } = {}
+        forEach(assets, file => {
+            background = {
+                ...background,
+                [file.type]: file.key
+            }
+        })
+
+        user?.set('background', background, Object)
+        await user?.save()
+        return background
     }
 
     public static updateProfile = async (params: UpdateProfileDto, options: { req: AuthenticationRequest }) => {

@@ -75,7 +75,10 @@ describe('Email Verification', () => {
     }).timeout(10000)
 
     it(`Verify Email Code`, async () => {
-        const res = await request(server.app).post('/api/v1/users/email/verify').send({ key: shareData.user.key, code: shareData.newEmailCode })
+        const res = await request(server.app)
+            .post('/api/v1/users/email/verify')
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send({ key: shareData.user.key, code: shareData.newEmailCode })
         expect(res.status).equal(200)
         validResponse(res.body)
         const user = await UserModel.findOne({ key: shareData.user.key }).exec()

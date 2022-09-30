@@ -136,6 +136,12 @@ export const USER_AVATAR_SIZES = [
     { maxSize: 200, id: 'small' }
 ]
 
+export const USER_BACKGROUND_IMAGE_SIZES = [
+    { maxSize: 1280, id: 'large' },
+    { maxSize: 600, id: 'normal' },
+    { maxSize: 300, id: 'small' }
+]
+
 export enum NftType {
     ERC721 = 'ERC721',
     ERC1155 = 'ERC1155'

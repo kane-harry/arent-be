@@ -46,6 +46,7 @@ class UserRouter implements ICustomRouter {
         this.router.post(`${this.path}/pin/reset`, validationMiddleware(ResetPinDto), asyncHandler(UserController.resetPin))
 
         this.router.post(`${this.path}/avatar`, requireAuth, upload.any(), asyncHandler(UserController.uploadAvatar))
+        this.router.post(`${this.path}/background`, requireAuth, upload.any(), asyncHandler(UserController.uploadBackground))
 
         this.router.put(`${this.path}/profile`, requireAuth, validationMiddleware(UpdateProfileDto), asyncHandler(UserController.updateProfile))
         this.router.get(`${this.path}/:key/profile`, requireAuth, requireOwner('users'), asyncHandler(UserController.getProfile))

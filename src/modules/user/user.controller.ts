@@ -112,6 +112,11 @@ export default class UserController {
         return res.send(data)
     }
 
+    static async uploadBackground(req: AuthenticationRequest, res: Response) {
+        const data = await UserService.uploadBackground(req.files, { req })
+        return res.send(data)
+    }
+
     static async updateProfile(req: AuthenticationRequest, res: Response) {
         const userData: UpdateProfileDto = req.body
         const data = await UserService.updateProfile(userData, { req })
