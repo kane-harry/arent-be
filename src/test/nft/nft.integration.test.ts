@@ -339,7 +339,20 @@ describe('NFT', () => {
         const res = await request(server.app).get(`/api/v1/nfts?terms=${terms}`)
         expect(res.status).equal(200)
         validResponse(res.body)
+        expect(res.body.items.length).gt(0)
         const items = res.body.items.filter(item => !(item.name.includes(terms) || item.description.includes(terms)))
+        expect(items.length).equal(0)
+    }).timeout(10000)
+
+    it(`List NFTs by terms case sensitive`, async () => {
+        const terms = 'NAM'
+        const res = await request(server.app).get(`/api/v1/nfts?terms=${terms}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).gt(0)
+        const items = res.body.items.filter(
+            item => !(item.name.toLowerCase().includes(terms.toLowerCase()) || item.description.toLowerCase().includes(terms.toLowerCase()))
+        )
         expect(items.length).equal(0)
     }).timeout(10000)
 
@@ -347,6 +360,7 @@ describe('NFT', () => {
         const res = await request(server.app).get(`/api/v1/nfts?owner_key=${shareData.user.key}`)
         expect(res.status).equal(200)
         validResponse(res.body)
+        expect(res.body.items.length).gt(0)
         const items = res.body.items.filter(item => item.owner_key !== shareData.user.key)
         expect(items.length).equal(0)
     }).timeout(10000)
@@ -356,6 +370,7 @@ describe('NFT', () => {
         const res = await request(server.app).get(`/api/v1/nfts?price_min=${price}`)
         expect(res.status).equal(200)
         validResponse(res.body)
+        expect(res.body.items.length).gt(0)
         const items = res.body.items.filter(item => item.price_min < price)
         expect(items.length).equal(0)
     }).timeout(10000)
@@ -374,6 +389,7 @@ describe('NFT', () => {
         const res = await request(server.app).get(`/api/v1/nfts?collection_key=${collectionKey}`)
         expect(res.status).equal(200)
         validResponse(res.body)
+        expect(res.body.items.length).gt(0)
         const items = res.body.items.filter(item => item.collection_key !== collectionKey)
         expect(items.length).equal(0)
     }).timeout(10000)

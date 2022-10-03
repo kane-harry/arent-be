@@ -75,7 +75,7 @@ export default class CollectionService {
         const filter: any = { $and: [{ removed: false }] }
         const sorting: any = { _id: 1 }
         if (params.terms) {
-            const reg = new RegExp(params.terms)
+            const reg = new RegExp(params.terms, 'i')
             filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { type: reg }]
         }
         if (params.owner_key) {
