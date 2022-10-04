@@ -38,7 +38,7 @@ export default class CollectionController {
     static async updateCollection(req: AuthenticationRequest, res: Response) {
         const key = req.params.key
         const updateCollectionDto: UpdateCollectionDto = req.body
-        const collection = await CollectionService.updateCollection(key, updateCollectionDto, req.user)
+        const collection = await CollectionService.updateCollection(key, updateCollectionDto, req.files, req.user)
         return res.json(collection)
     }
 

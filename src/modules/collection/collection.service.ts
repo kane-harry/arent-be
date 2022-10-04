@@ -111,13 +111,39 @@ export default class CollectionService {
         return { collection, owner }
     }
 
-    static async updateCollection(key: string, updateCollectionDto: UpdateCollectionDto, operator: IUser) {
+    static async updateCollection(key: string, updateCollectionDto: UpdateCollectionDto, files: any, operator: IUser) {
         const collection = await CollectionModel.findOne({ key })
         if (!collection) {
             throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'updateCollection', { key }))
         }
         if (!isAdmin(operator?.role) && operator?.key !== collection.owner_key) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+        }
+        if (files && files.length) {
+            files = await resizeImages(files, { logo: COLLECTION_LOGO_SIZES })
+            const assets = await uploadFiles(files, 'collections')
+            const logos = filter(assets, asset => {
+                return asset.fieldname === 'logo'
+            })
+            const backgrounds = filter(assets, asset => {
+                return asset.fieldname === 'background'
+            })
+            if (logos.length) {
+                const originalLogo = logos.find(item => item.type === 'original')
+                const normalLogo = logos.find(item => item.type === 'normal')
+                const smallLogo = logos.find(item => item.type === 'small')
+                updateCollectionDto.logo = {
+                    original: originalLogo?.key,
+                    normal: normalLogo?.key,
+                    small: smallLogo?.key
+                }
+            }
+            if (backgrounds.length) {
+                const originalBackground = backgrounds.find(item => item.type === 'original')
+                updateCollectionDto.background = {
+                    original: originalBackground?.key
+                }
+            }
         }
         if (updateCollectionDto.name) {
             collection.set('name', updateCollectionDto.name, String)
@@ -129,10 +155,10 @@ export default class CollectionService {
             collection.set('owner', updateCollectionDto.owner_key, String)
         }
         if (updateCollectionDto.logo) {
-            collection.set('logo', updateCollectionDto.logo, String)
+            collection.set('logo', updateCollectionDto.logo, Object)
         }
         if (updateCollectionDto.background) {
-            collection.set('background', updateCollectionDto.background, String)
+            collection.set('background', updateCollectionDto.background, Object)
         }
         return await collection.save()
     }

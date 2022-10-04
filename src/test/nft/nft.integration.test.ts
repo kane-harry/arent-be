@@ -648,7 +648,7 @@ describe('NFT', () => {
         //Generate
         expect(collection.logo).exist
         expect(collection.background).exist
-    }).timeout(10000)
+    }).timeout(40000)
 
     it(`Assign collection`, async () => {
         const new_owner = adminShareData.user.key
