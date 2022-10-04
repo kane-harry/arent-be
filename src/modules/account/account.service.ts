@@ -33,7 +33,7 @@ export default class AccountService {
         }
 
         for (const coinWallet of coinWallets) {
-            const accountName = `${coinWallet.symbol} ${accountNameSuffix}`
+            const accountName = 'Lightlink' ?? `${coinWallet.symbol} ${accountNameSuffix}`
             const account = new AccountModel({
                 user_key: userKey,
                 name: accountName,
@@ -51,7 +51,7 @@ export default class AccountService {
 
         const extTokens = config.system.extTokens
         for (const token of extTokens) {
-            const accountName = `${token.symbol} ${accountNameSuffix}`
+            const accountName = token.name ?? `${token.symbol} ${accountNameSuffix}`
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
                     user_key: userKey,
@@ -74,7 +74,7 @@ export default class AccountService {
         const erc20Tokens = config.erc20Tokens
         for (const token of erc20Tokens) {
             if (token.symbol) {
-                const accountName = `${token.symbol} ${accountNameSuffix}`
+                const accountName = token.name ?? `${token.symbol} ${accountNameSuffix}`
                 const account = new AccountModel({
                     user_key: userKey,
                     name: accountName,
