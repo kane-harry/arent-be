@@ -38,4 +38,5 @@ export const validResponse = (data: any) => {
     expect(jsonData).not.include('"_id"')
     expect(jsonData).not.include('"id"')
     expect(jsonData).not.include('"twoFactorSecret"')
+    expect(jsonData).not.include('"$numberDecimal"')
 }

@@ -139,7 +139,7 @@ export default class AccountService {
                 period: 'day',
                 pre_amount,
                 pre_amount_usd,
-                amount,
+                amount: Number(amount),
                 amount_usd,
                 amount_change: amount_change,
                 amount_usd_change,
@@ -148,9 +148,9 @@ export default class AccountService {
         } else {
             balance_change_statements.push({
                 period: 'day',
-                pre_amount: amount,
+                pre_amount: Number(amount),
                 pre_amount_usd: amount_usd,
-                amount,
+                amount: Number(amount),
                 amount_usd,
                 amount_change: 0,
                 amount_usd_change: 0,
@@ -174,7 +174,7 @@ export default class AccountService {
                 period: 'week',
                 pre_amount,
                 pre_amount_usd,
-                amount,
+                amount: Number(amount),
                 amount_usd,
                 amount_change,
                 amount_usd_change,
@@ -183,9 +183,9 @@ export default class AccountService {
         } else {
             balance_change_statements.push({
                 period: 'week',
-                pre_amount: amount,
+                pre_amount: Number(amount),
                 pre_amount_usd: amount_usd,
-                amount,
+                amount: Number(amount),
                 amount_usd,
                 amount_change: 0,
                 amount_usd_change: 0,

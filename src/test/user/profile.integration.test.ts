@@ -230,4 +230,15 @@ describe('Profile', () => {
         expect(res.body.nft_liked).exist
         expect(res.body.nft_created).exist
     }).timeout(10000)
+
+    it('Get User Assets', async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/users/${shareData.user.key}/assets`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.tokens).exist
+        expect(res.body.nfts).exist
+    }).timeout(10000)
 })
