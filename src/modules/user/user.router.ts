@@ -3,19 +3,19 @@ import { Router } from 'express'
 import { requireAuth } from '@utils/authCheck'
 import {
     AdminUpdateProfileDto,
+    AuthorizeDto,
     CreateUserDto,
-    SetupCredentialsDto,
-    SetupTotpDto,
-    UpdateProfileDto,
-    UpdateSecurityDto,
+    EmailVerifyDto,
     ForgotPasswordDto,
     ForgotPinDto,
     ResetPasswordDto,
     ResetPinDto,
-    AuthorizeDto,
-    UpdatePhoneDto,
+    SetupCredentialsDto,
+    SetupTotpDto,
     UpdateEmailDto,
-    EmailVerifyDto
+    UpdatePhoneDto,
+    UpdateProfileDto,
+    UpdateSecurityDto
 } from './user.dto'
 import { requireAdmin, requireOwner } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
@@ -110,6 +110,9 @@ class UserRouter implements ICustomRouter {
             asyncHandler(UserController.verifyEmailAddress)
         )
         this.router.get(`${this.path}/:key/analytics`, requireAuth, asyncHandler(UserController.getUserAnalytics))
+
+        this.router.get(`${this.path}/featured`, asyncHandler(UserController.getUserFeatured))
+        this.router.put(`${this.path}/featured`, requireAuth, requireAdmin(), asyncHandler(UserController.bulkUpdateUserFeatured))
     }
 }
 

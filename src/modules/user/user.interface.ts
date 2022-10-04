@@ -36,6 +36,7 @@ export interface IUser extends IBaseModel {
     bio: string
     twitter_url: string
     instagram_url: string
+    featured: boolean
 }
 
 export interface IUserBrief {
@@ -53,6 +54,7 @@ export interface IUserQueryFilter extends IFilterModel {
     terms: string
     date_from: string
     date_to: string
+    featured?: boolean
 }
 
 export interface IOperator {

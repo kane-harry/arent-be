@@ -6,6 +6,7 @@ import server from '@app/server'
 import { adminData, initDataForUser, makeAdmin, userData } from '@app/test/init/authenticate'
 import { stripPhoneNumber } from '@utils/phoneNumber'
 import { CodeType } from '@config/constants'
+import UserModel from '@modules/user/user.model'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -240,5 +241,30 @@ describe('Profile', () => {
         validResponse(res.body)
         expect(res.body.tokens).exist
         expect(res.body.nfts).exist
+    }).timeout(10000)
+
+    it(`Get Featured User`, async () => {
+        const res = await request(server.app).get(`/api/v1/users/featured`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).equal(0)
+    }).timeout(10000)
+
+    it(`Featured User`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/users/featured`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ featured: true, keys: [shareData.user.key] })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const user = await UserModel.findOne({ key: shareData.user.key })
+        expect(user?.featured).equal(true)
+    }).timeout(10000)
+
+    it(`Get Featured User`, async () => {
+        const res = await request(server.app).get(`/api/v1/users/featured`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).gt(0)
     }).timeout(10000)
 })

@@ -1,31 +1,31 @@
 import BizException from '@exceptions/biz.exception'
-import { AuthErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
+import { AuthErrors, CommonErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
-import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { find, forEach, toLower, trim } from 'lodash'
 import {
     AdminUpdateProfileDto,
+    AuthorizeDto,
     CreateUserDto,
+    EmailVerifyDto,
+    ForgotPasswordDto,
+    ForgotPinDto,
+    ResetPasswordDto,
+    ResetPinDto,
     SetupCredentialsDto,
     SetupTotpDto,
     UpdateEmailDto,
     UpdatePhoneDto,
     UpdateProfileDto,
     UpdateSecurityDto,
+    UpdateUserFeaturedDto,
     UpdateUserRoleDto,
-    UpdateUserStatusDto,
-    ForgotPasswordDto,
-    ForgotPinDto,
-    ResetPasswordDto,
-    ResetPinDto,
-    AuthorizeDto,
-    EmailVerifyDto
+    UpdateUserStatusDto
 } from './user.dto'
 import UserModel from './user.model'
 import * as bcrypt from 'bcrypt'
-import { unixTimestampToDate, generateRandomCode, generateUnixTimestamp, roundUp } from '@utils/utility'
-import { IUser, IUserBrief, IUserQueryFilter } from '@modules/user/user.interface'
+import { generateRandomCode, generateUnixTimestamp, roundUp, unixTimestampToDate } from '@utils/utility'
+import { IOperator, IUser, IUserBrief, IUserQueryFilter } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
 import { stripPhoneNumber } from '@utils/phoneNumber'
@@ -37,16 +37,15 @@ import UserHistoryModel from '@modules/user_history/user_history.model'
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
 import { role } from '@config/role'
 import {
-    CodeType,
-    UserStatus,
-    UserHistoryActions,
     AdminLogsActions,
     AdminLogsSections,
+    CodeType,
     MFAType,
-    NFT_IMAGE_SIZES,
     USER_AVATAR_SIZES,
+    USER_BACKGROUND_IMAGE_SIZES,
     UserAuthType,
-    USER_BACKGROUND_IMAGE_SIZES
+    UserHistoryActions,
+    UserStatus
 } from '@config/constants'
 import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
@@ -58,6 +57,7 @@ import { config } from '@config'
 import UserFollowerModel from '@modules/user_follower/user.follower.model'
 import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
 import { UserAnalyticRO } from '@modules/user/user.ro'
+import IOptions from '@interfaces/options.interface'
 
 export default class UserService extends AuthService {
     public static async authorize(params: AuthorizeDto, options?: any) {
@@ -103,7 +103,8 @@ export default class UserService extends AuthService {
             email_verified: emailVerified,
             phone_verified: phoneVerified,
             mfa_settings: mfaSettings,
-            token_version: currentTimestamp
+            token_version: currentTimestamp,
+            featured: false
         })
 
         // create accounts before save data
@@ -606,6 +607,9 @@ export default class UserService extends AuthService {
             const dateTo = unixTimestampToDate(params.date_to)
             filter.$and.push({ created: { $lt: dateTo } })
         }
+        if (params.featured) {
+            filter.$and.push({ featured: { $eq: params.featured } })
+        }
         const sorting: any = { _id: 1 }
         if (params.sort_by) {
             delete sorting._id
@@ -1057,5 +1061,14 @@ export default class UserService extends AuthService {
         const nftCreated = await NftModel.countDocuments({ creator_key: user.key })
 
         return new UserAnalyticRO(user, followers, followings, nftLiked, nftCreated)
+    }
+
+    static async updateUserFeatured(key: string, updateFeaturedDto: UpdateUserFeaturedDto, operator: IOperator, options: IOptions) {
+        const user = await UserModel.findOne({ key })
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUserFeatured', { key }))
+        }
+        user.set('featured', updateFeaturedDto.featured ?? user.featured, Boolean)
+        return await user.save()
     }
 }

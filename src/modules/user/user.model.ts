@@ -1,12 +1,10 @@
 import { config } from '@config'
 import { UserStatus } from '@config/constants'
-import { generateRandomCode } from '@utils/utility'
 import { randomBytes } from 'crypto'
-import { escapeRegExp, kebabCase } from 'lodash'
 import moment from 'moment'
-import { Schema, model } from 'mongoose'
+import { model, Schema } from 'mongoose'
 import { IUser } from './user.interface'
-import { uniqueNamesGenerator, Config, names, NumberDictionary } from 'unique-names-generator'
+import { Config, names, NumberDictionary, uniqueNamesGenerator } from 'unique-names-generator'
 
 const userSchema = new Schema<IUser>(
     {
@@ -78,7 +76,8 @@ const userSchema = new Schema<IUser>(
         token_version: { type: Number },
         bio: String,
         twitter_url: String,
-        instagram_url: String
+        instagram_url: String,
+        featured: Boolean
     },
     {
         toJSON: {

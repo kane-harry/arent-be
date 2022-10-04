@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Length, IsEmail, MinLength, Matches, IsEnum, IsNotEmpty } from 'class-validator'
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Length, Matches, MinLength } from 'class-validator'
 import { MFAType, UserStatus } from '@config/constants'
 import { map } from 'lodash'
 import { IUser } from './user.interface'
@@ -252,4 +252,17 @@ export class AuthorizeDto {
 export class EmailVerifyDto {
     @IsString()
     public code: string
+}
+
+export class UpdateUserFeaturedDto {
+    @IsNotEmpty()
+    public featured: boolean
+}
+
+export class BulkUpdateUserFeaturedDto {
+    @IsNotEmpty()
+    public featured: boolean
+
+    @IsNotEmpty()
+    public keys: any
 }

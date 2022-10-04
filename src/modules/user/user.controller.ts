@@ -13,6 +13,7 @@ import { Request, Response } from 'express'
 import {
     AdminUpdateProfileDto,
     AuthorizeDto,
+    BulkUpdateUserFeaturedDto,
     CreateUserDto,
     EmailVerifyDto,
     ForgotPasswordDto,
@@ -28,8 +29,9 @@ import {
     UpdateUserRoleDto,
     UpdateUserStatusDto
 } from './user.dto'
-import { IUserQueryFilter } from './user.interface'
+import { IOperator, IUserQueryFilter } from './user.interface'
 import UserService from './user.service'
+import IOptions from '@interfaces/options.interface'
 
 export default class UserController {
     static async getUserAuthCode(req: CustomRequest, res: Response) {
@@ -275,5 +277,37 @@ export default class UserController {
         const data = await UserService.getUserAnalytics(userKey)
 
         return res.send(data)
+    }
+
+    static async getUserFeatured(req: CustomRequest, res: Response) {
+        const filter = req.query as IUserQueryFilter
+        filter.featured = true
+        const data = await UserService.getUserList(filter)
+        return res.send(data)
+    }
+
+    static async bulkUpdateUserFeatured(req: AuthenticationRequest, res: Response) {
+        const operator: IOperator = {
+            email: req.user?.email,
+            key: req.user?.key,
+            role: req.user.role
+        }
+        const options: IOptions = {
+            agent: req.agent,
+            ip: req.ip
+        }
+
+        const updateUserDto: BulkUpdateUserFeaturedDto = req.body
+        const { keys, featured } = updateUserDto
+        const data = []
+        for (const key of keys) {
+            try {
+                const item = await UserService.updateUserFeatured(key, { featured: featured }, operator, options)
+                data.push(item)
+            } catch (e) {
+                data.push(e)
+            }
+        }
+        return res.json(data)
     }
 }
