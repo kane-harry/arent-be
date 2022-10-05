@@ -11,6 +11,7 @@ export interface ICollection extends IBaseModel {
     type: string
     items_count: number
     featured: boolean
+    analytics: object
 }
 
 export interface ICollectionFilter extends IFilterModel {

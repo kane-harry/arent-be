@@ -22,6 +22,7 @@ const collectionSchema = new Schema<ICollection>(
         background: { type: Object, default: null },
         type: { type: String, default: 'normal' },
         items_count: Number,
+        analytics: { type: Object, default: null },
         featured: { type: Boolean, default: false },
         removed: { type: Boolean, default: false }
     },
