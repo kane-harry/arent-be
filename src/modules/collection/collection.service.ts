@@ -255,7 +255,7 @@ export default class CollectionService {
         const analytics = {
             nft_count: nftCount,
             owner_count: owners.length,
-            floor_price: Number(floorPrices[0].min),
+            floor_price: floorPrices.length ? Number(floorPrices[0].min) : 0,
             volume: volumes.length ? Number(volumes[0].volume) : 0,
             volume_last: volumeYesterdays.length ? Number(volumeYesterdays[0].volume) : 0,
             sales_count: sales.length ? sales[0].count : 0,
