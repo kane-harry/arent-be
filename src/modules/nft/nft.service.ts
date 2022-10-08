@@ -82,6 +82,9 @@ export default class NftService {
             const collection = await CollectionService.createDefaultCollection(createNftDto, operator)
             createNftDto.collection_key = collection?.key ?? ''
         }
+        if (!createNftDto.currency) {
+            createNftDto.currency = config.system.primeToken
+        }
         const model = new NftModel({
             key: undefined,
             ...createNftDto,

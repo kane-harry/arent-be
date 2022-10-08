@@ -34,6 +34,9 @@ export class CreateNftDto {
     @IsNotEmpty()
     public price: string
 
+    @IsNotEmpty()
+    public currency: string
+
     @IsOptional()
     public royalty: string
 
