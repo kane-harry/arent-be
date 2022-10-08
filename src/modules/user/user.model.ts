@@ -2,10 +2,17 @@ import { config } from '@config'
 import { UserStatus } from '@config/constants'
 import { randomBytes } from 'crypto'
 import moment from 'moment'
-import { model, Schema } from 'mongoose'
+import { Model, model, Schema } from 'mongoose'
 import { IUser } from './user.interface'
 
-const userSchema = new Schema<IUser>(
+// https://mongoosejs.com/docs/typescript/statics.html
+
+interface IUserModel extends Model<IUser> {
+    getBriefByChatName(chatName: string): IUser
+    getBriefByKey(key: string, includeEmail: boolean): IUser
+}
+
+const userSchema = new Schema<IUser, IUserModel>(
     {
         key: {
             type: String,
@@ -101,23 +108,29 @@ userSchema.virtual('full_name').get(function (this: { first_name: string; last_n
     return `${this.first_name || ''} ${this.last_name || ''}`
 })
 
-userSchema.virtual('brief').get(function (this: IUser) {
-    return {
-        key: this.key,
-        first_name: this.first_name,
-        last_name: this.last_name,
-        full_name: `${this.first_name || ''} ${this.last_name || ''}`,
-        chat_name: this.chat_name,
-        avatar: this.avatar,
-        background: this.background,
-        email: this.email,
-        bio: this.bio,
-        instagram_url: this.instagram_url,
-        twitter_url: this.twitter_url
-    }
-})
+userSchema.statics.getBriefByChatName = function (chatName: string) {
+    return this.findOne(
+        { chat_name: chatName },
+        {
+            key: 1,
+            chat_name: 1,
+            avatar: 1,
+            bio: 1,
+            instagram_url: 1,
+            twitter_url: 1
+        }
+    )
+}
 
-const _UserModel = model<IUser>(config.database.tables.users, userSchema)
+userSchema.statics.getBriefByKey = function (key: string, includeEmail: boolean) {
+    const projection = { key: 1, chat_name: 1, avatar: 1, bio: 1, instagram_url: 1, twitter_url: 1, email: 1 }
+    if (includeEmail) {
+        projection.email = 1
+    }
+    return this.findOne({ key }, projection)
+}
+
+const _UserModel = model<IUser, IUserModel>(config.database.tables.users, userSchema)
 
 export default class UserModel extends _UserModel {
     public static async generateRandomChatName(name?: string) {

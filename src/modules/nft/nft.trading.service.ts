@@ -5,7 +5,7 @@ import IOptions from '@interfaces/options.interface'
 import AccountService from '@modules/account/account.service'
 import SettingService from '@modules/setting/setting.service'
 import { ISendCoinDto } from '@modules/transaction/transaction.interface'
-import { IOperator, IUserBrief } from '@modules/user/user.interface'
+import { IOperator, IUser } from '@modules/user/user.interface'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import { formatAmount, parsePrimeAmount } from '@utils/number'
 import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
@@ -14,7 +14,7 @@ import AccountSnapshotService from '@modules/account/account.snapshot.service'
 import { AccountActionType } from '@config/constants'
 
 export default class NftTradingService {
-    static async allocatePrimeCoins(nft: INft, buyer: IUserBrief, seller: IUserBrief, operator: IOperator, options?: IOptions) {
+    static async allocatePrimeCoins(nft: INft, buyer: IUser, seller: IUser, operator: IOperator, options?: IOptions) {
         const masterAccount = await AccountService.getMasterAccountBriefBySymbol(nft.currency)
         const creatorAccount = await AccountService.getAccountByUserKeyAndSymbol(nft.creator_key, nft.currency)
         const sellerAccount = await AccountService.getAccountByUserKeyAndSymbol(seller.key, nft.currency)

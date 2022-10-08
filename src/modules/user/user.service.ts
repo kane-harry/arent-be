@@ -493,18 +493,13 @@ export default class UserService extends AuthService {
     }
 
     public static getBriefByName = async (chatName: string) => {
-        const data = await UserModel.findOne<IUserBrief>(
-            { chat_name: chatName, removed: false },
-            { key: 1, first_name: 1, last_name: 1, chat_name: 1, avatar: 1, email: 1, background: 1, bio: 1, instagram_url: 1, twitter_url: 1 }
-        ).exec()
+        const data = await UserModel.getBriefByChatName(chatName)
         return data
     }
 
-    public static getBriefByKey = async (key: string) => {
-        return await UserModel.findOne<IUserBrief>(
-            { key: key, removed: false },
-            { key: 1, first_name: 1, last_name: 1, chat_name: 1, avatar: 1, email: 1, background: 1, bio: 1, instagram_url: 1, twitter_url: 1 }
-        ).exec()
+    public static getBriefByKey = async (key: string, includeEmail = false) => {
+        const data = await UserModel.getBriefByKey(key, includeEmail)
+        return data
     }
 
     public static getTotp = async (options: { req: AuthenticationRequest }) => {
@@ -633,12 +628,12 @@ export default class UserService extends AuthService {
             sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1
         }
         const totalCount = await UserModel.countDocuments(filter)
-        const items = await UserModel.find<IUserBrief>(filter, { key: 1, first_name: 1, last_name: 1, chat_name: 1, avatar: 1 })
+        const items = await UserModel.find<IUser>(filter, { key: 1, first_name: 1, last_name: 1, chat_name: 1, avatar: 1 })
             .sort(sorting)
             .skip(offset)
             .limit(params.page_size)
             .exec()
-        return new QueryRO<IUserBrief>(totalCount, params.page_index, params.page_size, items)
+        return new QueryRO<IUser>(totalCount, params.page_index, params.page_size, items)
     }
 
     public static getAllUser = async () => {

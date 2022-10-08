@@ -50,8 +50,8 @@ export default class NftScheduler implements IScheduler {
                 return
             }
             const topBid: ITopBid = nft.top_bid
-            const seller = await UserService.getBriefByKey(nft.owner_key)
-            const buyer = await UserService.getBriefByKey(topBid.user_key)
+            const seller = await UserService.getBriefByKey(nft.owner_key, true)
+            const buyer = await UserService.getBriefByKey(topBid.user_key, true)
 
             if (!seller || !buyer) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key: nft.key }))

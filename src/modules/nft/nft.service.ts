@@ -365,8 +365,8 @@ export default class NftService {
             if (nft.price_type !== NftPriceType.Fixed) {
                 throw new BizException(NftErrors.purchase_auction_nft_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
-            const seller = await UserService.getBriefByKey(nft.owner_key)
-            const buyer = await UserService.getBriefByKey(operator.key)
+            const seller = await UserService.getBriefByKey(nft.owner_key, true)
+            const buyer = await UserService.getBriefByKey(operator.key, true)
 
             if (!seller || !buyer) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
@@ -465,8 +465,8 @@ export default class NftService {
                 throw new BizException(NftErrors.nft_bidding_amount_less_than_price_error, new ErrorContext('nft.service', 'bidNft', { key }))
             }
 
-            const seller = await UserService.getBriefByKey(nft.owner_key)
-            const buyer = await UserService.getBriefByKey(operator.key)
+            const seller = await UserService.getBriefByKey(nft.owner_key, true)
+            const buyer = await UserService.getBriefByKey(operator.key, true)
 
             if (!seller || !buyer) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'bidNft', { key }))
@@ -676,8 +676,8 @@ export default class NftService {
                 throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'makeOffer', { key }))
             }
 
-            const seller = await UserService.getBriefByKey(nft.owner_key)
-            const buyer = await UserService.getBriefByKey(operator.key)
+            const seller = await UserService.getBriefByKey(nft.owner_key, true)
+            const buyer = await UserService.getBriefByKey(operator.key, true)
 
             if (!seller || !buyer) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'makeOffer', { key }))
@@ -774,7 +774,7 @@ export default class NftService {
             if (nft.owner_key !== operator.key) {
                 throw new BizException(NftErrors.offer_permissions_error, new ErrorContext('nft.service', 'rejectOffers', { user_key: operator.key }))
             }
-            const buyer = await UserService.getBriefByKey(offer.user_key)
+            const buyer = await UserService.getBriefByKey(offer.user_key, true)
             let buyerAccount = await AccountService.getAccountByUserKeyAndSymbol(offer.user_key, offer.currency)
             if (!buyerAccount || !buyer) {
                 throw new BizException(NftErrors.offer_permissions_error, new ErrorContext('nft.service', 'rejectOffers', { user_key: operator.key }))
@@ -826,7 +826,7 @@ export default class NftService {
             if (offer.user_key !== operator.key) {
                 throw new BizException(NftErrors.offer_permissions_error, new ErrorContext('nft.service', 'cancelOffers', { user_key: operator.key }))
             }
-            const buyer = await UserService.getBriefByKey(offer.user_key)
+            const buyer = await UserService.getBriefByKey(offer.user_key, true)
             let buyerAccount = await AccountService.getAccountByUserKeyAndSymbol(offer.user_key, offer.currency)
             if (!buyerAccount || !buyer) {
                 return
@@ -893,8 +893,8 @@ export default class NftService {
                 )
             }
 
-            const seller = await UserService.getBriefByKey(nft.owner_key)
-            const buyer = await UserService.getBriefByKey(offer.user_key)
+            const seller = await UserService.getBriefByKey(nft.owner_key, true)
+            const buyer = await UserService.getBriefByKey(offer.user_key, true)
 
             if (!seller || !buyer) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'acceptOffer', { key }))
