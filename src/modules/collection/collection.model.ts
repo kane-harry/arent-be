@@ -16,6 +16,7 @@ const collectionSchema = new Schema<ICollection>(
         },
         name: String,
         description: String,
+        category_key: String,
         creator_key: String,
         owner_key: String,
         logo: { type: Object, default: null },
@@ -24,6 +25,10 @@ const collectionSchema = new Schema<ICollection>(
         items_count: Number,
         analytics: { type: Object, default: null },
         featured: { type: Boolean, default: false },
+        website: String,
+        discord: String,
+        instagram: String,
+        twitter: String,
         removed: { type: Boolean, default: false }
     },
     {

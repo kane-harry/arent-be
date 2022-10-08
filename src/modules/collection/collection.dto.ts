@@ -8,6 +8,9 @@ export class CreateCollectionDto {
     public description: string
 
     @IsOptional()
+    public category_key: string
+
+    @IsOptional()
     public logo: object
 
     @IsOptional()
@@ -35,6 +38,9 @@ export class UpdateCollectionDto {
     public description: string
 
     @IsOptional()
+    public category_key: string
+
+    @IsOptional()
     public logo: object
 
     @IsOptional()
@@ -44,6 +50,7 @@ export class UpdateCollectionDto {
     public owner_key: string
 
     @IsOptional()
+    @IsUrl()
     public website: string
 
     @IsOptional()

@@ -124,8 +124,8 @@ userSchema.statics.getBriefByChatName = function (chatName: string) {
 
 userSchema.statics.getBriefByKey = function (key: string, includeEmail: boolean) {
     const projection = { key: 1, chat_name: 1, avatar: 1, bio: 1, instagram_url: 1, twitter_url: 1, email: 1 }
-    if (includeEmail) {
-        projection.email = 1
+    if (!includeEmail) {
+        projection.email = 0
     }
     return this.findOne({ key }, projection)
 }

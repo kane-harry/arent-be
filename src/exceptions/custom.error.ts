@@ -116,3 +116,8 @@ export const ArticleErrors = {
     cover_image_required_error: { code: 10001, status: 400, message: 'Cover image is required.' },
     item_not_found_error: { code: 10002, status: 400, message: 'Article does not exist.' }
 }
+
+export const CategoryErrors = {
+    category_name_exists_error: { code: 11001, status: 400, message: 'The category name already exists.' },
+    item_not_found_error: { code: 11002, status: 400, message: 'Category does not exist.' }
+}

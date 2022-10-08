@@ -4,7 +4,7 @@ import { CollectionModel } from './collection.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
 import { QueryRO } from '@interfaces/query.model'
 import BizException from '@exceptions/biz.exception'
-import { AuthErrors, CollectionErrors } from '@exceptions/custom.error'
+import { AuthErrors, CategoryErrors, CollectionErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { isAdmin } from '@config/role'
 import { NftModel, NftSaleLogModel } from '@modules/nft/nft.model'
@@ -15,9 +15,20 @@ import { filter } from 'lodash'
 import { CreateNftDto } from '@modules/nft/nft.dto'
 import IOptions from '@interfaces/options.interface'
 import moment from 'moment'
+import CategoryService from '@modules/category/category.service'
 
 export default class CollectionService {
     static async createCollection(createCollectionDto: CreateCollectionDto, files: any, operator: IUser) {
+        if (createCollectionDto.category_key) {
+            const category = await CategoryService.getCategory(createCollectionDto.category_key)
+            if (!category) {
+                throw new BizException(
+                    CategoryErrors.item_not_found_error,
+                    new ErrorContext('collection.service', 'createCollection', { category_key: createCollectionDto.category_key })
+                )
+            }
+        }
+
         if (!files || !files.length) {
             throw new BizException(CollectionErrors.image_required_error, new ErrorContext('collection.service', 'createCollection', {}))
         }
@@ -92,6 +103,10 @@ export default class CollectionService {
             filter.$and = filter.$and ?? []
             filter.$and.push({ featured: { $eq: params.featured } })
         }
+        if (params.category) {
+            filter.$and = filter.$and ?? []
+            filter.$and.push({ category_key: { $eq: params.category } })
+        }
         if (params.sort_by) {
             delete sorting._id
             sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1
@@ -120,6 +135,15 @@ export default class CollectionService {
         }
         if (!isAdmin(operator?.role) && operator?.key !== collection.owner_key) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'updateCollection', { key }))
+        }
+        if (updateCollectionDto.category_key) {
+            const category = await CategoryService.getCategory(updateCollectionDto.category_key)
+            if (!category) {
+                throw new BizException(
+                    CategoryErrors.item_not_found_error,
+                    new ErrorContext('collection.service', 'updateCollection', { category_key: updateCollectionDto.category_key })
+                )
+            }
         }
         if (files && files.length) {
             files = await resizeImages(files, { logo: COLLECTION_LOGO_SIZES })
