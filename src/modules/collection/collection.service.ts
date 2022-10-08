@@ -44,6 +44,7 @@ export default class CollectionService {
         }
 
         const model = new CollectionModel({
+            key: undefined,
             ...createCollectionDto,
             creator_key: operator.key,
             owner_key: operator.key,
@@ -146,14 +147,11 @@ export default class CollectionService {
                 }
             }
         }
-        if (updateCollectionDto.name) {
-            collection.set('name', updateCollectionDto.name, String)
-        }
-        if (updateCollectionDto.description) {
-            collection.set('description', updateCollectionDto.description, String)
-        }
+        collection.set('name', updateCollectionDto.name, String)
+        collection.set('description', updateCollectionDto.description, String)
+
         if (updateCollectionDto.owner_key) {
-            collection.set('owner', updateCollectionDto.owner_key, String)
+            collection.set('owner_key', updateCollectionDto.owner_key, String)
         }
         if (updateCollectionDto.logo) {
             collection.set('logo', updateCollectionDto.logo, Object)
@@ -161,6 +159,10 @@ export default class CollectionService {
         if (updateCollectionDto.background) {
             collection.set('background', updateCollectionDto.background, Object)
         }
+        collection.set('website', updateCollectionDto.website, String)
+        collection.set('discord', updateCollectionDto.discord, String)
+        collection.set('instagram', updateCollectionDto.instagram, String)
+        collection.set('twitter', updateCollectionDto.twitter, String)
         return await collection.save()
     }
 

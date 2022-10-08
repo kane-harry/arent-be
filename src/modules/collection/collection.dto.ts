@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional } from 'class-validator'
+import { IsNotEmpty, IsOptional, IsUrl } from 'class-validator'
 
 export class CreateCollectionDto {
     @IsNotEmpty()
@@ -12,6 +12,19 @@ export class CreateCollectionDto {
 
     @IsOptional()
     public background: object
+
+    @IsOptional()
+    @IsUrl()
+    public website: string
+
+    @IsOptional()
+    public discord: string
+
+    @IsOptional()
+    public instagram: string
+
+    @IsOptional()
+    public twitter: string
 }
 
 export class UpdateCollectionDto {
@@ -29,6 +42,18 @@ export class UpdateCollectionDto {
 
     @IsOptional()
     public owner_key: string
+
+    @IsOptional()
+    public website: string
+
+    @IsOptional()
+    public discord: string
+
+    @IsOptional()
+    public instagram: string
+
+    @IsOptional()
+    public twitter: string
 }
 
 export class AssignCollectionDto {
