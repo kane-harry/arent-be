@@ -16,6 +16,7 @@ const nftSchema = new Schema<INft>(
         },
         name: String,
         description: String,
+        platform: { type: String, default: config.system.nftDefaultPlatform },
         external_link: String,
         collection_key: String,
         price: { type: Types.Decimal128, default: new Types.Decimal128('0') },

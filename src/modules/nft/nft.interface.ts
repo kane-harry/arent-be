@@ -7,6 +7,7 @@ export interface INft extends IBaseModel {
     description: string
     external_link: string
     collection_key: string
+    platform: string
     // collection
     price: number | Types.Decimal128
     royalty: number | Types.Decimal128

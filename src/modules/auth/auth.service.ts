@@ -27,7 +27,7 @@ export default class AuthService {
     protected static async formatCreateUserDto(userData: CreateUserDto) {
         userData.first_name = capitalize(escapeRegExp(trim(userData.first_name)))
         userData.last_name = capitalize(escapeRegExp(trim(userData.last_name)))
-        userData.chat_name = await UserModel.generateRandomChatName(userData.first_name)
+        userData.chat_name = await UserModel.generateRandomChatName(userData.chat_name)
         userData.email = trim(userData.email).toLowerCase()
         userData.password = trim(userData.password)
         userData.pin = trim(userData.pin)

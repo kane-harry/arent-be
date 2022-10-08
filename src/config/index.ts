@@ -21,7 +21,8 @@ export const config = {
         coinServerSecretKey: String(process.env.COIN_SERVER_SECRET_KEY || 'PELLAR-A5B57B456AC7A39E9EE24F353385C'),
         extTokens: [{ symbol: 'ETH', platform: 'ethereum', name: 'Ethereum' }],
         secret: String(process.env.SYSTEM_SECRET_KEY || 'PELLAR-7258EE75D288CFD621E9332255186'),
-        primeDecimals: 8
+        primeDecimals: 8,
+        nftDefaultPlatform: String(process.env.NFT_DEFAULT_PLATFORM || 'LightLink')
     },
 
     erc20Tokens: [

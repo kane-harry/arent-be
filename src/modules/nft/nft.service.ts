@@ -88,6 +88,7 @@ export default class NftService {
         const model = new NftModel({
             key: undefined,
             ...createNftDto,
+            platform: 'LightLink',
             image: image,
             animation: animation,
             status: isAdmin(operator.role) ? NftStatus.Approved : NftStatus.Pending,

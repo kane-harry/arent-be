@@ -4,7 +4,6 @@ import { randomBytes } from 'crypto'
 import moment from 'moment'
 import { model, Schema } from 'mongoose'
 import { IUser } from './user.interface'
-import { Config, names, NumberDictionary, uniqueNamesGenerator } from 'unique-names-generator'
 
 const userSchema = new Schema<IUser>(
     {
@@ -122,18 +121,13 @@ const _UserModel = model<IUser>(config.database.tables.users, userSchema)
 
 export default class UserModel extends _UserModel {
     public static async generateRandomChatName(name?: string) {
-        const numberDictionary = NumberDictionary.generate({ min: 100, max: 999 })
-        const customConfig: Config = {
-            dictionaries: [names, numberDictionary],
-            length: 2,
-            style: 'lowerCase'
-        }
-        let chatName: string = uniqueNamesGenerator(customConfig)
+        const hri = require('human-readable-ids').hri
+        let chatName: string = name ?? hri.random()
         const filter = { chat_name: chatName }
         let referenceInDatabase = await this.findOne(filter).select('key chat_name').exec()
 
         while (referenceInDatabase != null) {
-            chatName = uniqueNamesGenerator(customConfig)
+            chatName = hri.random()
             filter.chat_name = chatName
             referenceInDatabase = await this.findOne(filter).select('key chat_name').exec()
         }
