@@ -104,10 +104,11 @@ export default class AccountService {
         const rateData = await RateModel.findOne({ symbol: `${account.symbol}-USDT` }).exec()
         const rate = rateData ? rateData.rate : 1
         let amount = account.amount
+        let nonce = 0
         if (account?.ext_type === AccountExtType.Prime) {
             const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
             if (wallet) {
-                account.nonce = wallet.nonce
+                nonce = wallet.nonce
                 account.amount = wallet.amount
                 amount = wallet.amount
             }
@@ -193,7 +194,7 @@ export default class AccountService {
             })
         }
 
-        return { ...account.toJSON(), currency_value_statements, balance_change_statements }
+        return { ...account.toJSON(), currency_value_statements, balance_change_statements, nonce }
     }
 
     protected static mapConditions(fields: { [key: string]: any }) {
