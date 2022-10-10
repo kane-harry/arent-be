@@ -25,8 +25,8 @@ export interface IUser extends IBaseModel {
     phone?: string
     country?: string
     source?: string
-    avatar?: Object | undefined
-    background?: Object | undefined
+    avatar?: Object
+    background?: Object
     player_id?: string
     status: UserStatus
     email_verified?: boolean

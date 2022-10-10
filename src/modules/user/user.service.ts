@@ -97,14 +97,18 @@ export default class UserService extends AuthService {
         const mode = new UserModel({
             key: undefined,
             ...userData,
+            chat_name: await UserModel.generateRandomChatName(userData.chat_name),
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
-            avatar: null,
             role: 0,
             email_verified: emailVerified,
             phone_verified: phoneVerified,
             mfa_settings: mfaSettings,
             token_version: currentTimestamp,
+            locked_timestamp: currentTimestamp,
+            status: UserStatus.Normal,
+            login_count: 0,
+            number_of_followers: 0,
             featured: false
         })
 
