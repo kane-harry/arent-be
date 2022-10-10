@@ -77,11 +77,11 @@ export class UpdateProfileDto {
 
     @IsString()
     @IsOptional()
-    public twitter_url?: string
+    public twitter?: string
 
     @IsString()
     @IsOptional()
-    public instagram_url?: string
+    public instagram?: string
 }
 
 export class AdminUpdateProfileDto {

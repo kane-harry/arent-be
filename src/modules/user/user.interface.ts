@@ -34,8 +34,8 @@ export interface IUser extends IBaseModel {
     token_version: number
     number_of_followers: number
     bio: string
-    twitter_url: string
-    instagram_url: string
+    twitter: string
+    instagram: string
     featured: boolean
 }
 

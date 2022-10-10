@@ -37,8 +37,8 @@ const updateData = {
     newEmailCode: '',
     newPhoneCode: '',
     bio: 'bio',
-    instagram_url: 'instagram_url',
-    twitter_url: 'twitter_url'
+    instagram: 'instagram',
+    twitter: 'twitter'
 }
 
 describe('Profile', () => {
@@ -172,8 +172,8 @@ describe('Profile', () => {
             expect(user?.last_name).equal(updateData.last_name)
             expect(user?.chat_name).equal(updateData.chat_name)
             expect(user?.bio).equal(updateData.bio)
-            expect(user?.twitter_url).equal(updateData.twitter_url)
-            expect(user?.instagram_url).equal(updateData.instagram_url)
+            expect(user?.twitter).equal(updateData.twitter)
+            expect(user?.instagram).equal(updateData.instagram)
         })
     })
 

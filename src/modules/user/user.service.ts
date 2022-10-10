@@ -219,26 +219,26 @@ export default class UserService extends AuthService {
                 last_name: user.last_name,
                 chat_name: user.chat_name,
                 bio: user.bio,
-                twitter_url: user.twitter_url,
-                instagram_url: user.instagram_url
+                twitter: user.twitter,
+                instagram: user.instagram
             },
             post_data: {
                 first_name: params.first_name,
                 last_name: params.last_name,
                 chat_name: params.chat_name,
                 bio: params.bio,
-                twitter_url: params.twitter_url,
-                instagram_url: params.instagram_url
+                twitter: params.twitter,
+                instagram: params.instagram
             }
         }).save()
 
         // save
-        user.set('first_name', params.first_name || user.first_name, String)
-        user.set('last_name', params.last_name || user.last_name, String)
-        user.set('chat_name', params.chat_name || user.chat_name, String)
-        user.set('bio', params.bio || user.bio, String)
-        user.set('twitter_url', params.twitter_url || user.twitter_url, String)
-        user.set('instagram_url', params.instagram_url || user.instagram_url, String)
+        user.set('first_name', params.first_name, String)
+        user.set('last_name', params.last_name, String)
+        user.set('chat_name', params.chat_name, String)
+        user.set('bio', params.bio, String)
+        user.set('twitter', params.twitter, String)
+        user.set('instagram', params.instagram, String)
         await user.save()
 
         return user

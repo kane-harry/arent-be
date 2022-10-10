@@ -18,8 +18,8 @@ export class UserAnalyticRO<T> {
             background: user.background,
             email: user.email,
             bio: user.bio,
-            instagram_url: user.instagram_url,
-            twitter_url: user.twitter_url
+            instagram: user.instagram,
+            twitter: user.twitter
         }
         this.followers = followers
         this.followings = followings

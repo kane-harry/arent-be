@@ -81,8 +81,8 @@ const userSchema = new Schema<IUser, IUserModel>(
         removed: { type: Boolean, default: false },
         token_version: { type: Number },
         bio: String,
-        twitter_url: String,
-        instagram_url: String,
+        twitter: String,
+        instagram: String,
         featured: Boolean
     },
     {
@@ -116,16 +116,16 @@ userSchema.statics.getBriefByChatName = function (chatName: string) {
             chat_name: 1,
             avatar: 1,
             bio: 1,
-            instagram_url: 1,
-            twitter_url: 1
+            instagram: 1,
+            twitter: 1
         }
     )
 }
 
 userSchema.statics.getBriefByKey = function (key: string, includeEmail: boolean) {
-    const projection = { key: 1, chat_name: 1, avatar: 1, bio: 1, instagram_url: 1, twitter_url: 1, email: 1 }
-    if (!includeEmail) {
-        projection.email = 0
+    const projection: any = { key: 1, chat_name: 1, avatar: 1, bio: 1, instagram: 1, twitter: 1 }
+    if (includeEmail) {
+        projection.email = 1
     }
     return this.findOne({ key }, projection)
 }
