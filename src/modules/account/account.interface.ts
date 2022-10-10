@@ -1,8 +1,8 @@
 import { AccountExtType, AccountType, AccountActionType } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
 import IFilterModel from '@interfaces/filter.model.interface'
+import { IOperator } from '@interfaces/operator.interface'
 import IOptions from '@interfaces/options.interface'
-import { IOperator } from '@modules/user/user.interface'
 import { Types } from 'mongoose'
 
 export interface IAccount extends IBaseModel {

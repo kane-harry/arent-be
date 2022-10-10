@@ -21,8 +21,7 @@ export default class AuthController {
     }
 
     static async logOut(req: AuthenticationRequest, res: Response) {
-        const currentTimestamp = generateUnixTimestamp()
-        const data = await AuthService.updateTokenVersion(req.user?.key, currentTimestamp)
+        const data = await AuthService.updateTokenVersion(req.user?.key)
         return res.send(data)
     }
 

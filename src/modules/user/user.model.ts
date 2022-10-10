@@ -1,7 +1,6 @@
 import { config } from '@config'
 import { UserStatus } from '@config/constants'
 import { randomBytes } from 'crypto'
-import moment from 'moment'
 import { Model, model, Schema } from 'mongoose'
 import { IUser } from './user.interface'
 import { Config, names, NumberDictionary, uniqueNamesGenerator } from 'unique-names-generator'
@@ -70,12 +69,7 @@ const userSchema = new Schema<IUser, IUserModel>(
         },
         totp_setup: { type: Boolean, default: false },
         mfa_settings: { type: Object, default: { type: 'EMAIL', login_enabled: false, withdraw_enabled: false } },
-        change_password_next_login: { type: Boolean, default: false },
-        change_password_next_login_timestamp: { type: Number, default: moment().unix() },
-        change_password_next_login_code: {
-            type: String
-        },
-        change_password_next_login_attempts: { type: Number, default: 0 },
+        password_settings: { type: Object },
         locked_timestamp: { type: Number, default: 0 },
         login_count: { type: Number, default: 0 },
         number_of_followers: { type: Number, default: 0 },

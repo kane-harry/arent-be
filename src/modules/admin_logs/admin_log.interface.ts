@@ -1,7 +1,7 @@
 import { AdminLogsActions, AdminLogsSections } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
 import IFilterModel from '@interfaces/filter.model.interface'
-import { IOperator } from '@modules/user/user.interface'
+import { IOperator } from '@interfaces/operator.interface'
 
 export interface IAdminLog extends IBaseModel {
     key: string

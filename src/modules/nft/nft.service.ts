@@ -1,4 +1,3 @@
-import { IOperator } from '@modules/user/user.interface'
 import {
     BidNftDto,
     CreateNftDto,
@@ -43,6 +42,7 @@ import EmailService from '@modules/emaill/email.service'
 import IOptions from '@interfaces/options.interface'
 import NftTradingService from './nft.trading.service'
 import AccountSnapshotService from '@modules/account/account.snapshot.service'
+import { IOperator } from '@interfaces/operator.interface'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IOperator) {
@@ -54,6 +54,7 @@ export default class NftService {
     }
 
     static async createNft(createNftDto: CreateNftDto, files: any, operator: IOperator, options: IOptions) {
+        const user = await UserService.getBriefByKey(operator.key)
         if (!files || !files.find((item: any) => item.fieldname === 'image')) {
             throw new BizException(NftErrors.nft_image_required_error, new ErrorContext('nft.service', 'createNft', {}))
         }
@@ -117,8 +118,8 @@ export default class NftService {
             price: nft.price,
             currency: nft.currency,
             token_id: nft.token_id,
-            previous_owner: { key: operator.key, avatar: operator.avatar, chat_name: operator.chat_name },
-            current_owner: { key: operator.key, avatar: operator.avatar, chat_name: operator.chat_name },
+            previous_owner: { key: user.key, avatar: user.avatar, chat_name: user.chat_name },
+            current_owner: { key: user.key, avatar: user.avatar, chat_name: user.chat_name },
             type: NftOnwerShipType.Mint
         })
 
@@ -368,7 +369,7 @@ export default class NftService {
             const seller = await UserService.getBriefByKey(nft.owner_key, true)
             const buyer = await UserService.getBriefByKey(operator.key, true)
 
-            if (!seller || !buyer) {
+            if (!seller || !seller.key || !buyer || !seller.key) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
 
@@ -468,7 +469,7 @@ export default class NftService {
             const seller = await UserService.getBriefByKey(nft.owner_key, true)
             const buyer = await UserService.getBriefByKey(operator.key, true)
 
-            if (!seller || !buyer) {
+            if (!seller || !seller.key || !buyer || !buyer.key) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'bidNft', { key }))
             }
 
@@ -679,7 +680,7 @@ export default class NftService {
             const seller = await UserService.getBriefByKey(nft.owner_key, true)
             const buyer = await UserService.getBriefByKey(operator.key, true)
 
-            if (!seller || !buyer) {
+            if (!seller || !seller.key || !buyer || !buyer.key) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'makeOffer', { key }))
             }
 
@@ -896,7 +897,7 @@ export default class NftService {
             const seller = await UserService.getBriefByKey(nft.owner_key, true)
             const buyer = await UserService.getBriefByKey(offer.user_key, true)
 
-            if (!seller || !buyer) {
+            if (!seller || !seller.key || !buyer || !seller.key) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'acceptOffer', { key }))
             }
 

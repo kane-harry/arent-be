@@ -9,12 +9,13 @@ import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
 import { PrimeCoinProvider } from '@providers/coin.provider'
 import { ISendCoinDto, ITransactionFilter } from './transaction.interface'
 import { parsePrimeAmount } from '@utils/number'
-import { IOperator, IUser } from '@modules/user/user.interface'
 import { isAdmin } from '@config/role'
 import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
 import { AccountActionType, TransactionChain, UserStatus } from '@config/constants'
 import IOptions from '@interfaces/options.interface'
+import { IOperator } from '@interfaces/operator.interface'
+import UserService from '@modules/user/user.service'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: IOperator, options: IOptions) {
@@ -56,12 +57,12 @@ export default class TransactionService {
                 )
             }
         }
-        if (operator?.status === UserStatus.Suspend) {
-            throw new BizException(
-                TransactionErrors.account_is_suspend,
-                new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
-            )
-        }
+        // if (operator?.status === UserStatus.Suspend) {
+        //     throw new BizException(
+        //         TransactionErrors.account_is_suspend,
+        //         new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
+        //     )
+        // }
         const senderBalance = parsePrimeAmount(senderAccount.amount).sub(parsePrimeAmount(senderAccount.amount_locked))
         if (senderBalance.lt(amount)) {
             throw new BizException(

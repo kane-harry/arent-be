@@ -3,20 +3,6 @@ import { MFAType, UserStatus } from '@config/constants'
 import { map } from 'lodash'
 import { IUser } from './user.interface'
 
-export class UserBriefRO {
-    key: string
-    first_name: string
-    last_name: string
-    chat_name: string
-    avatar: object | undefined
-    constructor(user: IUser) {
-        this.key = user.key
-        this.first_name = user.first_name
-        this.last_name = user.last_name
-        this.chat_name = user.chat_name
-    }
-}
-
 export class CreateUserDto {
     @IsString()
     @Length(2, 20)
@@ -37,6 +23,7 @@ export class CreateUserDto {
 
     @MinLength(6)
     @IsString()
+    @IsNotEmpty()
     @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, { message: 'password too weak' })
     public password: string
 
@@ -45,13 +32,13 @@ export class CreateUserDto {
     public pin: string
 
     @IsOptional()
-    public phone: string
+    public phone?: string
 
     @IsOptional()
-    public country: string
+    public country?: string
 
     @IsOptional()
-    public player_id: string
+    public player_id?: string
 }
 
 export class UpdateProfileDto {
@@ -107,6 +94,15 @@ export class AdminUpdateProfileDto {
     @IsOptional()
     @IsEmail()
     public email: string
+
+    @IsOptional()
+    public bio?: string
+
+    @IsOptional()
+    public twitter?: string
+
+    @IsOptional()
+    public instagram?: string
 }
 
 export class SetupTotpDto {
@@ -247,6 +243,9 @@ export class AuthorizeDto {
 
     @IsNotEmpty()
     public code: string
+
+    @IsOptional()
+    public player_id?: string
 }
 
 export class EmailVerifyDto {

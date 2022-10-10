@@ -9,7 +9,6 @@ import { AccountErrors, AuthErrors } from '@exceptions/custom.error'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { PrimeCoinProvider } from '@providers/coin.provider'
-import { IOperator, IUser } from '@modules/user/user.interface'
 import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections, AccountActionType, MASTER_ACCOUNT_KEY } from '@config/constants'
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
 import { RateModel } from '@modules/exchange_rate/rate.model'
@@ -17,6 +16,7 @@ import { roundUp } from '@utils/utility'
 import AccountSnapshotService from '@modules/account/account.snapshot.service'
 import IOptions from '@interfaces/options.interface'
 import moment from 'moment'
+import { IOperator } from '@interfaces/operator.interface'
 
 export default class AccountService {
     private static async initAccounts(userKey: string, accountNameSuffix = 'Account') {
@@ -293,7 +293,7 @@ export default class AccountService {
         return new QueryRO<IAccountRO>(totalCount, paginate.page_index, paginate.page_size, data)
     }
 
-    static async withdraw(key: string, params: WithdrawDto, operator: IUser) {
+    static async withdraw(key: string, params: WithdrawDto, operator: IOperator) {
         const account = await AccountService.getAccountKeyStore(key)
         if (account.type === AccountType.Prime) {
             throw new BizException(AccountErrors.account_withdraw_not_permit_error, new ErrorContext('account.service', 'withdraw', { key }))

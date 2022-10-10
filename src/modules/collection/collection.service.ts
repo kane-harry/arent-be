@@ -1,4 +1,3 @@
-import { IOperator, IUser } from '@modules/user/user.interface'
 import { AssignCollectionDto, CreateCollectionDto, UpdateCollectionDto, UpdateCollectionFeaturedDto } from './collection.dto'
 import { CollectionModel } from './collection.model'
 import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
@@ -16,9 +15,10 @@ import { CreateNftDto } from '@modules/nft/nft.dto'
 import IOptions from '@interfaces/options.interface'
 import moment from 'moment'
 import CategoryService from '@modules/category/category.service'
+import { IOperator } from '@interfaces/operator.interface'
 
 export default class CollectionService {
-    static async createCollection(createCollectionDto: CreateCollectionDto, files: any, operator: IUser) {
+    static async createCollection(createCollectionDto: CreateCollectionDto, files: any, operator: IOperator) {
         if (createCollectionDto.category_key) {
             const category = await CategoryService.getCategory(createCollectionDto.category_key)
             if (!category) {
@@ -128,7 +128,7 @@ export default class CollectionService {
         return { collection, owner }
     }
 
-    static async updateCollection(key: string, updateCollectionDto: UpdateCollectionDto, files: any, operator: IUser) {
+    static async updateCollection(key: string, updateCollectionDto: UpdateCollectionDto, files: any, operator: IOperator) {
         const collection = await CollectionModel.findOne({ key })
         if (!collection) {
             throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'updateCollection', { key }))
@@ -190,7 +190,7 @@ export default class CollectionService {
         return await collection.save()
     }
 
-    static async deleteCollection(key: string, operator: IUser) {
+    static async deleteCollection(key: string, operator: IOperator) {
         const collection = await CollectionModel.findOne({ key })
         if (!collection) {
             throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'deleteCollection', { key }))
@@ -209,7 +209,7 @@ export default class CollectionService {
         return await collection.save()
     }
 
-    static async assignCollection(key: string, params: AssignCollectionDto, operator: IUser) {
+    static async assignCollection(key: string, params: AssignCollectionDto, operator: IOperator) {
         const collection = await CollectionModel.findOne({ key })
         if (!collection) {
             throw new BizException(CollectionErrors.collection_not_exists_error, new ErrorContext('collection.service', 'assignCollection', { key }))

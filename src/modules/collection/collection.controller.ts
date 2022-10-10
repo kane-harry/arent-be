@@ -13,7 +13,6 @@ import { requireAuth } from '@utils/authCheck'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
 import validationMiddleware from '@middlewares/validation.middleware'
-import { IOperator } from '@modules/user/user.interface'
 import IOptions from '@interfaces/options.interface'
 
 export default class CollectionController {
@@ -72,26 +71,16 @@ export default class CollectionController {
 
     static async updateCollectionFeatured(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
-        const operator: IOperator = {
-            email: req.user?.email,
-            key: req.user?.key,
-            role: req.user.role
-        }
         const options: IOptions = {
             agent: req.agent,
             ip: req.ip
         }
         const updateCollectionDto: UpdateCollectionFeaturedDto = req.body
-        const data = await CollectionService.updateCollectionFeatured(key, updateCollectionDto, operator, options)
+        const data = await CollectionService.updateCollectionFeatured(key, updateCollectionDto, req.user, options)
         return res.json(data)
     }
 
     static async bulkUpdateCollectionFeatured(req: AuthenticationRequest, res: Response) {
-        const operator: IOperator = {
-            email: req.user?.email,
-            key: req.user?.key,
-            role: req.user.role
-        }
         const options: IOptions = {
             agent: req.agent,
             ip: req.ip
@@ -102,7 +91,7 @@ export default class CollectionController {
         const data = []
         for (const key of keys) {
             try {
-                const item = await CollectionService.updateCollectionFeatured(key, { featured: featured }, operator, options)
+                const item = await CollectionService.updateCollectionFeatured(key, { featured: featured }, req.user, options)
                 data.push(item)
             } catch (e) {
                 data.push(e)
