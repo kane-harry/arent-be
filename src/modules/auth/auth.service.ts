@@ -274,7 +274,11 @@ export default class AuthService {
                 source: 'phone',
                 country: phoneInfo.country,
                 role: 0,
-                mfa_settings: mfaSettings
+                mfa_settings: mfaSettings,
+                locked_timestamp: generateUnixTimestamp(),
+                status: UserStatus.Normal,
+                login_count: 0,
+                number_of_followers: 0
             })
 
             if (user.key) {
@@ -303,7 +307,11 @@ export default class AuthService {
                 player_id: params.player_id,
                 source: 'email',
                 role: 0,
-                mfa_settings: mfaSettings
+                mfa_settings: mfaSettings,
+                locked_timestamp: generateUnixTimestamp(),
+                status: UserStatus.Normal,
+                login_count: 0,
+                number_of_followers: 0
             })
 
             if (user.key) {
