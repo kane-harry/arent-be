@@ -47,6 +47,7 @@ export class UserFavoriteRO<T> {
                 image: nft?.image,
                 animation: nft?.animation,
                 collection: {
+                    key: collection?.key,
                     name: collection?.name,
                     logo: collection?.logo,
                     background: collection?.background
