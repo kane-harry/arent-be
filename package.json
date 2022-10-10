@@ -142,5 +142,8 @@
   },
   "mocha": {
     "spec": "src/**/*.{spec,test}.ts"
+  },
+  "engines": {
+    "node": ">=14.20.0 <15"
   }
 }
