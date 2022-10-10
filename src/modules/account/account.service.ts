@@ -321,7 +321,7 @@ export default class AccountService {
         return await this.initAccounts(MASTER_ACCOUNT_KEY, 'Master')
     }
 
-    static async mintMasterAccount(key: string, params: MintDto, operator: IOperator, options: IOptions) {
+    static async mintMasterAccount(key: string, params: MintDto, operator: IOperator, options?: IOptions) {
         const account = await AccountModel.findOne({ key }).select('-key_store -salt').exec()
         if (!account) {
             throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
@@ -337,7 +337,9 @@ export default class AccountService {
         })
 
         await new AdminLogModel({
+            key: undefined,
             operator,
+            options,
             userKey: account.user_key,
             action: AdminLogsActions.MintMasterAccount,
             section: AdminLogsSections.Account

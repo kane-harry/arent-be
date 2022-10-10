@@ -71,27 +71,18 @@ export default class CollectionController {
 
     static async updateCollectionFeatured(req: AuthenticationRequest, res: Response) {
         const { key } = req.params
-        const options: IOptions = {
-            agent: req.agent,
-            ip: req.ip
-        }
         const updateCollectionDto: UpdateCollectionFeaturedDto = req.body
-        const data = await CollectionService.updateCollectionFeatured(key, updateCollectionDto, req.user, options)
+        const data = await CollectionService.updateCollectionFeatured(key, updateCollectionDto, req.user, req.options)
         return res.json(data)
     }
 
     static async bulkUpdateCollectionFeatured(req: AuthenticationRequest, res: Response) {
-        const options: IOptions = {
-            agent: req.agent,
-            ip: req.ip
-        }
-
         const updateCollectionDto: BulkUpdateCollectionFeaturedDto = req.body
         const { keys, featured } = updateCollectionDto
         const data = []
         for (const key of keys) {
             try {
-                const item = await CollectionService.updateCollectionFeatured(key, { featured: featured }, req.user, options)
+                const item = await CollectionService.updateCollectionFeatured(key, { featured: featured }, req.user, req.options)
                 data.push(item)
             } catch (e) {
                 data.push(e)

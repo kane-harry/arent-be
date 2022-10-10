@@ -77,7 +77,7 @@ export default class UserController {
 
     static async register(req: CustomRequest, res: Response) {
         const userData: CreateUserDto = req.body
-        const data = await UserService.register(userData, { req })
+        const data = await UserService.register(userData, req.options)
 
         return res.send(data)
     }
@@ -89,9 +89,9 @@ export default class UserController {
         return res.send(data)
     }
 
-    static async resetPassword(req: AuthenticationRequest, res: Response) {
+    static async resetPassword(req: CustomRequest, res: Response) {
         const params: ResetPasswordDto = req.body
-        const data = await UserService.resetPassword(params, { req })
+        const data = await UserService.resetPassword(params, req.options)
 
         return res.send(data)
     }
@@ -105,31 +105,31 @@ export default class UserController {
 
     static async resetPin(req: AuthenticationRequest, res: Response) {
         const params: ResetPinDto = req.body
-        const data = await UserService.resetPin(params, { req })
+        const data = await UserService.resetPin(params, req.options)
 
         return res.send(data)
     }
 
     static async uploadAvatar(req: AuthenticationRequest, res: Response) {
-        const data = await UserService.uploadAvatar(req.files, { req })
+        const data = await UserService.uploadAvatar(req.files, req.user, req.options)
         return res.send(data)
     }
 
     static async uploadBackground(req: AuthenticationRequest, res: Response) {
-        const data = await UserService.uploadBackground(req.files, { req })
+        const data = await UserService.uploadBackground(req.files, req.user, req.options)
         return res.send(data)
     }
 
     static async updateProfile(req: AuthenticationRequest, res: Response) {
         const userData: UpdateProfileDto = req.body
-        const data = await UserService.updateProfile(userData, { req })
+        const data = await UserService.updateProfile(userData, req.user, req.options)
         return res.send(data)
     }
 
     static async updateProfileByAdmin(req: AuthenticationRequest, res: Response) {
         const key = req.params.key
         const userData: AdminUpdateProfileDto = req.body
-        const data = await UserService.updateProfileByAdmin(key, userData, { req })
+        const data = await UserService.updateProfileByAdmin(key, userData, req.user, req.options)
         return res.send(data)
     }
 
@@ -146,20 +146,20 @@ export default class UserController {
     }
 
     static async getTotp(req: AuthenticationRequest, res: Response) {
-        const data = await UserService.getTotp({ req })
+        const data = await UserService.getTotp(req.user)
         return res.send(data)
     }
 
     static async setTotp(req: AuthenticationRequest, res: Response) {
         const params: SetupTotpDto = req.body
-        const data = await UserService.setTotp(params, { req })
+        const data = await UserService.setTotp(params, req.user, req.options)
         return res.send(data)
     }
 
     static async updateSecurity(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
         const params: UpdateSecurityDto = req.body
-        const data = await UserService.updateSecurity(userKey, params, { req })
+        const data = await UserService.updateSecurity(userKey, params, req.user, req.options)
         return res.send(data)
     }
 
@@ -177,6 +177,8 @@ export default class UserController {
 
     static async exportAllUser(req: CustomRequest, res: Response) {
         const filter = req.query as IUserQueryFilter
+        filter.page_index = 1
+        filter.page_size = 9999999
         const data = await UserService.getUserList(filter)
         const fields = [
             { label: 'Key', value: 'key' },
@@ -202,53 +204,53 @@ export default class UserController {
 
     static async resetCredentials(req: AuthenticationRequest, res: Response) {
         const key: string = req.params.key
-        const data = await UserService.resetCredentials(key, { req })
+        const data = await UserService.resetCredentials(key, req.user, req.options)
         return res.send(data)
     }
 
     static async setupCredentials(req: AuthenticationRequest, res: Response) {
         const params: SetupCredentialsDto = req.body
-        const data = await UserService.setupCredentials(params, { req })
+        const data = await UserService.setupCredentials(params, req.options)
         return res.send(data)
     }
 
     static async updateUserStatus(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
         const params: UpdateUserStatusDto = req.body
-        const data = await UserService.updateUserStatus(userKey, params, { req })
+        const data = await UserService.updateUserStatus(userKey, params, req.user, req.options)
         return res.json(data)
     }
 
     static async removeUser(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
-        const data = await UserService.removeUser(userKey, { req })
+        const data = await UserService.removeUser(userKey, req.user, req.options)
         return res.json(data)
     }
 
     static async resetTotp(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
-        const data = await UserService.resetTotp(userKey, { req })
+        const data = await UserService.resetTotp(userKey, req.user, req.options)
         return res.json(data)
     }
 
     static async updateUserRole(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
         const params: UpdateUserRoleDto = req.body
-        const data = await UserService.updateUserRole(userKey, params, { req })
+        const data = await UserService.updateUserRole(userKey, params, req.user, req.options)
         return res.json(data)
     }
 
     static async updatePhone(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
         const params: UpdatePhoneDto = req.body
-        const data = await UserService.updatePhone(userKey, params, { req })
+        const data = await UserService.updatePhone(userKey, params, req.user, req.options)
         return res.json(data)
     }
 
     static async updateEmail(req: AuthenticationRequest, res: Response) {
         const userKey = req.params.key
         const params: UpdateEmailDto = req.body
-        const data = await UserService.updateEmail(userKey, params, { req })
+        const data = await UserService.updateEmail(userKey, params, req.user, req.options)
         return res.json(data)
     }
 
@@ -266,7 +268,7 @@ export default class UserController {
     }
 
     static async verifyEmailAddress(req: AuthenticationRequest, res: Response) {
-        const userKey = req.user.key ?? ''
+        const userKey = req.user.key
         const params: EmailVerifyDto = req.body
         const data = await UserService.verifyEmailAddress(userKey, params)
 
@@ -274,13 +276,13 @@ export default class UserController {
     }
 
     static async getUserAnalytics(req: AuthenticationRequest, res: Response) {
-        const userKey = req.user.key ?? ''
-        const data = await UserService.getUserAnalytics(userKey)
+        const key = req.params.key
+        const data = await UserService.getUserAnalytics(key)
 
         return res.send(data)
     }
 
-    static async getUserFeatured(req: CustomRequest, res: Response) {
+    static async getFeaturedUsers(req: CustomRequest, res: Response) {
         const filter = req.query as IUserQueryFilter
         filter.featured = true
         const data = await UserService.getUserList(filter)
@@ -288,27 +290,8 @@ export default class UserController {
     }
 
     static async bulkUpdateUserFeatured(req: AuthenticationRequest, res: Response) {
-        const operator: IOperator = {
-            email: req.user?.email,
-            key: req.user?.key ?? '',
-            role: req.user.role
-        }
-        const options: IOptions = {
-            agent: req.agent,
-            ip: req.ip
-        }
-
-        const updateUserDto: BulkUpdateUserFeaturedDto = req.body
-        const { keys, featured } = updateUserDto
-        const data = []
-        for (const key of keys) {
-            try {
-                const item = await UserService.updateUserFeatured(key, { featured: featured }, operator, options)
-                data.push(item)
-            } catch (e) {
-                data.push(e)
-            }
-        }
+        const params: BulkUpdateUserFeaturedDto = req.body
+        const data = await UserService.bulkUpdateUserFeatured(params, req.user, req.options)
         return res.json(data)
     }
 }

@@ -3,7 +3,6 @@ import { CreateUserDto } from '@modules/user/user.dto'
 import { LogInDto } from './auth.dto'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import AuthService from './auth.service'
-import { generateUnixTimestamp } from '@utils/utility'
 
 export default class AuthController {
     static async verifyRegistration(req: CustomRequest, res: Response) {
@@ -15,7 +14,7 @@ export default class AuthController {
 
     static async logIn(req: CustomRequest, res: Response) {
         const logInData: LogInDto = req.body
-        const data = await AuthService.logIn(logInData, { req })
+        const data = await AuthService.logIn(logInData, false, req.options)
 
         return res.send(data)
     }

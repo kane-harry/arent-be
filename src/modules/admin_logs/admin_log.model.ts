@@ -15,8 +15,10 @@ const AdminLogsSchema = new Schema<IAdminLog>(
             }
         },
         operator: {
-            type: Object,
-            required: true
+            type: Object
+        },
+        options: {
+            type: Object
         },
         user_key: {
             type: String

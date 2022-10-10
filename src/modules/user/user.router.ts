@@ -15,7 +15,9 @@ import {
     UpdateEmailDto,
     UpdatePhoneDto,
     UpdateProfileDto,
-    UpdateSecurityDto
+    UpdateSecurityDto,
+    UpdateUserRoleDto,
+    UpdateUserStatusDto
 } from './user.dto'
 import { requireAdmin, requireOwner } from '@config/role'
 import validationMiddleware from '@middlewares/validation.middleware'
@@ -80,10 +82,22 @@ class UserRouter implements ICustomRouter {
         this.router.post(`${this.path}/:key/credentials/reset`, requireAuth, requireAdmin(), asyncHandler(UserController.resetCredentials))
         this.router.post(`${this.path}/credentials/setup`, validationMiddleware(SetupCredentialsDto), asyncHandler(UserController.setupCredentials))
 
-        this.router.post(`${this.path}/:key/status/update`, requireAuth, requireAdmin(), asyncHandler(UserController.updateUserStatus))
+        this.router.post(
+            `${this.path}/:key/status/update`,
+            requireAuth,
+            requireAdmin(),
+            validationMiddleware(UpdateUserStatusDto),
+            asyncHandler(UserController.updateUserStatus)
+        )
         this.router.post(`${this.path}/:key/remove`, requireAuth, requireAdmin(), asyncHandler(UserController.removeUser))
         this.router.post(`${this.path}/:key/totp/reset`, requireAuth, requireAdmin(), asyncHandler(UserController.resetTotp))
-        this.router.post(`${this.path}/:key/role/update`, requireAuth, requireAdmin(), asyncHandler(UserController.updateUserRole))
+        this.router.post(
+            `${this.path}/:key/role/update`,
+            requireAuth,
+            requireAdmin(),
+            validationMiddleware(UpdateUserRoleDto),
+            asyncHandler(UserController.updateUserRole)
+        )
         this.router.post(
             `${this.path}/:key/phone/update`,
             requireAuth,
@@ -111,7 +125,7 @@ class UserRouter implements ICustomRouter {
         )
         this.router.get(`${this.path}/:key/analytics`, requireAuth, asyncHandler(UserController.getUserAnalytics))
 
-        this.router.get(`${this.path}/featured`, asyncHandler(UserController.getUserFeatured))
+        this.router.get(`${this.path}/featured`, asyncHandler(UserController.getFeaturedUsers))
         this.router.put(`${this.path}/featured`, requireAuth, requireAdmin(), asyncHandler(UserController.bulkUpdateUserFeatured))
     }
 }

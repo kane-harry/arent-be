@@ -232,7 +232,7 @@ export default class CollectionService {
         key: string,
         updateCollectionFeaturedDto: UpdateCollectionFeaturedDto,
         operator: IOperator,
-        options: IOptions
+        options?: IOptions
     ) {
         const collection = await CollectionModel.findOne({ key })
         if (!collection) {

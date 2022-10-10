@@ -263,5 +263,5 @@ export class BulkUpdateUserFeaturedDto {
     public featured: boolean
 
     @IsNotEmpty()
-    public keys: any
+    public keys: string
 }

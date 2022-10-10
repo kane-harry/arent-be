@@ -100,9 +100,9 @@ const userSchema = new Schema<IUser, IUserModel>(
     }
 )
 
-userSchema.virtual('full_name').get(function (this: { first_name: string; last_name: string }) {
-    return `${this.first_name || ''} ${this.last_name || ''}`
-})
+// userSchema.virtual('full_name').get(function (this: { first_name: string; last_name: string }) {
+//     return `${this.first_name || ''} ${this.last_name || ''}`
+// })
 
 userSchema.statics.getBriefByChatName = function (chatName: string) {
     return this.findOne(

@@ -6,6 +6,7 @@ import { find, forEach, toLower, trim } from 'lodash'
 import {
     AdminUpdateProfileDto,
     AuthorizeDto,
+    BulkUpdateUserFeaturedDto,
     CreateUserDto,
     EmailVerifyDto,
     ForgotPasswordDto,
@@ -77,7 +78,7 @@ export default class UserService extends AuthService {
         throw new BizException(AuthErrors.user_authorize_method_error, new ErrorContext('user.service', 'userAuth', {}))
     }
 
-    public static async register(userData: CreateUserDto, options?: any) {
+    public static async register(userData: CreateUserDto, options?: IOptions) {
         userData = await this.formatCreateUserDto(userData)
         await this.verifyRegistration(userData)
         const setting: ISetting = await SettingService.getGlobalSetting()
@@ -121,11 +122,11 @@ export default class UserService extends AuthService {
 
         // create log
         new UserHistoryModel({
+            key: undefined,
             user_key: mode.key,
             action: UserHistoryActions.Register,
-            agent: options?.req.agent,
-            country: mode.country,
-            ip_address: options?.req.ip_address,
+            operator: { key: mode.key },
+            options: options,
             pre_data: null,
             post_data: {
                 first_name: mode.first_name,
@@ -137,12 +138,11 @@ export default class UserService extends AuthService {
             }
         }).save()
 
-        options.force_login = true
-        return this.logIn({ email: userData.email, password: userData.password, token: undefined }, options)
+        return this.logIn({ email: userData.email, password: userData.password, token: undefined }, true, options)
     }
 
-    public static uploadAvatar = async (files: any, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ email: options.req.user?.email, removed: false }).exec()
+    public static uploadAvatar = async (files: any, operator: IOperator, options?: IOptions) => {
+        const user = await UserModel.findOne({ key: operator.key, removed: false }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'uploadAvatar', {}))
@@ -165,11 +165,11 @@ export default class UserService extends AuthService {
 
         user?.set('avatar', avatars, Object)
         await user?.save()
-        return avatars
+        return user
     }
 
-    public static uploadBackground = async (files: any, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ email: options.req.user?.email, removed: false }).exec()
+    public static uploadBackground = async (files: any, operator: IOperator, options?: IOptions) => {
+        const user = await UserModel.findOne({ key: operator.key, removed: false }).exec()
 
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'uploadBackgroundImage', {}))
@@ -192,11 +192,11 @@ export default class UserService extends AuthService {
 
         user?.set('background', background, Object)
         await user?.save()
-        return background
+        return user
     }
 
-    public static updateProfile = async (params: UpdateProfileDto, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key: options.req.user.key, removed: false }).exec()
+    public static updateProfile = async (params: UpdateProfileDto, operator: IOperator, options?: IOptions) => {
+        const user = await UserModel.findOne({ key: operator.key, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
         }
@@ -214,11 +214,11 @@ export default class UserService extends AuthService {
 
         // create log
         await new UserHistoryModel({
+            key: undefined,
             user_key: user.key,
             action: UserHistoryActions.UpdateProfile,
-            agent: options?.req.agent,
-            country: user.country,
-            ip_address: options?.req.ip_address,
+            operator,
+            options,
             pre_data: {
                 first_name: user.first_name,
                 last_name: user.last_name,
@@ -249,7 +249,7 @@ export default class UserService extends AuthService {
         return user
     }
 
-    public static updateProfileByAdmin = async (key: string, params: AdminUpdateProfileDto, options: { req: AuthenticationRequest }) => {
+    public static updateProfileByAdmin = async (key: string, params: AdminUpdateProfileDto, operator: IOperator, options?: IOptions) => {
         const user = await UserModel.findOne({ key, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUser', {}))
@@ -286,14 +286,18 @@ export default class UserService extends AuthService {
         user.set('bio', params.bio, String)
         user.set('twitter', params.twitter, String)
         user.set('instagram', params.instagram, String)
+        // save
+        user.set('first_name', params.first_name || user.first_name, String)
+        user.set('last_name', params.last_name || user.last_name, String)
+        user.set('chat_name', params.chat_name || user.chat_name, String)
 
+        await user.save()
         // create log
         await new AdminLogModel({
-            operator: {
-                key: options.req.user.key,
-                email: options.req.user.email
-            },
+            key: undefined,
             user_key: user.key,
+            operator,
+            options,
             action: AdminLogsActions.UpdateUser,
             section: AdminLogsSections.User,
             pre_data: {
@@ -301,23 +305,22 @@ export default class UserService extends AuthService {
                 last_name: user.last_name,
                 chat_name: user.chat_name,
                 phone: user.phone,
-                email: user.email
+                email: user.email,
+                bio: user.bio,
+                twitter: user.twitter,
+                instagram: user.instagram
             },
             post_data: {
                 first_name: params.first_name,
                 last_name: params.last_name,
                 chat_name: params.chat_name,
-                phone: phone || user.phone,
-                email: email || user.email
+                phone: phone,
+                email: email,
+                bio: params.bio,
+                twitter: params.twitter,
+                instagram: params.instagram
             }
         }).save()
-
-        // save
-        user.set('first_name', params.first_name || user.first_name, String)
-        user.set('last_name', params.last_name || user.last_name, String)
-        user.set('chat_name', params.chat_name || user.chat_name, String)
-
-        await user.save()
 
         return user
     }
@@ -359,7 +362,7 @@ export default class UserService extends AuthService {
         return { success: true }
     }
 
-    static async resetPassword(params: ResetPasswordDto, options: { req: AuthenticationRequest }) {
+    static async resetPassword(params: ResetPasswordDto, options?: IOptions) {
         let user
         if (params.type === 'email') {
             const email = toLower(trim(params.owner))
@@ -369,11 +372,11 @@ export default class UserService extends AuthService {
             user = await UserModel.findOne({ phone, removed: false }).select('key email phone pin password').exec()
         }
         if (!user) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'resetPassword', {}))
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'resetPassword', {}))
         }
         const isPinCodeMatching = await bcrypt.compare(params.pin, user.get('pin', null, { getters: false }))
         if (!isPinCodeMatching) {
-            throw new BizException(AuthErrors.invalid_pin_code_error, new ErrorContext('auth.service', 'resetPassword', {}))
+            throw new BizException(AuthErrors.invalid_pin_code_error, new ErrorContext('user.service', 'resetPassword', {}))
         }
         const { success } = await VerificationCodeService.verifyCode({
             owner: params.owner,
@@ -386,11 +389,12 @@ export default class UserService extends AuthService {
 
             // log
             new UserHistoryModel({
+                key: undefined,
                 user_key: user.key,
                 action: UserHistoryActions.ResetPassword,
-                agent: options?.req.agent,
                 country: user.country,
-                ip_address: options?.req.ip_address,
+                operator: { key: user.key },
+                options,
                 pre_data: {
                     password: user.password
                 },
@@ -444,8 +448,7 @@ export default class UserService extends AuthService {
         return { success: true }
     }
 
-    static async resetPin(params: ResetPinDto, options: { req: AuthenticationRequest }) {
-        const currentTimestamp = generateUnixTimestamp()
+    static async resetPin(params: ResetPinDto, options?: IOptions) {
         let user
         if (params.type === 'email') {
             const email = toLower(trim(params.owner))
@@ -455,11 +458,11 @@ export default class UserService extends AuthService {
             user = await UserModel.findOne({ phone, removed: false }).select('key email phone password').exec()
         }
         if (!user || !user.key) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'resetPin', {}))
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'resetPin', {}))
         }
         const isPasswordMatching = await bcrypt.compare(params.password, user.get('password', null, { getters: false }))
         if (!isPasswordMatching) {
-            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'resetPin', {}))
+            throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('user.service', 'resetPin', {}))
         }
 
         const { success } = await VerificationCodeService.verifyCode({
@@ -474,9 +477,9 @@ export default class UserService extends AuthService {
             new UserHistoryModel({
                 user_key: user.key,
                 action: UserHistoryActions.ResetPin,
-                agent: options?.req.agent,
+                operator: { key: user.key },
+                options: options,
                 country: user.country,
-                ip_address: options?.req.ip_address,
                 pre_data: {
                     pin: user.pin
                 },
@@ -509,16 +512,22 @@ export default class UserService extends AuthService {
         return data
     }
 
-    public static getTotp = async (options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key: options?.req?.user?.key, removed: false }).exec()
+    public static getTotp = async (operator: IOperator) => {
+        const user = await UserModel.findOne({ key: operator.key, removed: false }).exec()
+        if (!user || !user.key) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'getTotp', { key: operator.key }))
+        }
         const totpTemp = getNewSecret()
         user?.set('totp_temp_secret', totpTemp.secret)
         await user?.save()
         return { totp_temp: totpTemp }
     }
 
-    public static setTotp = async (params: SetupTotpDto, options: { req: AuthenticationRequest }) => {
-        const user = await UserModel.findOne({ key: options?.req?.user?.key, removed: false }).select('key totp_temp_secret').exec()
+    public static setTotp = async (params: SetupTotpDto, operator: IOperator, options?: IOptions) => {
+        const user = await UserModel.findOne({ key: operator.key, removed: false }).select('key totp_temp_secret mfa_settings').exec()
+        if (!user || !user.key) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'setTotp', { key: operator.key }))
+        }
         const secret = user?.totp_temp_secret
         const verified = await verifyNewDevice(secret, params.token1, params.token2)
         if (!verified) {
@@ -526,21 +535,21 @@ export default class UserService extends AuthService {
         }
 
         // create log
-        // await new UserHistoryModel({
-        //     user_key: options?.req?.user?.key,
-        //     action: UserHistoryActions.SetupTOTP,
-        //     agent: options?.req.agent,
-        //     country: options.req.user.country,
-        //     ip_address: options?.req.ip_address,
-        //     pre_data: {
-        //         mfa_settings: options.req.user.mfa_settings
-        //     },
-        //     post_data: {
-        //         mfa_settings: {
-        //             type: MFAType.TOTP
-        //         }
-        //     }
-        // }).save()
+        await new UserHistoryModel({
+            key: undefined,
+            user_key: user.key,
+            action: UserHistoryActions.SetupTOTP,
+            operator,
+            options,
+            pre_data: {
+                mfa_settings: user.mfa_settings
+            },
+            post_data: {
+                mfa_settings: {
+                    type: MFAType.TOTP
+                }
+            }
+        }).save()
 
         user?.set('totp_temp_secret', null)
         user?.set('totp_secret', secret)
@@ -550,13 +559,13 @@ export default class UserService extends AuthService {
         return user
     }
 
-    public static updateSecurity = async (key: string, params: UpdateSecurityDto, options: { req: AuthenticationRequest }) => {
+    public static updateSecurity = async (key: string, params: UpdateSecurityDto, operator: IOperator, options?: IOptions) => {
         const user = await UserModel.findOne({ key, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateSecurity', {}))
         }
         // Check permission
-        if (user.key !== options?.req?.user?.key && options.req.user.role !== role.admin.id) {
+        if (user.key !== operator.key && operator.role !== role.admin.id) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('user.service', 'updateSecurity', {}))
         }
         const type = params.type.toUpperCase()
@@ -565,11 +574,11 @@ export default class UserService extends AuthService {
 
         // create log
         await new UserHistoryModel({
+            key: undefined,
             user_key: user.key,
             action: UserHistoryActions.UpdateSecurity,
-            agent: options?.req.agent,
-            country: user.country,
-            ip_address: options?.req.ip_address,
+            operator,
+            options,
             pre_data: {
                 mfa_settings: user.mfa_settings
             },
@@ -646,7 +655,7 @@ export default class UserService extends AuthService {
         return items
     }
 
-    public static async resetCredentials(key: string, options: { req: AuthenticationRequest }) {
+    public static async resetCredentials(key: string, operator: IOperator, options?: IOptions) {
         const user = await UserModel.findOne({ key, removed: false }).exec()
 
         if (!user) {
@@ -654,11 +663,10 @@ export default class UserService extends AuthService {
         }
 
         await new AdminLogModel({
-            operator: {
-                key: options.req.user.key,
-                email: options.req.user.email
-            },
+            key: undefined,
             user_key: user.key,
+            operator,
+            options,
             action: AdminLogsActions.ResetCredentialsUser,
             section: AdminLogsSections.User
         }).save()
@@ -687,7 +695,7 @@ export default class UserService extends AuthService {
         return { success: true }
     }
 
-    public static async setupCredentials(params: SetupCredentialsDto, options: { req: AuthenticationRequest }) {
+    public static async setupCredentials(params: SetupCredentialsDto, options?: IOptions) {
         const email = toLower(trim(params.email))
         const user = await UserModel.findOne({ email, removed: false }).exec()
 
@@ -721,11 +729,11 @@ export default class UserService extends AuthService {
 
         // create log
         await new UserHistoryModel({
+            key: undefined,
             user_key: user.key,
+            operator: { key: user.key },
+            options,
             action: UserHistoryActions.SetupCredentials,
-            agent: options?.req.agent,
-            country: user.country,
-            ip_address: options?.req.ip_address,
             pre_data: {},
             post_data: {}
         }).save()
@@ -753,7 +761,7 @@ export default class UserService extends AuthService {
         return { success: true }
     }
 
-    static async updateUserStatus(userKey: string, params: UpdateUserStatusDto, options: { req: AuthenticationRequest }) {
+    static async updateUserStatus(userKey: string, params: UpdateUserStatusDto, operator: IOperator, options?: IOptions) {
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
 
         if (!user) {
@@ -762,12 +770,11 @@ export default class UserService extends AuthService {
 
         // create log
         await new AdminLogModel({
-            operator: {
-                key: options.req.user.key,
-                email: options.req.user.email
-            },
+            key: undefined,
             user_key: user.key,
-            action: params.status + 'User',
+            operator,
+            options: options,
+            action: AdminLogsActions.UpdateUserStatus,
             section: AdminLogsSections.User,
             pre_data: {
                 status: user.status
@@ -784,7 +791,7 @@ export default class UserService extends AuthService {
         return user
     }
 
-    static async removeUser(userKey: string, options: { req: AuthenticationRequest }) {
+    static async removeUser(userKey: string, operator: IOperator, options?: IOptions) {
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
 
         if (!user) {
@@ -793,11 +800,10 @@ export default class UserService extends AuthService {
 
         // create log
         await new AdminLogModel({
-            operator: {
-                key: options.req.user.key,
-                email: options.req.user.email
-            },
+            key: undefined,
             user_key: user.key,
+            operator,
+            options,
             action: AdminLogsActions.RemoveUser,
             section: AdminLogsSections.User,
             pre_data: {
@@ -815,10 +821,8 @@ export default class UserService extends AuthService {
         return { success: true }
     }
 
-    static async resetTotp(userKey: string, options: { req: AuthenticationRequest }) {
-        const currentTimestamp = generateUnixTimestamp()
+    static async resetTotp(userKey: string, operator: IOperator, options?: IOptions) {
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
-
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'resetTotp', {}))
         }
@@ -828,11 +832,10 @@ export default class UserService extends AuthService {
 
         // create log
         await new AdminLogModel({
-            operator: {
-                key: options.req.user.key,
-                email: options.req.user.email
-            },
+            key: undefined,
             user_key: user.key,
+            operator,
+            options,
             action: AdminLogsActions.ResetTOPTUser,
             section: AdminLogsSections.User,
             pre_data: {
@@ -853,7 +856,7 @@ export default class UserService extends AuthService {
         return user
     }
 
-    static async updateUserRole(userKey: string, params: UpdateUserRoleDto, options: { req: AuthenticationRequest }) {
+    static async updateUserRole(userKey: string, params: UpdateUserRoleDto, operator: IOperator, options?: IOptions) {
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
 
         if (!user) {
@@ -862,11 +865,10 @@ export default class UserService extends AuthService {
 
         // create log
         await new AdminLogModel({
-            operator: {
-                key: options.req.user.key,
-                email: options.req.user.email
-            },
+            key: undefined,
             user_key: user.key,
+            operator,
+            options,
             action: AdminLogsActions.UpdateRoleUser,
             section: AdminLogsSections.User,
             pre_data: {
@@ -884,8 +886,7 @@ export default class UserService extends AuthService {
         return user
     }
 
-    static async updatePhone(userKey: string, params: UpdatePhoneDto, options: { req: AuthenticationRequest }) {
-        const currentTimestamp = generateUnixTimestamp()
+    static async updatePhone(userKey: string, params: UpdatePhoneDto, operator: IOperator, options?: IOptions) {
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
@@ -901,11 +902,11 @@ export default class UserService extends AuthService {
 
         // create log
         new UserHistoryModel({
+            key: undefined,
             user_key: user.key,
             action: UserHistoryActions.UpdatePhone,
-            agent: options?.req.agent,
-            country: user.country,
-            ip_address: options?.req.ip_address,
+            operator,
+            options,
             pre_data: {
                 phone: user.phone
             },
@@ -923,8 +924,7 @@ export default class UserService extends AuthService {
         return user
     }
 
-    static async updateEmail(userKey: string, params: UpdateEmailDto, options: { req: AuthenticationRequest }) {
-        const currentTimestamp = generateUnixTimestamp()
+    static async updateEmail(userKey: string, params: UpdateEmailDto, operator: IOperator, options?: IOptions) {
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateEmail', {}))
@@ -938,11 +938,11 @@ export default class UserService extends AuthService {
 
         // create log
         await new UserHistoryModel({
+            key: undefined,
             user_key: user.key,
             action: UserHistoryActions.UpdateEmail,
-            agent: options?.req.agent,
-            country: user.country,
-            ip_address: options?.req.ip_address,
+            operator,
+            options,
             pre_data: {
                 email: user.email
             },
@@ -1055,7 +1055,7 @@ export default class UserService extends AuthService {
     }
 
     static async getUserAnalytics(userKey: string) {
-        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
+        const user = await UserModel.getBriefByKey(userKey, false)
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'verifyEmailAddress', { userKey }))
         }
@@ -1067,13 +1067,11 @@ export default class UserService extends AuthService {
         return new UserAnalyticRO(user, followers, followings, nftLiked, nftCreated)
     }
 
-    static async updateUserFeatured(key: string, updateFeaturedDto: UpdateUserFeaturedDto, operator: IOperator, options: IOptions) {
-        const user = await UserModel.findOne({ key })
-        if (!user) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUserFeatured', { key }))
-        }
-        user.set('featured', updateFeaturedDto.featured ?? user.featured, Boolean)
-        return await user.save()
+    static async bulkUpdateUserFeatured(params: BulkUpdateUserFeaturedDto, operator: IOperator, options?: IOptions) {
+        const keys = params.keys.split(',')
+        const featured = String(params.featured).toLowerCase() === 'true'
+        await UserModel.updateMany({ key: { $in: keys } }, { $set: { featured: featured } })
+        return { success: true }
     }
 
     static async getBriefByKeys(userKeys: String[], includeEmail = false) {

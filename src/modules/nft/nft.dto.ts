@@ -128,8 +128,10 @@ export class NftRO<T> {
     creator: any
     owner: any
     price_histories: any
-    constructor(nft: any, owner: any, creator: any, collection: any, histories: any) {
+    liked: boolean
+    constructor(nft: any, owner: any, creator: any, collection: any, histories: any, liked: boolean) {
         this.nft = nft
+        this.nft.liked = liked
         this.collection = collection
         if (creator) {
             this.creator = { key: creator.key, chat_name: creator.chat_name, avatar: creator.avatar }

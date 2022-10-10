@@ -21,8 +21,8 @@ function errorMiddleware(error: ApplicationException, req: CustomRequest, res: R
 
     // create log
     new ExceptionLogModel({
-        agent: req.agent,
-        ip_address: req?.ip_address,
+        agent: req?.options?.agent,
+        ip_address: req?.options?.ip,
         exception: {
             ...errorDetail,
             stack: String(errorDetail.stack)?.slice(0, 200)

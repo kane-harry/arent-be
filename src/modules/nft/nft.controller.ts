@@ -64,8 +64,9 @@ export default class NftController {
     }
 
     static async getNftDetail(req: CustomRequest, res: Response) {
+        const userKey = req.user_key
         const { key } = req.params
-        const data = await NftService.getNftDetail(key)
+        const data = await NftService.getNftDetail(key, userKey)
         return res.json(data)
     }
 

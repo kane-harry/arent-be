@@ -22,6 +22,7 @@ import { config } from '@config'
 import { VerifyUserAuthCodeDto } from '@modules/user_auth_code/user_auth_code.dto'
 import UserAuthCodeService from '@modules/user_auth_code/user_auth_code.service'
 import AccountService from '@modules/account/account.service'
+import IOptions from '@interfaces/options.interface'
 
 export default class AuthService {
     protected static async formatCreateUserDto(userData: CreateUserDto) {
@@ -139,7 +140,7 @@ export default class AuthService {
         return { success: true }
     }
 
-    static async logIn(logInData: LogInDto, options?: any) {
+    static async logIn(logInData: LogInDto, forceLogin: boolean, options?: IOptions) {
         const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ email: logInData.email, removed: false }).exec()
         if (!user || !user.key) {
@@ -218,7 +219,7 @@ export default class AuthService {
             user.set('player_id', logInData.player_id, String)
             await user.save()
         }
-        if (!options.force_login) {
+        if (!forceLogin) {
             if (user.mfa_settings && user.mfa_settings.login_enabled) {
                 const data = await this.validate2FA(user.key, CodeType.Login, logInData.token)
                 if (data.status !== 'verified') {
@@ -231,7 +232,6 @@ export default class AuthService {
     }
 
     static async refreshToken(userKey?: string) {
-        const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
@@ -387,7 +387,7 @@ export default class AuthService {
         return await client.getSigningKey(kid)
     }
 
-    static async generateToken(user: any, options?: any) {
+    static async generateToken(user: any, options?: IOptions) {
         if (user.status === UserStatus.Locked || user.status === UserStatus.Suspend) {
             throw new BizException(AuthErrors.user_locked_error, new ErrorContext('auth.service', 'generateToken', { key: user.key }))
         }
@@ -401,10 +401,11 @@ export default class AuthService {
         await user.save()
 
         new UserSecurityModel({
+            key: undefined,
             user_key: user.key,
             action: SecurityActions.Login,
-            agent: options?.req.agent,
-            ip_address: options?.req.ip_address
+            agent: options?.agent,
+            ip_address: options?.ip
         }).save()
 
         return { user: user, token: accessToken, refreshToken }

@@ -43,6 +43,7 @@ import IOptions from '@interfaces/options.interface'
 import NftTradingService from './nft.trading.service'
 import AccountSnapshotService from '@modules/account/account.snapshot.service'
 import { IOperator } from '@interfaces/operator.interface'
+import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IOperator) {
@@ -247,7 +248,7 @@ export default class NftService {
         return updateNft
     }
 
-    static async getNftDetail(key: string) {
+    static async getNftDetail(key: string, userKey?: string) {
         const nft = await NftModel.findOne({ key })
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.controller', 'getNFTDetail', { key }))
@@ -256,7 +257,8 @@ export default class NftService {
         const creator = await UserService.getBriefByKey(nft.creator_key)
         const collection = await CollectionModel.findOne({ key: nft.collection_key })
         const histories = await NftOwnershipLogModel.find({ nft_key: nft.key }).sort({ created: -1 })
-        return new NftRO<INft>(nft, owner, creator, collection, histories)
+        const liked = (await NftFavoriteModel.count({ nft_key: nft.key, user_key: userKey })) > 0
+        return new NftRO<INft>(nft, owner, creator, collection, histories, liked)
     }
 
     static async onMarket(key: string, params: NftOnMarketDto, operator: IOperator, options: IOptions) {

@@ -74,6 +74,7 @@ export enum AdminLogsActions {
     UnlockUser = 'UnlockUser',
     RemoveUser = 'RemoveUser',
     ResetTOPTUser = 'ResetTOPTUser',
+    UpdateUserStatus = 'UpdateUserStatus',
     UpdateRoleUser = 'UpdateRoleUser',
     MintMasterAccount = 'MintMasterAccount',
     ResetCredentialsUser = 'ResetCredentialsUser'
