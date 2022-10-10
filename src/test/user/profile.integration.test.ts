@@ -143,7 +143,6 @@ describe('Profile', () => {
         expect(updateRes.status).equal(200)
         validResponse(updateRes.body)
 
-        expect(updateRes.body?.email).equal(shareData.user.email)
         expect(updateRes.body?.first_name).equal(shareData.user.first_name)
         expect(updateRes.body?.last_name).equal(shareData.user.last_name)
         expect(updateRes.body?.chat_name).equal(shareData.user.chat_name)

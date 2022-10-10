@@ -12,6 +12,7 @@ import { AccountModel } from '@modules/account/account.model'
 import { parsePrimeAmount } from '@utils/number'
 import AccountService from '@modules/account/account.service'
 import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
+import { CategoryModel } from '@modules/category/category.model'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -151,11 +152,22 @@ describe('NFT', () => {
         expect(res.status).equal(200)
     }).timeout(30000)
 
+    it('Create Category', async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/categories`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ name: 'aaa', description: 'aaa' })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        createCollectionData.category_key = res.body.key
+    }).timeout(10000)
+
     it(`Create collection`, async () => {
         const res = await request(server.app)
             .post(`/api/v1/collections`)
             .set('Authorization', `Bearer ${shareData.token}`)
             .field('name', createCollectionData.name)
+            .field('category_key', createCollectionData.category_key)
             .field('description', createCollectionData.description)
             .field('type', createCollectionData.type)
             .attach('logo', './src/test/init/test.jpeg')
@@ -183,6 +195,15 @@ describe('NFT', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         shareData.collections = res.body.items
+    }).timeout(10000)
+
+    it(`List Collections By Category `, async () => {
+        const res = await request(server.app).get(`/api/v1/collections?category=${createCollectionData.category_key}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).gt(0)
+        const filterCollections = res.body.items.filter(item => item.category_key !== createCollectionData.category_key)
+        expect(filterCollections.length).equal(0)
     }).timeout(10000)
 
     it(`Get Featured Collection`, async () => {
