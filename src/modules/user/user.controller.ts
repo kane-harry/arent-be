@@ -29,9 +29,10 @@ import {
     UpdateUserRoleDto,
     UpdateUserStatusDto
 } from './user.dto'
-import { IOperator, IUserQueryFilter } from './user.interface'
+import { IUserQueryFilter } from './user.interface'
 import UserService from './user.service'
 import IOptions from '@interfaces/options.interface'
+import { IOperator } from '@interfaces/operator.interface'
 
 export default class UserController {
     static async getUserAuthCode(req: CustomRequest, res: Response) {
@@ -265,7 +266,7 @@ export default class UserController {
     }
 
     static async verifyEmailAddress(req: AuthenticationRequest, res: Response) {
-        const userKey = req.user.key
+        const userKey = req.user.key ?? ''
         const params: EmailVerifyDto = req.body
         const data = await UserService.verifyEmailAddress(userKey, params)
 
@@ -273,7 +274,7 @@ export default class UserController {
     }
 
     static async getUserAnalytics(req: AuthenticationRequest, res: Response) {
-        const userKey = req.user.key
+        const userKey = req.user.key ?? ''
         const data = await UserService.getUserAnalytics(userKey)
 
         return res.send(data)
@@ -289,7 +290,7 @@ export default class UserController {
     static async bulkUpdateUserFeatured(req: AuthenticationRequest, res: Response) {
         const operator: IOperator = {
             email: req.user?.email,
-            key: req.user?.key,
+            key: req.user?.key ?? '',
             role: req.user.role
         }
         const options: IOptions = {

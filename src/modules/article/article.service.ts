@@ -11,14 +11,15 @@ import { isAdmin } from '@config/role'
 import { IArticle, IArticleFilter } from './article.interface'
 import { QueryRO } from '@interfaces/query.model'
 import UserModel from '@modules/user/user.model'
+import { IOperator } from '@interfaces/operator.interface'
 
 export default class ArticleService {
-    static async uploadContentFiles(files: Express.Multer.File[] | { [fieldname: string]: Express.Multer.File[] } | undefined, user: IUser) {
+    static async uploadContentFiles(files: Express.Multer.File[] | { [fieldname: string]: Express.Multer.File[] } | undefined, user: IOperator) {
         const data = await uploadFiles(files, 'articles')
         return data
     }
 
-    static async createArticle(params: ArticleDto, files: any, operator: IUser) {
+    static async createArticle(params: ArticleDto, files: any, operator: IOperator) {
         if (!files || !files.find((item: any) => item.fieldname === 'cover_image')) {
             throw new BizException(ArticleErrors.cover_image_required_error, new ErrorContext('article.service', 'createArticle', {}))
         }
@@ -49,7 +50,7 @@ export default class ArticleService {
         return article
     }
 
-    static async updateArticle(key: string, params: ArticleDto, files: any, operator: IUser) {
+    static async updateArticle(key: string, params: ArticleDto, files: any, operator: IOperator) {
         const article = await ArticleModel.findOne({ key })
         if (!article) {
             throw new BizException(ArticleErrors.item_not_found_error, new ErrorContext('article.service', 'updateArticle', { key }))
@@ -87,7 +88,7 @@ export default class ArticleService {
         return updatedArticle
     }
 
-    static async deleteArticle(key: string, operator: IUser) {
+    static async deleteArticle(key: string, operator: IOperator) {
         const article = await ArticleModel.findOne({ key })
         if (!article) {
             throw new BizException(ArticleErrors.item_not_found_error, new ErrorContext('article.service', 'deleteArticle', { key }))

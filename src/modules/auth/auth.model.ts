@@ -4,6 +4,7 @@ import { IAuthToken } from './auth.interface'
 import * as jwt from 'jsonwebtoken'
 import { randomBytes } from 'crypto'
 import { AuthTokenType } from '@config/constants'
+import { generateUnixTimestamp } from '@utils/utility'
 
 const authSchema = new Schema<IAuthToken>(
     {
@@ -52,24 +53,24 @@ const authSchema = new Schema<IAuthToken>(
 )
 
 export class AuthModel extends model<IAuthToken>(config.database.tables.auth_tokens, authSchema) {
-    public static createAccessToken(userKey: string, tokenVersion: number) {
+    public static createAccessToken(userKey?: string) {
         const expiresIn = config.jwtAccess.tokenExpiresIn
         const secret = String(config.jwtAccess.secret)
         // TODO: add client id ? not allow multiple device ?
         const payload = {
             key: userKey,
-            token_version: tokenVersion
+            token_version: generateUnixTimestamp()
         }
         return jwt.sign(payload, secret, { expiresIn })
     }
 
-    public static createRefreshToken(userKey: string, tokenVersion: number) {
+    public static createRefreshToken(userKey?: string) {
         const expiresIn = config.jwtRefresh.tokenExpiresIn
         const secret = String(config.jwtRefresh.secret)
         // TODO: add client id ? not allow multiple device ?
         const payload = {
             key: userKey,
-            token_version: tokenVersion
+            token_version: generateUnixTimestamp()
         }
         return jwt.sign(payload, secret, { expiresIn })
     }

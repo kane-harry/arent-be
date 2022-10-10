@@ -42,9 +42,9 @@ export default class AuthService {
         return userData
     }
 
-    public static async validate2FA(userKey: string, codeType: CodeType, code: string) {
+    public static async validate2FA(userKey: string, codeType: CodeType, code?: string) {
         const user = await UserModel.findOne({ key: userKey, removed: false }).select('key email phone mfa_settings').exec()
-        if (!user) {
+        if (!user || !user.key) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('security.service', 'validate2FA', { userKey }))
         }
         let mfaEnabled = false
@@ -58,13 +58,13 @@ export default class AuthService {
         if (!mfaEnabled) {
             return { status: 'verified' }
         }
-        const mfaType = user.mfa_settings.type
-        if (!code || !code.length || code === 'undefined') {
+        const mfaType = user.mfa_settings?.type
+        if (!code) {
             const deliveryMethod = (owner: any, code: string) => {
-                if (mfaType === MFAType.EMAIL) {
+                if (mfaType === MFAType.EMAIL && user.email) {
                     const context = { address: user.email, code }
                     EmailService.sendUserVerificationCodeEmail(context)
-                } else if (mfaType === MFAType.SMS) {
+                } else if (mfaType === MFAType.SMS && user.phone) {
                     sendSms('Verification', `Verification code - ${code}`, user.phone)
                 } else if (mfaType === MFAType.TOTP) {
                     // do nothing
@@ -142,7 +142,7 @@ export default class AuthService {
     static async logIn(logInData: LogInDto, options?: any) {
         const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ email: logInData.email, removed: false }).exec()
-        if (!user) {
+        if (!user || !user.key) {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
         }
 
@@ -150,24 +150,24 @@ export default class AuthService {
             throw new BizException(AuthErrors.user_locked_error, new ErrorContext('user.service', 'logIn', { email: logInData.email }))
         }
 
-        if (user.change_password_next_login && user.change_password_next_login === true) {
-            let changePasswordNextLoginAttempts = user.change_password_next_login_attempts || 0
+        if (user.password_settings && user.password_settings.change_password_next_login === true) {
+            let changePasswordNextLoginAttempts = user.password_settings.change_password_next_login_attempts || 0
             changePasswordNextLoginAttempts++
 
-            user.set('change_password_next_login_attempts', changePasswordNextLoginAttempts, Number)
+            user.set('password_settings.change_password_next_login_attempts', changePasswordNextLoginAttempts, Number)
             user.set('token_version', currentTimestamp, Number)
-            user.save()
+
             if (changePasswordNextLoginAttempts >= 5) {
                 user.set('status', UserStatus.Locked, String)
                 user.set('login_count', 0, Number)
-                user.save()
+                await user.save()
                 throw new BizException(AuthErrors.user_locked_error, new ErrorContext('user.service', 'login', { email: logInData.email }))
             }
 
             if (
-                !user.change_password_next_login_code ||
-                toLower(user.change_password_next_login_code) !== toLower(logInData.password) ||
-                user.change_password_next_login_timestamp < currentTimestamp - 60 * 15
+                !user.password_settings.change_password_next_login_code ||
+                toLower(user.password_settings.change_password_next_login_code) !== toLower(logInData.password) ||
+                user.password_settings.change_password_next_login_timestamp < currentTimestamp - 60 * 15
             ) {
                 throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
             }
@@ -184,7 +184,7 @@ export default class AuthService {
             const retryInMinutes = Math.ceil((user.locked_timestamp - (currentTimestamp - 3600)) / 60)
             user.set('token_version', currentTimestamp, Number)
             user.set('locked_timestamp', currentTimestamp, Number)
-            user.save()
+            await user.save()
             throw new BizException(
                 {
                     message: `Please try again in ${retryInMinutes} minutes, or click "forgot password" to reset your login password and login again`,
@@ -211,10 +211,13 @@ export default class AuthService {
             user.set('login_count', loginCount, Number)
             user.set('locked_timestamp', currentTimestamp, Number)
             user.set('token_version', currentTimestamp, Number)
-            user.save()
+            await user.save()
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'logIn', { email: logInData.email }))
         }
-
+        if (logInData.player_id) {
+            user.set('player_id', logInData.player_id, String)
+            await user.save()
+        }
         if (!options.force_login) {
             if (user.mfa_settings && user.mfa_settings.login_enabled) {
                 const data = await this.validate2FA(user.key, CodeType.Login, logInData.token)
@@ -227,26 +230,27 @@ export default class AuthService {
         return AuthService.generateToken(user, options)
     }
 
-    static async refreshToken(userKey: string) {
+    static async refreshToken(userKey?: string) {
         const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
         if (!user) {
             throw new BizException(AuthErrors.credentials_invalid_error, new ErrorContext('auth.service', 'refreshToken', {}))
         }
-        const accessToken = AuthModel.createAccessToken(userKey, currentTimestamp)
-        const refreshToken = AuthModel.createRefreshToken(userKey, currentTimestamp)
-        await AuthService.updateTokenVersion(userKey, currentTimestamp)
+        const accessToken = AuthModel.createAccessToken(userKey)
+        const refreshToken = AuthModel.createRefreshToken(userKey)
+        await AuthService.updateTokenVersion(userKey)
         return {
             token: accessToken,
             refreshToken
         }
     }
 
-    static async updateTokenVersion(key: string, currentTimestamp: number) {
+    static async updateTokenVersion(key?: string) {
         const user = await UserModel.findOne({ key }).exec()
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'updateTokenVersion', {}))
         }
+        const currentTimestamp = generateUnixTimestamp()
         user.set('token_version', currentTimestamp, Number)
         await user.save()
         return { success: true }
@@ -261,17 +265,22 @@ export default class AuthService {
         if (!user) {
             const setting: ISetting = await SettingService.getGlobalSetting()
             const mfaSettings = { type: MFAType.SMS, login_enabled: setting.login_require_mfa, withdraw_enabled: setting.withdraw_require_mfa }
-            user = new UserModel()
-            user.phone = params.owner
-            user.phone_verified = true
-            user.chat_name = await UserModel.generateRandomChatName()
-            user.source = 'phone'
-            user.country = phoneInfo.country
-            user.role = 0
-            user.mfa_settings = mfaSettings
+            user = new UserModel({
+                key: undefined,
+                chat_name: await UserModel.generateRandomChatName(),
+                phone: params.owner,
+                phone_verified: true,
+                player_id: params.player_id,
+                source: 'phone',
+                country: phoneInfo.country,
+                role: 0,
+                mfa_settings: mfaSettings
+            })
 
+            if (user.key) {
+                await AccountService.initUserAccounts(user.key)
+            }
             await user.save()
-            await AccountService.initUserAccounts(user.key)
         }
         return AuthService.generateToken(user, options)
     }
@@ -286,15 +295,21 @@ export default class AuthService {
             const mfaSettings = { type: MFAType.EMAIL, login_enabled: setting.login_require_mfa, withdraw_enabled: setting.withdraw_require_mfa }
 
             const defaultChatname = first(params.owner.split('@'))
-            user = new UserModel()
-            user.email = params.owner
-            user.chat_name = await UserModel.generateRandomChatName(defaultChatname)
-            user.source = 'email'
-            user.email_verified = true
-            user.role = 0
-            user.mfa_settings = mfaSettings
+            user = new UserModel({
+                key: undefined,
+                email: params.owner,
+                email_verified: true,
+                chat_name: await UserModel.generateRandomChatName(defaultChatname),
+                player_id: params.player_id,
+                source: 'email',
+                role: 0,
+                mfa_settings: mfaSettings
+            })
+
+            if (user.key) {
+                await AccountService.initUserAccounts(user.key)
+            }
             await user.save()
-            await AccountService.initUserAccounts(user.key)
         }
         return AuthService.generateToken(user, options)
     }
@@ -321,8 +336,10 @@ export default class AuthService {
             user.email = email
             user.avatar = picture
             user.source = 'google'
+            if (user.key) {
+                await AccountService.initUserAccounts(user.key)
+            }
             await user.save()
-            await AccountService.initUserAccounts(user.key)
         }
         return AuthService.generateToken(user, options)
     }
@@ -343,8 +360,10 @@ export default class AuthService {
             user = new UserModel()
             user.email = email
             user.source = 'apple'
+            if (user.key) {
+                await AccountService.initUserAccounts(user.key)
+            }
             await user.save()
-            await AccountService.initUserAccounts(user.key)
         }
 
         return AuthService.generateToken(user, options)
@@ -366,8 +385,8 @@ export default class AuthService {
         }
         const currentTimestamp = generateUnixTimestamp()
         // create token
-        const accessToken = AuthModel.createAccessToken(user.key, currentTimestamp)
-        const refreshToken = AuthModel.createRefreshToken(user.key, currentTimestamp)
+        const accessToken = AuthModel.createAccessToken(user.key)
+        const refreshToken = AuthModel.createRefreshToken(user.key)
         user.set('login_count', 0, Number)
         user.set('locked_timestamp', currentTimestamp, Number)
         user.set('token_version', currentTimestamp, Number)

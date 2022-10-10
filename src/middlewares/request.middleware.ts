@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { config } from '@config'
-import { IUser } from '@modules/user/user.interface'
+import { IOperator } from '@interfaces/operator.interface'
 
 export interface CustomRequest extends Request {
     agent?: any
@@ -10,8 +10,13 @@ export interface CustomRequest extends Request {
     query: any
 }
 
+export interface IAuthorizedUser extends IOperator {
+    avatar?: object
+    status?: string
+}
+
 export interface AuthenticationRequest extends CustomRequest {
-    user: IUser
+    user: IAuthorizedUser
 }
 
 const requestMiddleware = (req: CustomRequest, _: Response, next: NextFunction) => {

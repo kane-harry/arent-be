@@ -25,7 +25,7 @@ import {
 import UserModel from './user.model'
 import * as bcrypt from 'bcrypt'
 import { generateRandomCode, generateUnixTimestamp, roundUp, unixTimestampToDate } from '@utils/utility'
-import { IOperator, IUser, IUserBrief, IUserQueryFilter } from '@modules/user/user.interface'
+import { IUser, IUserQueryFilter } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
 import { stripPhoneNumber } from '@utils/phoneNumber'
@@ -58,6 +58,7 @@ import UserFollowerModel from '@modules/user_follower/user.follower.model'
 import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
 import { UserAnalyticRO } from '@modules/user/user.ro'
 import IOptions from '@interfaces/options.interface'
+import { IOperator } from '@interfaces/operator.interface'
 
 export default class UserService extends AuthService {
     public static async authorize(params: AuthorizeDto, options?: any) {
@@ -133,7 +134,7 @@ export default class UserService extends AuthService {
         }).save()
 
         options.force_login = true
-        return this.logIn({ email: userData.email, password: userData.password, token: null }, options)
+        return this.logIn({ email: userData.email, password: userData.password, token: undefined }, options)
     }
 
     public static uploadAvatar = async (files: any, options: { req: AuthenticationRequest }) => {
@@ -278,6 +279,9 @@ export default class UserService extends AuthService {
             user.set('phone', phone, String)
             user.set('phone_verified', true, Boolean)
         }
+        user.set('bio', params.bio, String)
+        user.set('twitter', params.twitter, String)
+        user.set('instagram', params.instagram, String)
 
         // create log
         await new AdminLogModel({
@@ -352,7 +356,6 @@ export default class UserService extends AuthService {
     }
 
     static async resetPassword(params: ResetPasswordDto, options: { req: AuthenticationRequest }) {
-        const currentTimestamp = generateUnixTimestamp()
         let user
         if (params.type === 'email') {
             const email = toLower(trim(params.owner))
@@ -373,7 +376,7 @@ export default class UserService extends AuthService {
             code: params.code,
             code_type: CodeType.ForgotPassword
         })
-        if (success) {
+        if (success && user.email) {
             EmailService.sendUserPasswordResetCompletedEmail({ address: user.email })
             const newPassHashed = await bcrypt.hash(params.password, 10)
 
@@ -396,7 +399,7 @@ export default class UserService extends AuthService {
             user.save()
 
             // logout
-            await AuthService.updateTokenVersion(user.key, currentTimestamp)
+            await AuthService.updateTokenVersion(user.key)
         }
         return { success }
     }
@@ -411,7 +414,7 @@ export default class UserService extends AuthService {
             user = await UserModel.findOne({ phone, removed: false }).select('key email phone').exec()
         }
 
-        if (!user) {
+        if (!user || !user.key) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
         }
 
@@ -447,7 +450,7 @@ export default class UserService extends AuthService {
             const phone = await stripPhoneNumber(params.owner)
             user = await UserModel.findOne({ phone, removed: false }).select('key email phone password').exec()
         }
-        if (!user) {
+        if (!user || !user.key) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'resetPin', {}))
         }
         const isPasswordMatching = await bcrypt.compare(params.password, user.get('password', null, { getters: false }))
@@ -460,7 +463,7 @@ export default class UserService extends AuthService {
             code: params.code,
             code_type: CodeType.ForgotPin
         })
-        if (success) {
+        if (success && user.email) {
             const newPin = await bcrypt.hash(params.pin, 10)
             EmailService.sendUserPinResetCompletedEmail({ address: user.email })
             // log
@@ -482,7 +485,7 @@ export default class UserService extends AuthService {
             user.save()
 
             // logout
-            await AuthService.updateTokenVersion(user.key, currentTimestamp)
+            await AuthService.updateTokenVersion(user.key)
         }
         return { success }
     }
@@ -519,23 +522,21 @@ export default class UserService extends AuthService {
         }
 
         // create log
-        await new UserHistoryModel({
-            user_key: options?.req?.user?.key,
-            action: UserHistoryActions.SetupTOTP,
-            agent: options?.req.agent,
-            country: options.req.user.country,
-            ip_address: options?.req.ip_address,
-            pre_data: {
-                mfa_settings: options.req.user.mfa_settings
-            },
-            post_data: {
-                mfa_settings: {
-                    type: MFAType.TOTP,
-                    login_enabled: options.req.user.mfa_settings.login_enabled,
-                    withdraw_enabled: options.req.user.mfa_settings.withdraw_enabled
-                }
-            }
-        }).save()
+        // await new UserHistoryModel({
+        //     user_key: options?.req?.user?.key,
+        //     action: UserHistoryActions.SetupTOTP,
+        //     agent: options?.req.agent,
+        //     country: options.req.user.country,
+        //     ip_address: options?.req.ip_address,
+        //     pre_data: {
+        //         mfa_settings: options.req.user.mfa_settings
+        //     },
+        //     post_data: {
+        //         mfa_settings: {
+        //             type: MFAType.TOTP
+        //         }
+        //     }
+        // }).save()
 
         user?.set('totp_temp_secret', null)
         user?.set('totp_secret', secret)
@@ -660,9 +661,12 @@ export default class UserService extends AuthService {
 
         const changePasswordNextLoginCode = generateRandomCode(8, 8, true)
         const changePasswordNextLoginTimestamp = generateUnixTimestamp()
-        user.set('change_password_next_login', true)
-        user.set('change_password_next_login_code', changePasswordNextLoginCode)
-        user.set('change_password_next_login_timestamp', changePasswordNextLoginTimestamp)
+        const password_settings = {
+            change_password_next_login: true,
+            change_password_next_login_code: changePasswordNextLoginCode,
+            change_password_next_login_timestamp: changePasswordNextLoginTimestamp
+        }
+        user.set('password_settings', password_settings)
         user.set('token_version', changePasswordNextLoginTimestamp)
         user.set('mfa_settings.login_enabled', false)
         user.set('login_count', 0)
@@ -686,10 +690,10 @@ export default class UserService extends AuthService {
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'setupCredentials', { email }))
         }
-        if (!user.change_password_next_login || user.change_password_next_login !== true) {
+        if (!user.password_settings || user.password_settings.change_password_next_login !== true) {
             throw new BizException(CommonErrors.bad_request, new ErrorContext('user.service', 'setupCredentials', { email }))
         }
-        let changePasswordNextLoginAttempts = user.change_password_next_login_attempts || 0
+        let changePasswordNextLoginAttempts = user.password_settings.change_password_next_login_attempts || 0
         if (changePasswordNextLoginAttempts >= 5) {
             user.set('status', UserStatus.Locked, String)
             user.save()
@@ -701,9 +705,9 @@ export default class UserService extends AuthService {
         await user.save()
 
         if (
-            !user.change_password_next_login_code ||
-            toLower(user.change_password_next_login_code.toLowerCase()) !== toLower(params.code) ||
-            user.change_password_next_login_timestamp < currentTimestamp - 60 * 15
+            !user.password_settings.change_password_next_login_code ||
+            toLower(user.password_settings.change_password_next_login_code.toLowerCase()) !== toLower(params.code) ||
+            user.password_settings.change_password_next_login_timestamp < currentTimestamp - 60 * 15
         ) {
             throw new BizException(
                 AuthErrors.user_reset_credentials_incorrect_code_error,
@@ -727,9 +731,13 @@ export default class UserService extends AuthService {
 
         const newPinHashed = await bcrypt.hash(params.pin, 10)
         user.set('pin', newPinHashed, String)
-        user.set('change_password_next_login', false)
-        user.set('change_password_next_login_code', '')
-        user.set('change_password_next_login_timestamp', 0)
+
+        const password_settings = {
+            change_password_next_login: false,
+            change_password_next_login_code: '',
+            change_password_next_login_timestamp: 0
+        }
+        user.set('password_settings', password_settings)
         user.set('login_count', 0)
         user.set('locked_timestamp', 0)
         await user.save()
@@ -742,7 +750,6 @@ export default class UserService extends AuthService {
     }
 
     static async updateUserStatus(userKey: string, params: UpdateUserStatusDto, options: { req: AuthenticationRequest }) {
-        const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
 
         if (!user) {
@@ -768,13 +775,12 @@ export default class UserService extends AuthService {
 
         user?.set('status', params.status, String)
         await user?.save()
-        await AuthService.updateTokenVersion(userKey, currentTimestamp)
+        await AuthService.updateTokenVersion(userKey)
 
         return user
     }
 
     static async removeUser(userKey: string, options: { req: AuthenticationRequest }) {
-        const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
 
         if (!user) {
@@ -800,7 +806,7 @@ export default class UserService extends AuthService {
 
         user?.set('removed', true, Boolean)
         await user?.save()
-        await AuthService.updateTokenVersion(userKey, currentTimestamp)
+        await AuthService.updateTokenVersion(userKey)
 
         return { success: true }
     }
@@ -812,7 +818,7 @@ export default class UserService extends AuthService {
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'resetTotp', {}))
         }
-        if (user.mfa_settings.type === MFAType.TOTP) {
+        if (user.mfa_settings && user.mfa_settings.type === MFAType.TOTP) {
             user?.set('mfa_settings.type', MFAType.EMAIL, String)
         }
 
@@ -838,13 +844,12 @@ export default class UserService extends AuthService {
         user?.set('totp_secret', null, null)
         user?.set('totp_setup', false, Boolean)
         await user?.save()
-        await AuthService.updateTokenVersion(userKey, currentTimestamp)
+        await AuthService.updateTokenVersion(userKey)
 
         return user
     }
 
     static async updateUserRole(userKey: string, params: UpdateUserRoleDto, options: { req: AuthenticationRequest }) {
-        const currentTimestamp = generateUnixTimestamp()
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
 
         if (!user) {
@@ -870,7 +875,7 @@ export default class UserService extends AuthService {
 
         user?.set('role', Number(params.role), Number)
         await user?.save()
-        await AuthService.updateTokenVersion(userKey, currentTimestamp)
+        await AuthService.updateTokenVersion(userKey)
 
         return user
     }
@@ -910,7 +915,7 @@ export default class UserService extends AuthService {
         user?.set('phone', phone, String)
         user?.save()
 
-        await AuthService.updateTokenVersion(userKey, currentTimestamp)
+        await AuthService.updateTokenVersion(userKey)
         return user
     }
 
@@ -949,7 +954,7 @@ export default class UserService extends AuthService {
 
         // logout & send email notifications
         EmailService.sendUserChangeEmailCompletedEmail({ address: email })
-        await AuthService.updateTokenVersion(userKey, currentTimestamp)
+        await AuthService.updateTokenVersion(userKey)
         return user
     }
 
@@ -1002,9 +1007,9 @@ export default class UserService extends AuthService {
         return { tokens, nfts }
     }
 
-    static async getEmailVerificationCode(userKey: string) {
+    static async getEmailVerificationCode(userKey?: string) {
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
-        if (!user) {
+        if (!user || !user.key) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'getEmailVerificationCode', {}))
         }
         if (!user.email) {
@@ -1015,7 +1020,7 @@ export default class UserService extends AuthService {
         }
 
         const deliveryMethod = (owner: any, code: string) => {
-            EmailService.sendEmailVerificationCode({ address: user.email, code: code })
+            EmailService.sendEmailVerificationCode({ address: user.email ?? '', code: code })
         }
         await VerificationCodeService.generateCode(
             {
@@ -1030,7 +1035,7 @@ export default class UserService extends AuthService {
 
     static async verifyEmailAddress(userKey: string, params: EmailVerifyDto) {
         const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
-        if (!user) {
+        if (!user || !user.key) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'verifyEmailAddress', { userKey }))
         }
         const { success } = await VerificationCodeService.verifyCode({

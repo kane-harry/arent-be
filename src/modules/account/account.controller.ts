@@ -3,8 +3,8 @@ import { AuthenticationRequest } from '@middlewares/request.middleware'
 import { MintDto, WithdrawDto } from './account.dto'
 import { IAdminAccountsFilter, IUserAccountsFilter } from './account.interface'
 import AccountService from './account.service'
-import { IOperator } from '@modules/user/user.interface'
 import IOptions from '@interfaces/options.interface'
+import { IOperator } from '@interfaces/operator.interface'
 
 export default class AccountController {
     /** MASTER */
