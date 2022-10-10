@@ -74,7 +74,6 @@
     "google-auth-library": "^8.5.1",
     "helmet": "^5.0.2",
     "hmac-auth-express": "^8.3.2",
-    "human-id": "^4.0.0",
     "json2csv": "^5.0.7",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.1.4",
@@ -103,6 +102,7 @@
     "tsc-alias": "^1.6.6",
     "tsconfig-paths": "^3.14.1",
     "typescript": "^4.6.3",
+    "unique-names-generator": "^4.7.1",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

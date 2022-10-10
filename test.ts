@@ -1,12 +1,10 @@
-import humanId from 'human-id'
+import { Config, names, NumberDictionary, uniqueNamesGenerator } from 'unique-names-generator'
 
-console.log(
-    humanId({
-        adjectiveCount: 0,
-        addAdverb: false,
-        separator: '-',
-        capitalize: false
-    })
-)
+const numberDictionary = NumberDictionary.generate({ min: 100, max: 999 })
+const customConfig: Config = {
+    dictionaries: [names, numberDictionary],
+    length: 2,
+    style: 'lowerCase'
+}
 
-console.log(humanId(false))
+console.log(uniqueNamesGenerator(customConfig))
