@@ -14,23 +14,15 @@ const nftHistorySchema = new Schema<INftHistory>(
                 return randomBytes(16).toString('hex')
             }
         },
-        user_key: {
-            type: String,
-            required: true
-        },
         nft_key: {
             type: String,
             required: true
         },
-        ip_address: {
-            type: String,
-            required: true
+        operator: {
+            type: Object
         },
-        country: {
-            type: String
-        },
-        agent: {
-            type: String
+        options: {
+            type: Object
         },
         action: {
             type: String,
@@ -40,6 +32,15 @@ const nftHistorySchema = new Schema<INftHistory>(
         post_data: Object
     },
     {
+        toJSON: {
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            },
+            virtuals: true,
+            getters: true
+        },
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'

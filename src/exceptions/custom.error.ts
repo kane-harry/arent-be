@@ -31,7 +31,10 @@ export const AuthErrors = {
     user_reset_credentials_incorrect_code_error: { message: 'code is incorrect.', code: 2019, status: 400 },
     user_token_setup_error: { message: 'We could not verify your tokens, please try again', code: 2020, status: 400 },
     user_permission_error: { message: 'You do not have permission', code: 2021, status: 400 },
-    image_required_error: { code: 2022, status: 400, message: 'Please upload picture.' }
+    image_required_error: { code: 2022, status: 400, message: 'Please upload picture.' },
+    user_authorize_method_error: { message: 'Unsupport authorize method.', status: 400, code: 2023 },
+    user_has_no_email_error: { message: 'You have not set your email address. ', status: 400, code: 2023 },
+    user_email_already_verified_error: { message: 'Your email has been verified. ', status: 400, code: 2024 }
 }
 
 export const AccountErrors = {
@@ -75,18 +78,46 @@ export const UpdatePhoneEmailErrors = {
 }
 
 export const NftErrors = {
-    nft_not_exists_error: { code: 7001, status: 400, message: 'Nft not found.' },
+    nft_not_exists_error: { code: 7001, status: 400, message: 'NFT does not exist.' },
     nft_image_error: { code: 7002, status: 400, message: 'Nft Image is required.' },
     nft_image_required_error: { code: 7303, status: 400, message: 'please upload NFT picture.' },
-    product_buy_same_owner_error: { code: 7304, status: 400, message: 'Can not buy own nft.' },
+    product_buy_same_owner_error: { code: 7304, status: 400, message: 'You can not buy your own product.' },
     item_not_on_market: { code: 7305, status: 400, message: 'Item not on market' },
     nft_is_not_approved_error: { code: 7306, status: 400, message: 'Nft is not approved.' },
     purchase_auction_nft_error: { code: 7307, status: 400, message: 'Can not buy auction product directly.' },
-    purchase_insufficient_funds_error: { code: 7308, status: 400, message: 'Insufficient funds to complete transaction.' }
+    purchase_insufficient_funds_error: { code: 7308, status: 400, message: 'Insufficient funds to complete transaction.' },
+    nft_auction_start_time_less_than_end_time_error: { message: 'Auction start time should before end time.', code: 1715, status: 400 },
+    nft_auction_end_time_less_than_current_time_error: { message: 'Auction end time should in the feature.', code: 1716, status: 400 },
+    nft_auction_highest_price_error: { code: 7310, status: 400, message: 'You are already the highest bidder.' },
+    nft_auction_closed_error: { code: 7311, status: 400, message: 'Auction closed.' },
+    offer_not_exists_error: { code: 7312, status: 400, message: 'Offer not exist.' },
+    offer_status_error: { code: 7313, status: 400, message: 'Invalid offer status.' },
+    offer_permissions_error: { code: 7314, status: 400, message: 'Wrong permissions on offer' },
+    offer_duplicate_request_error: { code: 7315, status: 400, message: 'You have made an offer against this product.' },
+    offer_owner_error: { message: 'You can not make offer to your own product.', code: 7316, status: 400 },
+    offer_auction_nft_error: { message: 'Can not make offer to an auction product.', code: 7316, status: 400 },
+    nft_bidding_amount_less_than_price_error: { message: 'please bid a higher amount than previous amount.', code: 73177, status: 400 }
 }
 
 export const CollectionErrors = {
     collection_not_exists_error: { code: 8001, status: 400, message: 'Collection not found.' },
     collection_has_approved_nfts: { code: 8002, status: 400, message: 'Can not delete collection due to there are NFTs in this collection.' },
     image_required_error: { code: 8003, status: 400, message: 'Please upload Collection picture.' }
+}
+
+export const UserAuthCodeErrors = {
+    verification_code_type_not_supported: { code: 9001, status: 400, message: 'Code type is not supported' },
+    verification_code_duplicate_request_in_minute_error: { code: 9002, status: 400, message: 'Please request verification code after 1 minute.' },
+    verification_code_duplicate_request_in_hour_error: { code: 9003, status: 400, message: 'Please request verification code after 1 hour.' },
+    verification_code_invalid_error: { code: 9004, status: 400, message: 'Invalid verification code.' }
+}
+
+export const ArticleErrors = {
+    cover_image_required_error: { code: 10001, status: 400, message: 'Cover image is required.' },
+    item_not_found_error: { code: 10002, status: 400, message: 'Article does not exist.' }
+}
+
+export const CategoryErrors = {
+    category_name_exists_error: { code: 11001, status: 400, message: 'The category name already exists.' },
+    item_not_found_error: { code: 11002, status: 400, message: 'Category does not exist.' }
 }

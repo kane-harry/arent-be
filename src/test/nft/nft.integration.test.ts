@@ -8,9 +8,11 @@ import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authentica
 import { CollectionModel } from '@modules/collection/collection.model'
 import { NftImportLogModel, NftModel } from '@modules/nft/nft.model'
 import { AccountType, FeeMode, NftStatus } from '@config/constants'
-import AccountModel from '@modules/account/account.model'
+import { AccountModel } from '@modules/account/account.model'
 import { parsePrimeAmount } from '@utils/number'
 import AccountService from '@modules/account/account.service'
+import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
+import { CategoryModel } from '@modules/category/category.model'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -150,11 +152,22 @@ describe('NFT', () => {
         expect(res.status).equal(200)
     }).timeout(30000)
 
+    it('Create Category', async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/categories`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ name: 'aaa', description: 'aaa' })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        createCollectionData.category_key = res.body.key
+    }).timeout(10000)
+
     it(`Create collection`, async () => {
         const res = await request(server.app)
             .post(`/api/v1/collections`)
             .set('Authorization', `Bearer ${shareData.token}`)
             .field('name', createCollectionData.name)
+            .field('category_key', createCollectionData.category_key)
             .field('description', createCollectionData.description)
             .field('type', createCollectionData.type)
             .attach('logo', './src/test/init/test.jpeg')
@@ -182,6 +195,40 @@ describe('NFT', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         shareData.collections = res.body.items
+    }).timeout(10000)
+
+    it(`List Collections By Category `, async () => {
+        const res = await request(server.app).get(`/api/v1/collections?category=${createCollectionData.category_key}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).gt(0)
+        const filterCollections = res.body.items.filter(item => item.category_key !== createCollectionData.category_key)
+        expect(filterCollections.length).equal(0)
+    }).timeout(10000)
+
+    it(`Get Featured Collection`, async () => {
+        const res = await request(server.app).get(`/api/v1/collections/featured`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).equal(0)
+    }).timeout(10000)
+
+    it(`Featured Collection`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/collections/${shareData.collections[0].key}/featured`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ featured: true })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const collection = await CollectionModel.findOne({ key: shareData.collections[0].key })
+        expect(collection.featured).equal(true)
+    }).timeout(10000)
+
+    it(`Get Featured Collection`, async () => {
+        const res = await request(server.app).get(`/api/v1/collections/featured`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).equal(1)
     }).timeout(10000)
 
     it(`Get Collection Detail`, async () => {
@@ -248,6 +295,48 @@ describe('NFT', () => {
         expect(nft.owner_key).equal(shareData.user.key)
     }).timeout(30000)
 
+    it(`Create NFT`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .field('name', createNftData.name)
+            .field('description', createNftData.description)
+            .field('price', createNftData.price)
+            .field('currency', createNftData.currency)
+            .field('meta_data', JSON.stringify(createNftData.meta_data))
+            .field('type', createNftData.type)
+            .field('attributes', JSON.stringify(createNftData.attributes))
+            .field('collection_key', shareData.collections[0].key)
+            .field('num_sales', createNftData.num_sales)
+            .field('quantity', createNftData.quantity)
+            .field('royalty', createNftData.royalty)
+            .attach('animation', './src/test/init/test.mp4')
+            .attach('image', './src/test/init/test.jpeg')
+        expect(res.status).equal(200)
+        validResponse(res.body)
+    }).timeout(30000)
+
+    it(`Create gift NFT`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .field('name', createNftData.name)
+            .field('description', createNftData.description)
+            .field('price', createNftData.price)
+            .field('currency', createNftData.currency)
+            .field('meta_data', JSON.stringify(createNftData.meta_data))
+            .field('type', createNftData.type)
+            .field('attributes', JSON.stringify(createNftData.attributes))
+            .field('collection_key', shareData.collections[0].key)
+            .field('num_sales', createNftData.num_sales)
+            .field('quantity', createNftData.quantity)
+            .field('royalty', createNftData.royalty)
+            .attach('animation', './src/test/init/test.mp4')
+            .attach('image', './src/test/init/test.gif')
+        expect(res.status).equal(200)
+        validResponse(res.body)
+    }).timeout(40000)
+
     it(`List User Collections`, async () => {
         const res = await request(server.app).get(`/api/v1/collections/user/${shareData.user.key}`)
         expect(res.status).equal(200)
@@ -271,7 +360,20 @@ describe('NFT', () => {
         const res = await request(server.app).get(`/api/v1/nfts?terms=${terms}`)
         expect(res.status).equal(200)
         validResponse(res.body)
+        expect(res.body.items.length).gt(0)
         const items = res.body.items.filter(item => !(item.name.includes(terms) || item.description.includes(terms)))
+        expect(items.length).equal(0)
+    }).timeout(10000)
+
+    it(`List NFTs by terms case sensitive`, async () => {
+        const terms = 'NAM'
+        const res = await request(server.app).get(`/api/v1/nfts?terms=${terms}`)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).gt(0)
+        const items = res.body.items.filter(
+            item => !(item.name.toLowerCase().includes(terms.toLowerCase()) || item.description.toLowerCase().includes(terms.toLowerCase()))
+        )
         expect(items.length).equal(0)
     }).timeout(10000)
 
@@ -279,6 +381,7 @@ describe('NFT', () => {
         const res = await request(server.app).get(`/api/v1/nfts?owner_key=${shareData.user.key}`)
         expect(res.status).equal(200)
         validResponse(res.body)
+        expect(res.body.items.length).gt(0)
         const items = res.body.items.filter(item => item.owner_key !== shareData.user.key)
         expect(items.length).equal(0)
     }).timeout(10000)
@@ -288,6 +391,7 @@ describe('NFT', () => {
         const res = await request(server.app).get(`/api/v1/nfts?price_min=${price}`)
         expect(res.status).equal(200)
         validResponse(res.body)
+        expect(res.body.items.length).gt(0)
         const items = res.body.items.filter(item => item.price_min < price)
         expect(items.length).equal(0)
     }).timeout(10000)
@@ -306,6 +410,7 @@ describe('NFT', () => {
         const res = await request(server.app).get(`/api/v1/nfts?collection_key=${collectionKey}`)
         expect(res.status).equal(200)
         validResponse(res.body)
+        expect(res.body.items.length).gt(0)
         const items = res.body.items.filter(item => item.collection_key !== collectionKey)
         expect(items.length).equal(0)
     }).timeout(10000)
@@ -374,6 +479,13 @@ describe('NFT', () => {
         expect(nft.description).equal(updateNftData.description)
     }).timeout(10000)
 
+    it(`Related NFT`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts/${shareData.nfts[0].key}/related`).send(updateNftData)
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.length).gt(0)
+    }).timeout(10000)
+
     it(`Bulk Rejected NFT`, async () => {
         const res = await request(server.app)
             .post(`/api/v1/nfts/status`)
@@ -394,39 +506,113 @@ describe('NFT', () => {
         expect(nft.status).equal(NftStatus.Approved)
     }).timeout(10000)
 
-    it(`market/off NFT`, async () => {
-        const res = await request(server.app)
-            .put(`/api/v1/nfts/${shareData.nfts[0].key}/market/off`)
-            .set('Authorization', `Bearer ${shareData.token}`)
-            .send(sellData)
+    it(`Get Featured NFT`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts/featured`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
-        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.on_market).equal(false)
+        expect(res.body.items.length).equal(0)
     }).timeout(10000)
 
-    it(`market/on NFT`, async () => {
+    it(`Featured NFT`, async () => {
         const res = await request(server.app)
-            .put(`/api/v1/nfts/${shareData.nfts[0].key}/market/on`)
-            .set('Authorization', `Bearer ${shareData.token}`)
-            .send(sellData)
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.on_market).equal(true)
-    }).timeout(10000)
-
-    it(`Buy NFT`, async () => {
-        const res = await request(server.app)
-            .post(`/api/v1/nfts/${shareData.nfts[0].key}/buy`)
+            .put(`/api/v1/nfts/${shareData.nfts[0].key}/featured`)
             .set('Authorization', `Bearer ${adminShareData.token}`)
-            .send(buyData)
+            .send({ featured: true })
         expect(res.status).equal(200)
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
-        expect(nft.on_market).equal(false)
-        expect(nft.owner).equal(adminShareData.user.token)
-    }).timeout(20000)
+        expect(nft.featured).equal(true)
+    }).timeout(10000)
+
+    it(`Get Featured NFT`, async () => {
+        const res = await request(server.app).get(`/api/v1/nfts/featured`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).equal(1)
+    }).timeout(10000)
+
+    it(`Like NFT`, async () => {
+        const res = await request(server.app)
+            .post(`/api/v1/nfts/${shareData.nfts[0].key}/like`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nftFavorite = await NftFavoriteModel.findOne({ nft_key: shareData.nfts[0].key, user_key: shareData.user.key })
+        expect(nftFavorite).exist
+
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.number_of_likes).gt(0)
+    }).timeout(10000)
+
+    it(`Get status like NFT`, async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/nfts/${shareData.nfts[0].key}/like`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send({ featured: true })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.liked).equal(true)
+    }).timeout(10000)
+
+    it(`Get NFT Favorite`, async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/nfts/${shareData.nfts[0].key}/users/liked`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send({ featured: true })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).gt(0)
+    }).timeout(10000)
+
+    it(`Get User Favorite`, async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/users/${shareData.user.key}/nfts/liked`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send({ featured: true })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).gt(0)
+    }).timeout(10000)
+
+    it(`UnLike NFT`, async () => {
+        const res = await request(server.app)
+            .delete(`/api/v1/nfts/${shareData.nfts[0].key}/like`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const nftFavorite = await NftFavoriteModel.findOne({ nft_key: shareData.nfts[0].key, user_key: shareData.user.key })
+        expect(nftFavorite).not.exist
+
+        const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
+        expect(nft.number_of_likes).equal(0)
+    }).timeout(10000)
+
+    it(`Get status like NFT`, async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/nfts/${shareData.nfts[0].key}/like`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send({ featured: true })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.liked).equal(false)
+    }).timeout(10000)
+
+    it('Get Collection Analytics', async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/collections/${shareData.collections[0].key}/analytics`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.nft_count).exist
+        expect(res.body.owner_count).exist
+        expect(res.body.floor_price).exist
+        expect(res.body.volume).exist
+        expect(res.body.volume_last).exist
+        expect(res.body.sales_count).exist
+    }).timeout(10000)
 
     it(`Burn NFT`, async () => {
         await NftModel.updateOne({ key: shareData.nfts[0].key }, { $set: { owner: shareData.user.key } }, { upsert: true }).exec()
@@ -498,13 +684,13 @@ describe('NFT', () => {
         //Generate
         expect(collection.logo).exist
         expect(collection.background).exist
-    }).timeout(10000)
+    }).timeout(40000)
 
     it(`Assign collection`, async () => {
-        const new_owner = 'new_owner'
+        const new_owner = adminShareData.user.key
         const res = await request(server.app)
             .put(`/api/v1/collections/${shareData.collections[0].key}/assign`)
-            .set('Authorization', `Bearer ${shareData.token}`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
             .send({ user_key: new_owner })
         expect(res.status).equal(200)
         validResponse(res.body)

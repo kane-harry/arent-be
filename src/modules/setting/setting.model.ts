@@ -33,6 +33,7 @@ const settingSchema = new Schema<ISetting>(
         toJSON: {
             transform: (doc, ret) => {
                 delete ret._id
+                delete ret.id
                 ret.prime_transfer_fee = Number(ret.prime_transfer_fee)
                 ret.nft_commission_fee_rate = Number(ret.nft_commission_fee_rate)
                 return ret

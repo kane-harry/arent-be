@@ -11,6 +11,24 @@ const defaultContext = {
 const templates = new EmailTemplates({ root: config.emailTemplatesRootPath })
 
 export default class EmailService {
+    static async sendUserAuthVerificationCode(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('user-auth-verification-code.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
+                if (err) {
+                    reject(err)
+                }
+                // Send email
+                subject = `${config.emailNotification.emailParamClientName} - Verification Code`
+                sendEmail(subject, String(text), String(html), _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendUserAuthVerificationCode => ' + err.message)
+        })
+    }
+
     static async sendRegistrationVerificationCode(context: EmailContextDto) {
         const _context = Object.assign({}, context, defaultContext)
 
@@ -224,6 +242,60 @@ export default class EmailService {
             })
         }).catch(err => {
             console.error('sendSellProductSuccessNotification => ' + err.message)
+        })
+    }
+
+    static async sendOutbidNotification(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('outbid-notification.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
+                if (err) {
+                    reject(err)
+                }
+                // Send email
+                subject = `${config.emailNotification.emailParamClientName} - Bidding Notification`
+                sendEmail(subject, String(text), String(html), _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendOutbidNotification => ' + err.message)
+        })
+    }
+
+    static async sendReceivedOfferNotification(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('product-offer-received.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
+                if (err) {
+                    reject(err)
+                }
+                // Send email
+                subject = `${config.emailNotification.emailParamClientName} - Offer received`
+                sendEmail(subject, String(text), String(html), _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendReceivedOfferNotification => ' + err.message)
+        })
+    }
+
+    static async sendEmailVerificationCode(context: EmailContextDto) {
+        const _context = Object.assign({}, context, defaultContext)
+
+        await new Promise((resolve, reject) => {
+            templates.render('email-verification.html', _context, (err: any, html?: string, text?: string, subject?: string) => {
+                if (err) {
+                    reject(err)
+                }
+                // Send email
+                subject = `${config.emailNotification.emailParamClientName} - Email Verification Code`
+                sendEmail(subject, String(text), String(html), _context.address)
+                resolve('done')
+            })
+        }).catch(err => {
+            console.error('sendEmailVerificationCode => ' + err.message)
         })
     }
 }

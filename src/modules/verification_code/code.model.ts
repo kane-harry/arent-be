@@ -47,6 +47,15 @@ const codeSchema = new Schema<IVerificationCode>(
         verified: { type: Boolean, default: false }
     },
     {
+        toJSON: {
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            },
+            virtuals: true,
+            getters: true
+        },
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'

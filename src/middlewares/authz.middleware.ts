@@ -13,7 +13,7 @@ const opts = {
 export default (passport: PassportStatic) => {
     passport.use(
         new JwtStrategy(opts, async (payload, done) => {
-            const user = await UserModel.findOne({ key: payload.key }).exec()
+            const user = await UserModel.findOne({ key: payload.key, removed: false }).exec()
             if (!user || payload.token_version !== user.token_version) {
                 return done(null, false)
             }

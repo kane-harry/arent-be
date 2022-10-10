@@ -1,4 +1,6 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsPositive } from 'class-validator'
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional } from 'class-validator'
+import { NftPriceType } from '@config/constants'
+import { map } from 'lodash'
 
 export class ImportNftDto {
     @IsNotEmpty()
@@ -31,6 +33,9 @@ export class CreateNftDto {
 
     @IsNotEmpty()
     public price: string
+
+    @IsNotEmpty()
+    public currency: string
 
     @IsOptional()
     public royalty: string
@@ -91,9 +96,22 @@ export class UpdateNftStatusDto {
     public status: string
 }
 
+export class UpdateNftFeaturedDto {
+    @IsNotEmpty()
+    public featured: boolean
+}
+
 export class BulkUpdateNftStatusDto {
     @IsNotEmpty()
     public status: string
+
+    @IsNotEmpty()
+    public keys: any
+}
+
+export class BulkUpdateNftFeaturedDto {
+    @IsNotEmpty()
+    public featured: boolean
 
     @IsNotEmpty()
     public keys: any
@@ -109,7 +127,8 @@ export class NftRO<T> {
     collection: any
     creator: any
     owner: any
-    constructor(nft: any, owner: any, creator: any, collection: any) {
+    price_histories: any
+    constructor(nft: any, owner: any, creator: any, collection: any, histories: any) {
         this.nft = nft
         this.collection = collection
         if (creator) {
@@ -118,6 +137,11 @@ export class NftRO<T> {
         if (owner) {
             this.owner = { key: owner.key, chat_name: owner.chat_name, avatar: owner.avatar }
         }
+        const price_histories = []
+        for (let i = 0; i < histories.length; i++) {
+            price_histories.push({ time: histories[i].created, value: histories[i].price.toString() })
+        }
+        this.price_histories = price_histories
     }
 }
 
@@ -125,12 +149,17 @@ export class NftOnMarketDto {
     @IsOptional()
     public price: string
 
-    // @IsOptional()
-    // public price_type: string
+    @IsOptional()
+    @IsEnum(NftPriceType, {
+        message: `type must be one of ${map(NftPriceType, el => el).join(' ')}`
+    })
+    public price_type: string
 
-    // reserved fields
-    // auction_start
-    // auction_end
+    @IsOptional()
+    public auction_start: string
+
+    @IsOptional()
+    public auction_end: string
 }
 
 export class BuyNftDto {
@@ -145,4 +174,23 @@ export class BuyNftDto {
 
     @IsOptional()
     public buyer_key: string
+}
+
+export class BidNftDto {
+    @IsNotEmpty()
+    public symbol: string
+
+    @IsNotEmpty()
+    public amount: string
+}
+
+export class MakeOfferDto {
+    @IsNotEmpty()
+    public amount: string
+
+    @IsNotEmpty()
+    public symbol: string
+
+    @IsOptional()
+    public notes: string
 }

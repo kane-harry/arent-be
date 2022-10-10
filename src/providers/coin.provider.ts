@@ -8,8 +8,6 @@ import BizException from '@exceptions/biz.exception'
 import IErrorModel from '@interfaces/error.model.interface'
 import ErrorContext from '@exceptions/error.context'
 
-// TODO  catch coin errors using interceptors ?
-
 const _instance = axios.create({
     baseURL: config.system.coinServerBaseUrl,
     headers: {
@@ -175,7 +173,6 @@ export class PrimeCoinProvider {
         path = path + '?' + params.join('&')
         try {
             const resp = await this.instance.get(path)
-            // log
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('queryPrimeTxns', error)
@@ -185,7 +182,6 @@ export class PrimeCoinProvider {
     public static async getPrimeTxnByKey(key: string) {
         try {
             const resp = await this.instance.get(`/transactions/${key}`)
-            // log
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeTxnByKey', error)
@@ -195,7 +191,6 @@ export class PrimeCoinProvider {
     public static async getAllPrimeAccountList() {
         try {
             const resp = await this.instance.get('/accounts/prime/list')
-            // log
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getAllPrimeAccountList', error)
@@ -205,7 +200,6 @@ export class PrimeCoinProvider {
     public static async getAllPrimeTransactionList() {
         try {
             const resp = await this.instance.get('/transactions/prime/list')
-            // log
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getAllPrimeTransactionList', error)
@@ -215,7 +209,6 @@ export class PrimeCoinProvider {
     public static async getAllPrimeTransactionStats() {
         try {
             const resp = await this.instance.get('/transactions/prime/stats')
-            // log
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getAllPrimeTransactionStats', error)
@@ -225,7 +218,6 @@ export class PrimeCoinProvider {
     public static async getPrimeAccountList(key: string) {
         try {
             const resp = await this.instance.get(`/accounts/${key}/prime/list`)
-            // log
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeAccountList', error)
@@ -235,7 +227,6 @@ export class PrimeCoinProvider {
     public static async getPrimeTransactionList(key: string) {
         try {
             const resp = await this.instance.get(`/transactions/${key}/prime/list`)
-            // log
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeTransactionList', error)
@@ -245,7 +236,6 @@ export class PrimeCoinProvider {
     public static async getPrimeTransactionStats(key: string) {
         try {
             const resp = await this.instance.get(`/transactions/${key}/prime/stats`)
-            // log
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeTransactionStats', error)

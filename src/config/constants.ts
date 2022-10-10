@@ -8,7 +8,13 @@ export enum CodeType {
     Login = 'Login',
     Withdraw = 'Withdraw',
     Trade = 'Trade',
-    Security = 'Security'
+    Security = 'Security',
+    EmailVerification = 'EmailVerification'
+}
+
+export enum UserAuthCodeType {
+    Email = 'email',
+    Phone = 'phone'
 }
 
 export enum UserStatus {
@@ -29,14 +35,16 @@ export enum UserHistoryActions {
     SetupTOTP = 'SetupTOTP'
 }
 
-export enum NftHistoryActions {
+export enum NftActions {
     Create = 'Create',
     Update = 'Update',
     Delete = 'Delete',
     UpdateStatus = 'UpdateStatus',
+    UpdateFeatured = 'UpdateFeatured',
     OnMarket = 'OnMarket',
     OffMarket = 'OffMarket',
-    Purchase = 'Purchase'
+    Purchase = 'Purchase',
+    Bid = 'Bid'
 }
 export enum SecurityActions {
     Login = 'Login'
@@ -101,6 +109,16 @@ export enum AccountExtType {
 
 export const MASTER_ACCOUNT_KEY = 'MASTER'
 
+export enum TransactionChain {
+    Prime = 'prime',
+    Ext = 'ext'
+}
+
+export enum TransactionType {
+    Mint = 'MINT',
+    Transfer = 'TRANSFER',
+    Withdraw = 'WITHDRAW'
+}
 export enum NftStatus {
     Pending = 'Pending',
     Approved = 'Approved',
@@ -116,6 +134,12 @@ export const NFT_IMAGE_SIZES = [
 export const USER_AVATAR_SIZES = [
     { maxSize: 400, id: 'normal' },
     { maxSize: 200, id: 'small' }
+]
+
+export const USER_BACKGROUND_IMAGE_SIZES = [
+    { maxSize: 1280, id: 'large' },
+    { maxSize: 600, id: 'normal' },
+    { maxSize: 300, id: 'small' }
 ]
 
 export enum NftType {
@@ -137,4 +161,49 @@ export const COLLECTION_LOGO_SIZES = [
 export const COLLECTION_BACKGROUND_SIZES = [
     { maxSize: 800, id: 'normal' },
     { maxSize: 600, id: 'small' }
+]
+
+export enum UserAuthType {
+    Email = 'email',
+    Phone = 'phone',
+    Google = 'google',
+    Apple = 'apple'
+}
+
+export enum NftPriceType {
+    Fixed = 'fixed',
+    Auction = 'auction'
+}
+
+export enum AccountActionType {
+    Mint = 'Mint',
+    Transfer = 'Transfer',
+    NftBought = 'NftBought',
+    NftSold = 'NftSold',
+    NftRoyalty = 'NftRoyalty',
+    NftBid = 'NftBid',
+    NftOutBid = 'NftOutBid',
+    MakeOffer = 'MakeOffer',
+    AcceptOffer = 'AcceptOffer',
+    RejectOffer = 'RejectOffer',
+    LockAmount = 'LockAmount',
+    UnLockAmount = 'UnLockAmount'
+}
+
+export enum OfferStatusType {
+    Pending = 'Pending',
+    Canceled = 'Canceled',
+    Accepted = 'Accepted',
+    Rejected = 'Rejected'
+}
+
+export enum ArticleType {
+    News = 'News',
+    Guide = 'Guide'
+}
+
+export const ARTICLE_COVER_IMAGE_SIZES = [
+    { maxSize: 1280, id: 'large' },
+    { maxSize: 600, id: 'medium' },
+    { maxSize: 300, id: 'small' }
 ]

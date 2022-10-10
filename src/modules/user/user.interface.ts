@@ -12,7 +12,9 @@ export interface IUser extends IBaseModel {
     pin: string
     phone: string
     country: string
-    avatar: Object | null
+    source: string
+    avatar?: Object | undefined
+    background?: Object | undefined
     player_id?: string
     status: UserStatus
     email_verified: boolean
@@ -30,6 +32,20 @@ export interface IUser extends IBaseModel {
     totp_secret: string
     totp_setup: boolean
     token_version: number
+    number_of_followers: number
+    bio: string
+    twitter: string
+    instagram: string
+    featured: boolean
+}
+
+export interface IUserBrief {
+    key: string
+    first_name: string
+    last_name: string
+    chat_name: string
+    avatar: object | undefined
+    email?: string
 }
 
 export interface IUserQueryFilter extends IFilterModel {
@@ -38,4 +54,14 @@ export interface IUserQueryFilter extends IFilterModel {
     terms: string
     date_from: string
     date_to: string
+    featured?: boolean
+}
+
+export interface IOperator {
+    key: string
+    email?: string
+    role?: number
+    avatar?: object
+    chat_name?: string
+    status?: string
 }

@@ -3,11 +3,10 @@ import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
-import AWS from 'aws-sdk'
-import sinon from 'sinon'
 import { adminData, initDataForUser, makeAdmin, userData } from '@app/test/init/authenticate'
 import { stripPhoneNumber } from '@utils/phoneNumber'
 import { CodeType } from '@config/constants'
+import UserModel from '@modules/user/user.model'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -36,7 +35,10 @@ const updateData = {
     country: 'country',
     playerId: 'playerId',
     newEmailCode: '',
-    newPhoneCode: ''
+    newPhoneCode: '',
+    bio: 'bio',
+    instagram: 'instagram',
+    twitter: 'twitter'
 }
 
 describe('Profile', () => {
@@ -66,19 +68,6 @@ describe('Profile', () => {
         })
 
         it('uploadAvatar should be success', async () => {
-            const avatarKey = 'avatar/25162a7e-972c-4338-9bbc-b654f81a70a9.jpeg'
-            sinon.stub(AWS, 'S3').callsFake(() => {
-                const upload = () => {
-                    const promise = async () => {
-                        return {
-                            Location: 'https://abc.amazonaws.com/upload/avatar/file.jpeg',
-                            Key: avatarKey
-                        }
-                    }
-                    return { promise }
-                }
-                return { upload }
-            })
             const res = await request(server.app)
                 .post('/api/v1/users/avatar')
                 .set('Authorization', `Bearer ${shareData.token}`)
@@ -86,17 +75,22 @@ describe('Profile', () => {
 
             expect(res.status).equal(200)
             validResponse(res.body)
-            expect(res.body.original).equal(avatarKey)
-            expect(res.body.normal).equal(avatarKey)
-            expect(res.body.small).equal(avatarKey)
 
             const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
-            assert.deepEqual(user?.avatar, {
-                original: avatarKey,
-                normal: avatarKey,
-                small: avatarKey
-            })
-        })
+            expect(user?.avatar).exist
+        }).timeout(20000)
+
+        it('uploadBackground should be success', async () => {
+            const res = await request(server.app)
+                .post('/api/v1/users/background')
+                .set('Authorization', `Bearer ${shareData.token}`)
+                .attach('background', './src/test/init/test.jpeg')
+
+            expect(res.status).equal(200)
+            validResponse(res.body)
+            const user = await MODELS.UserModel.findOne({ email: shareData.user.email }).exec()
+            expect(user?.background).exist
+        }).timeout(20000)
     })
 
     it(`GetVerificationCode EmailUpdate`, async () => {
@@ -149,7 +143,6 @@ describe('Profile', () => {
         expect(updateRes.status).equal(200)
         validResponse(updateRes.body)
 
-        expect(updateRes.body?.email).equal(shareData.user.email)
         expect(updateRes.body?.first_name).equal(shareData.user.first_name)
         expect(updateRes.body?.last_name).equal(shareData.user.last_name)
         expect(updateRes.body?.chat_name).equal(shareData.user.chat_name)
@@ -177,6 +170,9 @@ describe('Profile', () => {
             expect(user?.first_name).equal(updateData.first_name)
             expect(user?.last_name).equal(updateData.last_name)
             expect(user?.chat_name).equal(updateData.chat_name)
+            expect(user?.bio).equal(updateData.bio)
+            expect(user?.twitter).equal(updateData.twitter)
+            expect(user?.instagram).equal(updateData.instagram)
         })
     })
 
@@ -219,5 +215,55 @@ describe('Profile', () => {
         const res = await request(server.app).get(`/api/v1/users/username?search=${searchKey}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)
+    }).timeout(10000)
+
+    it('Get User Analytics', async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/users/${shareData.user.key}/analytics`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.brief?.key).equal(shareData.user.key)
+        expect(res.body.followers).exist
+        expect(res.body.followings).exist
+        expect(res.body.nft_liked).exist
+        expect(res.body.nft_created).exist
+    }).timeout(10000)
+
+    it('Get User Assets', async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/users/${shareData.user.key}/assets`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.tokens).exist
+        expect(res.body.nfts).exist
+    }).timeout(10000)
+
+    it(`Get Featured User`, async () => {
+        const res = await request(server.app).get(`/api/v1/users/featured`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).equal(0)
+    }).timeout(10000)
+
+    it(`Featured User`, async () => {
+        const res = await request(server.app)
+            .put(`/api/v1/users/featured`)
+            .set('Authorization', `Bearer ${adminShareData.token}`)
+            .send({ featured: true, keys: [shareData.user.key] })
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        const user = await UserModel.findOne({ key: shareData.user.key })
+        expect(user?.featured).equal(true)
+    }).timeout(10000)
+
+    it(`Get Featured User`, async () => {
+        const res = await request(server.app).get(`/api/v1/users/featured`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).gt(0)
     }).timeout(10000)
 })

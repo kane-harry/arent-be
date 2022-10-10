@@ -7,4 +7,7 @@ export class EmailContextDto {
     @IsOptional()
     @IsString()
     public code?: string | number
+
+    @IsOptional()
+    public nft?: object
 }

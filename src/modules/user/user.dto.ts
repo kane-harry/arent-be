@@ -1,6 +1,21 @@
-import { IsOptional, IsString, Length, IsEmail, MinLength, Matches, IsEnum, IsNotEmpty } from 'class-validator'
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Length, Matches, MinLength } from 'class-validator'
 import { MFAType, UserStatus } from '@config/constants'
 import { map } from 'lodash'
+import { IUser } from './user.interface'
+
+export class UserBriefRO {
+    key: string
+    first_name: string
+    last_name: string
+    chat_name: string
+    avatar: object | undefined
+    constructor(user: IUser) {
+        this.key = user.key
+        this.first_name = user.first_name
+        this.last_name = user.last_name
+        this.chat_name = user.chat_name
+    }
+}
 
 export class CreateUserDto {
     @IsString()
@@ -55,6 +70,18 @@ export class UpdateProfileDto {
     @IsString()
     @Length(2, 8)
     public chat_name: string
+
+    @IsString()
+    @IsOptional()
+    public bio?: string
+
+    @IsString()
+    @IsOptional()
+    public twitter?: string
+
+    @IsString()
+    @IsOptional()
+    public instagram?: string
 }
 
 export class AdminUpdateProfileDto {
@@ -209,4 +236,33 @@ export class ResetPinDto {
     // new pin
     @IsString()
     public pin: string
+}
+
+export class AuthorizeDto {
+    @IsNotEmpty()
+    public type: string
+
+    @IsNotEmpty()
+    public owner: string
+
+    @IsNotEmpty()
+    public code: string
+}
+
+export class EmailVerifyDto {
+    @IsString()
+    public code: string
+}
+
+export class UpdateUserFeaturedDto {
+    @IsNotEmpty()
+    public featured: boolean
+}
+
+export class BulkUpdateUserFeaturedDto {
+    @IsNotEmpty()
+    public featured: boolean
+
+    @IsNotEmpty()
+    public keys: any
 }

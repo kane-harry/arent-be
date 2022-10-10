@@ -7,6 +7,7 @@ export interface INft extends IBaseModel {
     description: string
     external_link: string
     collection_key: string
+    platform: string
     // collection
     price: number | Types.Decimal128
     royalty: number | Types.Decimal128
@@ -15,6 +16,9 @@ export interface INft extends IBaseModel {
     animation: object | undefined
     image: object | undefined
     type: string
+    price_type: string
+    auction_start: number
+    auction_end: number
     num_sales: number
     quantity: number
     creator_key: string
@@ -26,7 +30,9 @@ export interface INft extends IBaseModel {
     token_id: string
     status: string
     is_presale: boolean
-    top_bid: object | undefined
+    featured: boolean
+    number_of_likes: number
+    top_bid: ITopBid | undefined
     // auctions
 }
 
@@ -65,6 +71,15 @@ export interface INftSaleLog extends IBaseModel {
     details: object | undefined
 }
 
+export interface INftBidLog extends IBaseModel {
+    nft_key: string | undefined
+    collection_key: string | undefined
+    price: number | Types.Decimal128
+    currency: string | undefined
+    user: Object | null
+    secondary_market: boolean | undefined
+}
+
 export interface INftFilter extends IFilterModel {
     terms?: string
     owner_key?: string
@@ -72,4 +87,37 @@ export interface INftFilter extends IFilterModel {
     price_max?: number
     collection_key?: string
     on_market?: boolean
+    featured?: boolean
+}
+
+export interface ITopBid {
+    user_key: string
+    avatar: Object | null
+    chat_name: string
+    price: string
+    secondary_market: boolean
+    currency: string
+    address: string
+    account_key: string
+}
+
+export interface INftOfferLog extends IBaseModel {
+    action: string
+    nft_key: string | undefined
+    collection_key: string | undefined
+    price: number | Types.Decimal128
+    currency: string | undefined
+    user: Object | null
+    secondary_market: boolean | undefined
+}
+
+export interface INftOffer extends IBaseModel {
+    status: string
+    user_key: string
+    nft_key: string | undefined
+    collection_key: string | undefined
+    price: number | Types.Decimal128
+    currency: string
+    user: Object | null
+    secondary_market: boolean | undefined
 }

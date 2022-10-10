@@ -1,13 +1,18 @@
 import { config } from '@config'
 import { UserStatus } from '@config/constants'
-import { generateRandomCode } from '@utils/utility'
 import { randomBytes } from 'crypto'
-import { escapeRegExp, kebabCase } from 'lodash'
 import moment from 'moment'
-import { Schema, model } from 'mongoose'
+import { Model, model, Schema } from 'mongoose'
 import { IUser } from './user.interface'
+import humanId from 'human-id'
+// https://mongoosejs.com/docs/typescript/statics.html
 
-const userSchema = new Schema<IUser>(
+interface IUserModel extends Model<IUser> {
+    getBriefByChatName(chatName: string): IUser
+    getBriefByKey(key: string, includeEmail: boolean): IUser
+}
+
+const userSchema = new Schema<IUser, IUserModel>(
     {
         key: {
             type: String,
@@ -30,10 +35,8 @@ const userSchema = new Schema<IUser>(
         },
         email: {
             type: String,
-            unique: true,
             trim: true,
             lowercase: true,
-            required: true,
             index: true
         },
         password: {
@@ -47,6 +50,7 @@ const userSchema = new Schema<IUser>(
         phone: String,
         country: String,
         avatar: Object,
+        background: Object,
         player_id: String,
         status: {
             type: String,
@@ -57,6 +61,7 @@ const userSchema = new Schema<IUser>(
         email_verified: { type: Boolean, default: false },
         phone_verified: { type: Boolean, default: false },
         kyc_verified: { type: Boolean, default: false },
+        source: String,
         totp_temp_secret: String,
         totp_secret: {
             type: String,
@@ -72,13 +77,23 @@ const userSchema = new Schema<IUser>(
         change_password_next_login_attempts: { type: Number, default: 0 },
         locked_timestamp: { type: Number, default: 0 },
         login_count: { type: Number, default: 0 },
+        number_of_followers: { type: Number, default: 0 },
         removed: { type: Boolean, default: false },
-        token_version: { type: Number }
+        token_version: { type: Number },
+        bio: String,
+        twitter: String,
+        instagram: String,
+        featured: Boolean
     },
     {
         toJSON: {
             virtuals: true,
-            getters: true
+            getters: true,
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            }
         },
         timestamps: {
             createdAt: 'created',
@@ -90,19 +105,48 @@ const userSchema = new Schema<IUser>(
 )
 
 userSchema.virtual('full_name').get(function (this: { first_name: string; last_name: string }) {
-    return `${this.first_name} ${this.last_name}`
+    return `${this.first_name || ''} ${this.last_name || ''}`
 })
 
-const _UserModel = model<IUser>(config.database.tables.users, userSchema)
+userSchema.statics.getBriefByChatName = function (chatName: string) {
+    return this.findOne(
+        { chat_name: chatName },
+        {
+            key: 1,
+            chat_name: 1,
+            avatar: 1,
+            bio: 1,
+            instagram: 1,
+            twitter: 1
+        }
+    )
+}
+
+userSchema.statics.getBriefByKey = function (key: string, includeEmail: boolean) {
+    const projection: any = { key: 1, chat_name: 1, avatar: 1, bio: 1, instagram: 1, twitter: 1 }
+    if (includeEmail) {
+        projection.email = 1
+    }
+    return this.findOne({ key }, projection)
+}
+
+const _UserModel = model<IUser, IUserModel>(config.database.tables.users, userSchema)
 
 export default class UserModel extends _UserModel {
-    public static async generateRandomChatName(name: string) {
-        let chatName = kebabCase(escapeRegExp(name).toLowerCase())
+    public static async generateRandomChatName(name?: string) {
+        const options = {
+            adjectiveCount: 0,
+            addAdverb: false,
+            separator: '-',
+            capitalize: false
+        }
+
+        let chatName: string = name ?? humanId(options)
         const filter = { chat_name: chatName }
         let referenceInDatabase = await this.findOne(filter).select('key chat_name').exec()
 
         while (referenceInDatabase != null) {
-            chatName = `${chatName}-${generateRandomCode(2, 4, true)}`
+            chatName = humanId(options)
             filter.chat_name = chatName
             referenceInDatabase = await this.findOne(filter).select('key chat_name').exec()
         }

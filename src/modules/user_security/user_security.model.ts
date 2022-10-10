@@ -34,6 +34,15 @@ const userSecuritySchema = new Schema<IUserSecurity>(
         post_data: Object
     },
     {
+        toJSON: {
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            },
+            virtuals: true,
+            getters: true
+        },
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'

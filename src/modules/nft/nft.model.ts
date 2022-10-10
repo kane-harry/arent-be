@@ -1,7 +1,7 @@
 import { config } from '@config'
 import { randomBytes } from 'crypto'
-import { Schema, Types, model } from 'mongoose'
-import { INft, INftImportLog, INftOwnershipLog, INftSaleLog } from './nft.interface'
+import { model, Schema, Types } from 'mongoose'
+import { INft, INftBidLog, INftImportLog, INftOwnershipLog, INftSaleLog, INftOffer } from './nft.interface'
 
 const nftSchema = new Schema<INft>(
     {
@@ -16,6 +16,7 @@ const nftSchema = new Schema<INft>(
         },
         name: String,
         description: String,
+        platform: { type: String, default: config.system.nftDefaultPlatform },
         external_link: String,
         collection_key: String,
         price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
@@ -25,6 +26,9 @@ const nftSchema = new Schema<INft>(
         animation: { type: Object, default: null },
         image: { type: Object, default: null },
         type: { type: String, default: 'erc721' },
+        price_type: { type: String, default: 'fixed' },
+        auction_start: Number,
+        auction_end: Number,
         num_sales: Number,
         quantity: Number,
         creator_key: String,
@@ -36,6 +40,8 @@ const nftSchema = new Schema<INft>(
         token_id: String,
         status: String,
         is_presale: Boolean,
+        featured: Boolean,
+        number_of_likes: Number,
         top_bid: { type: Object, default: null },
         removed: { type: Boolean, default: false }
     },
@@ -45,6 +51,7 @@ const nftSchema = new Schema<INft>(
             getters: true,
             transform: (doc, ret) => {
                 delete ret._id
+                delete ret.id
                 ret.price = ret.price.toString()
                 ret.royalty = ret.royalty.toString()
                 return ret
@@ -81,6 +88,15 @@ const nftImportLogSchema = new Schema<INftImportLog>(
         removed: { type: Boolean, default: false }
     },
     {
+        toJSON: {
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            },
+            virtuals: true,
+            getters: true
+        },
         timestamps: {
             createdAt: 'created',
             updatedAt: 'modified'
@@ -117,6 +133,7 @@ const nftOwnershipLogSchema = new Schema<INftOwnershipLog>(
             getters: true,
             transform: (doc, ret) => {
                 delete ret._id
+                delete ret.id
                 ret.price = parseFloat(ret.price.toString())
                 return ret
             }
@@ -162,6 +179,7 @@ const nftSaleLogSchema = new Schema<INftSaleLog>(
             getters: true,
             transform: (doc, ret) => {
                 delete ret._id
+                delete ret.id
                 ret.unit_price = parseFloat(ret.unit_price.toString())
                 ret.order_value = parseFloat(ret.order_value.toString())
                 ret.commission_fee = parseFloat(ret.commission_fee.toString())
@@ -179,4 +197,86 @@ const nftSaleLogSchema = new Schema<INftSaleLog>(
 
 const NftSaleLogModel = model<INftSaleLog>('nft_sale_logs', nftSaleLogSchema)
 
-export { NftModel, NftImportLogModel, NftOwnershipLogModel, NftSaleLogModel }
+const nftBidLogSchema = new Schema<INftBidLog>(
+    {
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(8).toString('hex')
+            }
+        },
+        nft_key: String,
+        collection_key: String,
+        currency: String,
+        price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        user: Object,
+        secondary_market: Boolean,
+        removed: { type: Boolean, default: false }
+    },
+    {
+        toJSON: {
+            virtuals: true,
+            getters: true,
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                ret.price = parseFloat(ret.price.toString())
+                return ret
+            }
+        },
+        timestamps: {
+            createdAt: 'created',
+            updatedAt: 'modified'
+        },
+        versionKey: 'version'
+    }
+)
+
+const NftBidLogModel = model<INftBidLog>('nft_bid_logs', nftBidLogSchema)
+
+const nftOfferSchema = new Schema<INftOffer>(
+    {
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(8).toString('hex')
+            }
+        },
+        status: String,
+        user_key: String,
+        nft_key: String,
+        collection_key: String,
+        currency: String,
+        price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        user: Object,
+        secondary_market: Boolean,
+        removed: { type: Boolean, default: false }
+    },
+    {
+        toJSON: {
+            virtuals: true,
+            getters: true,
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                ret.price = parseFloat(ret.price.toString())
+                return ret
+            }
+        },
+        timestamps: {
+            createdAt: 'created',
+            updatedAt: 'modified'
+        },
+        versionKey: 'version'
+    }
+)
+
+const NftOfferModel = model<INftOffer>('nft_offers', nftOfferSchema)
+
+export { NftModel, NftImportLogModel, NftOwnershipLogModel, NftSaleLogModel, NftBidLogModel, NftOfferModel }

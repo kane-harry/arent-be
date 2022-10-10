@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 import mongoUnit from 'mongo-unit'
 import UserModel from '@modules/user/user.model'
 import VerificationCode from '@modules/verification_code/code.model'
-import AccountModel from '@modules/account/account.model'
+import { AccountModel } from '@modules/account/account.model'
 import SettingModel from '@modules/setting/setting.model'
 const { expect } = chai
 
@@ -36,5 +36,7 @@ export const MODELS = {
 export const validResponse = (data: any) => {
     const jsonData = JSON.stringify(data)
     expect(jsonData).not.include('"_id"')
-    expect(jsonData).not.include('twoFactorSecret')
+    expect(jsonData).not.include('"id"')
+    expect(jsonData).not.include('"twoFactorSecret"')
+    expect(jsonData).not.include('"$numberDecimal"')
 }

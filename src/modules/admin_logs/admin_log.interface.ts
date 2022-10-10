@@ -1,13 +1,11 @@
 import { AdminLogsActions, AdminLogsSections } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
 import IFilterModel from '@interfaces/filter.model.interface'
+import { IOperator } from '@modules/user/user.interface'
 
 export interface IAdminLog extends IBaseModel {
     key: string
-    operator: {
-        key: string
-        email: string
-    }
+    operator: IOperator
     user_key: string
     section: AdminLogsSections
     action: AdminLogsActions

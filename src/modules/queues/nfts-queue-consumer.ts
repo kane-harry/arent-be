@@ -3,7 +3,7 @@ import NftService from '@modules/nft/nft.service'
 const buyNftProcess = async (job: any, done: any) => {
     try {
         const data = job.data
-        await NftService.buyNft(data.key, data.operator, data.agent, data.ip)
+        await NftService.buyNft(data.key, data.operator, data.options)
         done()
     } catch (error) {
         console.log(error)
@@ -11,4 +11,15 @@ const buyNftProcess = async (job: any, done: any) => {
     }
 }
 
-export default buyNftProcess
+const acceptOfferProcess = async (job: any, done: any) => {
+    try {
+        const data = job.data
+        await NftService.acceptOffer(data.key, data.operator, data.options)
+        done()
+    } catch (error) {
+        console.log(error)
+        done(error)
+    }
+}
+
+export { buyNftProcess, acceptOfferProcess }

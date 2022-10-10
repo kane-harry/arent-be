@@ -1,29 +1,31 @@
 import BizException from '@exceptions/biz.exception'
-import { AuthErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
+import { AuthErrors, CommonErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
-import { IFileUploaded } from '@interfaces/files.upload.interface'
 import { AuthenticationRequest } from '@middlewares/request.middleware'
-import { forEach, toLower, trim } from 'lodash'
+import { find, forEach, toLower, trim } from 'lodash'
 import {
     AdminUpdateProfileDto,
+    AuthorizeDto,
     CreateUserDto,
+    EmailVerifyDto,
+    ForgotPasswordDto,
+    ForgotPinDto,
+    ResetPasswordDto,
+    ResetPinDto,
     SetupCredentialsDto,
     SetupTotpDto,
     UpdateEmailDto,
     UpdatePhoneDto,
     UpdateProfileDto,
     UpdateSecurityDto,
+    UpdateUserFeaturedDto,
     UpdateUserRoleDto,
-    UpdateUserStatusDto,
-    ForgotPasswordDto,
-    ForgotPinDto,
-    ResetPasswordDto,
-    ResetPinDto
+    UpdateUserStatusDto
 } from './user.dto'
 import UserModel from './user.model'
 import * as bcrypt from 'bcrypt'
-import { unixTimestampToDate, generateRandomCode, generateUnixTimestamp } from '@utils/utility'
-import { IUser, IUserQueryFilter } from '@modules/user/user.interface'
+import { generateRandomCode, generateUnixTimestamp, roundUp, unixTimestampToDate } from '@utils/utility'
+import { IOperator, IUser, IUserBrief, IUserQueryFilter } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
 import { stripPhoneNumber } from '@utils/phoneNumber'
@@ -35,22 +37,45 @@ import UserHistoryModel from '@modules/user_history/user_history.model'
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
 import { role } from '@config/role'
 import {
-    CodeType,
-    UserStatus,
-    UserHistoryActions,
     AdminLogsActions,
     AdminLogsSections,
+    CodeType,
     MFAType,
-    NFT_IMAGE_SIZES,
-    USER_AVATAR_SIZES
+    USER_AVATAR_SIZES,
+    USER_BACKGROUND_IMAGE_SIZES,
+    UserAuthType,
+    UserHistoryActions,
+    UserStatus
 } from '@config/constants'
 import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
 import AccountService from '@modules/account/account.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
-import { BriefUserRO } from '@interfaces/public.model'
+import { NftModel } from '@modules/nft/nft.model'
+import { RateModel } from '@modules/exchange_rate/rate.model'
+import { config } from '@config'
+import UserFollowerModel from '@modules/user_follower/user.follower.model'
+import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
+import { UserAnalyticRO } from '@modules/user/user.ro'
+import IOptions from '@interfaces/options.interface'
 
 export default class UserService extends AuthService {
+    public static async authorize(params: AuthorizeDto, options?: any) {
+        if (params.type === UserAuthType.Email) {
+            return AuthService.authorizeByEmail(params, options)
+        }
+        if (params.type === UserAuthType.Phone) {
+            return AuthService.authorizeByPhone(params, options)
+        }
+        if (params.type === UserAuthType.Google) {
+            return AuthService.authorizeViaGoogle(params, options)
+        }
+        if (params.type === UserAuthType.Apple) {
+            return AuthService.authorizeViaApple(params, options)
+        }
+        throw new BizException(AuthErrors.user_authorize_method_error, new ErrorContext('user.service', 'userAuth', {}))
+    }
+
     public static async register(userData: CreateUserDto, options?: any) {
         userData = await this.formatCreateUserDto(userData)
         await this.verifyRegistration(userData)
@@ -69,6 +94,7 @@ export default class UserService extends AuthService {
         const currentTimestamp = generateUnixTimestamp()
 
         const mode = new UserModel({
+            key: undefined,
             ...userData,
             password: await bcrypt.hash(userData.password, 10),
             pin: await bcrypt.hash(userData.pin, 10),
@@ -77,11 +103,14 @@ export default class UserService extends AuthService {
             email_verified: emailVerified,
             phone_verified: phoneVerified,
             mfa_settings: mfaSettings,
-            token_version: currentTimestamp
+            token_version: currentTimestamp,
+            featured: false
         })
 
         // create accounts before save data
-        await AccountService.initUserAccounts(mode.key)
+        if (mode.key) {
+            await AccountService.initUserAccounts(mode.key)
+        }
 
         await mode.save()
 
@@ -119,7 +148,7 @@ export default class UserService extends AuthService {
         }
 
         files = await resizeImages(files, { avatar: USER_AVATAR_SIZES })
-        const assets = await uploadFiles(files, 'avatar')
+        const assets = await uploadFiles(files, 'user')
 
         let avatars: { [key: string]: string } = {}
         forEach(assets, file => {
@@ -132,6 +161,33 @@ export default class UserService extends AuthService {
         user?.set('avatar', avatars, Object)
         await user?.save()
         return avatars
+    }
+
+    public static uploadBackground = async (files: any, options: { req: AuthenticationRequest }) => {
+        const user = await UserModel.findOne({ email: options.req.user?.email, removed: false }).exec()
+
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'uploadBackgroundImage', {}))
+        }
+
+        if (!files || !files.length) {
+            throw new BizException(AuthErrors.image_required_error, new ErrorContext('user.service', 'uploadBackgroundImage', {}))
+        }
+
+        files = await resizeImages(files, { background: USER_BACKGROUND_IMAGE_SIZES })
+        const assets = await uploadFiles(files, 'user')
+
+        let background: { [key: string]: string } = {}
+        forEach(assets, file => {
+            background = {
+                ...background,
+                [file.type]: file.key
+            }
+        })
+
+        user?.set('background', background, Object)
+        await user?.save()
+        return background
     }
 
     public static updateProfile = async (params: UpdateProfileDto, options: { req: AuthenticationRequest }) => {
@@ -161,19 +217,28 @@ export default class UserService extends AuthService {
             pre_data: {
                 first_name: user.first_name,
                 last_name: user.last_name,
-                chat_name: user.chat_name
+                chat_name: user.chat_name,
+                bio: user.bio,
+                twitter: user.twitter,
+                instagram: user.instagram
             },
             post_data: {
                 first_name: params.first_name,
                 last_name: params.last_name,
-                chat_name: params.chat_name
+                chat_name: params.chat_name,
+                bio: params.bio,
+                twitter: params.twitter,
+                instagram: params.instagram
             }
         }).save()
 
         // save
-        user.set('first_name', params.first_name || user.first_name, String)
-        user.set('last_name', params.last_name || user.last_name, String)
-        user.set('chat_name', params.chat_name || user.chat_name, String)
+        user.set('first_name', params.first_name, String)
+        user.set('last_name', params.last_name, String)
+        user.set('chat_name', params.chat_name, String)
+        user.set('bio', params.bio, String)
+        user.set('twitter', params.twitter, String)
+        user.set('instagram', params.instagram, String)
         await user.save()
 
         return user
@@ -187,11 +252,11 @@ export default class UserService extends AuthService {
         const postChatName = trim(toLower(params.chat_name))
         const preChatName = trim(toLower(user.chat_name))
         if (preChatName !== postChatName) {
-            const existUser = await UserModel.findOne({ chatName: new RegExp(postChatName, 'i'), removed: false }).exec()
+            const existUser = await UserModel.findOne({ chat_name: new RegExp(postChatName, 'i'), removed: false }).exec()
             if (existUser) {
                 throw new BizException(
                     AuthErrors.registration_chatname_exist_error,
-                    new ErrorContext('user.service', 'updateProfile', { chatName: postChatName })
+                    new ErrorContext('user.service', 'updateProfile', { chat_name: postChatName })
                 )
             }
         }
@@ -201,6 +266,8 @@ export default class UserService extends AuthService {
             if (existingUser && existingUser.key !== user.key) {
                 throw new BizException(AuthErrors.registration_email_exists_error, new ErrorContext('user.service', 'updateEmail', { email }))
             }
+            user.set('email', email, String)
+            user.set('email_verified', true, Boolean)
         }
         const phone = await stripPhoneNumber(params.phone)
         if (phone) {
@@ -208,6 +275,8 @@ export default class UserService extends AuthService {
             if (existingUser && existingUser.key !== user.key) {
                 throw new BizException(AuthErrors.registration_phone_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
             }
+            user.set('phone', phone, String)
+            user.set('phone_verified', true, Boolean)
         }
 
         // create log
@@ -239,8 +308,7 @@ export default class UserService extends AuthService {
         user.set('first_name', params.first_name || user.first_name, String)
         user.set('last_name', params.last_name || user.last_name, String)
         user.set('chat_name', params.chat_name || user.chat_name, String)
-        user.set('phone', phone || user.phone, String)
-        user.set('email', email || user.email, String)
+
         await user.save()
 
         return user
@@ -425,11 +493,13 @@ export default class UserService extends AuthService {
     }
 
     public static getBriefByName = async (chatName: string) => {
-        return await UserModel.findOne({ chat_name: chatName, removed: false }).select('key first_name last_name email avatar chat_name').exec()
+        const data = await UserModel.getBriefByChatName(chatName)
+        return data
     }
 
-    public static getBriefByKey = async (key: string) => {
-        return await UserModel.findOne({ key: key, removed: false }).select('key first_name last_name email avatar chat_name').exec()
+    public static getBriefByKey = async (key: string, includeEmail = false) => {
+        const data = await UserModel.getBriefByKey(key, includeEmail)
+        return data
     }
 
     public static getTotp = async (options: { req: AuthenticationRequest }) => {
@@ -532,6 +602,9 @@ export default class UserService extends AuthService {
             const dateTo = unixTimestampToDate(params.date_to)
             filter.$and.push({ created: { $lt: dateTo } })
         }
+        if (params.featured) {
+            filter.$and.push({ featured: { $eq: params.featured } })
+        }
         const sorting: any = { _id: 1 }
         if (params.sort_by) {
             delete sorting._id
@@ -544,10 +617,9 @@ export default class UserService extends AuthService {
 
     public static searchUser = async (params: IUserQueryFilter) => {
         const offset = (params.page_index - 1) * params.page_size
-        const reg = new RegExp(params.terms)
+        const reg = new RegExp(params.terms, 'i')
         const filter: { [key: string]: any } = {
             $or: [{ first_name: reg }, { last_name: reg }, { chat_name: reg }],
-            $and: [{ created: { $exists: true } }],
             removed: false
         }
         const sorting: any = { _id: 1 }
@@ -556,8 +628,12 @@ export default class UserService extends AuthService {
             sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1
         }
         const totalCount = await UserModel.countDocuments(filter)
-        const items = await UserModel.find<IUser>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
-        return new BriefUserRO(totalCount, params.page_index, params.page_size, items)
+        const items = await UserModel.find<IUser>(filter, { key: 1, first_name: 1, last_name: 1, chat_name: 1, avatar: 1 })
+            .sort(sorting)
+            .skip(offset)
+            .limit(params.page_size)
+            .exec()
+        return new QueryRO<IUser>(totalCount, params.page_index, params.page_size, items)
     }
 
     public static getAllUser = async () => {
@@ -830,6 +906,7 @@ export default class UserService extends AuthService {
         }).save()
 
         // save
+        user?.set('phone_verified', true, Boolean)
         user?.set('phone', phone, String)
         user?.save()
 
@@ -867,11 +944,126 @@ export default class UserService extends AuthService {
 
         // save
         user?.set('email', email, String)
+        user?.set('email_verified', true, Boolean)
         await user?.save()
 
         // logout & send email notifications
         EmailService.sendUserChangeEmailCompletedEmail({ address: email })
         await AuthService.updateTokenVersion(userKey, currentTimestamp)
         return user
+    }
+
+    public static async getUserAssets(key: string) {
+        const user = await UserModel.findOne({ key, removed: false }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateEmail', {}))
+        }
+
+        const rateData = await RateModel.findOne({ symbol: `${config.system.primeToken}-USDT` }).exec()
+        const rate = rateData ? rateData.rate : 1
+
+        const accountsData = await AccountService.queryAccounts({ user_key: key }, { page_index: 1, page_size: 999 })
+        const accounts: any = accountsData.items
+
+        let amount_usd = 0
+        let amount_usd_change = 0
+        let percentage_change = 0
+        for (const account of accounts) {
+            const dailyChange = find(account.balance_change_statements, { period: 'day' })
+            amount_usd += dailyChange.amount_usd
+            amount_usd_change += dailyChange.amount_usd_change
+        }
+        percentage_change = amount_usd === 0 ? 0 : roundUp(amount_usd_change / amount_usd, 4)
+
+        const tokens = {
+            amount: amount_usd,
+            amount_change: amount_usd_change,
+            percentage_change,
+            currency: 'USD'
+        }
+
+        const nftsAggre = await NftModel.aggregate([
+            { $match: { owner_key: key, removed: false } },
+            {
+                $group: {
+                    _id: null,
+                    total_value: { $sum: '$price' },
+                    number_of_nfts: { $sum: 1 }
+                }
+            }
+        ])
+        const nfts = { total_value: 0, total_usd_value: 0, number_of_nfts: 0, currency: 'USD' }
+        if (nftsAggre && nftsAggre[0]) {
+            nfts.total_value = nftsAggre[0].total_value
+            nfts.number_of_nfts = nftsAggre[0].number_of_nfts
+            nfts.total_usd_value = roundUp(nftsAggre[0].total_value * rate, 2)
+        }
+
+        return { tokens, nfts }
+    }
+
+    static async getEmailVerificationCode(userKey: string) {
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'getEmailVerificationCode', {}))
+        }
+        if (!user.email) {
+            throw new BizException(AuthErrors.user_has_no_email_error, new ErrorContext('user.service', 'getEmailVerificationCode', {}))
+        }
+        if (user.email_verified) {
+            throw new BizException(AuthErrors.user_email_already_verified_error, new ErrorContext('user.service', 'getEmailVerificationCode', {}))
+        }
+
+        const deliveryMethod = (owner: any, code: string) => {
+            EmailService.sendEmailVerificationCode({ address: user.email, code: code })
+        }
+        await VerificationCodeService.generateCode(
+            {
+                owner: user.key,
+                user_key: user.key,
+                code_type: CodeType.EmailVerification
+            },
+            deliveryMethod
+        )
+        return { success: true }
+    }
+
+    static async verifyEmailAddress(userKey: string, params: EmailVerifyDto) {
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'verifyEmailAddress', { userKey }))
+        }
+        const { success } = await VerificationCodeService.verifyCode({
+            owner: user.key,
+            code: params.code,
+            code_type: CodeType.EmailVerification
+        })
+        if (success) {
+            user.set('email_verified', true, Boolean)
+            user.save()
+        }
+        return { success }
+    }
+
+    static async getUserAnalytics(userKey: string) {
+        const user = await UserModel.findOne({ key: userKey, removed: false }).exec()
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'verifyEmailAddress', { userKey }))
+        }
+        const followers = await UserFollowerModel.countDocuments({ user_key: user.key })
+        const followings = await UserFollowerModel.countDocuments({ follower_key: user.key })
+        const nftLiked = await NftFavoriteModel.countDocuments({ user_key: user.key })
+        const nftCreated = await NftModel.countDocuments({ creator_key: user.key })
+
+        return new UserAnalyticRO(user, followers, followings, nftLiked, nftCreated)
+    }
+
+    static async updateUserFeatured(key: string, updateFeaturedDto: UpdateUserFeaturedDto, operator: IOperator, options: IOptions) {
+        const user = await UserModel.findOne({ key })
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updateUserFeatured', { key }))
+        }
+        user.set('featured', updateFeaturedDto.featured ?? user.featured, Boolean)
+        return await user.save()
     }
 }

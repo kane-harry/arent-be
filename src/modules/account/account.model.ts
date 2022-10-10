@@ -1,8 +1,8 @@
 import { config } from '@config'
-import { AccountExtType, AccountType } from '@config/constants'
+import { AccountExtType, AccountType, AccountActionType } from '@config/constants'
 import { randomBytes } from 'crypto'
 import { Schema, Types, model } from 'mongoose'
-import { IAccount } from './account.interface'
+import { IAccount, IAccountSnapshot } from './account.interface'
 
 const accountSchema = new Schema<IAccount>(
     {
@@ -38,11 +38,12 @@ const accountSchema = new Schema<IAccount>(
         toJSON: {
             transform: (doc, ret) => {
                 delete ret._id
-                ret.amount = Number(ret.amount)
-                ret.amount_locked = Number(ret.amount_locked)
-                ret.deposited = Number(ret.deposited)
-                ret.withdrew = Number(ret.withdrew)
-                ret.committed = Number(ret.committed)
+                delete ret.id
+                ret.amount = parseFloat(ret.amount)
+                ret.amount_locked = parseFloat(ret.amount_locked)
+                ret.deposited = parseFloat(ret.deposited)
+                ret.withdrew = parseFloat(ret.withdrew)
+                ret.committed = parseFloat(ret.committed)
                 return ret
             }
             // getters: true
@@ -56,6 +57,55 @@ const accountSchema = new Schema<IAccount>(
     }
 )
 
-const AccountModel = model<IAccount>(config.database.tables.accounts, accountSchema)
+const accountSnapshotSchema = new Schema<IAccountSnapshot>(
+    {
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(8).toString('hex')
+            }
+        },
+        user_key: String,
+        account_key: String,
+        symbol: { type: String, uppercase: true, index: true },
+        address: String,
+        type: { type: String, enum: AccountActionType },
+        amount: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        pre_amount: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        pre_amount_locked: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        post_amount: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        post_amount_locked: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        note: String,
+        txn: String,
+        operator: { type: Object },
+        options: { type: Object },
+        removed: { type: Boolean, default: false }
+    },
+    {
+        toJSON: {
+            transform: (doc, ret) => {
+                delete ret._id
+                ret.pre_amount = parseFloat(ret.pre_amount)
+                ret.pre_amount_locked = parseFloat(ret.pre_amount_locked)
+                ret.post_amount = parseFloat(ret.post_amount)
+                ret.post_amount_locked = parseFloat(ret.post_amount_locked)
+                return ret
+            }
+            // getters: true
+        },
+        timestamps: {
+            createdAt: 'created',
+            updatedAt: 'modified'
+        },
+        versionKey: 'version',
+        collection: config.database.tables.account_snapshots
+    }
+)
 
-export default AccountModel
+const AccountModel = model<IAccount>(config.database.tables.accounts, accountSchema)
+const AccountSnapshotModel = model<IAccountSnapshot>(config.database.tables.account_snapshots, accountSnapshotSchema)
+
+export { AccountModel, AccountSnapshotModel }

@@ -1,5 +1,5 @@
-import { IAccount } from './account.interface'
-import AccountModel from './account.model'
+import { IAccount, IAccountRO } from './account.interface'
+import { AccountModel, AccountSnapshotModel } from '@modules/account/account.model'
 import { createEtherWallet } from '@utils/wallet'
 import { QueryRO } from '@interfaces/query.model'
 import { config } from '@config'
@@ -9,9 +9,14 @@ import { AccountErrors, AuthErrors } from '@exceptions/custom.error'
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
 import { PrimeCoinProvider } from '@providers/coin.provider'
-import { IUser } from '@modules/user/user.interface'
-import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections, MASTER_ACCOUNT_KEY } from '@config/constants'
+import { IOperator, IUser } from '@modules/user/user.interface'
+import { AccountExtType, AccountType, AdminLogsActions, AdminLogsSections, AccountActionType, MASTER_ACCOUNT_KEY } from '@config/constants'
 import AdminLogModel from '@modules/admin_logs/admin_log.model'
+import { RateModel } from '@modules/exchange_rate/rate.model'
+import { roundUp } from '@utils/utility'
+import AccountSnapshotService from '@modules/account/account.snapshot.service'
+import IOptions from '@interfaces/options.interface'
+import moment from 'moment'
 
 export default class AccountService {
     private static async initAccounts(userKey: string, accountNameSuffix = 'Account') {
@@ -28,7 +33,7 @@ export default class AccountService {
         }
 
         for (const coinWallet of coinWallets) {
-            const accountName = `${coinWallet.symbol} ${accountNameSuffix}`
+            const accountName = 'Lightlink' ?? `${coinWallet.symbol} ${accountNameSuffix}`
             const account = new AccountModel({
                 user_key: userKey,
                 name: accountName,
@@ -46,7 +51,7 @@ export default class AccountService {
 
         const extTokens = config.system.extTokens
         for (const token of extTokens) {
-            const accountName = `${token.symbol} ${accountNameSuffix}`
+            const accountName = token.name ?? `${token.symbol} ${accountNameSuffix}`
             if (token.symbol === 'ETH') {
                 const account = new AccountModel({
                     user_key: userKey,
@@ -69,7 +74,7 @@ export default class AccountService {
         const erc20Tokens = config.erc20Tokens
         for (const token of erc20Tokens) {
             if (token.symbol) {
-                const accountName = `${token.symbol} ${accountNameSuffix}`
+                const accountName = token.name ?? `${token.symbol} ${accountNameSuffix}`
                 const account = new AccountModel({
                     user_key: userKey,
                     name: accountName,
@@ -93,18 +98,103 @@ export default class AccountService {
     }
 
     protected static async bindingAccountBalance(account: any) {
+        if (!account) {
+            return account
+        }
+        const rateData = await RateModel.findOne({ symbol: `${account.symbol}-USDT` }).exec()
+        const rate = rateData ? rateData.rate : 1
+        let amount = account.amount
+        let nonce = 0
         if (account?.ext_type === AccountExtType.Prime) {
             const wallet = await PrimeCoinProvider.getWalletByKey(account.ext_key)
             if (wallet) {
-                return {
-                    ...(account?.toJSON() || account),
-                    amount: wallet.amount,
-                    nonce: wallet.nonce
-                }
+                nonce = wallet.nonce
+                account.amount = wallet.amount
+                amount = wallet.amount
             }
+        } else {
+            account.amount_usd = roundUp(account.amount * rate, 2)
+        }
+        const amount_usd = roundUp(amount * rate, 2)
+        const amount_locked_usd = roundUp(account.amount_locked * rate, 2)
+
+        const currency_value_statements = [{ currency: 'USD', symbol: '$', amount: amount_usd, amount_locked: amount_locked_usd }]
+
+        const balance_change_statements = []
+
+        const oneDayAgo = moment().add(-1, 'day').toDate()
+
+        const dailySnapshots = await AccountSnapshotModel.find({ account_key: account.key, created: { $gt: oneDayAgo } })
+            .sort({ created: 1 })
+            .exec()
+        const dailySnapshot = dailySnapshots && dailySnapshots[0]
+
+        if (dailySnapshot) {
+            const pre_amount = Number(dailySnapshot.post_amount)
+            const pre_amount_usd = roundUp(pre_amount * rate, 2)
+            const amount_change = roundUp(amount - pre_amount, 8)
+            const amount_usd_change = roundUp(amount_change * rate, 2)
+            const percentage_change = pre_amount === 0 ? 0 : roundUp(amount_change / pre_amount, 4)
+
+            balance_change_statements.push({
+                period: 'day',
+                pre_amount,
+                pre_amount_usd,
+                amount: Number(amount),
+                amount_usd,
+                amount_change: amount_change,
+                amount_usd_change,
+                percentage_change: percentage_change
+            })
+        } else {
+            balance_change_statements.push({
+                period: 'day',
+                pre_amount: Number(amount),
+                pre_amount_usd: amount_usd,
+                amount: Number(amount),
+                amount_usd,
+                amount_change: 0,
+                amount_usd_change: 0,
+                percentage_change: 0
+            })
+        }
+        const oneWeekAgo = moment().add(-1, 'week').toDate()
+        const weeklySnapshots = await AccountSnapshotModel.find({ account_key: account.key, created: { $gt: oneWeekAgo } })
+            .sort({ created: 1 })
+            .exec()
+        const weeklySnapshot = weeklySnapshots && weeklySnapshots[0]
+
+        if (weeklySnapshot) {
+            const pre_amount = Number(weeklySnapshot.post_amount)
+            const pre_amount_usd = roundUp(pre_amount * rate, 2)
+            const amount_change = roundUp(amount - pre_amount, 8)
+            const amount_usd_change = roundUp(amount_change * rate, 2)
+            const percentage_change = pre_amount === 0 ? 0 : roundUp(amount_change / pre_amount, 4)
+
+            balance_change_statements.push({
+                period: 'week',
+                pre_amount,
+                pre_amount_usd,
+                amount: Number(amount),
+                amount_usd,
+                amount_change,
+                amount_usd_change,
+                percentage_change: percentage_change
+            })
+        } else {
+            balance_change_statements.push({
+                period: 'week',
+                pre_amount: Number(amount),
+                pre_amount_usd: amount_usd,
+                amount: Number(amount),
+                amount_usd,
+                amount_change: 0,
+                amount_usd_change: 0,
+                percentage_change: 0
+            })
         }
 
-        return account
+        return { ...account.toJSON(), currency_value_statements, balance_change_statements, nonce }
     }
 
     protected static mapConditions(fields: { [key: string]: any }) {
@@ -137,6 +227,11 @@ export default class AccountService {
                     case 'addresses': {
                         return {
                             address: { $in: split(value, ',') }
+                        }
+                    }
+                    case 'type': {
+                        return {
+                            [key]: value.toUpperCase()
                         }
                     }
                     default: {
@@ -195,7 +290,7 @@ export default class AccountService {
                 return this.bindingAccountBalance(el)
             })
         )
-        return new QueryRO<IAccount>(totalCount, paginate.page_index, paginate.page_size, data)
+        return new QueryRO<IAccountRO>(totalCount, paginate.page_index, paginate.page_size, data)
     }
 
     static async withdraw(key: string, params: WithdrawDto, operator: IUser) {
@@ -226,7 +321,7 @@ export default class AccountService {
         return await this.initAccounts(MASTER_ACCOUNT_KEY, 'Master')
     }
 
-    static async mintMasterAccount(key: string, params: MintDto, options: { userKey: string; email: string }) {
+    static async mintMasterAccount(key: string, params: MintDto, operator: IOperator, options: IOptions) {
         const account = await AccountModel.findOne({ key }).select('-key_store -salt').exec()
         if (!account) {
             throw new BizException(AccountErrors.account_not_exists_error, new ErrorContext('account.master.service', 'mintMasterAccount', { key }))
@@ -241,16 +336,29 @@ export default class AccountService {
             type: params.type || 'MINT'
         })
 
-        // todo : mint log
         await new AdminLogModel({
-            operator: {
-                key: options.userKey,
-                email: options.email
-            },
+            operator,
             userKey: account.user_key,
             action: AdminLogsActions.MintMasterAccount,
             section: AdminLogsSections.Account
         }).save()
+
+        await AccountSnapshotService.createAccountSnapshot({
+            key: undefined,
+            user_key: account.user_key,
+            account_key: account.key,
+            symbol: account.symbol,
+            address: account.address,
+            type: AccountActionType.Mint,
+            amount: Number(params.amount),
+            pre_amount: data.recipient_wallet.pre_balance,
+            pre_amount_locked: account.amount_locked,
+            post_amount: data.recipient_wallet.post_balance,
+            post_amount_locked: account.amount_locked,
+            txn: data.key,
+            operator: operator,
+            options
+        })
 
         return data
     }
@@ -258,5 +366,30 @@ export default class AccountService {
     static async getAccountByUserKeyAndSymbol(user_key: string, symbol: string) {
         const account: IAccount | null = await AccountModel.findOne({ user_key, symbol })
         return await this.bindingAccountBalance(account)
+    }
+
+    static async lockAmount(key: string, amount: any) {
+        const data = await AccountModel.findOneAndUpdate(
+            { key: key },
+            {
+                $inc: { amount_locked: amount },
+                $set: { modified: new Date() }
+            },
+            { new: true }
+        )
+
+        return data
+    }
+
+    static async unlockAmount(key: string, amount: any) {
+        const data = await AccountModel.findOneAndUpdate(
+            { key: key },
+            {
+                $inc: { amount_locked: amount * -1 },
+                $set: { modified: new Date() }
+            },
+            { new: true }
+        )
+        return data
     }
 }
