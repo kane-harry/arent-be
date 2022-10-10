@@ -4,7 +4,7 @@ import { randomBytes } from 'crypto'
 import moment from 'moment'
 import { Model, model, Schema } from 'mongoose'
 import { IUser } from './user.interface'
-
+import humanId from 'human-id'
 // https://mongoosejs.com/docs/typescript/statics.html
 
 interface IUserModel extends Model<IUser> {
@@ -134,13 +134,19 @@ const _UserModel = model<IUser, IUserModel>(config.database.tables.users, userSc
 
 export default class UserModel extends _UserModel {
     public static async generateRandomChatName(name?: string) {
-        const hri = require('human-readable-ids').hri
-        let chatName: string = name ?? hri.random()
+        const options = {
+            adjectiveCount: 0,
+            addAdverb: false,
+            separator: '-',
+            capitalize: false
+        }
+
+        let chatName: string = name ?? humanId(options)
         const filter = { chat_name: chatName }
         let referenceInDatabase = await this.findOne(filter).select('key chat_name').exec()
 
         while (referenceInDatabase != null) {
-            chatName = hri.random()
+            chatName = humanId(options)
             filter.chat_name = chatName
             referenceInDatabase = await this.findOne(filter).select('key chat_name').exec()
         }
