@@ -4,7 +4,7 @@ import { randomBytes } from 'crypto'
 import moment from 'moment'
 import { Model, model, Schema } from 'mongoose'
 import { IUser } from './user.interface'
-// import { Config, names, NumberDictionary, uniqueNamesGenerator } from 'unique-names-generator'
+import { Config, names, NumberDictionary, uniqueNamesGenerator } from 'unique-names-generator'
 
 // https://mongoosejs.com/docs/typescript/statics.html
 
@@ -135,20 +135,20 @@ const _UserModel = model<IUser, IUserModel>(config.database.tables.users, userSc
 
 export default class UserModel extends _UserModel {
     public static async generateRandomChatName(name?: string) {
-        // const numberDictionary = NumberDictionary.generate({ min: 100, max: 999 })
-        // const customConfig: Config = {
-        //     dictionaries: [names, numberDictionary],
-        //     length: 2,
-        //     style: 'lowerCase'
-        // }
+        const numberDictionary = NumberDictionary.generate({ min: 100, max: 999 })
+        const customConfig: Config = {
+            dictionaries: [names, numberDictionary],
+            length: 2,
+            style: 'lowerCase'
+        }
 
-        // let chatName: string = name ?? uniqueNamesGenerator(customConfig)
-        const chatName: string = name ?? ''
+        let chatName: string = name ?? uniqueNamesGenerator(customConfig)
+        // const chatName: string = name ?? ''
         const filter = { chat_name: chatName }
         let referenceInDatabase = await this.findOne(filter).select('key chat_name').exec()
 
         while (referenceInDatabase != null) {
-            // chatName = uniqueNamesGenerator(customConfig)
+            chatName = uniqueNamesGenerator(customConfig)
             filter.chat_name = chatName
             referenceInDatabase = await this.findOne(filter).select('key chat_name').exec()
         }
