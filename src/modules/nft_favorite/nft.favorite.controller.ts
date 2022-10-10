@@ -6,6 +6,9 @@ import { NftFavoriteRO, UserFavoriteRO } from '@modules/nft_favorite/nft.favorit
 import UserModel from '@modules/user/user.model'
 import { NftModel } from '@modules/nft/nft.model'
 import { CollectionModel } from '@modules/collection/collection.model'
+import NftService from '@modules/nft/nft.service'
+import CollectionService from '@modules/collection/collection.service'
+import UserService from '@modules/user/user.service'
 
 export default class NftFavoriteController {
     static async likeNft(req: AuthenticationRequest, res: Response) {
@@ -35,19 +38,27 @@ export default class NftFavoriteController {
         filter.nft_key = key
         const data = await NftFavoriteService.getFavorites(filter)
         const userKeys = data.items.map(item => item.user_key)
-        const users = await UserModel.find({ key: { $in: userKeys } })
+        const users = await UserService.getBriefByKeys(userKeys)
         return res.json(new NftFavoriteRO(data, users))
     }
 
-    static async getUserFavorite(req: CustomRequest, res: Response) {
+    static async getUserFaveNfts(req: CustomRequest, res: Response) {
         const { key } = req.params
         const filter = req.query as INftFavoriteFilter
         filter.user_key = key
         const data = await NftFavoriteService.getFavorites(filter)
         const nftKeys = data.items.map(item => item.nft_key)
-        const nfts = await NftModel.find({ key: { $in: nftKeys } })
+        const nfts = await NftService.getNftBriefByKeys(nftKeys)
+
         const collectionKeys = data.items.map(item => item.collection_key)
-        const collections = await CollectionModel.find({ key: { $in: collectionKeys } })
-        return res.json(new UserFavoriteRO(data, nfts, collections))
+        const collections = await CollectionService.getCollectionBriefByKeys(collectionKeys)
+        const result = new UserFavoriteRO(data, nfts, collections)
+        return res.json(result)
+    }
+
+    static async getUserFaveNftKeys(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const data = await NftFavoriteService.getUserFaveNftKeys(key)
+        return res.json(data)
     }
 }

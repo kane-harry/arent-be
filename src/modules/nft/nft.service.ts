@@ -1025,4 +1025,9 @@ export default class NftService {
         const nfts = await NftModel.find(filter).sort({ collection_key: 1, created: -1 }).limit(limit)
         return nfts
     }
+
+    static async getNftBriefByKeys(keys: String[]) {
+        const nfts = await NftModel.find({ key: { $in: keys } }).select('key name image animation collection_key price')
+        return nfts
+    }
 }

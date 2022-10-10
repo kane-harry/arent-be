@@ -1075,4 +1075,9 @@ export default class UserService extends AuthService {
         user.set('featured', updateFeaturedDto.featured ?? user.featured, Boolean)
         return await user.save()
     }
+
+    static async getBriefByKeys(userKeys: String[], includeEmail = false) {
+        const nfts = await UserModel.getBriefByKeys(userKeys, includeEmail)
+        return nfts
+    }
 }

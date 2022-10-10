@@ -292,4 +292,9 @@ export default class CollectionService {
         await collection.save()
         return analytics
     }
+
+    static async getCollectionBriefByKeys(keys: String[]) {
+        const items = await CollectionModel.find({ key: { $in: keys } }).select('key name logo')
+        return items
+    }
 }

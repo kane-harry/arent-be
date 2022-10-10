@@ -17,7 +17,8 @@ export default class NftFavoriteRouter implements ICustomRouter {
         this.router.delete(`${this.path}/nfts/:key/like`, requireAuth, asyncHandler(NftFavoriteController.unlikeNft))
         this.router.get(`${this.path}/nfts/:key/like`, requireAuth, asyncHandler(NftFavoriteController.getMyNftLikes))
 
-        this.router.get(`${this.path}/nfts/:key/users/liked`, requireAuth, asyncHandler(NftFavoriteController.getNftFavorite))
-        this.router.get(`${this.path}/users/:key/nfts/liked`, requireAuth, asyncHandler(NftFavoriteController.getUserFavorite))
+        this.router.get(`${this.path}/nfts/:key/users/liked`, asyncHandler(NftFavoriteController.getNftFavorite))
+        this.router.get(`${this.path}/users/:key/nfts/fave/briefs`, requireAuth, asyncHandler(NftFavoriteController.getUserFaveNfts))
+        this.router.get(`${this.path}/users/:key/nfts/fave/keys`, requireAuth, asyncHandler(NftFavoriteController.getUserFaveNftKeys))
     }
 }
