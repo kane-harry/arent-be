@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha -r ts-node/register -r tsconfig-paths/register --transpile-only --exit",
     "dev": "nodemon src/server.ts",
-    "start": "npm run build && node ./dist/server.js",
+    "start": "rm -rf dist && npm run build && node ./dist/server.js",
     "start:nodemon": "nodemon src/server.ts",
     "build": "npx tsc -p . && npx tsc-alias",
     "prepare": "husky install",
