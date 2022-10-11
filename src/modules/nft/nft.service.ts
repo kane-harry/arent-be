@@ -4,7 +4,6 @@ import {
     ImportNftDto,
     MakeOfferDto,
     NftOnMarketDto,
-    NftRO,
     UpdateNftDto,
     UpdateNftFeaturedDto,
     UpdateNftStatusDto
@@ -12,14 +11,13 @@ import {
 import { NftBidLogModel, NftImportLogModel, NftModel, NftOfferModel, NftOwnershipLogModel, NftSaleLogModel } from './nft.model'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
-import { ILastPurchase, INft, INftBidLog, INftFilter, INftOffer, INftOwnershipLog, INftSaleLog } from '@modules/nft/nft.interface'
+import { INft, INftBidLog, INftFilter, INftOffer, INftOwnershipLog, INftSaleLog } from '@modules/nft/nft.interface'
 import BizException from '@exceptions/biz.exception'
 import { AccountErrors, AuthErrors, CollectionErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { isAdmin, roleCan } from '@config/role'
 import UserService from '@modules/user/user.service'
 import {
-    MASTER_ACCOUNT_KEY,
     NFT_IMAGE_SIZES,
     NftActions,
     NftOnwerShipType,
@@ -32,7 +30,7 @@ import {
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
-import { filter, isEmpty, shuffle } from 'lodash'
+import { filter } from 'lodash'
 import UserModel from '@modules/user/user.model'
 import AccountService from '@modules/account/account.service'
 import { config } from '@config'
@@ -44,7 +42,6 @@ import IOptions from '@interfaces/options.interface'
 import NftTradingService from './nft.trading.service'
 import AccountSnapshotService from '@modules/account/account.snapshot.service'
 import { IOperator } from '@interfaces/operator.interface'
-import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
 import moment from 'moment'
 import NftHelper from './nft.helper'
 
@@ -415,6 +412,7 @@ export default class NftService {
             if (nft.price_type !== NftPriceType.Fixed) {
                 throw new BizException(NftErrors.purchase_auction_nft_error, new ErrorContext('nft.service', 'buyNft', { key }))
             }
+            const creator = await UserService.getBriefByKey(nft.creator_key, true)
             const seller = await UserService.getBriefByKey(nft.owner_key, true)
             const buyer = await UserService.getBriefByKey(operator.key, true)
 
@@ -470,6 +468,7 @@ export default class NftService {
                 commission_fee: commissionFee,
                 royalty_fee: royaltyFee,
                 quantity: 1,
+                creator: { key: creator.key, avatar: creator.avatar, chat_name: creator.chat_name },
                 seller: { key: seller.key, avatar: seller.avatar, chat_name: seller.chat_name },
                 buyer: { key: buyer.key, avatar: buyer.avatar, chat_name: buyer.chat_name },
                 secondary_market: nft.creator_key !== nft.owner_key,
@@ -952,7 +951,7 @@ export default class NftService {
                     new ErrorContext('nft.service', 'acceptOffer', { key, owner_key: nft.owner_key })
                 )
             }
-
+            const creator = await UserService.getBriefByKey(nft.creator_key, true)
             const seller = await UserService.getBriefByKey(nft.owner_key, true)
             const buyer = await UserService.getBriefByKey(offer.user_key, true)
 
@@ -1010,6 +1009,7 @@ export default class NftService {
                 commission_fee: commissionFee,
                 royalty_fee: royaltyFee,
                 quantity: 1,
+                creator: { key: creator.key, avatar: creator.avatar, chat_name: creator.chat_name },
                 seller: { key: seller.key, avatar: seller.avatar, chat_name: seller.chat_name },
                 buyer: { key: buyer.key, avatar: buyer.avatar, chat_name: buyer.chat_name },
                 secondary_market: nft.creator_key !== nft.owner_key,

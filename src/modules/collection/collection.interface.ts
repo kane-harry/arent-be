@@ -2,7 +2,17 @@ import { CollectionType } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
 import IFilterModel from '@interfaces/filter.model.interface'
 
-export interface ICollectionStats {}
+export interface ICollectionRanking {
+    market_price: Number
+    number_of_owners: Number
+    trading_volume: Number
+    number_of_orders: Number
+    trading_volume_24hrs: Number
+    number_of_orders_24hrs: Number
+    number_of_items: Number
+    floor_price: Number
+    updated: Date
+}
 
 export interface ICollection extends IBaseModel {
     name: string
@@ -21,7 +31,7 @@ export interface ICollection extends IBaseModel {
     discord: string
     instagram: string
     twitter: string
-    stats?: ICollectionStats
+    ranking?: ICollectionRanking
 }
 
 export interface ICollectionFilter extends IFilterModel {

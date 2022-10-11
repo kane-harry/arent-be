@@ -1,4 +1,4 @@
-import { Response } from 'express'
+import { Request, Response } from 'express'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { INftFavoriteFilter } from '@modules/nft_favorite/nft.favorite.interface'
 import NftFavoriteService from '@modules/nft_favorite/nft.favorite.service'

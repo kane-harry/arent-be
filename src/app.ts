@@ -13,9 +13,10 @@ import { config } from '@config'
 import SettingService from '@modules/setting/setting.service'
 import swaggerUI from 'swagger-ui-express'
 import { openApiV1Documents } from '@docs/openApiGenerator'
+import ICustomRouter from '@interfaces/custom.router.interface'
 import RateScheduler from '@modules/jobs/rate.schedule'
 import NftScheduler from '@modules/jobs/nft.scheduler'
-import ICustomRouter from '@interfaces/custom.router.interface'
+import RankingScheduler from '@modules/jobs/ranking.scheduler'
 
 class App {
     public app: express.Application
@@ -88,7 +89,7 @@ class App {
     }
 
     private initSchedulers() {
-        return [new RateScheduler(), new NftScheduler()]
+        return [new RateScheduler(), new NftScheduler(), new RankingScheduler()]
     }
 }
 

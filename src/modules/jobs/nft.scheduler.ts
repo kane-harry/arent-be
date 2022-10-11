@@ -50,6 +50,7 @@ export default class NftScheduler implements IScheduler {
                 return
             }
             const topBid: ITopBid = nft.top_bid
+            const creator = await UserService.getBriefByKey(nft.creator_key, false)
             const seller = await UserService.getBriefByKey(nft.owner_key, true)
             const buyer = await UserService.getBriefByKey(topBid.user_key, true)
 
@@ -128,6 +129,7 @@ export default class NftScheduler implements IScheduler {
                 commission_fee: commissionFee,
                 royalty_fee: royaltyFee,
                 quantity: 1,
+                creator: { key: creator.key, avatar: creator.avatar, chat_name: creator.chat_name },
                 seller: { key: seller.key, avatar: seller.avatar, chat_name: seller.chat_name },
                 buyer: { key: buyer.key, avatar: buyer.avatar, chat_name: buyer.chat_name },
                 secondary_market: nft.creator_key !== nft.owner_key,

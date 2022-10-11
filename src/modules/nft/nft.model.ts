@@ -57,8 +57,8 @@ const nftSchema = new Schema<INft>(
                 delete ret._id
                 delete ret.id
                 delete ret.version
-                ret.price = parseFloat(ret.price)
-                ret.royalty = parseFloat(ret.royalty)
+                ret.price = parseFloat(ret.price.toString())
+                ret.royalty = parseFloat(ret.royalty.toString())
                 return ret
             }
         },
@@ -172,6 +172,7 @@ const nftSaleLogSchema = new Schema<INftSaleLog>(
         commission_fee: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         royalty_fee: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         quantity: Number,
+        creator: Object,
         seller: Object,
         buyer: Object,
         secondary_market: Boolean,

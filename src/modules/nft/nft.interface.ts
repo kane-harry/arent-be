@@ -93,6 +93,7 @@ export interface INftSaleLog extends IBaseModel {
     commission_fee: number | Types.Decimal128
     royalty_fee: number | Types.Decimal128
     quantity: number
+    creator: object | undefined
     seller: object | undefined
     buyer: object | undefined
     secondary_market: Boolean

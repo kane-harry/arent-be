@@ -25,13 +25,13 @@ const collectionSchema = new Schema<ICollection>(
         type: { type: String, enum: CollectionType, default: CollectionType.Normal },
         attributes: { type: [Object], default: [] },
         items_count: Number,
-        stats: Object,
         analytics: { type: Object, default: null },
         featured: { type: Boolean, default: false },
         website: String,
         discord: String,
         instagram: String,
         twitter: String,
+        ranking: { type: Object, default: null },
         removed: { type: Boolean, default: false }
     },
     {
