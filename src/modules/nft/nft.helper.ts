@@ -1,6 +1,7 @@
 import CollectionService from '@modules/collection/collection.service'
 import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
 import UserService from '@modules/user/user.service'
+import { find, uniq } from 'lodash'
 import { INft } from './nft.interface'
 import { NftOwnershipLogModel } from './nft.model'
 
@@ -18,6 +19,7 @@ export default class NftHelper {
             description: nft.description,
             price: Number(nft.price),
             royalty: Number(nft.royalty),
+            tags: nft.tags,
             animation: nft.animation,
             image: nft.image,
             type: nft.type,
@@ -47,6 +49,58 @@ export default class NftHelper {
         if (requestUserKey) {
             result.liked = (await NftFavoriteModel.count({ nft_key: nft.key, user_key: requestUserKey })) > 0
         }
+        return result
+    }
+
+    static async formatNftListRO(nfts: INft[]) {
+        const owner_keys = nfts.map(p => p.owner_key)
+        const creator_keys = nfts.map(p => p.creator_key)
+        const reviewer_keys = nfts.map(p => {
+            return p.reviewer_key ?? 'x'
+        })
+        const user_keys = uniq(owner_keys.concat(creator_keys, reviewer_keys))
+        const users = await UserService.getBriefByKeys(user_keys)
+
+        const collection_keys = nfts.map(p => p.collection_key ?? 'x')
+        const collections = await CollectionService.getCollectionBriefByKeys(collection_keys)
+
+        const result = nfts.map(nft => {
+            const creator = find(users, { key: nft.creator_key })
+            const owner = find(users, { key: nft.owner_key })
+            const reviewer = find(users, { key: nft.reviewer_key })
+            const collection = find(collections, { key: nft.collection_key })
+            return {
+                key: nft.key,
+                name: nft.name,
+                description: nft.description,
+                price: Number(nft.price),
+                royalty: Number(nft.royalty),
+                tags: nft.tags,
+                animation: nft.animation,
+                image: nft.image,
+                type: nft.type,
+                price_type: nft.price_type,
+                auction_start: nft.auction_start,
+                auction_end: nft.auction_end,
+                num_sales: nft.num_sales,
+                quantity: nft.quantity,
+                creator,
+                owner,
+                attributes: nft.attributes,
+                on_market: nft.on_market,
+                listing_date: nft.listing_date,
+                last_sale_date: nft.last_sale_date,
+                token_id: nft.token_id,
+                status: nft.status,
+                is_presale: nft.is_presale,
+                featured: nft.featured,
+                number_of_likes: nft.number_of_likes,
+                top_bid: nft.top_bid,
+                last_purchase: nft.last_purchase,
+                reviewer,
+                collection
+            }
+        })
         return result
     }
 }

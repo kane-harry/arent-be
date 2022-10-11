@@ -98,7 +98,7 @@ export default class NftScheduler implements IScheduler {
                 date: new Date()
             }
 
-            const updateData: any = { owner_key: buyer.key, on_market: false, last_purchase }
+            const updateData: any = { owner_key: buyer.key, on_market: false, last_sale_date: new Date(), last_purchase }
 
             const data = await NftModel.findOneAndUpdate(
                 { key: nft.key },

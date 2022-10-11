@@ -19,41 +19,40 @@ export default class ArticleService {
     }
 
     static async createArticle(params: ArticleDto, files: any, operator: IOperator) {
-        // if (!files || !files.find((item: any) => item.fieldname === 'cover_image')) {
-        //     throw new BizException(ArticleErrors.cover_image_required_error, new ErrorContext('article.service', 'createArticle', {}))
-        // }
-        // files = await resizeImages(files, { cover_image: ARTICLE_COVER_IMAGE_SIZES })
-        // const assets = await uploadFiles(files, 'articles')
+        if (!files || !files.find((item: any) => item.fieldname === 'cover_image')) {
+            throw new BizException(ArticleErrors.cover_image_required_error, new ErrorContext('article.service', 'createArticle', {}))
+        }
+        files = await resizeImages(files, { cover_image: ARTICLE_COVER_IMAGE_SIZES })
+        const assets = await uploadFiles(files, 'articles')
 
-        // const images = filter(assets, asset => {
-        //     return asset.fieldname === 'cover_image'
-        // })
-        // const originalImg = images.find(item => item.type === 'original')
-        // const largeImg = images.find(item => item.type === 'large')
-        // const mediumImg = images.find(item => item.type === 'medium')
-        // const smallImg = images.find(item => item.type === 'small')
-        // const cover_image = {
-        //     original: originalImg?.key,
-        //     large: largeImg?.key,
-        //     medium: mediumImg?.key,
-        //     small: smallImg?.key
-        // }
-        // const articleEntity = {
-        //     key: undefined,
-        //     nav_key: await ArticleModel.generateNavKey(params.title),
-        //     title: params.title,
-        //     tags: params.tags,
-        //     type: params.type as ArticleType,
-        //     short_description: params.short_description,
-        //     content: params.content,
-        //     cover_image: cover_image,
-        //     author_key: operator.key,
-        //     editor_key: operator.key
-        // } as IArticle
-        // const model = new ArticleModel(articleEntity)
-        // const article = await model.save()
-        // return article
-        return {}
+        const images = filter(assets, asset => {
+            return asset.fieldname === 'cover_image'
+        })
+        const originalImg = images.find(item => item.type === 'original')
+        const largeImg = images.find(item => item.type === 'large')
+        const mediumImg = images.find(item => item.type === 'medium')
+        const smallImg = images.find(item => item.type === 'small')
+        const cover_image = {
+            original: originalImg?.key,
+            large: largeImg?.key,
+            medium: mediumImg?.key,
+            small: smallImg?.key
+        }
+        const articleEntity = {
+            key: undefined,
+            nav_key: await ArticleModel.generateNavKey(params.title),
+            title: params.title,
+            tags: params.tags,
+            type: params.type as ArticleType,
+            short_description: params.short_description,
+            content: params.content,
+            cover_image: cover_image,
+            author_key: operator.key,
+            editor_key: operator.key
+        } as IArticle
+        const model = new ArticleModel(articleEntity)
+        const article = await model.save()
+        return article
     }
 
     static async updateArticle(key: string, params: ArticleDto, files: any, operator: IOperator) {

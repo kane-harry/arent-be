@@ -32,7 +32,7 @@ import {
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
-import { filter, shuffle } from 'lodash'
+import { filter, isEmpty, shuffle } from 'lodash'
 import UserModel from '@modules/user/user.model'
 import AccountService from '@modules/account/account.service'
 import { config } from '@config'
@@ -115,7 +115,6 @@ export default class NftService {
         })
         const nft = await model.save()
         await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: 1 } }, { new: true }).exec()
-
         // create log
         await new NftHistoryModel({
             key: undefined,
@@ -139,7 +138,7 @@ export default class NftService {
             type: NftOnwerShipType.Mint
         })
 
-        return nft
+        return NftHelper.formatNftRO(nft)
     }
 
     static async queryNfts(params: INftFilter) {
@@ -179,8 +178,10 @@ export default class NftService {
             sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1
         }
         const totalCount = await NftModel.countDocuments(filter)
-        const items = await NftModel.find<INft>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
-        return new QueryRO<INft>(totalCount, params.page_index, params.page_size, items)
+        const nfts = await NftModel.find<INft>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
+
+        const items = await NftHelper.formatNftListRO(nfts)
+        return new QueryRO(totalCount, params.page_index, params.page_size, items)
     }
 
     static async updateNft(key: string, params: UpdateNftDto, files: any, operator: IOperator, options: IOptions) {
@@ -227,7 +228,7 @@ export default class NftService {
         nft.set('collection_key', params.collection_key ?? nft.collection_key, String)
         nft.set('quantity', params.quantity ?? nft.quantity, Number)
 
-        const updateNft = await nft.save()
+        const updatedNft = await nft.save()
 
         // create log
         await new NftHistoryModel({
@@ -237,10 +238,10 @@ export default class NftService {
             action: NftActions.Update,
             options: options,
             pre_data: preNft.toJSON(),
-            post_data: updateNft.toJSON()
+            post_data: updatedNft.toJSON()
         }).save()
 
-        return updateNft
+        return NftHelper.formatNftRO(updatedNft)
     }
 
     static async updateNftStatus(key: string, updateNftStatusDto: UpdateNftStatusDto, operator: IOperator, options: IOptions) {
@@ -251,7 +252,7 @@ export default class NftService {
         const preNft = nft
         nft.set('status', updateNftStatusDto.status, String)
         nft.set('reviewer_key', operator.key, String)
-        const updateNft = await nft.save()
+        const updatedNft = await nft.save()
 
         // create log
         await new NftHistoryModel({
@@ -261,10 +262,10 @@ export default class NftService {
             operator: operator,
             options: options,
             pre_data: { status: preNft.status },
-            post_data: { status: updateNft.status }
+            post_data: { status: updatedNft.status }
         }).save()
 
-        return updateNft
+        return NftHelper.formatNftRO(updatedNft)
     }
 
     static async deleteNft(key: string, operator: IOperator, options: IOptions) {
@@ -293,7 +294,7 @@ export default class NftService {
             post_data: updateNft.toJSON()
         }).save()
 
-        return updateNft
+        return { success: true }
     }
 
     static async getNftDetail(key: string, userKey?: string) {
@@ -340,6 +341,7 @@ export default class NftService {
         }
         nft.set('price_type', params.price_type)
         nft.set('on_market', true)
+        nft.set('listing_date', new Date())
 
         const postData = await nft.save()
         await new NftHistoryModel({
@@ -352,7 +354,7 @@ export default class NftService {
             post_data: postData?.toJSON()
         }).save()
 
-        return postData
+        return NftHelper.formatNftRO(postData)
     }
 
     static async offMarket(key: string, operator: IOperator, options: IOptions) {
@@ -379,7 +381,7 @@ export default class NftService {
             post_data: postData?.toJSON()
         }).save()
 
-        return postData
+        return NftHelper.formatNftRO(postData)
     }
 
     static async processPurchase(key: string, operator: IOperator, options: IOptions) {
@@ -438,7 +440,7 @@ export default class NftService {
                 type: NftPurchaseType.Normal,
                 date: new Date()
             }
-            const updateData: any = { owner_key: buyer.key, on_market: false, last_purchase }
+            const updateData: any = { owner_key: buyer.key, on_market: false, last_sale_date: new Date(), last_purchase }
 
             const data = await NftModel.findOneAndUpdate(
                 { key: key },
@@ -649,7 +651,7 @@ export default class NftService {
             })
 
             session.endSession()
-            return nft
+            return NftHelper.formatNftRO(nft)
         } catch (error) {
             await session.abortTransaction()
             session.endSession()
@@ -978,7 +980,7 @@ export default class NftService {
                 date: new Date()
             }
 
-            const updateData: any = { owner_key: buyer.key, on_market: false, last_purchase }
+            const updateData: any = { owner_key: buyer.key, on_market: false, last_sale_date: new Date(), last_purchase }
 
             const data = await NftModel.findOneAndUpdate(
                 { key: nft.key },
@@ -1065,7 +1067,7 @@ export default class NftService {
         const preNft = nft
         nft.set('featured', updateNftFeaturedDto.featured ?? nft.featured, Boolean)
 
-        const updateNft = await nft.save()
+        const updatedNft = await nft.save()
 
         // create log
         await new NftHistoryModel({
@@ -1075,10 +1077,10 @@ export default class NftService {
             operator: operator,
             options: options,
             pre_data: { featured: preNft.featured },
-            post_data: { featured: updateNft.featured }
+            post_data: { featured: updatedNft.featured }
         }).save()
 
-        return updateNft
+        return NftHelper.formatNftRO(updatedNft)
     }
 
     static async getRelatedNfts(key: string, limit: number) {
@@ -1096,7 +1098,7 @@ export default class NftService {
         }
 
         const nfts = await NftModel.find(filter).sort({ collection_key: 1, created: -1 }).limit(limit)
-        return nfts
+        return NftHelper.formatNftListRO(nfts)
     }
 
     static async getNftBriefByKeys(keys: String[]) {
