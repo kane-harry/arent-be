@@ -1,4 +1,4 @@
-import { ARTICLE_COVER_IMAGE_SIZES } from '@config/constants'
+import { ArticleType, ARTICLE_COVER_IMAGE_SIZES } from '@config/constants'
 import { ArticleDto, ArticleRO } from './article.dto'
 import BizException from '@exceptions/biz.exception'
 import { ArticleErrors, AuthErrors } from '@exceptions/custom.error'
@@ -43,7 +43,7 @@ export default class ArticleService {
             nav_key: await ArticleModel.generateNavKey(params.title),
             title: params.title,
             tags: params.tags,
-            type: params.type,
+            type: params.type as ArticleType,
             short_description: params.short_description,
             content: params.content,
             cover_image: cover_image,
