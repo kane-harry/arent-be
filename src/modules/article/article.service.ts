@@ -38,7 +38,7 @@ export default class ArticleService {
             medium: mediumImg?.key,
             small: smallImg?.key
         }
-        const model = new ArticleModel({
+        const articleEntity = {
             key: undefined,
             nav_key: await ArticleModel.generateNavKey(params.title),
             title: params.title,
@@ -49,7 +49,8 @@ export default class ArticleService {
             cover_image: cover_image,
             author_key: operator.key,
             editor_key: operator.key
-        })
+        } as IArticle
+        const model = new ArticleModel(articleEntity)
         const article = await model.save()
         return article
     }
