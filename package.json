@@ -90,6 +90,7 @@
     "passport-jwt": "^4.0.0",
     "randomstring": "^1.2.2",
     "round10": "^1.0.3",
+    "sharp": "^0.30.4",
     "shortid": "^2.2.16",
     "sinon": "^13.0.2",
     "source-map-support": "^0.5.21",
