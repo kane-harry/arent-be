@@ -1,5 +1,5 @@
 import { map } from 'lodash'
-import { IsString, IsEnum, IsOptional } from 'class-validator'
+import { IsString, IsEnum, IsOptional, IsNotEmpty } from 'class-validator'
 import { CodeType } from '@config/constants'
 
 const verificationCodeSupported = [
@@ -17,13 +17,15 @@ export class CreateCodeDto {
     public code_type: CodeType
 
     @IsString()
+    @IsNotEmpty()
     public owner: string
 
     @IsOptional()
-    public user_key?: string | undefined
+    public user_key?: string
 }
 
 export class VerifyCodeDto extends CreateCodeDto {
     @IsString()
+    @IsNotEmpty()
     public code: string
 }

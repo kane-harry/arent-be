@@ -2,6 +2,7 @@ import { Schema, model } from 'mongoose'
 import { randomBytes } from 'crypto'
 import { IArticle } from './article.interface'
 import { ArticleType } from '@config/constants'
+import { generateRandomCode } from '@utils/utility'
 
 const articleSchema = new Schema<IArticle>(
     {
@@ -14,6 +15,7 @@ const articleSchema = new Schema<IArticle>(
                 return randomBytes(8).toString('hex')
             }
         },
+        nav_key: String,
         title: String,
         tags: String,
         type: {
@@ -43,6 +45,21 @@ const articleSchema = new Schema<IArticle>(
     }
 )
 
-const ArticleModel = model<IArticle>('articles', articleSchema)
+const _ArticleModel = model<IArticle>('articles', articleSchema)
+
+class ArticleModel extends _ArticleModel {
+    public static async generateNavKey(name: string) {
+        let nav_key: string = name.toLowerCase().split(' ').join('-')
+        const filter = { nav_key: nav_key }
+        let referenceInDatabase = await this.findOne(filter).select('key nav_key').exec()
+
+        while (referenceInDatabase != null) {
+            nav_key = nav_key + '-' + generateRandomCode(2, 4, true).toLowerCase()
+            filter.nav_key = nav_key
+            referenceInDatabase = await this.findOne(filter).select('key nav_key').exec()
+        }
+        return nav_key
+    }
+}
 
 export default ArticleModel

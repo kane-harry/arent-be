@@ -1,4 +1,5 @@
 import { config } from '@config'
+import { CollectionType } from '@config/constants'
 import { randomBytes } from 'crypto'
 import { Schema, model } from 'mongoose'
 import { ICollection } from './collection.interface'
@@ -21,8 +22,10 @@ const collectionSchema = new Schema<ICollection>(
         owner_key: String,
         logo: { type: Object, default: null },
         background: { type: Object, default: null },
-        type: { type: String, default: 'normal' },
+        type: { type: String, enum: CollectionType, default: CollectionType.Normal },
+        attributes: { type: [Object], default: [] },
         items_count: Number,
+        stats: Object,
         analytics: { type: Object, default: null },
         featured: { type: Boolean, default: false },
         website: String,

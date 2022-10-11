@@ -1,6 +1,5 @@
 import { ARTICLE_COVER_IMAGE_SIZES } from '@config/constants'
 import { ArticleDto, ArticleRO } from './article.dto'
-import { IUser } from '@modules/user/user.interface'
 import BizException from '@exceptions/biz.exception'
 import { ArticleErrors, AuthErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
@@ -41,7 +40,12 @@ export default class ArticleService {
         }
         const model = new ArticleModel({
             key: undefined,
-            ...params,
+            nav_key: await ArticleModel.generateNavKey(params.title),
+            title: params.title,
+            tags: params.tags,
+            type: params.type,
+            short_description: params.short_description,
+            content: params.content,
             cover_image: cover_image,
             author_key: operator.key,
             editor_key: operator.key
@@ -51,7 +55,7 @@ export default class ArticleService {
     }
 
     static async updateArticle(key: string, params: ArticleDto, files: any, operator: IOperator) {
-        const article = await ArticleModel.findOne({ key })
+        const article = await ArticleModel.findOne({ removed: false, $or: [{ key }, { nav_key: key }] })
         if (!article) {
             throw new BizException(ArticleErrors.item_not_found_error, new ErrorContext('article.service', 'updateArticle', { key }))
         }
@@ -89,7 +93,7 @@ export default class ArticleService {
     }
 
     static async deleteArticle(key: string, operator: IOperator) {
-        const article = await ArticleModel.findOne({ key })
+        const article = await ArticleModel.findOne({ $or: [{ key }, { nav_key: key }] })
         if (!article) {
             throw new BizException(ArticleErrors.item_not_found_error, new ErrorContext('article.service', 'deleteArticle', { key }))
         }
@@ -101,9 +105,9 @@ export default class ArticleService {
     }
 
     static async getArticleDetail(key: string) {
-        const article = await ArticleModel.findOne({ key, removed: false })
+        const article = await ArticleModel.findOne({ $or: [{ key }, { nav_key: key }], removed: false })
         if (article) {
-            const author = await UserModel.findOne<IUser>({ key: article.author_key })
+            const author = await UserModel.getBriefByKey(article.author_key, false)
             return new ArticleRO(article, author)
         }
         return article

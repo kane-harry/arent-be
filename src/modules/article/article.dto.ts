@@ -15,7 +15,7 @@ export class ArticleDto {
     @IsEnum(ArticleType, {
         message: `Article type must be one of ${map(ArticleType, el => el).join(' ')}`
     })
-    public type: string
+    public type: ArticleType
 
     @IsNotEmpty()
     public short_description: string
@@ -25,12 +25,12 @@ export class ArticleDto {
 }
 
 export class ArticleRO {
-    key: string | undefined
+    key?: string
     title: string
-    tags: string | undefined
+    tags?: string
     type: string
-    short_description: string
-    cover_image: object | undefined
+    short_description?: string
+    cover_image?: object
     content: string
     author: object
     created: Date

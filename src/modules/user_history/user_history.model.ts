@@ -18,16 +18,8 @@ const userHistorySchema = new Schema<IUserHistory>(
             type: String,
             required: true
         },
-        ip_address: {
-            type: String,
-            required: true
-        },
-        country: {
-            type: String
-        },
-        agent: {
-            type: String
-        },
+        operator: Object,
+        options: Object,
         action: {
             type: String,
             required: true

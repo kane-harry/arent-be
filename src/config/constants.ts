@@ -74,6 +74,7 @@ export enum AdminLogsActions {
     UnlockUser = 'UnlockUser',
     RemoveUser = 'RemoveUser',
     ResetTOPTUser = 'ResetTOPTUser',
+    UpdateUserStatus = 'UpdateUserStatus',
     UpdateRoleUser = 'UpdateRoleUser',
     MintMasterAccount = 'MintMasterAccount',
     ResetCredentialsUser = 'ResetCredentialsUser'
@@ -173,6 +174,17 @@ export enum UserAuthType {
 export enum NftPriceType {
     Fixed = 'fixed',
     Auction = 'auction'
+}
+export enum NftPurchaseType {
+    Normal = 'Normal',
+    Auction = 'Auction',
+    Offer = 'Offer'
+}
+
+export enum CollectionType {
+    Default = 'Default',
+    Normal = 'Normal',
+    AutoCreated = 'AutoCreated'
 }
 
 export enum AccountActionType {

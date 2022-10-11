@@ -4,7 +4,6 @@ import cors from 'cors'
 import helmet from 'helmet'
 import mongoose from 'mongoose'
 
-import IController from '@interfaces/controller.interface'
 import errorMiddleware from '@middlewares/error.middleware'
 import requestMiddleware from '@middlewares/request.middleware'
 // import loggerMiddleware from '@middlewares/logger.middleware';

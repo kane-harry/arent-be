@@ -1,5 +1,8 @@
+import { CollectionType } from '@config/constants'
 import IBaseModel from '@interfaces/base.model.interface'
 import IFilterModel from '@interfaces/filter.model.interface'
+
+export interface ICollectionStats {}
 
 export interface ICollection extends IBaseModel {
     name: string
@@ -9,7 +12,8 @@ export interface ICollection extends IBaseModel {
     owner_key: string
     logo: object
     background: object
-    type: string
+    type: CollectionType
+    attributes?: []
     items_count: number
     featured: boolean
     analytics: object
@@ -17,6 +21,7 @@ export interface ICollection extends IBaseModel {
     discord: string
     instagram: string
     twitter: string
+    stats?: ICollectionStats
 }
 
 export interface ICollectionFilter extends IFilterModel {

@@ -1,4 +1,5 @@
 import { config } from '@config'
+import { NftPriceType, NftStatus, NftType } from '@config/constants'
 import { randomBytes } from 'crypto'
 import { model, Schema, Types } from 'mongoose'
 import { INft, INftBidLog, INftImportLog, INftOwnershipLog, INftSaleLog, INftOffer } from './nft.interface'
@@ -11,38 +12,41 @@ const nftSchema = new Schema<INft>(
             index: true,
             unique: true,
             default: () => {
-                return randomBytes(16).toString('hex')
+                return randomBytes(8).toString('hex')
             }
         },
         name: String,
+        tags: String,
         description: String,
         platform: { type: String, default: config.system.nftDefaultPlatform },
         external_link: String,
         collection_key: String,
         price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         royalty: { type: Types.Decimal128, default: new Types.Decimal128('0') },
-        currency: String,
+        currency: { type: String, default: config.system.primeToken },
         meta_data: { type: [Object], default: [] },
         animation: { type: Object, default: null },
         image: { type: Object, default: null },
-        type: { type: String, default: 'erc721' },
-        price_type: { type: String, default: 'fixed' },
-        auction_start: Number,
-        auction_end: Number,
-        num_sales: Number,
-        quantity: Number,
+        type: { type: String, enum: NftType, default: NftType.ERC721 },
+        price_type: { type: String, enum: NftPriceType, default: NftPriceType.Fixed },
+        auction_start: { type: Number, default: 0 },
+        auction_end: { type: Number, default: 0 },
+        num_sales: { type: Number, default: 0 },
+        quantity: { type: Number, default: 1 },
         creator_key: String,
         owner_key: String,
         attributes: { type: [Object], default: [] },
-        on_market: Boolean,
+        on_market: { type: Boolean, default: false },
         listing_date: { type: Date, default: null },
-        last_sale: { type: Date, default: null },
+        last_sale_date: { type: Date, default: null },
         token_id: String,
-        status: String,
-        is_presale: Boolean,
-        featured: Boolean,
-        number_of_likes: Number,
+        status: { type: String, enum: NftStatus, default: NftStatus.Pending },
+        is_presale: { type: Boolean, default: false },
+        featured: { type: Boolean, default: false },
+        number_of_likes: { type: Number, default: 0 },
         top_bid: { type: Object, default: null },
+        last_purchase: { type: Object, default: null },
+        reviewer_key: String,
         removed: { type: Boolean, default: false }
     },
     {
@@ -52,8 +56,9 @@ const nftSchema = new Schema<INft>(
             transform: (doc, ret) => {
                 delete ret._id
                 delete ret.id
-                ret.price = ret.price.toString()
-                ret.royalty = ret.royalty.toString()
+                delete ret.version
+                ret.price = parseFloat(ret.price)
+                ret.royalty = parseFloat(ret.royalty)
                 return ret
             }
         },

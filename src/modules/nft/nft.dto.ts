@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional } from 'class-validator'
-import { NftPriceType } from '@config/constants'
+import { NftPriceType, NftStatus, NftType } from '@config/constants'
 import { map } from 'lodash'
 
 export class ImportNftDto {
@@ -29,34 +29,39 @@ export class CreateNftDto {
     public description: string
 
     @IsOptional()
-    public collection_key: string
+    public collection_key?: string
+
+    @IsOptional()
+    public external_link?: string
+
+    @IsOptional()
+    public tags?: string
 
     @IsNotEmpty()
-    public price: string
+    public price?: string
 
     @IsNotEmpty()
-    public currency: string
+    public currency?: string
 
     @IsOptional()
-    public royalty: string
+    public royalty?: string
 
     @IsOptional()
-    public attributes: string
+    public attributes?: string
 
     @IsOptional()
-    public meta_data: string
+    public meta_data?: string
 
     @IsOptional()
-    public animation: any
+    public animation?: any
 
     @IsOptional()
-    public image: any
+    public image?: any
 
-    @IsNotEmpty()
-    public type: string
-
-    @IsOptional()
-    public num_sales: number
+    @IsEnum(NftType, {
+        message: `Nft Type must be one of ${map(NftType, el => el).join(' ')}`
+    })
+    public type?: NftType
 
     @IsOptional()
     public quantity: number = 1
@@ -71,6 +76,12 @@ export class UpdateNftDto {
 
     @IsOptional()
     public price: string
+
+    @IsOptional()
+    public royalty?: string
+
+    @IsOptional()
+    public tags?: string
 
     @IsOptional()
     public attributes: string
@@ -93,7 +104,10 @@ export class UpdateNftDto {
 
 export class UpdateNftStatusDto {
     @IsNotEmpty()
-    public status: string
+    @IsEnum(NftStatus, {
+        message: `Nft Status must be one of ${map(NftStatus, el => el).join(' ')}`
+    })
+    public status: NftStatus
 }
 
 export class UpdateNftFeaturedDto {
@@ -103,7 +117,10 @@ export class UpdateNftFeaturedDto {
 
 export class BulkUpdateNftStatusDto {
     @IsNotEmpty()
-    public status: string
+    @IsEnum(NftStatus, {
+        message: `Nft Status must be one of ${map(NftStatus, el => el).join(' ')}`
+    })
+    public status: NftStatus
 
     @IsNotEmpty()
     public keys: any
@@ -128,8 +145,10 @@ export class NftRO<T> {
     creator: any
     owner: any
     price_histories: any
-    constructor(nft: any, owner: any, creator: any, collection: any, histories: any) {
+    liked: boolean
+    constructor(nft: any, owner: any, creator: any, collection: any, histories: any, liked: boolean) {
         this.nft = nft
+        this.nft.liked = liked
         this.collection = collection
         if (creator) {
             this.creator = { key: creator.key, chat_name: creator.chat_name, avatar: creator.avatar }

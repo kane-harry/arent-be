@@ -3,7 +3,7 @@ import BizException from '@exceptions/biz.exception'
 import { AuthErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import UserService from '@modules/user/user.service'
-import { AccountActionType, NftActions, NftOnwerShipType, NftPriceType, NftStatus } from '@config/constants'
+import { AccountActionType, NftActions, NftOnwerShipType, NftPriceType, NftPurchaseType, NftStatus } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import UserModel from '@modules/user/user.model'
 import AccountService from '@modules/account/account.service'
@@ -86,7 +86,19 @@ export default class NftScheduler implements IScheduler {
                 options
             })
 
-            const updateData: any = { owner_key: buyer.key, on_market: false }
+            const last_purchase = {
+                user_key: buyer.key,
+                avatar: buyer.avatar,
+                chat_name: buyer.chat_name,
+                price: nft.price,
+                secondary_market: nft.creator_key !== nft.owner_key,
+                currency: nft.currency,
+                txn: buyerTxn,
+                type: NftPurchaseType.Auction,
+                date: new Date()
+            }
+
+            const updateData: any = { owner_key: buyer.key, on_market: false, last_purchase }
 
             const data = await NftModel.findOneAndUpdate(
                 { key: nft.key },
@@ -97,6 +109,7 @@ export default class NftScheduler implements IScheduler {
             )
 
             await new NftHistoryModel({
+                key: undefined,
                 nft_key: nft.key,
                 operator,
                 action: NftActions.Purchase,
@@ -106,6 +119,7 @@ export default class NftScheduler implements IScheduler {
             }).save()
 
             await NftService.addNftSaleLog({
+                key: undefined,
                 nft_key: nft.key,
                 collection_key: nft.collection_key,
                 unit_price: nft.price,
@@ -120,6 +134,7 @@ export default class NftScheduler implements IScheduler {
                 details: { buyer_txn: buyerTxn, seller_txn: sellerTxn, royalty_txn: royaltyTxn }
             })
             await NftService.addNftOwnershipLog({
+                key: undefined,
                 nft_key: nft.key,
                 collection_key: nft.collection_key,
                 price: nft.price,

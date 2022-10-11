@@ -11,14 +11,10 @@ import { IOperator } from '@interfaces/operator.interface'
 export default class TransactionController {
     static async sendPrimeCoins(req: AuthenticationRequest, res: Response) {
         const params: SendPrimeCoinsDto = req.body
-        const options: IOptions = {
-            agent: req.agent,
-            ip: req.ip
-        }
         const session = await UserModel.startSession()
         session.startTransaction()
         try {
-            const data = await TransactionService.sendPrimeCoins(params, req.user, options)
+            const data = await TransactionService.sendPrimeCoins(params, req.user, req.options)
             await session.commitTransaction()
             session.endSession()
             return res.json(data)

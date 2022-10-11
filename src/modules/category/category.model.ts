@@ -47,7 +47,7 @@ class CategoryModel extends _CategoryModel {
         let referenceInDatabase = await this.findOne(filter).select('key nav_key').exec()
 
         while (referenceInDatabase != null) {
-            nav_key = nav_key + '-' + generateRandomCode(2, 4, true)
+            nav_key = nav_key + '-' + generateRandomCode(2, 4, true).toLowerCase()
             filter.nav_key = nav_key
             referenceInDatabase = await this.findOne(filter).select('key nav_key').exec()
         }

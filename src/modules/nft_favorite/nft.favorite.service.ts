@@ -64,4 +64,9 @@ export default class NftFavoriteService {
         const items = await NftFavoriteModel.find<INftFavorite>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
         return new QueryRO<INftFavorite>(totalCount, params.page_index, params.page_size, items)
     }
+
+    static async getUserFaveNftKeys(userKey: string) {
+        const items = await NftFavoriteModel.find<INftFavorite>({ user_key: userKey }).exec()
+        return items.map(p => p.nft_key)
+    }
 }

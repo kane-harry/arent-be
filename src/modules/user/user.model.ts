@@ -10,6 +10,7 @@ import { Config, names, NumberDictionary, uniqueNamesGenerator } from 'unique-na
 interface IUserModel extends Model<IUser> {
     getBriefByChatName(chatName: string): IUser
     getBriefByKey(key: string, includeEmail: boolean): IUser
+    getBriefByKeys(key: String[], includeEmail: boolean): IUser[]
 }
 
 const userSchema = new Schema<IUser, IUserModel>(
@@ -99,9 +100,9 @@ const userSchema = new Schema<IUser, IUserModel>(
     }
 )
 
-userSchema.virtual('full_name').get(function (this: { first_name: string; last_name: string }) {
-    return `${this.first_name || ''} ${this.last_name || ''}`
-})
+// userSchema.virtual('full_name').get(function (this: { first_name: string; last_name: string }) {
+//     return `${this.first_name || ''} ${this.last_name || ''}`
+// })
 
 userSchema.statics.getBriefByChatName = function (chatName: string) {
     return this.findOne(
@@ -123,6 +124,14 @@ userSchema.statics.getBriefByKey = function (key: string, includeEmail: boolean)
         projection.email = 1
     }
     return this.findOne({ key }, projection)
+}
+
+userSchema.statics.getBriefByKeys = function (keys: String[], includeEmail: boolean) {
+    const projection: any = { key: 1, chat_name: 1, avatar: 1, bio: 1, instagram: 1, twitter: 1 }
+    if (includeEmail) {
+        projection.email = 1
+    }
+    return this.find({ key: { $in: keys } }, projection)
 }
 
 const _UserModel = model<IUser, IUserModel>(config.database.tables.users, userSchema)

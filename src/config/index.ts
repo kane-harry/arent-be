@@ -108,7 +108,8 @@ export const config = {
         VIEW_USER_DETAIL: 'view_user_detail',
         UPDATE_PHONE_STATUS: 'update_phone_status',
         PUT_NFT_ON_MARKET: 'PUT_NFT_ON_MARKET',
-        PUT_NFT_OFF_MARKET: 'PUT_NFT_OFF_MARKET'
+        PUT_NFT_OFF_MARKET: 'PUT_NFT_OFF_MARKET',
+        UPDATE_NFT_DETAILS: 'UPDATE_NFT_DETAILS'
     },
 
     database: {
