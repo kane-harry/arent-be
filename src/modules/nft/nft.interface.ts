@@ -19,31 +19,30 @@ export interface ILastPurchase {
     user_key: string
     avatar?: Object
     chat_name: string
-    price: string
+    price: number
     secondary_market: boolean
     currency: string
-    address: string
-    account_key: string
+    txn: string
     type: NftPurchaseType
     date: Date
 }
 
 export interface INft extends IBaseModel {
     name: string
-    tags: string
+    tags?: string
     description: string
-    external_link: string
+    external_link?: string
     collection_key?: string
     platform?: string
     // collection
     price: number | Types.Decimal128
-    royalty: number | Types.Decimal128
+    royalty?: number | Types.Decimal128
     currency: string
     meta_data?: []
     animation?: object
-    image: object
-    type: NftType
-    price_type: NftPriceType
+    image?: object
+    type?: NftType
+    price_type?: NftPriceType
     auction_start?: number
     auction_end?: number
     num_sales?: number
@@ -51,14 +50,14 @@ export interface INft extends IBaseModel {
     creator_key: string
     owner_key: string
     attributes?: []
-    on_market: boolean
+    on_market?: boolean
     listing_date?: Date
     last_sale_date?: Date
     token_id: string
-    status: NftStatus
+    status?: NftStatus
     is_presale?: boolean
     featured?: boolean
-    number_of_likes: number
+    number_of_likes?: number
     top_bid?: ITopBid
     last_purchase?: ILastPurchase
     reviewer_key?: string

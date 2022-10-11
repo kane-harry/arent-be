@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional } from 'class-validator'
-import { NftPriceType, NftType } from '@config/constants'
+import { NftPriceType, NftStatus, NftType } from '@config/constants'
 import { map } from 'lodash'
 
 export class ImportNftDto {
@@ -29,16 +29,22 @@ export class CreateNftDto {
     public description: string
 
     @IsOptional()
-    public collection_key: string
-
-    @IsNotEmpty()
-    public price: string
-
-    @IsNotEmpty()
-    public currency: string
+    public collection_key?: string
 
     @IsOptional()
-    public royalty: string
+    public external_link?: string
+
+    @IsOptional()
+    public tags?: string
+
+    @IsNotEmpty()
+    public price?: string
+
+    @IsNotEmpty()
+    public currency?: string
+
+    @IsOptional()
+    public royalty?: string
 
     @IsOptional()
     public attributes?: string
@@ -72,6 +78,12 @@ export class UpdateNftDto {
     public price: string
 
     @IsOptional()
+    public royalty?: string
+
+    @IsOptional()
+    public tags?: string
+
+    @IsOptional()
     public attributes: string
 
     @IsOptional()
@@ -92,7 +104,10 @@ export class UpdateNftDto {
 
 export class UpdateNftStatusDto {
     @IsNotEmpty()
-    public status: string
+    @IsEnum(NftStatus, {
+        message: `Nft Status must be one of ${map(NftStatus, el => el).join(' ')}`
+    })
+    public status: NftStatus
 }
 
 export class UpdateNftFeaturedDto {
@@ -102,7 +117,10 @@ export class UpdateNftFeaturedDto {
 
 export class BulkUpdateNftStatusDto {
     @IsNotEmpty()
-    public status: string
+    @IsEnum(NftStatus, {
+        message: `Nft Status must be one of ${map(NftStatus, el => el).join(' ')}`
+    })
+    public status: NftStatus
 
     @IsNotEmpty()
     public keys: any

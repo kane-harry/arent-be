@@ -41,7 +41,11 @@ export default class ArticleService {
         const model = new ArticleModel({
             key: undefined,
             nav_key: await ArticleModel.generateNavKey(params.title),
-            ...params,
+            title: params.title,
+            tags: params.tags,
+            type: params.type,
+            short_description: params.short_description,
+            content: params.content,
             cover_image: cover_image,
             author_key: operator.key,
             editor_key: operator.key

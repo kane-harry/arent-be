@@ -12,7 +12,7 @@ import {
 import { NftBidLogModel, NftImportLogModel, NftModel, NftOfferModel, NftOwnershipLogModel, NftSaleLogModel } from './nft.model'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
-import { INft, INftBidLog, INftFilter, INftOffer, INftOwnershipLog, INftSaleLog } from '@modules/nft/nft.interface'
+import { ILastPurchase, INft, INftBidLog, INftFilter, INftOffer, INftOwnershipLog, INftSaleLog } from '@modules/nft/nft.interface'
 import BizException from '@exceptions/biz.exception'
 import { AccountErrors, AuthErrors, CollectionErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
@@ -26,7 +26,8 @@ import {
     NftPriceType,
     NftStatus,
     OfferStatusType,
-    AccountActionType
+    AccountActionType,
+    NftPurchaseType
 } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
@@ -44,6 +45,8 @@ import NftTradingService from './nft.trading.service'
 import AccountSnapshotService from '@modules/account/account.snapshot.service'
 import { IOperator } from '@interfaces/operator.interface'
 import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
+import moment from 'moment'
+import NftHelper from './nft.helper'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IOperator) {
@@ -98,12 +101,15 @@ export default class NftService {
         const model = new NftModel({
             key: undefined,
             ...params,
-            platform: 'LightLink',
+            token_id: String(moment().unix()),
+            platform: config.system.nftDefaultPlatform,
+            currency: params.currency ?? config.system.primeToken,
             image: image,
             animation: animation,
             status: isAdmin(operator.role) ? NftStatus.Approved : NftStatus.Pending,
+            reviewer_key: isAdmin(operator.role) ? operator.key : undefined,
             creator_key: operator.key,
-            owner_key: isAdmin(operator.role) ? MASTER_ACCOUNT_KEY : operator.key,
+            owner_key: operator.key,
             on_market: false,
             number_of_likes: 0
         })
@@ -118,10 +124,11 @@ export default class NftService {
             action: NftActions.Create,
             options: options,
             pre_data: null,
-            post_data: nft.toString()
+            post_data: nft.toJSON()
         }).save()
 
         await NftService.addNftOwnershipLog({
+            key: undefined,
             nft_key: nft.key,
             collection_key: nft.collection_key,
             price: nft.price,
@@ -176,19 +183,49 @@ export default class NftService {
         return new QueryRO<INft>(totalCount, params.page_index, params.page_size, items)
     }
 
-    static async updateNft(key: string, updateNftDto: UpdateNftDto, operator: IOperator, options: IOptions) {
-        const nft = await NftModel.findOne({ key, owner: operator.key })
+    static async updateNft(key: string, params: UpdateNftDto, files: any, operator: IOperator, options: IOptions) {
+        const nft = await NftModel.findOne({ key, removed: false })
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('account.service', 'initAccounts', { key }))
         }
+        if (!roleCan(operator.role || 0, config.operations.UPDATE_NFT_DETAILS) && nft.status === NftStatus.Approved) {
+            throw new BizException(NftErrors.nft_updation_status_error, new ErrorContext('account.service', 'initAccounts', { key }))
+        }
         const preNft = nft
-        nft.set('name', updateNftDto.name ?? nft.name, String)
-        nft.set('description', updateNftDto.description ?? nft.description, String)
-        nft.set('price', updateNftDto.price ?? nft.price, String)
-        nft.set('attributes', updateNftDto.attributes ?? nft.attributes, Array)
-        nft.set('meta_data', updateNftDto.meta_data ?? nft.meta_data, Array)
-        nft.set('collection_key', updateNftDto.collection_key ?? nft.collection_key, String)
-        nft.set('quantity', updateNftDto.quantity ?? nft.quantity, Number)
+        if (files) {
+            files = await resizeImages(files, { image: NFT_IMAGE_SIZES })
+            const assets = await uploadFiles(files, 'nfts')
+
+            const images = filter(assets, asset => {
+                return asset.fieldname === 'image'
+            })
+            const originalImg = images.find(item => item.type === 'original')
+            const largeImg = images.find(item => item.type === 'large')
+            const normalImg = images.find(item => item.type === 'normal')
+            const smallImg = images.find(item => item.type === 'small')
+            const image = {
+                original: originalImg?.key,
+                large: largeImg?.key,
+                normal: normalImg?.key,
+                small: smallImg?.key
+            }
+            const animationResp = assets.find(asset => {
+                return asset.fieldname === 'animation'
+            })
+            const animation = animationResp?.key
+            nft.set('image', image)
+            nft.set('animation', animation)
+        }
+
+        nft.set('name', params.name, String)
+        nft.set('description', params.description, String)
+        nft.set('tags', params.tags, String)
+        nft.set('price', params.price, Number)
+        nft.set('royalty', params.royalty ?? nft.royalty, Number)
+        nft.set('attributes', params.attributes, Array)
+        nft.set('meta_data', params.meta_data, Array)
+        nft.set('collection_key', params.collection_key ?? nft.collection_key, String)
+        nft.set('quantity', params.quantity ?? nft.quantity, Number)
 
         const updateNft = await nft.save()
 
@@ -199,25 +236,26 @@ export default class NftService {
             operator: operator,
             action: NftActions.Update,
             options: options,
-            pre_data: preNft.toString(),
-            post_data: updateNft.toString()
+            pre_data: preNft.toJSON(),
+            post_data: updateNft.toJSON()
         }).save()
 
         return updateNft
     }
 
     static async updateNftStatus(key: string, updateNftStatusDto: UpdateNftStatusDto, operator: IOperator, options: IOptions) {
-        const nft = await NftModel.findOne({ key })
+        const nft = await NftModel.findOne({ key, removed: false })
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('account.service', 'updateNftStatus', { key }))
         }
         const preNft = nft
-        nft.set('status', updateNftStatusDto.status ?? nft.status, String)
-
+        nft.set('status', updateNftStatusDto.status, String)
+        nft.set('reviewer_key', operator.key, String)
         const updateNft = await nft.save()
 
         // create log
         await new NftHistoryModel({
+            key: undefined,
             nft_key: key,
             action: NftActions.UpdateStatus,
             operator: operator,
@@ -230,43 +268,40 @@ export default class NftService {
     }
 
     static async deleteNft(key: string, operator: IOperator, options: IOptions) {
-        const nft = await NftModel.findOne({ key })
+        const nft = await NftModel.findOne({ key, removed: false })
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
         }
-        if (!isAdmin(operator?.role) && operator?.key !== nft.owner_key) {
+        if (!isAdmin(operator?.role) && operator.key !== nft.owner_key) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('nft.controller', 'deleteNft', { key }))
         }
         const preNft = nft
         nft.set('owner_key', '00000000000000000000000000000000', String)
+        nft.set('reviewer_key', operator.key, String)
         nft.set('removed', true, Boolean)
         const updateNft = await nft.save()
 
         await CollectionModel.findOneAndUpdate({ key: nft.collection_key }, { $inc: { items_count: -1 } }, { new: true }).exec()
         // create log
         await new NftHistoryModel({
+            key: undefined,
             nft_key: key,
             action: NftActions.Delete,
             operator: operator,
             options: options,
-            pre_data: preNft.toString(),
-            post_data: updateNft.toString()
+            pre_data: preNft.toJSON(),
+            post_data: updateNft.toJSON()
         }).save()
 
         return updateNft
     }
 
     static async getNftDetail(key: string, userKey?: string) {
-        const nft = await NftModel.findOne({ key })
+        const nft = await NftModel.findOne({ key, removed: false }).exec()
         if (!nft) {
             throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.controller', 'getNFTDetail', { key }))
         }
-        const owner = await UserService.getBriefByKey(nft.owner_key)
-        const creator = await UserService.getBriefByKey(nft.creator_key)
-        const collection = await CollectionModel.findOne({ key: nft.collection_key })
-        const histories = await NftOwnershipLogModel.find({ nft_key: nft.key }).sort({ created: -1 })
-        const liked = (await NftFavoriteModel.count({ nft_key: nft.key, user_key: userKey })) > 0
-        return new NftRO<INft>(nft, owner, creator, collection, histories, liked)
+        return NftHelper.formatNftRO(nft, userKey)
     }
 
     static async onMarket(key: string, params: NftOnMarketDto, operator: IOperator, options: IOptions) {
@@ -308,12 +343,13 @@ export default class NftService {
 
         const postData = await nft.save()
         await new NftHistoryModel({
+            key: undefined,
             nft_key: key,
             action: NftActions.OnMarket,
             operator: operator,
             options: options,
-            pre_data: nft.toString(),
-            post_data: postData?.toString()
+            pre_data: nft.toJSON(),
+            post_data: postData?.toJSON()
         }).save()
 
         return postData
@@ -334,12 +370,13 @@ export default class NftService {
 
         const postData = await nft.save()
         await new NftHistoryModel({
+            key: undefined,
             nft_key: key,
             action: NftActions.OffMarket,
             operator: operator,
             options: options,
-            pre_data: nft.toString(),
-            post_data: postData?.toString()
+            pre_data: nft.toJSON(),
+            post_data: postData?.toJSON()
         }).save()
 
         return postData
@@ -390,8 +427,18 @@ export default class NftService {
                 operator,
                 options
             )
-
-            const updateData: any = { owner_key: buyer.key, on_market: false }
+            const last_purchase = {
+                user_key: buyer.key,
+                avatar: buyer.avatar,
+                chat_name: buyer.chat_name,
+                price: nft.price,
+                secondary_market: nft.creator_key !== nft.owner_key,
+                currency: nft.currency,
+                txn: buyerTxn,
+                type: NftPurchaseType.Normal,
+                date: new Date()
+            }
+            const updateData: any = { owner_key: buyer.key, on_market: false, last_purchase }
 
             const data = await NftModel.findOneAndUpdate(
                 { key: key },
@@ -402,15 +449,17 @@ export default class NftService {
             )
 
             await new NftHistoryModel({
+                key: undefined,
                 nft_key: key,
                 operator: operator,
                 action: NftActions.Purchase,
                 options: options,
-                pre_data: nft.toString(),
-                post_data: data?.toString()
+                pre_data: nft.toJSON(),
+                post_data: data?.toJSON()
             }).save()
 
             await NftService.addNftSaleLog({
+                key: undefined,
                 nft_key: nft.key,
                 collection_key: nft.collection_key,
                 unit_price: nft.price,
@@ -425,6 +474,7 @@ export default class NftService {
                 details: { buyer_txn: buyerTxn, seller_txn: sellerTxn, royalty_txn: royaltyTxn }
             })
             await NftService.addNftOwnershipLog({
+                key: undefined,
                 nft_key: nft.key,
                 collection_key: nft.collection_key,
                 price: nft.price,
@@ -468,9 +518,9 @@ export default class NftService {
             }
 
             const currentTimestamp = generateUnixTimestamp()
-            // if (currentTimestamp > nft.auction_end) {
-            //     throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'bidNft', { key }))
-            // }
+            if (!nft.auction_end || currentTimestamp > nft.auction_end) {
+                throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'bidNft', { key }))
+            }
 
             if (Number(params.amount) < nft.price) {
                 throw new BizException(NftErrors.nft_bidding_amount_less_than_price_error, new ErrorContext('nft.service', 'bidNft', { key }))
@@ -558,11 +608,11 @@ export default class NftService {
             nft.set('price', params.amount, Number) // update nft price
 
             // extend auction
-            // if (nft.auction_end - currentTimestamp <= 5 * 60) {
-            //     const extend_seconds = 5 * 60
-            //     const endTimestamp = nft.auction_end + extend_seconds
-            //     nft.set('auction_end', endTimestamp, Number)
-            // }
+            if (nft.auction_end - currentTimestamp <= 5 * 60) {
+                const extend_seconds = 5 * 60
+                const endTimestamp = nft.auction_end + extend_seconds
+                nft.set('auction_end', endTimestamp, Number)
+            }
 
             await nft.save()
             buyerAccount = await AccountService.lockAmount(buyerAccount.key, params.amount)
@@ -585,6 +635,7 @@ export default class NftService {
             })
 
             await NftService.addNftBidLog({
+                key: undefined,
                 nft_key: nft.key,
                 collection_key: nft.collection_key,
                 price: Number(params.amount),
@@ -682,10 +733,6 @@ export default class NftService {
             if (pendingOffer) {
                 throw new BizException(NftErrors.offer_duplicate_request_error, new ErrorContext('nft.service', 'makeOffer', { key }))
             }
-            const currentTimestamp = generateUnixTimestamp()
-            // if (currentTimestamp > nft.auction_end) {
-            //     throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'makeOffer', { key }))
-            // }
 
             const seller = await UserService.getBriefByKey(nft.owner_key, true)
             const buyer = await UserService.getBriefByKey(operator.key, true)
@@ -919,7 +966,19 @@ export default class NftService {
                 options
             )
 
-            const updateData: any = { owner_key: buyer.key, on_market: false }
+            const last_purchase = {
+                user_key: buyer.key,
+                avatar: buyer.avatar,
+                chat_name: buyer.chat_name,
+                price: nft.price,
+                secondary_market: nft.creator_key !== nft.owner_key,
+                currency: nft.currency,
+                txn: buyerTxn,
+                type: NftPurchaseType.Auction,
+                date: new Date()
+            }
+
+            const updateData: any = { owner_key: buyer.key, on_market: false, last_purchase }
 
             const data = await NftModel.findOneAndUpdate(
                 { key: nft.key },
@@ -930,15 +989,17 @@ export default class NftService {
             )
 
             await new NftHistoryModel({
+                key: undefined,
                 nft_key: key,
                 operator,
                 action: NftActions.Purchase,
                 options,
-                pre_data: nft.toString(),
-                post_data: data?.toString()
+                pre_data: nft.toJSON(),
+                post_data: data?.toJSON()
             }).save()
 
             await NftService.addNftSaleLog({
+                key: undefined,
                 nft_key: nft.key,
                 collection_key: nft.collection_key,
                 unit_price: nft.price,
@@ -953,6 +1014,7 @@ export default class NftService {
                 details: { buyer_txn: buyerTxn, seller_txn: sellerTxn, royalty_txn: royaltyTxn }
             })
             await NftService.addNftOwnershipLog({
+                key: undefined,
                 nft_key: nft.key,
                 collection_key: nft.collection_key,
                 price: nft.price,
@@ -1007,12 +1069,13 @@ export default class NftService {
 
         // create log
         await new NftHistoryModel({
+            key: undefined,
             nft_key: key,
             action: NftActions.UpdateFeatured,
             operator: operator,
             options: options,
-            pre_data: { status: preNft.featured },
-            post_data: { status: updateNft.featured }
+            pre_data: { featured: preNft.featured },
+            post_data: { featured: updateNft.featured }
         }).save()
 
         return updateNft
@@ -1039,5 +1102,15 @@ export default class NftService {
     static async getNftBriefByKeys(keys: String[]) {
         const nfts = await NftModel.find({ key: { $in: keys } }).select('key name image animation collection_key price')
         return nfts
+    }
+
+    static async getNftPurchaseLogs(nft_key: string) {
+        const bids = await NftSaleLogModel.find({ nft_key }, { _id: 0 }).sort({ _id: -1 })
+        return bids
+    }
+
+    static async getNftOwnershipLogs(nft_key: string) {
+        const bids = await NftOwnershipLogModel.find({ nft_key }, { _id: 0 }).sort({ _id: -1 })
+        return bids
     }
 }

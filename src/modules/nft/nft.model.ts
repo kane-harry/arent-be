@@ -12,7 +12,7 @@ const nftSchema = new Schema<INft>(
             index: true,
             unique: true,
             default: () => {
-                return randomBytes(10).toString('hex')
+                return randomBytes(8).toString('hex')
             }
         },
         name: String,
@@ -23,7 +23,7 @@ const nftSchema = new Schema<INft>(
         collection_key: String,
         price: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         royalty: { type: Types.Decimal128, default: new Types.Decimal128('0') },
-        currency: String,
+        currency: { type: String, default: config.system.primeToken },
         meta_data: { type: [Object], default: [] },
         animation: { type: Object, default: null },
         image: { type: Object, default: null },
@@ -56,6 +56,7 @@ const nftSchema = new Schema<INft>(
             transform: (doc, ret) => {
                 delete ret._id
                 delete ret.id
+                delete ret.version
                 ret.price = parseFloat(ret.price)
                 ret.royalty = parseFloat(ret.royalty)
                 return ret

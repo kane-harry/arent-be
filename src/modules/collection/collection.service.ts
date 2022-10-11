@@ -10,7 +10,7 @@ import { NftModel, NftSaleLogModel } from '@modules/nft/nft.model'
 import UserService from '@modules/user/user.service'
 import { CollectionType, COLLECTION_LOGO_SIZES, NftStatus } from '@config/constants'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
-import { filter } from 'lodash'
+import { filter, isEmpty } from 'lodash'
 import { CreateNftDto } from '@modules/nft/nft.dto'
 import IOptions from '@interfaces/options.interface'
 import moment from 'moment'
@@ -294,5 +294,10 @@ export default class CollectionService {
     static async getCollectionBriefByKeys(keys: String[]) {
         const items = await CollectionModel.find({ key: { $in: keys } }).select('key name logo')
         return items
+    }
+
+    static async getCollectionBriefByKey(key?: String) {
+        const item = await CollectionModel.findOne({ key: key }).select('key name logo')
+        return item
     }
 }

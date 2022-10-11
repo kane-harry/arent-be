@@ -96,7 +96,8 @@ export const NftErrors = {
     offer_duplicate_request_error: { code: 7315, status: 400, message: 'You have made an offer against this product.' },
     offer_owner_error: { message: 'You can not make offer to your own product.', code: 7316, status: 400 },
     offer_auction_nft_error: { message: 'Can not make offer to an auction product.', code: 7316, status: 400 },
-    nft_bidding_amount_less_than_price_error: { message: 'please bid a higher amount than previous amount.', code: 73177, status: 400 }
+    nft_bidding_amount_less_than_price_error: { message: 'please bid a higher amount than previous amount.', code: 73177, status: 400 },
+    nft_updation_status_error: { code: 73178, status: 400, message: 'Your NFT is approved, can not edit it.' }
 }
 
 export const CollectionErrors = {
