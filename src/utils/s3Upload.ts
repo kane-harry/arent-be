@@ -1,4 +1,4 @@
-// import sharp from 'sharp'
+import sharp from 'sharp'
 import { S3 } from 'aws-sdk'
 import { config } from '@config'
 import { v4 as uuidV4 } from 'uuid'
@@ -60,60 +60,62 @@ export const resizeImages = async (
         }[]
     }
 ) => {
-    // let newFilesOps: any[] = []
-    // for (const file of files) {
-    //     const uuid = uuidV4()
-    //     const suffix = file.originalname.slice(file.originalname.lastIndexOf('.'))
-    //     const fileName = uuid + suffix
-    //     const sizes = resizeOptions[file.fieldname]
-    //     if (!isArray(sizes)) {
-    //         file.originalname = fileName
-    //         file.type = 'original'
-    //         newFilesOps.push(file)
-    //         continue
-    //     }
-    //     const originalFile = {
-    //         ...file,
-    //         type: file.type ?? 'original',
-    //         originalname: fileName
-    //     }
-    //     newFilesOps.push(originalFile)
-    //     const shouldTransform = file.mimetype.toLowerCase() !== 'image/gif' && /^image/i.test(file.mimetype)
-    //     // if (shouldTransform) {
-    //     //     const fileName = uuid + '.webp'
-    //     //     const newFiles = map(sizes, async curSize => {
-    //     //         const data = await sharp(file.buffer)
-    //     //             .resize(curSize.maxSize, curSize.maxSize, { fit: sharp.fit.inside, withoutEnlargement: true })
-    //     //             .webp()
-    //     //             .toBuffer()
-    //     //         return {
-    //     //             ...file,
-    //     //             buffer: data,
-    //     //             originalname: fileName,
-    //     //             type: curSize.id,
-    //     //             size: data.length
-    //     //         }
-    //     //     })
-    //     //     const thumbs = await Promise.all(newFiles)
-    //     //     newFilesOps = [...newFilesOps, ...thumbs]
-    //     // } else {
-    //     //     const fileName = uuid + '.gif'
-    //     //     const newFiles = map(sizes, async curSize => {
-    //     //         const data = await sharp(file.buffer, { animated: true })
-    //     //             .resize(curSize.maxSize, curSize.maxSize, { fit: sharp.fit.inside, withoutEnlargement: true })
-    //     //             .gif()
-    //     //             .toBuffer()
-    //     //         return {
-    //     //             ...file,
-    //     //             buffer: data,
-    //     //             originalname: fileName,
-    //     //             type: curSize.id,
-    //     //             size: data.length
-    //     //         }
-    //     //     })
-    //     //     const thumbs = await Promise.all(newFiles)
-    //     //     newFilesOps = [...newFilesOps, ...thumbs]
-    //     // }
-    // }
-    // return newFilesOps
+    let newFilesOps: any[] = []
+    for (const file of files) {
+        const uuid = uuidV4()
+        const suffix = file.originalname.slice(file.originalname.lastIndexOf('.'))
+        const fileName = uuid + suffix
+
+        const sizes = resizeOptions[file.fieldname]
+        if (!isArray(sizes)) {
+            file.originalname = fileName
+            file.type = 'original'
+            newFilesOps.push(file)
+            continue
+        }
+        const originalFile = {
+            ...file,
+            type: file.type ?? 'original',
+            originalname: fileName
+        }
+        newFilesOps.push(originalFile)
+
+        const shouldTransform = file.mimetype.toLowerCase() !== 'image/gif' && /^image/i.test(file.mimetype)
+        if (shouldTransform) {
+            const fileName = uuid + '.webp'
+            const newFiles = map(sizes, async curSize => {
+                const data = await sharp(file.buffer)
+                    .resize(curSize.maxSize, curSize.maxSize, { fit: sharp.fit.inside, withoutEnlargement: true })
+                    .webp()
+                    .toBuffer()
+                return {
+                    ...file,
+                    buffer: data,
+                    originalname: fileName,
+                    type: curSize.id,
+                    size: data.length
+                }
+            })
+            const thumbs = await Promise.all(newFiles)
+            newFilesOps = [...newFilesOps, ...thumbs]
+        } else {
+            const fileName = uuid + '.gif'
+            const newFiles = map(sizes, async curSize => {
+                const data = await sharp(file.buffer, { animated: true })
+                    .resize(curSize.maxSize, curSize.maxSize, { fit: sharp.fit.inside, withoutEnlargement: true })
+                    .gif()
+                    .toBuffer()
+                return {
+                    ...file,
+                    buffer: data,
+                    originalname: fileName,
+                    type: curSize.id,
+                    size: data.length
+                }
+            })
+            const thumbs = await Promise.all(newFiles)
+            newFilesOps = [...newFilesOps, ...thumbs]
+        }
+    }
+    return newFilesOps
 }
