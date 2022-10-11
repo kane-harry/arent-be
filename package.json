@@ -2,11 +2,11 @@
   "name": "pellar-federation-ts",
   "version": "1.0.0",
   "description": "pellar-federation-ts",
-  "main": "./dist/server.js",
+  "main": "server.js",
   "scripts": {
     "test": "mocha -r ts-node/register -r tsconfig-paths/register --transpile-only --exit",
     "dev": "nodemon src/server.ts",
-    "start": "rm -rf node_modules package-lock.json && rm -rf dist && npm run build && node ./dist/server.js",
+    "start": "rm -rf dist && npm run build && node ./dist/server.js",
     "start:nodemon": "nodemon src/server.ts",
     "build": "npx tsc -p . && npx tsc-alias",
     "prepare": "husky install",
