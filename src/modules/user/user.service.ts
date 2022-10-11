@@ -24,7 +24,7 @@ import {
     UpdateUserStatusDto
 } from './user.dto'
 import UserModel from './user.model'
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcryptjs'
 import { generateRandomCode, generateUnixTimestamp, roundUp, unixTimestampToDate } from '@utils/utility'
 import { IUser, IUserQueryFilter } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
