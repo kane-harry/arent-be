@@ -21,31 +21,16 @@ import {
 export default class NftController {
     static async importNft(req: AuthenticationRequest, res: Response) {
         const payload: ImportNftDto = req.body // should be an arrary since we support bulk import
-        const operator: IOperator = {
-            email: req.user?.email,
-            key: req.user?.key
-        }
-        const data = await NftService.importNft(payload, operator)
+        const data = await NftService.importNft(payload, req.user)
         return res.send(data)
     }
 
     static async createNft(req: AuthenticationRequest, res: Response) {
         const createNftDto: CreateNftDto = req.body
-        const operator: IOperator = {
-            email: req.user?.email,
-            key: req.user?.key,
-            role: req.user.role,
-            avatar: req.user.avatar,
-            chat_name: req.user.chat_name
-        }
-        const options: IOptions = {
-            agent: req.agent,
-            ip: req.ip
-        }
         createNftDto.attributes = createNftDto.attributes && createNftDto.attributes.length ? JSON.parse(createNftDto.attributes) : []
         createNftDto.meta_data = createNftDto.meta_data && createNftDto.meta_data.length ? JSON.parse(createNftDto.meta_data) : []
         const files = req.files
-        const nft = await NftService.createNft(createNftDto, files, operator, options)
+        const nft = await NftService.createNft(createNftDto, files, req.user, req.options)
         return res.json(nft)
     }
 

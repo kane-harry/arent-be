@@ -8,7 +8,7 @@ import ErrorContext from '@exceptions/error.context'
 import { isAdmin } from '@config/role'
 import { NftModel, NftSaleLogModel } from '@modules/nft/nft.model'
 import UserService from '@modules/user/user.service'
-import { COLLECTION_LOGO_SIZES, NftStatus } from '@config/constants'
+import { CollectionType, COLLECTION_LOGO_SIZES, NftStatus } from '@config/constants'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
 import { filter } from 'lodash'
 import { CreateNftDto } from '@modules/nft/nft.dto'
@@ -64,21 +64,19 @@ export default class CollectionService {
         return await model.save()
     }
 
-    static async createDefaultCollection(createNftDto: CreateNftDto, operator: IOperator) {
-        const collection = await CollectionModel.findOne({ owner_key: operator.key, type: 'default' })
+    static async createDefaultCollection(params: CreateNftDto, operator: IOperator) {
+        const collection = await CollectionModel.findOne({ owner_key: operator.key, type: CollectionType.Default })
         if (collection) {
             return collection
         }
-        const createCollectionDto = {
-            name: createNftDto.name,
-            description: createNftDto.description
-        }
         const model = new CollectionModel({
-            ...createCollectionDto,
+            key: undefined,
+            name: params.name,
+            description: params.description,
             creator_key: operator.key,
             owner_key: operator.key,
             items_count: 0,
-            type: 'default'
+            type: CollectionType.Default
         })
         return await model.save()
     }

@@ -3,6 +3,7 @@ import IBaseModel from '@interfaces/base.model.interface'
 import IFilterModel from '@interfaces/filter.model.interface'
 
 export interface IArticle extends IBaseModel {
+    nav_key: string
     title: string
     tags: string | undefined
     type: ArticleType

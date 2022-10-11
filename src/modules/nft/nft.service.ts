@@ -54,7 +54,7 @@ export default class NftService {
         return await model.save()
     }
 
-    static async createNft(createNftDto: CreateNftDto, files: any, operator: IOperator, options: IOptions) {
+    static async createNft(params: CreateNftDto, files: any, operator: IOperator, options: IOptions) {
         const user = await UserService.getBriefByKey(operator.key)
         if (!files || !files.find((item: any) => item.fieldname === 'image')) {
             throw new BizException(NftErrors.nft_image_required_error, new ErrorContext('nft.service', 'createNft', {}))
@@ -80,16 +80,24 @@ export default class NftService {
         })
         const animation = animationResp?.key
 
-        if (!createNftDto.collection_key || !createNftDto.collection_key.length) {
-            const collection = await CollectionService.createDefaultCollection(createNftDto, operator)
-            createNftDto.collection_key = collection?.key ?? ''
+        if (!params.collection_key) {
+            const collection = await CollectionService.createDefaultCollection(params, operator)
+            params.collection_key = collection?.key ?? ''
+        } else {
+            const collection = await CollectionModel.findOne({ key: params.collection_key })
+            if (!collection) {
+                throw new BizException(
+                    CollectionErrors.collection_not_exists_error,
+                    new ErrorContext('nft.service', 'createNft', { key: params.collection_key })
+                )
+            }
         }
-        if (!createNftDto.currency) {
-            createNftDto.currency = config.system.primeToken
+        if (!params.currency) {
+            params.currency = config.system.primeToken
         }
         const model = new NftModel({
             key: undefined,
-            ...createNftDto,
+            ...params,
             platform: 'LightLink',
             image: image,
             animation: animation,
@@ -460,9 +468,9 @@ export default class NftService {
             }
 
             const currentTimestamp = generateUnixTimestamp()
-            if (currentTimestamp > nft.auction_end) {
-                throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'bidNft', { key }))
-            }
+            // if (currentTimestamp > nft.auction_end) {
+            //     throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'bidNft', { key }))
+            // }
 
             if (Number(params.amount) < nft.price) {
                 throw new BizException(NftErrors.nft_bidding_amount_less_than_price_error, new ErrorContext('nft.service', 'bidNft', { key }))
@@ -550,11 +558,11 @@ export default class NftService {
             nft.set('price', params.amount, Number) // update nft price
 
             // extend auction
-            if (nft.auction_end - currentTimestamp <= 5 * 60) {
-                const extend_seconds = 5 * 60
-                const endTimestamp = nft.auction_end + extend_seconds
-                nft.set('auction_end', endTimestamp, Number)
-            }
+            // if (nft.auction_end - currentTimestamp <= 5 * 60) {
+            //     const extend_seconds = 5 * 60
+            //     const endTimestamp = nft.auction_end + extend_seconds
+            //     nft.set('auction_end', endTimestamp, Number)
+            // }
 
             await nft.save()
             buyerAccount = await AccountService.lockAmount(buyerAccount.key, params.amount)
@@ -675,9 +683,9 @@ export default class NftService {
                 throw new BizException(NftErrors.offer_duplicate_request_error, new ErrorContext('nft.service', 'makeOffer', { key }))
             }
             const currentTimestamp = generateUnixTimestamp()
-            if (currentTimestamp > nft.auction_end) {
-                throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'makeOffer', { key }))
-            }
+            // if (currentTimestamp > nft.auction_end) {
+            //     throw new BizException(NftErrors.nft_auction_closed_error, new ErrorContext('nft.service', 'makeOffer', { key }))
+            // }
 
             const seller = await UserService.getBriefByKey(nft.owner_key, true)
             const buyer = await UserService.getBriefByKey(operator.key, true)

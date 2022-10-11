@@ -5,7 +5,6 @@ import { IOperator } from '@interfaces/operator.interface'
 import IOptions from '@interfaces/options.interface'
 
 export interface IAdminLog extends IBaseModel {
-    key: string
     user_key: string
     operator: IOperator
     options?: IOptions

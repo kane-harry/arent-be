@@ -175,6 +175,17 @@ export enum NftPriceType {
     Fixed = 'fixed',
     Auction = 'auction'
 }
+export enum NftPurchaseType {
+    Normal = 'Normal',
+    Auction = 'Auction',
+    Offer = 'Offer'
+}
+
+export enum CollectionType {
+    Default = 'Default',
+    Normal = 'Normal',
+    AutoCreated = 'AutoCreated'
+}
 
 export enum AccountActionType {
     Mint = 'Mint',

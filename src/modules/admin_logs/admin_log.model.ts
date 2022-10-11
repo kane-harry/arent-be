@@ -11,7 +11,7 @@ const AdminLogsSchema = new Schema<IAdminLog>(
             index: true,
             unique: true,
             default: () => {
-                return randomBytes(16).toString('hex')
+                return randomBytes(10).toString('hex')
             }
         },
         operator: {

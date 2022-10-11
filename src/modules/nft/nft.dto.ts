@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional } from 'class-validator'
-import { NftPriceType } from '@config/constants'
+import { NftPriceType, NftType } from '@config/constants'
 import { map } from 'lodash'
 
 export class ImportNftDto {
@@ -41,22 +41,21 @@ export class CreateNftDto {
     public royalty: string
 
     @IsOptional()
-    public attributes: string
+    public attributes?: string
 
     @IsOptional()
-    public meta_data: string
+    public meta_data?: string
 
     @IsOptional()
-    public animation: any
+    public animation?: any
 
     @IsOptional()
-    public image: any
+    public image?: any
 
-    @IsNotEmpty()
-    public type: string
-
-    @IsOptional()
-    public num_sales: number
+    @IsEnum(NftType, {
+        message: `Nft Type must be one of ${map(NftType, el => el).join(' ')}`
+    })
+    public type?: NftType
 
     @IsOptional()
     public quantity: number = 1
