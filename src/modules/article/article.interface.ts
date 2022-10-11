@@ -8,7 +8,7 @@ export interface IArticle extends IBaseModel {
     tags?: string
     type: ArticleType
     short_description?: string
-    cover_image?: object
+    cover_image?: any
     content: string
     author_key: string
     editor_key: String
