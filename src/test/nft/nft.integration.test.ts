@@ -13,6 +13,7 @@ import { parsePrimeAmount } from '@utils/number'
 import AccountService from '@modules/account/account.service'
 import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
 import { CategoryModel } from '@modules/category/category.model'
+import CollectionService from '@modules/collection/collection.service'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -605,21 +606,6 @@ describe('NFT', () => {
         expect(res.body.liked).equal(false)
     }).timeout(10000)
 
-    it('Get Collection Analytics', async () => {
-        const res = await request(server.app)
-            .get(`/api/v1/collections/${shareData.collections[0].key}/analytics`)
-            .set('Authorization', `Bearer ${shareData.token}`)
-            .send()
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        expect(res.body.nft_count).exist
-        expect(res.body.owner_count).exist
-        expect(res.body.floor_price).exist
-        expect(res.body.volume).exist
-        expect(res.body.volume_last).exist
-        expect(res.body.sales_count).exist
-    }).timeout(10000)
-
     it(`Reject NFT`, async () => {
         const res = await request(server.app)
             .post(`/api/v1/nfts/status`)
@@ -697,6 +683,16 @@ describe('NFT', () => {
         //Reset owner
         collection.set('owner_key', shareData.user.key, String)
         await collection.save()
+    }).timeout(10000)
+
+    it(`Gen collection ranking`, async () => {
+        await CollectionService.generateCollectionRanking()
+    }).timeout(10000)
+
+    it(`Get collection ranking`, async () => {
+        const res = await request(server.app).get(`/api/v1/collections/rankings`).set('Authorization', `Bearer ${adminShareData.token}`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
     }).timeout(10000)
 
     it(`Delete Collection`, async () => {

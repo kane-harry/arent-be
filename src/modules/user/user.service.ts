@@ -1,8 +1,7 @@
 import BizException from '@exceptions/biz.exception'
 import { AuthErrors, CommonErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
-import { AuthenticationRequest } from '@middlewares/request.middleware'
-import { find, forEach, toLower, trim } from 'lodash'
+import { find, forEach, toLower, trim, uniq } from 'lodash'
 import {
     AdminUpdateProfileDto,
     AuthorizeDto,
@@ -19,14 +18,13 @@ import {
     UpdatePhoneDto,
     UpdateProfileDto,
     UpdateSecurityDto,
-    UpdateUserFeaturedDto,
     UpdateUserRoleDto,
     UpdateUserStatusDto
 } from './user.dto'
 import UserModel from './user.model'
 import * as bcrypt from 'bcryptjs'
 import { generateRandomCode, generateUnixTimestamp, roundUp, unixTimestampToDate } from '@utils/utility'
-import { IUser, IUserQueryFilter } from '@modules/user/user.interface'
+import { IUser, IUserQueryFilter, IUserRanking } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
 import { stripPhoneNumber } from '@utils/phoneNumber'
@@ -42,6 +40,7 @@ import {
     AdminLogsSections,
     CodeType,
     MFAType,
+    NftStatus,
     USER_AVATAR_SIZES,
     USER_BACKGROUND_IMAGE_SIZES,
     UserAuthType,
@@ -52,7 +51,7 @@ import SettingService from '@modules/setting/setting.service'
 import { ISetting } from '@modules/setting/setting.interface'
 import AccountService from '@modules/account/account.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
-import { NftModel } from '@modules/nft/nft.model'
+import { NftModel, NftSaleLogModel } from '@modules/nft/nft.model'
 import { RateModel } from '@modules/exchange_rate/rate.model'
 import { config } from '@config'
 import UserFollowerModel from '@modules/user_follower/user.follower.model'
@@ -60,6 +59,8 @@ import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
 import { UserAnalyticRO } from '@modules/user/user.ro'
 import IOptions from '@interfaces/options.interface'
 import { IOperator } from '@interfaces/operator.interface'
+import { UserRankingModel } from '@modules/user/user.ranking.model'
+import moment from 'moment'
 
 export default class UserService extends AuthService {
     public static async authorize(params: AuthorizeDto, options?: any) {
@@ -1054,19 +1055,6 @@ export default class UserService extends AuthService {
         return { success }
     }
 
-    static async getUserAnalytics(userKey: string) {
-        const user = await UserModel.getBriefByKey(userKey, false)
-        if (!user) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'verifyEmailAddress', { userKey }))
-        }
-        const followers = await UserFollowerModel.countDocuments({ user_key: user.key })
-        const followings = await UserFollowerModel.countDocuments({ follower_key: user.key })
-        const nftLiked = await NftFavoriteModel.countDocuments({ user_key: user.key })
-        const nftCreated = await NftModel.countDocuments({ creator_key: user.key })
-
-        return new UserAnalyticRO(user, followers, followings, nftLiked, nftCreated)
-    }
-
     static async bulkUpdateUserFeatured(params: BulkUpdateUserFeaturedDto, operator: IOperator, options?: IOptions) {
         const keys = params.keys.split ? params.keys.split(',') : params.keys
         const featured = String(params.featured).toLowerCase() === 'true'
@@ -1085,5 +1073,102 @@ export default class UserService extends AuthService {
             .limit(10)
             .exec()
         return items
+    }
+
+    static async generateUserRanking() {
+        const sellerKeys = await NftSaleLogModel.distinct('seller.key', {}).exec()
+        const buyerKeys = await NftSaleLogModel.distinct('buyer.key', {}).exec()
+        const creatorKeys = await NftSaleLogModel.distinct('creator.key', {}).exec()
+        const userKeys = uniq(sellerKeys.concat(buyerKeys, creatorKeys))
+        for (const userKey of userKeys) {
+            const number_of_followers = await UserFollowerModel.countDocuments({ user_key: userKey })
+            const number_of_followings = await UserFollowerModel.countDocuments({ follower_key: userKey })
+            const number_of_nft_liked = await NftFavoriteModel.countDocuments({ user_key: userKey })
+            const number_of_nft_created = await NftModel.countDocuments({ creator_key: userKey, status: NftStatus.Approved })
+
+            //  owners of created nfts
+            const owners = await NftModel.aggregate([{ $match: { creator_key: userKey } }, { $group: { _id: '$owner_key', count: { $sum: 1 } } }])
+            const number_of_created_nfts_owners = owners.length
+
+            // trading volume of created nfts
+            const volumeTotal = await NftSaleLogModel.aggregate([
+                { $match: { 'creator.key': userKey } },
+                { $group: { _id: null, count: { $sum: 1 }, trading_volume: { $sum: '$unit_price' } } }
+            ])
+            const number_of_created_nfts_orders = volumeTotal && volumeTotal[0] ? volumeTotal[0].count : 0
+            const trading_volume_of_created_nfts = volumeTotal && volumeTotal[0] ? parseFloat(volumeTotal[0].trading_volume) : 0
+
+            // 24 hrs volume of created nfts
+            const volume24Hrs = await NftSaleLogModel.aggregate([
+                { $match: { 'creator.key': userKey, created: { $gte: moment().add(-1, 'days').toDate() } } },
+                { $group: { _id: null, count: { $sum: 1 }, trading_volume: { $sum: '$unit_price' } } }
+            ])
+            const number_of_created_nfts_orders_24hrs = volume24Hrs && volume24Hrs[0] ? volume24Hrs[0].count : 0
+            const trading_volume_of_created_nfts_24hrs = volume24Hrs && volume24Hrs[0] ? parseFloat(volume24Hrs[0].trading_volume) : 0
+
+            // trading volume of buying
+            const buyingVolumeTotal = await NftSaleLogModel.aggregate([
+                { $match: { 'buyer.key': userKey } },
+                { $group: { _id: null, count: { $sum: 1 }, trading_volume: { $sum: '$unit_price' } } }
+            ])
+            const number_of_buying_orders = buyingVolumeTotal && buyingVolumeTotal[0] ? buyingVolumeTotal[0].count : 0
+            const trading_volume_of_buying = buyingVolumeTotal && buyingVolumeTotal[0] ? parseFloat(buyingVolumeTotal[0].trading_volume) : 0
+
+            // 24 hrs volume of selling
+            const buyingVolume24Hrs = await NftSaleLogModel.aggregate([
+                { $match: { 'buyer.key': userKey, created: { $gte: moment().add(-1, 'days').toDate() } } },
+                { $group: { _id: null, count: { $sum: 1 }, trading_volume: { $sum: '$unit_price' } } }
+            ])
+            const number_of_buying_orders_24hrs = buyingVolume24Hrs && buyingVolume24Hrs[0] ? buyingVolume24Hrs[0].count : 0
+            const trading_volume_of_buying_24hrs = buyingVolume24Hrs && buyingVolume24Hrs[0] ? parseFloat(buyingVolume24Hrs[0].trading_volume) : 0
+
+            // trading volume of created nfts
+            const sellingVolumeTotal = await NftSaleLogModel.aggregate([
+                { $match: { 'seller.key': userKey } },
+                { $group: { _id: null, count: { $sum: 1 }, trading_volume: { $sum: '$unit_price' } } }
+            ])
+            const number_of_selling_orders = sellingVolumeTotal && sellingVolumeTotal[0] ? sellingVolumeTotal[0].count : 0
+            const trading_volume_of_selling = sellingVolumeTotal && sellingVolumeTotal[0] ? parseFloat(sellingVolumeTotal[0].trading_volume) : 0
+
+            // 24 hrs volume of created nfts
+            const sellingVolume24Hrs = await NftSaleLogModel.aggregate([
+                { $match: { 'seller.key': userKey, created: { $gte: moment().add(-1, 'days').toDate() } } },
+                { $group: { _id: null, count: { $sum: 1 }, trading_volume: { $sum: '$unit_price' } } }
+            ])
+            const number_of_selling_orders_24hrs = sellingVolume24Hrs && sellingVolume24Hrs[0] ? sellingVolume24Hrs[0].count : 0
+            const trading_volume_of_selling_24hrs = sellingVolume24Hrs && sellingVolume24Hrs[0] ? parseFloat(sellingVolume24Hrs[0].trading_volume) : 0
+
+            const ranking: IUserRanking = {
+                user_key: userKey,
+                number_of_followers,
+                number_of_followings,
+                number_of_nft_liked,
+                number_of_nft_created,
+                number_of_created_nfts_owners,
+                number_of_created_nfts_orders,
+                trading_volume_of_created_nfts,
+                number_of_created_nfts_orders_24hrs,
+                trading_volume_of_created_nfts_24hrs,
+                number_of_buying_orders,
+                trading_volume_of_buying,
+                number_of_buying_orders_24hrs,
+                trading_volume_of_buying_24hrs,
+                number_of_selling_orders,
+                trading_volume_of_selling,
+                number_of_selling_orders_24hrs,
+                trading_volume_of_selling_24hrs,
+                updated: new Date()
+            }
+            await UserModel.findOneAndUpdate(
+                { key: userKey },
+                {
+                    $set: { ranking }
+                },
+                { new: true }
+            )
+            await new UserRankingModel({
+                ...ranking
+            }).save()
+        }
     }
 }

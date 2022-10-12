@@ -1,6 +1,6 @@
 import { AssignCollectionDto, CreateCollectionDto, UpdateCollectionDto, UpdateCollectionFeaturedDto } from './collection.dto'
-import { CollectionModel } from './collection.model'
-import { ICollection, ICollectionFilter } from '@modules/collection/collection.interface'
+import { CollectionModel, CollectionRankingModel } from './collection.model'
+import { ICollection, ICollectionFilter, ICollectionRanking } from '@modules/collection/collection.interface'
 import { QueryRO } from '@interfaces/query.model'
 import BizException from '@exceptions/biz.exception'
 import { AuthErrors, CategoryErrors, CollectionErrors } from '@exceptions/custom.error'
@@ -8,14 +8,15 @@ import ErrorContext from '@exceptions/error.context'
 import { isAdmin } from '@config/role'
 import { NftModel, NftSaleLogModel } from '@modules/nft/nft.model'
 import UserService from '@modules/user/user.service'
-import { CollectionType, COLLECTION_LOGO_SIZES, NftStatus } from '@config/constants'
+import { COLLECTION_LOGO_SIZES, CollectionType, NftStatus } from '@config/constants'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
-import { filter, isEmpty } from 'lodash'
+import { filter, sumBy } from 'lodash'
 import { CreateNftDto } from '@modules/nft/nft.dto'
 import IOptions from '@interfaces/options.interface'
 import moment from 'moment'
 import CategoryService from '@modules/category/category.service'
 import { IOperator } from '@interfaces/operator.interface'
+import { roundUp } from '@utils/utility'
 
 export default class CollectionService {
     static async createCollection(createCollectionDto: CreateCollectionDto, files: any, operator: IOperator) {
@@ -246,53 +247,6 @@ export default class CollectionService {
         return updateCollection
     }
 
-    static async getCollectionAnalytics(key: string) {
-        const collection = await CollectionModel.findOne({ key })
-        if (!collection) {
-            throw new BizException(
-                CollectionErrors.collection_not_exists_error,
-                new ErrorContext('collection.service', 'getCollectionAnalytics', { key })
-            )
-        }
-        const analytics = collection.analytics
-        // @ts-ignore
-        if (!analytics || analytics.expired < moment().unix()) {
-            return await CollectionService.calculateAnalytics(collection)
-        }
-        return analytics
-    }
-
-    static async calculateAnalytics(collection: ICollection) {
-        const filter = { collection_key: collection.key }
-        const nftCount = await NftModel.countDocuments(filter)
-        const owners = await NftModel.aggregate([{ $match: filter }, { $group: { _id: '$owner_key', count: { $sum: 1 } } }])
-        const floorPrices = await NftModel.aggregate([{ $match: filter }, { $group: { _id: '$item', min: { $min: '$price' } } }])
-        const volumes = await NftSaleLogModel.aggregate([
-            { $match: filter },
-            { $group: { _id: '$collection_key', volume: { $sum: '$order_value' } } }
-        ])
-        const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD')
-        const volumeByDays = await NftSaleLogModel.aggregate([
-            { $match: filter },
-            { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$created' } }, volume: { $sum: '$order_value' } } }
-        ])
-        const volumeYesterdays = volumeByDays.filter(item => item._id === yesterday)
-        const sales = await NftSaleLogModel.aggregate([{ $match: filter }, { $group: { _id: '$collection_key', count: { $sum: 1 } } }])
-        const analytics = {
-            nft_count: nftCount,
-            owner_count: owners.length,
-            floor_price: floorPrices.length ? Number(floorPrices[0].min) : 0,
-            volume: volumes.length ? Number(volumes[0].volume) : 0,
-            volume_last: volumeYesterdays.length ? Number(volumeYesterdays[0].volume) : 0,
-            sales_count: sales.length ? sales[0].count : 0,
-            expired: moment().add(60, 'minutes').unix()
-        }
-        collection.analytics = analytics
-        // @ts-ignore
-        await collection.save()
-        return analytics
-    }
-
     static async getCollectionBriefByKeys(keys: String[]) {
         const items = await CollectionModel.find({ key: { $in: keys } }).select('key name logo')
         return items
@@ -306,5 +260,99 @@ export default class CollectionService {
     static async getTopCollections() {
         const data = await CollectionModel.find({}).sort({ 'ranking.trading_volume': -1 }).limit(10).exec()
         return data
+    }
+
+    static async generateCollectionRanking() {
+        const collections = await NftSaleLogModel.distinct('collection_key', {}).exec()
+        for (const collection_key of collections) {
+            // 1.1 market price - Average of last 5 orders
+            // get last 5 orders
+            const orders = await NftSaleLogModel.find({ collection_key }, { unit_price: 1 }).sort({ created: -1 }).limit(5).exec()
+            const order_volume = sumBy(orders, 'unit_price')
+            const market_price = orders.length > 0 ? roundUp(order_volume / orders.length, 8) : 0
+
+            // 1.2 owners
+            const owners = await NftModel.aggregate([{ $match: { collection_key } }, { $group: { _id: '$owner_key', count: { $sum: 1 } } }])
+            const number_of_owners = owners.length
+
+            // 1.3 trading volume
+            const volumeTotal = await NftSaleLogModel.aggregate([
+                { $match: { collection_key } },
+                { $group: { _id: null, count: { $sum: 1 }, trading_volume: { $sum: '$unit_price' } } }
+            ])
+            const number_of_orders = volumeTotal && volumeTotal[0] ? volumeTotal[0].count : 0
+            const trading_volume = volumeTotal && volumeTotal[0] ? parseFloat(volumeTotal[0].trading_volume) : 0
+
+            // 1.4 24 hrs volume
+            const volume24Hrs = await NftSaleLogModel.aggregate([
+                { $match: { collection_key, created: { $gte: moment().add(-1, 'days').toDate() } } },
+                { $group: { _id: null, count: { $sum: 1 }, trading_volume: { $sum: '$unit_price' } } }
+            ])
+            const number_of_orders_24hrs = volume24Hrs && volume24Hrs[0] ? volume24Hrs[0].count : 0
+            const trading_volume_24hrs = volume24Hrs && volume24Hrs[0] ? parseFloat(volume24Hrs[0].trading_volume) : 0
+
+            // 1.5 nft prices - Minimum price available in the market for the collection
+            const nftPriceAggegates = await NftModel.aggregate([
+                { $match: { collection_key, status: NftStatus.Approved, removed: false } },
+                {
+                    $group: {
+                        _id: null,
+                        count: { $sum: 1 },
+                        max_price: { $max: '$price' },
+                        min_price: { $min: '$price' },
+                        avg_price: { $avg: '$price' }
+                    }
+                }
+            ])
+            const number_of_items = nftPriceAggegates && nftPriceAggegates[0] ? nftPriceAggegates[0].count : 0
+            const item_floor_price = nftPriceAggegates && nftPriceAggegates[0] ? parseFloat(nftPriceAggegates[0].min_price) : 0
+            const item_celling_price = nftPriceAggegates && nftPriceAggegates[0] ? parseFloat(nftPriceAggegates[0].max_price) : 0
+            const item_average_price = nftPriceAggegates && nftPriceAggegates[0] ? parseFloat(nftPriceAggegates[0].avg_price) : 0
+
+            // 1.6 order prices
+            const orderPriceAggregate = await NftSaleLogModel.aggregate([
+                { $match: { collection_key, status: NftStatus.Approved, removed: false } },
+                {
+                    $group: {
+                        _id: null,
+                        count: { $sum: 1 },
+                        max_price: { $max: '$unit_price' },
+                        min_price: { $min: '$unit_price' },
+                        avg_price: { $avg: '$unit_price' }
+                    }
+                }
+            ])
+            const order_average_price = orderPriceAggregate && orderPriceAggregate[0] ? parseFloat(orderPriceAggregate[0].min_price) : 0
+            const order_floor_price = orderPriceAggregate && orderPriceAggregate[0] ? parseFloat(orderPriceAggregate[0].max_price) : 0
+            const order_celling_price = orderPriceAggregate && orderPriceAggregate[0] ? parseFloat(orderPriceAggregate[0].avg_price) : 0
+
+            const ranking: ICollectionRanking = {
+                collection_key,
+                market_price,
+                number_of_owners,
+                trading_volume,
+                number_of_orders,
+                trading_volume_24hrs,
+                number_of_orders_24hrs,
+                number_of_items,
+                item_average_price,
+                item_floor_price,
+                item_celling_price,
+                order_average_price,
+                order_floor_price,
+                order_celling_price,
+                updated: new Date()
+            }
+            await CollectionModel.findOneAndUpdate(
+                { key: collection_key },
+                {
+                    $set: { ranking }
+                },
+                { new: true }
+            )
+            await new CollectionRankingModel({
+                ...ranking
+            }).save()
+        }
     }
 }

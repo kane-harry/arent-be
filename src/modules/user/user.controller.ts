@@ -275,13 +275,6 @@ export default class UserController {
         return res.send(data)
     }
 
-    static async getUserAnalytics(req: AuthenticationRequest, res: Response) {
-        const key = req.params.key
-        const data = await UserService.getUserAnalytics(key)
-
-        return res.send(data)
-    }
-
     static async getFeaturedUsers(req: CustomRequest, res: Response) {
         const filter = req.query as IUserQueryFilter
         filter.featured = true

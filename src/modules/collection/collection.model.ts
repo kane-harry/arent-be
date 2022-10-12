@@ -25,7 +25,6 @@ const collectionSchema = new Schema<ICollection>(
         type: { type: String, enum: CollectionType, default: CollectionType.Normal },
         attributes: { type: [Object], default: [] },
         items_count: Number,
-        analytics: { type: Object, default: null },
         featured: { type: Boolean, default: false },
         website: String,
         discord: String,

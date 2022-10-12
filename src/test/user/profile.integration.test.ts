@@ -215,20 +215,6 @@ describe('Profile', () => {
         validResponse(res.body)
     }).timeout(10000)
 
-    it('Get User Analytics', async () => {
-        const res = await request(server.app)
-            .get(`/api/v1/users/${shareData.user.key}/analytics`)
-            .set('Authorization', `Bearer ${shareData.token}`)
-            .send()
-        expect(res.status).equal(200)
-        validResponse(res.body)
-        expect(res.body.brief?.key).equal(shareData.user.key)
-        expect(res.body.number_of_followers).exist
-        expect(res.body.number_of_followings).exist
-        expect(res.body.number_of_nft_liked).exist
-        expect(res.body.number_of_nft_created).exist
-    }).timeout(10000)
-
     it('Get User Assets', async () => {
         const res = await request(server.app)
             .get(`/api/v1/users/${shareData.user.key}/assets`)
