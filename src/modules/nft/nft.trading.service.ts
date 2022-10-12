@@ -54,14 +54,14 @@ export default class NftTradingService {
             type: 'PRODUCT',
             nft_key: nft.key,
             nft_name: nft.name,
-            nft_price: nft.price,
+            nft_price: Number(nft.price),
             currency: nft.currency,
             commission_fee: commissionFee,
             seller: seller.key,
             seller_address: sellerAccount.address,
             buyer: buyer.key,
             buyer_address: buyerAccount.address,
-            payment_order_value: nft.price,
+            payment_order_value: Number(nft.price),
             payment_symbol: nft.currency
         }
 
@@ -81,7 +81,7 @@ export default class NftTradingService {
             recipient: masterAccount.address,
             amount: buyerSendAmount,
             nonce: String(buyerNonce),
-            type: 'TRANSFER',
+            type: 'NFT_BOUGHT',
             signature: buyerSignature,
             notes: `NFT bought - name: ${nft.name}, key: ${nft.key} `,
             details: txnDetails,
@@ -146,7 +146,7 @@ export default class NftTradingService {
                 recipient: creatorAccount.address,
                 amount: String(royaltyFee),
                 nonce: String(masterNonce),
-                type: 'TRANSFER',
+                type: 'NFT_ROYALTY',
                 signature: royaltySignature,
                 notes: `NFT royalty - name: ${nft.name}, key: ${nft.key} `,
                 details: txnDetails,
@@ -201,14 +201,14 @@ export default class NftTradingService {
         const sellerMessage = `${nft.currency}:${masterAccount.address}:${sellerAccount.address}:${sellerAmount}:${masterNonce}`
         const sellerSignature = await signMessage(masterPrivateKey, sellerMessage)
 
-        txnDetails.type = 'ITEM_SOLD'
+        txnDetails.type = 'NFT_SOLD'
         const royaltyTxnParams: ISendCoinDto = {
             symbol: nft.currency,
             sender: masterAccount.address,
             recipient: sellerAccount.address,
             amount: sellerAmount,
             nonce: String(masterNonce),
-            type: 'TRANSFER',
+            type: 'NFT_SOLD',
             signature: sellerSignature,
             notes: `NFT Sold - name: ${nft.name}, key: ${nft.key} `,
             details: txnDetails,
