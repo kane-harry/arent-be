@@ -244,7 +244,7 @@ export default class NftService {
     static async updateNftStatus(key: string, updateNftStatusDto: UpdateNftStatusDto, operator: IOperator, options: IOptions) {
         const nft = await NftModel.findOne({ key, removed: false })
         if (!nft) {
-            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('account.service', 'updateNftStatus', { key }))
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'updateNftStatus', { key }))
         }
         const preNft = nft
         nft.set('status', updateNftStatusDto.status, String)

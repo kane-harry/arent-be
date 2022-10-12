@@ -41,7 +41,7 @@ export default class CategoryService {
         return { success: true }
     }
 
-    static async getCategory(key: string) {
+    static async getCategory(key: any) {
         return await CategoryModel.findOne({ $or: [{ key }, { nav_key: key }], removed: false })
     }
 

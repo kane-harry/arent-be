@@ -340,7 +340,7 @@ export default class AccountService {
             key: undefined,
             operator,
             options,
-            userKey: account.user_key,
+            user_key: account.user_key,
             action: AdminLogsActions.MintMasterAccount,
             section: AdminLogsSections.Account
         }).save()

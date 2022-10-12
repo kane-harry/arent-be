@@ -143,8 +143,6 @@ describe('Profile', () => {
         expect(updateRes.status).equal(200)
         validResponse(updateRes.body)
 
-        expect(updateRes.body?.first_name).equal(shareData.user.first_name)
-        expect(updateRes.body?.last_name).equal(shareData.user.last_name)
         expect(updateRes.body?.chat_name).equal(shareData.user.chat_name)
     })
 
@@ -225,10 +223,10 @@ describe('Profile', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.brief?.key).equal(shareData.user.key)
-        expect(res.body.followers).exist
-        expect(res.body.followings).exist
-        expect(res.body.nft_liked).exist
-        expect(res.body.nft_created).exist
+        expect(res.body.number_of_followers).exist
+        expect(res.body.number_of_followings).exist
+        expect(res.body.number_of_nft_liked).exist
+        expect(res.body.number_of_nft_created).exist
     }).timeout(10000)
 
     it('Get User Assets', async () => {

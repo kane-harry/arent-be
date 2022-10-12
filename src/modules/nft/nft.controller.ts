@@ -72,13 +72,6 @@ export default class NftController {
         return res.json(data)
     }
 
-    static async updateNftStatus(req: CustomRequest, res: Response) {
-        const { key } = req.params
-        const updateNftDto: UpdateNftStatusDto = req.body
-        const data = await NftService.updateNftStatus(key, updateNftDto, req.user, req.options)
-        return res.json(data)
-    }
-
     static async bulkUpdateNftStatus(req: CustomRequest, res: Response) {
         const updateNftDto: BulkUpdateNftStatusDto = req.body
         const { keys, status } = updateNftDto

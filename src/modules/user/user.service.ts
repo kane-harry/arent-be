@@ -1068,7 +1068,7 @@ export default class UserService extends AuthService {
     }
 
     static async bulkUpdateUserFeatured(params: BulkUpdateUserFeaturedDto, operator: IOperator, options?: IOptions) {
-        const keys = params.keys.split(',')
+        const keys = params.keys.split ? params.keys.split(',') : params.keys
         const featured = String(params.featured).toLowerCase() === 'true'
         await UserModel.updateMany({ key: { $in: keys } }, { $set: { featured: featured } })
         return { success: true }

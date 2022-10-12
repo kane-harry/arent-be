@@ -36,13 +36,6 @@ export default class NftRouter implements ICustomRouter {
         this.router.get(`${this.path}/:key`, asyncHandler(NftController.getNftDetail))
         this.router.get(`${this.path}/:key/related`, asyncHandler(NftController.getRelatedNfts))
         this.router.put(`${this.path}/:key`, requireAuth, upload.any(), validationMiddleware(UpdateNftDto), asyncHandler(NftController.updateNft))
-        this.router.put(
-            `${this.path}/:key/status`,
-            requireAuth,
-            requireAdmin(),
-            validationMiddleware(UpdateNftStatusDto),
-            asyncHandler(NftController.updateNftStatus)
-        )
         this.router.post(
             `${this.path}/status`,
             requireAuth,

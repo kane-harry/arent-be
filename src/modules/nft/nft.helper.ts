@@ -11,11 +11,30 @@ export default class NftHelper {
         const creator = await UserService.getBriefByKey(nft.creator_key)
         const reviewer = await UserService.getBriefByKey(nft.reviewer_key || '', false)
         const collection = await CollectionService.getCollectionBriefByKey(nft.collection_key)
-        const price_histories = await NftOwnershipLogModel.find({ nft_key: nft.key }, { price: 1, created: 1 }).sort({ created: -1 })
-
+        const histories = await NftOwnershipLogModel.find({ nft_key: nft.key }, { price: 1, created: 1 }).sort({ created: -1 })
+        const price_histories = histories.map(history => {
+            return {
+                price: Number(history.price),
+                currency: history.currency,
+                created: history.created
+            }
+        })
+        const last_purchase = {
+            user_key: nft.last_purchase?.user_key,
+            avatar: nft.last_purchase?.avatar,
+            chat_name: nft.last_purchase?.chat_name,
+            price: Number(nft.last_purchase?.price),
+            secondary_market: nft.last_purchase?.secondary_market,
+            currency: nft.last_purchase?.currency,
+            txn: nft.last_purchase?.txn,
+            type: nft.last_purchase?.type,
+            date: nft.last_purchase?.date
+        }
         const result: any = {
             key: nft.key,
             name: nft.name,
+            currency: nft.currency,
+            meta_data: nft.meta_data,
             description: nft.description,
             price: Number(nft.price),
             royalty: Number(nft.royalty),
@@ -40,7 +59,7 @@ export default class NftHelper {
             featured: nft.featured,
             number_of_likes: nft.number_of_likes,
             top_bid: nft.top_bid,
-            last_purchase: nft.last_purchase,
+            last_purchase: nft.last_purchase ? last_purchase : null,
             reviewer,
             collection,
             price_histories

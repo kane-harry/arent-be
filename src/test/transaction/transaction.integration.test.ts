@@ -45,18 +45,12 @@ describe('Transaction', () => {
     }).timeout(10000)
 
     it('GetAccountsByUser', async () => {
-        const res1 = await request(server.app)
-            .get(`/api/v1/accounts/users/me`)
-            .set('Authorization', `Bearer ${shareData1.token}`)
-            .send()
+        const res1 = await request(server.app).get(`/api/v1/accounts/users/me`).set('Authorization', `Bearer ${shareData1.token}`).send()
         expect(res1.status).equal(200)
         expect(res1.body.items).be.an('array')
         shareData1.accounts = res1.body.items
 
-        const res2 = await request(server.app)
-            .get(`/api/v1/accounts/users/me`)
-            .set('Authorization', `Bearer ${shareData2.token}`)
-            .send()
+        const res2 = await request(server.app).get(`/api/v1/accounts/users/me`).set('Authorization', `Bearer ${shareData2.token}`).send()
         expect(res2.status).equal(200)
         expect(res2.body.items).be.an('array')
         shareData2.accounts = res2.body.items.filter(item => item.symbol === symbol)
@@ -75,14 +69,11 @@ describe('Transaction', () => {
 
     it('MintMasterAccount', async () => {
         const sender = masterData.masterAccounts[0]
-        const res1 = await request(server.app)
-            .post(`/api/v1/accounts/${sender.key}/mint`)
-            .set('Authorization', `Bearer ${masterData.token}`)
-            .send({
-                amount: mintValue,
-                notes: 'mint master account',
-                type: 'mint'
-            })
+        const res1 = await request(server.app).post(`/api/v1/accounts/${sender.key}/mint`).set('Authorization', `Bearer ${masterData.token}`).send({
+            amount: mintValue,
+            notes: 'mint master account',
+            type: 'mint'
+        })
         expect(res1.status).equal(200)
         currentSenderAmount = mintValue
     }).timeout(10000)
@@ -159,7 +150,7 @@ describe('Transaction', () => {
         const fee = parsePrimeAmount(feeConfig)
         const amountForSender = parsePrimeAmount(res.body.sender_wallet.pre_balance).sub(parsePrimeAmount(res.body.sender_wallet.post_balance))
         const amountForRecipient = parsePrimeAmount(res.body.recipient_wallet.post_balance).sub(
-          parsePrimeAmount(res.body.recipient_wallet.pre_balance)
+            parsePrimeAmount(res.body.recipient_wallet.pre_balance)
         )
         expect(amountForRecipient.toString()).equal(amountBigNumber.sub(fee).toString())
 
@@ -192,9 +183,9 @@ describe('Transaction', () => {
     it('Validate Transaction Exist After Send', async () => {
         const account = masterData.masterAccounts[0]
         const res = await request(server.app)
-          .get(`/api/v1/transactions/accounts/${account.key}`)
-          .set('Authorization', `Bearer ${masterData.token}`)
-          .send()
+            .get(`/api/v1/transactions/accounts/${account.key}`)
+            .set('Authorization', `Bearer ${masterData.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.txns.items.length).gt(0)
@@ -203,9 +194,9 @@ describe('Transaction', () => {
     it('Validate Transaction Exist After Send', async () => {
         const account = shareData2.accounts[0]
         const res = await request(server.app)
-          .get(`/api/v1/transactions/accounts/${account.key}`)
-          .set('Authorization', `Bearer ${shareData2.token}`)
-          .send()
+            .get(`/api/v1/transactions/accounts/${account.key}`)
+            .set('Authorization', `Bearer ${shareData2.token}`)
+            .send()
         expect(res.status).equal(200)
         validResponse(res.body)
         expect(res.body.txns.items.length).gt(0)
@@ -244,7 +235,7 @@ describe('Transaction', () => {
         const fee = parsePrimeAmount(feeConfig)
         const amountForSender = parsePrimeAmount(res.body.sender_wallet.pre_balance).sub(parsePrimeAmount(res.body.sender_wallet.post_balance))
         const amountForRecipient = parsePrimeAmount(res.body.recipient_wallet.post_balance).sub(
-          parsePrimeAmount(res.body.recipient_wallet.pre_balance)
+            parsePrimeAmount(res.body.recipient_wallet.pre_balance)
         )
         expect(amountForRecipient.toString()).equal(amountBigNumber.toString())
 
@@ -287,7 +278,7 @@ describe('Transaction', () => {
             notes: 'test notes',
             mode: FeeMode.Exclusive
         })
-        expect(res.status).equal(400)
+        expect(res.status).equal(401)
         await makeUserSuspend(adminData, UserStatus.Normal)
     })
 

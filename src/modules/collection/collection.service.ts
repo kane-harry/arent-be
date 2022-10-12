@@ -123,7 +123,8 @@ export default class CollectionService {
             )
         }
         const owner = await UserService.getBriefByKey(collection.owner_key)
-        return { collection, owner }
+        const category = await CategoryService.getCategory(collection.category_key)
+        return { collection, owner, category }
     }
 
     static async updateCollection(key: string, updateCollectionDto: UpdateCollectionDto, files: any, operator: IOperator) {
@@ -181,10 +182,11 @@ export default class CollectionService {
         if (updateCollectionDto.background) {
             collection.set('background', updateCollectionDto.background, Object)
         }
-        collection.set('website', updateCollectionDto.website, String)
-        collection.set('discord', updateCollectionDto.discord, String)
-        collection.set('instagram', updateCollectionDto.instagram, String)
-        collection.set('twitter', updateCollectionDto.twitter, String)
+        collection.set('website', updateCollectionDto.website ?? collection.website, String)
+        collection.set('discord', updateCollectionDto.discord ?? collection.discord, String)
+        collection.set('instagram', updateCollectionDto.instagram ?? collection.instagram, String)
+        collection.set('twitter', updateCollectionDto.twitter ?? collection.twitter, String)
+        collection.set('category_key', updateCollectionDto.category_key ?? collection.category_key, String)
         return await collection.save()
     }
 
@@ -196,7 +198,7 @@ export default class CollectionService {
         if (!isAdmin(operator?.role) && operator?.key !== collection.owner_key) {
             throw new BizException(AuthErrors.user_permission_error, new ErrorContext('collection.service', 'deleteCollection', { key }))
         }
-        const totalCount = await NftModel.countDocuments({ collection_key: collection.key, status: NftStatus.Approved })
+        const totalCount = await NftModel.countDocuments({ collection_key: collection.key, status: NftStatus.Approved, removed: false })
         if (totalCount > 0) {
             throw new BizException(
                 CollectionErrors.collection_has_approved_nfts,

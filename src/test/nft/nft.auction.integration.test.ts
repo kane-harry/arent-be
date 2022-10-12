@@ -7,7 +7,7 @@ import server from '@app/server'
 import { adminData, initDataForUser, makeAdmin } from '@app/test/init/authenticate'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { NftModel } from '@modules/nft/nft.model'
-import { AccountType, FeeMode, NftPriceType, NftStatus } from '@config/constants'
+import { AccountType, CollectionType, FeeMode, NftPriceType, NftStatus, NftType } from '@config/constants'
 import { AccountModel } from '@modules/account/account.model'
 import { generateUnixTimestamp } from '@utils/utility'
 import NftScheduler from '@modules/jobs/nft.scheduler'
@@ -65,7 +65,7 @@ const createNftData = {
             year: 2020
         }
     ],
-    type: 'erc721',
+    type: NftType.ERC721,
     attributes: [
         {
             trait_type: 'creator',
@@ -81,7 +81,7 @@ const createNftData = {
 const createCollectionData = {
     name: 'collection name',
     description: 'collection description',
-    type: 'sports'
+    type: CollectionType.Normal
 }
 const time = generateUnixTimestamp()
 const sellData = {
@@ -225,9 +225,9 @@ describe('NFT', () => {
 
     it(`Approved NFT`, async () => {
         const res = await request(server.app)
-            .put(`/api/v1/nfts/${shareData.nfts[0].key}/status`)
+            .post(`/api/v1/nfts/status`)
             .set('Authorization', `Bearer ${adminShareData.token}`)
-            .send({ status: NftStatus.Approved })
+            .send({ status: NftStatus.Approved, keys: [shareData.nfts[0].key] })
         expect(res.status).equal(200)
         validResponse(res.body)
         const nft = await NftModel.findOne({ key: shareData.nfts[0].key })
