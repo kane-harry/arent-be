@@ -688,13 +688,13 @@ export default class NftService {
     }
 
     static async sendNftPurchaseEmailNotification(options: any) {
-        const { buyer, seller, nft, buyer_txn, royalty_txn, seller_txn } = options
+        const { buyer, seller, nft, buyerTxn, royaltyTxn, sellerTxn } = options
         if (buyer.email) {
-            const context = { address: buyer.email, txn: buyer_txn }
+            const context = { address: buyer.email, txn: buyerTxn }
             EmailService.sendPurchaseProductSuccessNotification(context)
         }
         if (seller.email) {
-            const context = { address: seller.email, txn: seller_txn }
+            const context = { address: seller.email, txn: sellerTxn }
             EmailService.sendSaleProductSuccessNotification(context)
         }
     }
