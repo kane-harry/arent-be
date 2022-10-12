@@ -1,5 +1,5 @@
-import { ArticleType, ARTICLE_COVER_IMAGE_SIZES } from '@config/constants'
-import { ArticleDto, ArticleRO } from './article.dto'
+import { ARTICLE_COVER_IMAGE_SIZES, ArticleType } from '@config/constants'
+import { ArticleDto } from './article.dto'
 import BizException from '@exceptions/biz.exception'
 import { ArticleErrors, AuthErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
@@ -9,8 +9,8 @@ import ArticleModel from './article.model'
 import { isAdmin } from '@config/role'
 import { IArticle, IArticleFilter } from './article.interface'
 import { QueryRO } from '@interfaces/query.model'
-import UserModel from '@modules/user/user.model'
 import { IOperator } from '@interfaces/operator.interface'
+import ArticleHelper from '@modules/article/article.helper'
 
 export default class ArticleService {
     static async uploadContentFiles(files: Express.Multer.File[] | { [fieldname: string]: Express.Multer.File[] } | undefined, user: IOperator) {
@@ -108,8 +108,7 @@ export default class ArticleService {
     static async getArticleDetail(key: string) {
         const article = await ArticleModel.findOne({ $or: [{ key }, { nav_key: key }], removed: false })
         if (article) {
-            const author = await UserModel.getBriefByKey(article.author_key, false)
-            return new ArticleRO(article, author)
+            return await ArticleHelper.formatArticleRO(article)
         }
         return article
     }
@@ -135,7 +134,8 @@ export default class ArticleService {
             sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1
         }
         const totalCount = await ArticleModel.countDocuments(filter)
-        const items = await ArticleModel.find<IArticle>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
-        return new QueryRO<IArticle>(totalCount, params.page_index, params.page_size, items)
+        const articles = await ArticleModel.find<IArticle>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
+        const items = await ArticleHelper.formatArticleListRO(articles)
+        return new QueryRO(totalCount, params.page_index, params.page_size, items)
     }
 }

@@ -356,7 +356,7 @@ describe('NFT', () => {
     }).timeout(20000)
 
     it(`Gen collection ranking`, async () => {
-        await CollectionService.generateCollectionRanking()
+        await CollectionService.generateCollectionRanking(shareData.collections[0].key)
     }).timeout(10000)
 
     it(`Get collection ranking`, async () => {
@@ -365,11 +365,11 @@ describe('NFT', () => {
         validResponse(res.body)
     }).timeout(10000)
 
-    it(`Gen collection ranking`, async () => {
-        await UserService.generateUserRanking()
+    it(`Gen user ranking`, async () => {
+        await UserService.generateUserRanking(shareData.user.key)
     }).timeout(10000)
 
-    it(`Get collection ranking`, async () => {
+    it(`Get user ranking`, async () => {
         const res = await request(server.app).get(`/api/v1/users/rankings`).set('Authorization', `Bearer ${shareData.token}`).send()
         expect(res.status).equal(200)
         validResponse(res.body)

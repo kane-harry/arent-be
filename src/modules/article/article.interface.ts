@@ -11,7 +11,7 @@ export interface IArticle extends IBaseModel {
     cover_image?: any
     content: string
     author_key: string
-    editor_key: String
+    editor_key: string
 }
 
 export interface IArticleFilter extends IFilterModel {

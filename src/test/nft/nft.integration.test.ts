@@ -686,7 +686,7 @@ describe('NFT', () => {
     }).timeout(10000)
 
     it(`Gen collection ranking`, async () => {
-        await CollectionService.generateCollectionRanking()
+        await CollectionService.generateCollectionRanking(shareData.collections[0].key)
     }).timeout(10000)
 
     it(`Get collection ranking`, async () => {

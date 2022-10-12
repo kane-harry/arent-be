@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Length, Matches, MinLength } from 'class-validator'
+import { IsEmail, IsNumber, IsEnum, IsNotEmpty, IsOptional, IsString, Length, Matches, MinLength } from 'class-validator'
 import { MFAType, UserStatus } from '@config/constants'
 import { map } from 'lodash'
 import { IUser } from './user.interface'
@@ -156,8 +156,8 @@ export class UpdateUserStatusDto {
 }
 
 export class UpdateUserRoleDto {
-    @IsString()
-    public role: string
+    @IsNumber()
+    public role: number
 }
 
 export class UpdatePhoneDto {
