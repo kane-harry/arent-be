@@ -12,7 +12,7 @@ export default class RankingScheduler implements IScheduler {
     private async generateCollectionRanking() {
         const task = cron.schedule('*/30 * * * *', async () => {
             console.log(`${new Date()} execute task - Generate Collection Ranking`)
-            await CollectionService.generateCollectionRanking
+            await CollectionService.generateCollectionRanking()
         })
         task.start()
     }
