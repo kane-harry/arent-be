@@ -58,10 +58,11 @@ export class CreateNftDto {
     @IsOptional()
     public image?: any
 
-    @IsEnum(NftType, {
-        message: `Nft Type must be one of ${map(NftType, el => el).join(' ')}`
-    })
-    public type?: NftType
+    // @IsEnum(NftType, {
+    //     message: `Nft Type must be one of ${map(NftType, el => el).join(' ')}`
+    // })
+    @IsOptional()
+    public type?: string
 
     @IsOptional()
     public quantity: number = 1

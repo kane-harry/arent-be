@@ -25,7 +25,8 @@ import {
     NftStatus,
     OfferStatusType,
     AccountActionType,
-    NftPurchaseType
+    NftPurchaseType,
+    NftType
 } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
@@ -55,6 +56,12 @@ export default class NftService {
     }
 
     static async createNft(params: CreateNftDto, files: any, operator: IOperator, options: IOptions) {
+        let nftType = NftType.ERC721
+        if (params.type) {
+            if (params.type.toUpperCase() === NftType.ERC1155) {
+                nftType = NftType.ERC1155
+            }
+        }
         const user = await UserService.getBriefByKey(operator.key)
         if (!files || !files.find((item: any) => item.fieldname === 'image')) {
             throw new BizException(NftErrors.nft_image_required_error, new ErrorContext('nft.service', 'createNft', {}))
@@ -98,6 +105,7 @@ export default class NftService {
         const model = new NftModel({
             key: undefined,
             ...params,
+            type: nftType,
             token_id: String(moment().unix()),
             platform: config.system.nftDefaultPlatform,
             currency: params.currency ?? config.system.primeToken,

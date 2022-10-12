@@ -59,6 +59,9 @@ const nftSchema = new Schema<INft>(
                 delete ret.version
                 ret.price = parseFloat(ret.price.toString())
                 ret.royalty = parseFloat(ret.royalty.toString())
+                if (ret.last_purchase && ret.last_purchase.price) {
+                    ret.last_purchase = parseFloat(ret.last_purchase.price.toString())
+                }
                 return ret
             }
         },
