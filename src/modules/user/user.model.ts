@@ -79,7 +79,8 @@ const userSchema = new Schema<IUser, IUserModel>(
         bio: String,
         twitter: String,
         instagram: String,
-        featured: { type: Boolean, default: false }
+        featured: { type: Boolean, default: false },
+        ranking: { type: Object, default: undefined }
     },
     {
         toJSON: {

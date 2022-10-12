@@ -96,4 +96,9 @@ export default class CollectionController {
         const data = await CollectionService.getCollectionAnalytics(key)
         return res.json(data)
     }
+
+    static async getTopCollections(req: CustomRequest, res: Response) {
+        const data = await CollectionService.getTopCollections()
+        return res.json(data)
+    }
 }

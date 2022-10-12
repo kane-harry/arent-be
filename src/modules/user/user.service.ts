@@ -1078,4 +1078,12 @@ export default class UserService extends AuthService {
         const nfts = await UserModel.getBriefByKeys(userKeys, includeEmail)
         return nfts
     }
+
+    public static getTopUsers = async () => {
+        const items = await UserModel.find<IUser>({ removed: false }, { key: 1, first_name: 1, last_name: 1, chat_name: 1, avatar: 1, ranking: 1 })
+            .sort({ 'ranking.trading_volume_of_created_nfts': -1 })
+            .limit(10)
+            .exec()
+        return items
+    }
 }

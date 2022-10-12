@@ -29,6 +29,7 @@ export default class CollectionRouter implements ICustomRouter {
         )
         this.router.get(`${this.path}/`, asyncHandler(CollectionController.queryCollections))
         this.router.get(`${this.path}/featured`, asyncHandler(CollectionController.getCollectionFeatured))
+        this.router.get(`${this.path}/rankings`, asyncHandler(CollectionController.getTopCollections))
         this.router.get(`${this.path}/:key`, asyncHandler(CollectionController.getCollectionDetail))
         this.router.delete(`${this.path}/:key`, requireAuth, asyncHandler(CollectionController.deleteCollection))
         this.router.put(`${this.path}/featured`, requireAuth, requireAdmin(), asyncHandler(CollectionController.bulkUpdateCollectionFeatured))

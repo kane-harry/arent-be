@@ -2,7 +2,7 @@ import { config } from '@config'
 import { CollectionType } from '@config/constants'
 import { randomBytes } from 'crypto'
 import { Schema, model } from 'mongoose'
-import { ICollection } from './collection.interface'
+import { ICollection, ICollectionRanking } from './collection.interface'
 
 const collectionSchema = new Schema<ICollection>(
     {
@@ -12,7 +12,7 @@ const collectionSchema = new Schema<ICollection>(
             index: true,
             unique: true,
             default: () => {
-                return randomBytes(16).toString('hex')
+                return randomBytes(10).toString('hex')
             }
         },
         name: String,
@@ -55,4 +55,50 @@ const collectionSchema = new Schema<ICollection>(
 
 const CollectionModel = model<ICollection>('collections', collectionSchema)
 
-export { CollectionModel }
+const collectionRankingSchema = new Schema<ICollectionRanking>(
+    {
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(8).toString('hex')
+            }
+        },
+        collection_key: String,
+        market_price: Number,
+        number_of_owners: Number,
+        trading_volume: Number,
+        trading_volume_24hrs: Number,
+        number_of_orders_24hrs: Number,
+        number_of_items: Number,
+        item_average_price: Number,
+        item_floor_price: Number,
+        item_celling_price: Number,
+        number_of_orders: Number,
+        order_average_price: Number,
+        order_floor_price: Number,
+        order_celling_price: Number,
+        updated: Date
+    },
+    {
+        toJSON: {
+            transform: (doc, ret) => {
+                delete ret._id
+                delete ret.id
+                return ret
+            },
+            virtuals: true,
+            getters: true
+        },
+        timestamps: {
+            createdAt: 'created',
+            updatedAt: 'modified'
+        },
+        versionKey: 'version'
+    }
+)
+const CollectionRankingModel = model<ICollectionRanking>('collection_rankings', collectionRankingSchema)
+
+export { CollectionModel, CollectionRankingModel }

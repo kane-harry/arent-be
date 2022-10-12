@@ -294,4 +294,9 @@ export default class UserController {
         const data = await UserService.bulkUpdateUserFeatured(params, req.user, req.options)
         return res.json(data)
     }
+
+    static async getTopUsers(req: CustomRequest, res: Response) {
+        const data = await UserService.getTopUsers()
+        return res.send(data)
+    }
 }

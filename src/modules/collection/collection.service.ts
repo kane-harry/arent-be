@@ -302,4 +302,9 @@ export default class CollectionService {
         const item = await CollectionModel.findOne({ key: key }).select('key name logo')
         return item
     }
+
+    static async getTopCollections() {
+        const data = await CollectionModel.find({}).sort({ 'ranking.trading_volume': -1 }).limit(10).exec()
+        return data
+    }
 }

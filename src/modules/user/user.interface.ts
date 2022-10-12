@@ -15,6 +15,28 @@ export interface IPasswordSettings {
     change_password_next_login_attempts: number
 }
 
+export interface IUserRanking extends IBaseModel {
+    user_key: string
+    number_of_followers: number
+    number_of_followings: number
+    number_of_nft_liked: number
+    number_of_nft_created: number
+    number_of_created_nfts_owners: number
+    number_of_created_nfts_orders: number
+    trading_volume_of_created_nfts: number
+    number_of_created_nfts_orders_24hrs: number
+    trading_volume_of_created_nfts_24hrs: number
+    number_of_buying_orders: number
+    trading_volume_of_buying: number
+    number_of_buying_orders_24hrs: number
+    trading_volume_of_buying_24hrs: number
+    number_of_selling_orders: number
+    trading_volume_of_selling: number
+    number_of_selling_orders_24hrs: number
+    trading_volume_of_selling_24hrs: number
+    updated: Date
+}
+
 export interface IUser extends IBaseModel {
     first_name?: string
     last_name?: string
@@ -46,6 +68,7 @@ export interface IUser extends IBaseModel {
     twitter?: string
     instagram?: string
     featured?: boolean
+    ranking?: IUserRanking
 }
 
 export interface IUserBrief {
