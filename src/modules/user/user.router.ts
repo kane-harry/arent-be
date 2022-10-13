@@ -124,7 +124,8 @@ class UserRouter implements ICustomRouter {
             validationMiddleware(EmailVerifyDto),
             asyncHandler(UserController.verifyEmailAddress)
         )
-        this.router.get(`${this.path}/:key/analytics`, requireAuth, asyncHandler(UserController.getUserAnalytics))
+        this.router.get(`${this.path}/:key/analytics`, asyncHandler(UserController.getUserAnalytics))
+        this.router.get(`${this.path}/:key/ranking`, asyncHandler(UserController.getUserRanking))
 
         this.router.get(`${this.path}/featured`, asyncHandler(UserController.getFeaturedUsers))
         this.router.put(`${this.path}/featured`, requireAuth, requireAdmin(), asyncHandler(UserController.bulkUpdateUserFeatured))

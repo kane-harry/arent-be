@@ -237,6 +237,16 @@ describe('NFT', () => {
         expect(res.body.sales_count).exist
     }).timeout(10000)
 
+    it('Get Collection Ranking', async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/collections/${shareData.collections[0].key}/ranking`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.collection_key).equal(shareData.collections[0].key)
+    }).timeout(10000)
+
     it(`Gen collection ranking`, async () => {
         await CollectionService.generateCollectionRanking(shareData.collections[0].key)
     }).timeout(10000)

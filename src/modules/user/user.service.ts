@@ -1068,6 +1068,23 @@ export default class UserService extends AuthService {
         return new UserAnalyticRO(user, followers, followings, nftLiked, nftCreated)
     }
 
+    static async getUserRanking(userKey: string) {
+        let user = await UserModel.findOne({ key: userKey }, { key: 1, ranking: 1 })
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'getUserRanking', { userKey }))
+        }
+
+        if (user.ranking) {
+            const requireUpdate = moment().subtract(-1, 'hour').isAfter(moment(user.ranking.updated))
+            if (requireUpdate) {
+                user = await UserService.generateUserRanking(userKey)
+            }
+        } else {
+            user = await UserService.generateUserRanking(userKey)
+        }
+        return user?.ranking
+    }
+
     static async bulkUpdateUserFeatured(params: BulkUpdateUserFeaturedDto, operator: IOperator, options?: IOptions) {
         const keys = params.keys.split ? params.keys.split(',') : params.keys
         const featured = String(params.featured).toLowerCase() === 'true'
@@ -1167,7 +1184,7 @@ export default class UserService extends AuthService {
             trading_volume_of_selling_24hrs,
             updated: new Date()
         }
-        await UserModel.findOneAndUpdate(
+        const user = await UserModel.findOneAndUpdate(
             { key: userKey },
             {
                 $set: { ranking }
@@ -1177,5 +1194,6 @@ export default class UserService extends AuthService {
         await new UserRankingModel({
             ...ranking
         }).save()
+        return user
     }
 }

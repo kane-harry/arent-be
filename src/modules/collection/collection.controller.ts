@@ -91,9 +91,15 @@ export default class CollectionController {
         return res.json(data)
     }
 
-    static async getCollectionAnalytics(req: AuthenticationRequest, res: Response) {
+    static async getCollectionAnalytics(req: CustomRequest, res: Response) {
         const key = req.params.key
         const data = await CollectionService.getCollectionAnalytics(key)
+        return res.json(data)
+    }
+
+    static async getCollectionRanking(req: CustomRequest, res: Response) {
+        const key = req.params.key
+        const data = await CollectionService.getCollectionRanking(key)
         return res.json(data)
     }
 

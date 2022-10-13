@@ -229,6 +229,13 @@ describe('Profile', () => {
         expect(res.body.number_of_nft_created).exist
     }).timeout(10000)
 
+    it('Get User Ranking', async () => {
+        const res = await request(server.app).get(`/api/v1/users/${shareData.user.key}/ranking`).send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.user_key).equal(shareData.user.key)
+    }).timeout(10000)
+
     it('Get User Assets', async () => {
         const res = await request(server.app)
             .get(`/api/v1/users/${shareData.user.key}/assets`)

@@ -263,6 +263,26 @@ export default class CollectionService {
         return analytics
     }
 
+    static async getCollectionRanking(key: string) {
+        let collection = await CollectionModel.findOne({ key })
+        if (!collection) {
+            throw new BizException(
+                CollectionErrors.collection_not_exists_error,
+                new ErrorContext('collection.service', 'getCollectionRanking', { key })
+            )
+        }
+
+        if (collection.ranking) {
+            const requireUpdate = moment().subtract(-1, 'hour').isAfter(moment(collection.ranking.updated))
+            if (requireUpdate) {
+                collection = await CollectionService.generateCollectionRanking(key)
+            }
+        } else {
+            collection = await CollectionService.generateCollectionRanking(key)
+        }
+        return collection?.ranking
+    }
+
     static async calculateAnalytics(collection: ICollection) {
         const filter = { collection_key: collection.key }
         const nftCount = await NftModel.countDocuments(filter)
@@ -388,7 +408,7 @@ export default class CollectionService {
             order_celling_price,
             updated: new Date()
         }
-        await CollectionModel.findOneAndUpdate(
+        const collection = await CollectionModel.findOneAndUpdate(
             { key: collection_key },
             {
                 $set: { ranking }
@@ -398,5 +418,6 @@ export default class CollectionService {
         await new CollectionRankingModel({
             ...ranking
         }).save()
+        return collection
     }
 }

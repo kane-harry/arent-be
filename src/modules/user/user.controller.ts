@@ -275,9 +275,16 @@ export default class UserController {
         return res.send(data)
     }
 
-    static async getUserAnalytics(req: AuthenticationRequest, res: Response) {
+    static async getUserAnalytics(req: CustomRequest, res: Response) {
         const key = req.params.key
         const data = await UserService.getUserAnalytics(key)
+
+        return res.send(data)
+    }
+
+    static async getUserRanking(req: CustomRequest, res: Response) {
+        const key = req.params.key
+        const data = await UserService.getUserRanking(key)
 
         return res.send(data)
     }
