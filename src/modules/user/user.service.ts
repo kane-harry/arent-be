@@ -60,6 +60,7 @@ import IOptions from '@interfaces/options.interface'
 import { IOperator } from '@interfaces/operator.interface'
 import { UserRankingModel } from '@modules/user/user.ranking.model'
 import moment from 'moment'
+import { UserAnalyticRO } from './user.ro'
 
 export default class UserService extends AuthService {
     public static async authorize(params: AuthorizeDto, options?: any) {
