@@ -32,6 +32,7 @@ export interface ICollection extends IBaseModel {
     attributes?: []
     items_count: number
     featured: boolean
+    analytics: object
     website: string
     discord: string
     instagram: string

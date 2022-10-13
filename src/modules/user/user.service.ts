@@ -1054,6 +1054,19 @@ export default class UserService extends AuthService {
         return { success }
     }
 
+    static async getUserAnalytics(userKey: string) {
+        const user = await UserModel.getBriefByKey(userKey, false)
+        if (!user) {
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'verifyEmailAddress', { userKey }))
+        }
+        const followers = await UserFollowerModel.countDocuments({ user_key: user.key })
+        const followings = await UserFollowerModel.countDocuments({ follower_key: user.key })
+        const nftLiked = await NftFavoriteModel.countDocuments({ user_key: user.key })
+        const nftCreated = await NftModel.countDocuments({ creator_key: user.key })
+
+        return new UserAnalyticRO(user, followers, followings, nftLiked, nftCreated)
+    }
+
     static async bulkUpdateUserFeatured(params: BulkUpdateUserFeaturedDto, operator: IOperator, options?: IOptions) {
         const keys = params.keys.split ? params.keys.split(',') : params.keys
         const featured = String(params.featured).toLowerCase() === 'true'

@@ -247,6 +247,53 @@ export default class CollectionService {
         return updateCollection
     }
 
+    static async getCollectionAnalytics(key: string) {
+        const collection = await CollectionModel.findOne({ key })
+        if (!collection) {
+            throw new BizException(
+                CollectionErrors.collection_not_exists_error,
+                new ErrorContext('collection.service', 'getCollectionAnalytics', { key })
+            )
+        }
+        const analytics = collection.analytics
+        // @ts-ignore
+        if (!analytics || analytics.expired < moment().unix()) {
+            return await CollectionService.calculateAnalytics(collection)
+        }
+        return analytics
+    }
+
+    static async calculateAnalytics(collection: ICollection) {
+        const filter = { collection_key: collection.key }
+        const nftCount = await NftModel.countDocuments(filter)
+        const owners = await NftModel.aggregate([{ $match: filter }, { $group: { _id: '$owner_key', count: { $sum: 1 } } }])
+        const floorPrices = await NftModel.aggregate([{ $match: filter }, { $group: { _id: '$item', min: { $min: '$price' } } }])
+        const volumes = await NftSaleLogModel.aggregate([
+            { $match: filter },
+            { $group: { _id: '$collection_key', volume: { $sum: '$order_value' } } }
+        ])
+        const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD')
+        const volumeByDays = await NftSaleLogModel.aggregate([
+            { $match: filter },
+            { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$created' } }, volume: { $sum: '$order_value' } } }
+        ])
+        const volumeYesterdays = volumeByDays.filter(item => item._id === yesterday)
+        const sales = await NftSaleLogModel.aggregate([{ $match: filter }, { $group: { _id: '$collection_key', count: { $sum: 1 } } }])
+        const analytics = {
+            nft_count: nftCount,
+            owner_count: owners.length,
+            floor_price: floorPrices.length ? Number(floorPrices[0].min) : 0,
+            volume: volumes.length ? Number(volumes[0].volume) : 0,
+            volume_last: volumeYesterdays.length ? Number(volumeYesterdays[0].volume) : 0,
+            sales_count: sales.length ? sales[0].count : 0,
+            expired: moment().add(60, 'minutes').unix()
+        }
+        collection.analytics = analytics
+        // @ts-ignore
+        await collection.save()
+        return analytics
+    }
+
     static async getCollectionBriefByKeys(keys: String[]) {
         const items = await CollectionModel.find({ key: { $in: keys } }).select('key name logo')
         return items
