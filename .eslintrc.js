@@ -31,7 +31,6 @@ module.exports = {
         indent: ['error', 4, { SwitchCase: 1 }],
         'no-unused-vars': 'off',
         'no-case-declarations': 'off',
-        'no-unused-expressions': 'off',
-        '@typescript-eslint/no-unnecessary-type-assertion': 0
+        'no-unused-expressions': 'off'
     }
 }
