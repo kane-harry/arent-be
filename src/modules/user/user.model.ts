@@ -112,6 +112,7 @@ userSchema.statics.getBriefByChatName = function (chatName: string) {
             key: 1,
             chat_name: 1,
             avatar: 1,
+            background: 1,
             bio: 1,
             instagram: 1,
             twitter: 1
@@ -120,7 +121,7 @@ userSchema.statics.getBriefByChatName = function (chatName: string) {
 }
 
 userSchema.statics.getBriefByKey = function (key: string, includeEmail: boolean) {
-    const projection: any = { key: 1, chat_name: 1, avatar: 1, bio: 1, instagram: 1, twitter: 1 }
+    const projection: any = { key: 1, chat_name: 1, avatar: 1, background: 1, bio: 1, instagram: 1, twitter: 1 }
     if (includeEmail) {
         projection.email = 1
     }
@@ -128,7 +129,7 @@ userSchema.statics.getBriefByKey = function (key: string, includeEmail: boolean)
 }
 
 userSchema.statics.getBriefByKeys = function (keys: String[], includeEmail: boolean) {
-    const projection: any = { key: 1, chat_name: 1, avatar: 1, bio: 1, instagram: 1, twitter: 1 }
+    const projection: any = { key: 1, chat_name: 1, avatar: 1, background: 1, bio: 1, instagram: 1, twitter: 1 }
     if (includeEmail) {
         projection.email = 1
     }
