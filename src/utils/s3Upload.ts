@@ -21,7 +21,7 @@ export const uploadFiles = async (files: any, folder: string): Promise<IUploadRe
         return []
     }
     // allowed ext
-    const fileTypes = /jpeg|jpg|png|gif|svg|mp4|mov/
+    const fileTypes = /jpeg|jpg|png|gif|svg|mp4|mov|webp/
 
     const notAllowed = find(files, function (item) {
         const fileName = item && item.originalname && item.originalname.toLowerCase()
