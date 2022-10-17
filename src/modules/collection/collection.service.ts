@@ -8,7 +8,7 @@ import ErrorContext from '@exceptions/error.context'
 import { isAdmin } from '@config/role'
 import { NftModel, NftSaleLogModel } from '@modules/nft/nft.model'
 import UserService from '@modules/user/user.service'
-import { COLLECTION_LOGO_SIZES, CollectionType, NftStatus } from '@config/constants'
+import { COLLECTION_BACKGROUND_SIZES, COLLECTION_LOGO_SIZES, CollectionType, NftStatus } from '@config/constants'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
 import { filter, sumBy } from 'lodash'
 import { CreateNftDto } from '@modules/nft/nft.dto'
@@ -33,7 +33,7 @@ export default class CollectionService {
         if (!files || !files.length) {
             throw new BizException(CollectionErrors.image_required_error, new ErrorContext('collection.service', 'createCollection', {}))
         }
-        files = await resizeImages(files, { logo: COLLECTION_LOGO_SIZES })
+        files = await resizeImages(files, { logo: COLLECTION_LOGO_SIZES, background: COLLECTION_BACKGROUND_SIZES })
         const assets = await uploadFiles(files, 'collections')
         const logos = filter(assets, asset => {
             return asset.fieldname === 'logo'
@@ -146,7 +146,7 @@ export default class CollectionService {
             }
         }
         if (files && files.length) {
-            files = await resizeImages(files, { logo: COLLECTION_LOGO_SIZES })
+            files = await resizeImages(files, { logo: COLLECTION_LOGO_SIZES, background: COLLECTION_BACKGROUND_SIZES })
             const assets = await uploadFiles(files, 'collections')
             const logos = filter(assets, asset => {
                 return asset.fieldname === 'logo'

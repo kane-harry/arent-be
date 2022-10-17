@@ -192,10 +192,10 @@ export default class NftService {
     static async updateNft(key: string, params: UpdateNftDto, files: any, operator: IOperator, options: IOptions) {
         const nft = await NftModel.findOne({ key, removed: false })
         if (!nft) {
-            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('account.service', 'initAccounts', { key }))
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'updateNft', { key }))
         }
         if (!roleCan(operator.role || 0, config.operations.UPDATE_NFT_DETAILS) && nft.status === NftStatus.Approved) {
-            throw new BizException(NftErrors.nft_updation_status_error, new ErrorContext('account.service', 'initAccounts', { key }))
+            throw new BizException(NftErrors.nft_updation_status_error, new ErrorContext('nft.service', 'updateNft', { key }))
         }
         const preNft = nft
         if (files) {

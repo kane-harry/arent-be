@@ -2,7 +2,11 @@ import sharp from 'sharp'
 import { S3 } from 'aws-sdk'
 import { config } from '@config'
 import { v4 as uuidV4 } from 'uuid'
-import { isArray, last, map, split } from 'lodash'
+import { find, isArray, isEmpty, last, map, some, split } from 'lodash'
+import BizException from '@exceptions/biz.exception'
+import { CommonErrors } from '@exceptions/custom.error'
+import ErrorContext from '@exceptions/error.context'
+import path from 'path'
 
 interface IUploadResp {
     fieldname: string
@@ -13,6 +17,21 @@ interface IUploadResp {
 }
 
 export const uploadFiles = async (files: any, folder: string): Promise<IUploadResp[]> => {
+    if (!files || isEmpty(files)) {
+        return []
+    }
+    // allowed ext
+    const fileTypes = /jpeg|jpg|png|gif|svg|mp4|mov/
+
+    const notAllowed = find(files, function (item) {
+        const fileName = item && item.originalname && item.originalname.toLowerCase()
+        const fileExtName = path.extname(fileName)
+        return !fileTypes.test(fileExtName)
+    })
+    if (notAllowed) {
+        throw new BizException(CommonErrors.uploader_file_types_error, new ErrorContext('s3Upload', 'uploadFiles', {}))
+    }
+
     const s3 = new S3({
         credentials: {
             accessKeyId: config.amazonS3.key,
@@ -73,13 +92,15 @@ export const resizeImages = async (
             newFilesOps.push(file)
             continue
         }
+        if (!/^image/i.test(file.mimetype)) {
+            throw new BizException(CommonErrors.uploader_image_types_error, new ErrorContext('s3Upload', 'resizeImages', {}))
+        }
         const originalFile = {
             ...file,
             type: file.type ?? 'original',
             originalname: fileName
         }
         newFilesOps.push(originalFile)
-
         const shouldTransform = file.mimetype.toLowerCase() !== 'image/gif' && /^image/i.test(file.mimetype)
         if (shouldTransform) {
             const fileName = uuid + '.webp'

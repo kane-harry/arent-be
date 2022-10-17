@@ -6,7 +6,17 @@ export const CommonErrors = {
     internal_server_error: { code: 1003, status: 500, message: 'Internal Server Error' },
     request_forbidden_error: { code: 1004, status: 403, message: 'Forbidden' },
     coin_server_request_error: { code: 1005, status: 400, message: 'The request failed due to a coin server error.' },
-    bad_request: { code: 1006, status: 400, message: 'Bad Request.' }
+    bad_request: { code: 1006, status: 400, message: 'Bad Request.' },
+    uploader_image_types_error: {
+        code: 1007,
+        status: 400,
+        message: 'Image format error, the following image formats are supported: .jpg, jpeg, .gif, .svg.'
+    },
+    uploader_file_types_error: {
+        code: 1008,
+        status: 400,
+        message: 'File format error, the following file types are supported: .jpg, jpeg, .gif, .svg, .mp4, .mov.'
+    }
 }
 
 export const AuthErrors = {
@@ -34,7 +44,8 @@ export const AuthErrors = {
     image_required_error: { code: 2022, status: 400, message: 'Please upload picture.' },
     user_authorize_method_error: { message: 'Unsupport authorize method.', status: 400, code: 2023 },
     user_has_no_email_error: { message: 'You have not set your email address. ', status: 400, code: 2023 },
-    user_email_already_verified_error: { message: 'Your email has been verified. ', status: 400, code: 2024 }
+    user_email_already_verified_error: { message: 'Your email has been verified. ', status: 400, code: 2024 },
+    file_type_not_support_error: { code: 2025, status: 400, message: 'File type not support error' }
 }
 
 export const AccountErrors = {
