@@ -9,7 +9,7 @@ import IErrorModel from '@interfaces/error.model.interface'
 import ErrorContext from '@exceptions/error.context'
 
 const _instance = axios.create({
-    baseURL: config.system.coinServerBaseUrl,
+    baseURL: `${config.system.coinServerBaseUrl}/api/v1`,
     headers: {
         'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json'
