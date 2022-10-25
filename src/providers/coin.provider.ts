@@ -9,7 +9,7 @@ import IErrorModel from '@interfaces/error.model.interface'
 import ErrorContext from '@exceptions/error.context'
 
 const _instance = axios.create({
-    baseURL: `${config.system.coinServerBaseUrl}/api/v1`,
+    baseURL: config.system.coinServerBaseUrl,
     headers: {
         'Content-Type': 'application/json;charset=utf-8',
         Accept: 'application/json'
@@ -79,7 +79,7 @@ export class PrimeCoinProvider {
 
     public static async coinServerHeartBeat() {
         try {
-            const resp = await this.instance.get('/sites/hello')
+            const resp = await this.instance.get('/api/v1/sites/hello')
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('coinServerHeartBeat', error)
@@ -93,7 +93,7 @@ export class PrimeCoinProvider {
             raw
         }
         try {
-            const resp = await this.instance.post('/accounts', payload)
+            const resp = await this.instance.post('/api/v1/accounts', payload)
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('createCoinWallet', error)
@@ -102,7 +102,7 @@ export class PrimeCoinProvider {
 
     public static async getWalletByKey(key: string) {
         try {
-            const resp = await this.instance.get(`/accounts/${key}`)
+            const resp = await this.instance.get(`/api/v1/accounts/${key}`)
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getWalletByKey', error)
@@ -111,7 +111,7 @@ export class PrimeCoinProvider {
 
     public static async getWalletBySymbolAndAddress(symbol: string, address: string) {
         try {
-            const resp = await this.instance.get(`/accounts/${symbol}/address/${address}`)
+            const resp = await this.instance.get(`/api/v1/accounts/${symbol}/address/${address}`)
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getWalletBySymbolAndAddress', error)
@@ -120,7 +120,7 @@ export class PrimeCoinProvider {
 
     public static async getWalletNonceBySymbolAndAddress(symbol: string, address: string) {
         try {
-            const resp = await this.instance.get(`/accounts/${symbol}/nonce/${address}`)
+            const resp = await this.instance.get(`/api/v1/accounts/${symbol}/nonce/${address}`)
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getWalletNonceBySymbolAndAddress', error)
@@ -129,7 +129,7 @@ export class PrimeCoinProvider {
 
     public static async getWalletsByAddress(address: string) {
         try {
-            const resp = await this.instance.get(`/accounts/address/${address}`)
+            const resp = await this.instance.get(`/api/v1/accounts/address/${address}`)
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getWalletsByAddress', error)
@@ -138,7 +138,7 @@ export class PrimeCoinProvider {
 
     public static async queryWallets(filter: any) {
         try {
-            const resp = await this.instance.get('/accounts', { params: filter })
+            const resp = await this.instance.get('/api/v1/accounts', { params: filter })
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('queryWallets', error)
@@ -147,7 +147,7 @@ export class PrimeCoinProvider {
 
     public static async mintPrimeCoins(params: IMintToCoinDto) {
         try {
-            const resp = await this.instance.post('/transactions/mint', params)
+            const resp = await this.instance.post('/api/v1/transactions/mint', params)
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('mintPrimeCoins', error)
@@ -156,7 +156,7 @@ export class PrimeCoinProvider {
 
     public static async sendPrimeCoins(sendData: ISendCoinDto) {
         try {
-            const resp = await this.instance.post('/transactions', sendData)
+            const resp = await this.instance.post('/api/v1/transactions', sendData)
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('sendPrimeCoins', error)
@@ -164,7 +164,7 @@ export class PrimeCoinProvider {
     }
 
     public static async queryPrimeTxns(filter: ITransactionFilter) {
-        let path = '/transactions'
+        let path = '/api/v1/transactions'
         // ?symbol=${filter!.symbol}&keys=${filter!.keys}&owner=${filter!.owner}&page_index=${filter.page_index}&page_size=${filter.page_size}
         const params = []
         for (const [key, value] of Object.entries(filter)) {
@@ -181,7 +181,7 @@ export class PrimeCoinProvider {
 
     public static async getPrimeTxnByKey(key: string) {
         try {
-            const resp = await this.instance.get(`/transactions/${key}`)
+            const resp = await this.instance.get(`/api/v1/transactions/${key}`)
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeTxnByKey', error)
@@ -190,7 +190,7 @@ export class PrimeCoinProvider {
 
     public static async getAllPrimeAccountList() {
         try {
-            const resp = await this.instance.get('/accounts/prime/list')
+            const resp = await this.instance.get('/api/v1/accounts/prime/list')
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getAllPrimeAccountList', error)
@@ -199,7 +199,7 @@ export class PrimeCoinProvider {
 
     public static async getAllPrimeTransactionList() {
         try {
-            const resp = await this.instance.get('/transactions/prime/list')
+            const resp = await this.instance.get('/api/v1/transactions/prime/list')
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getAllPrimeTransactionList', error)
@@ -208,7 +208,7 @@ export class PrimeCoinProvider {
 
     public static async getAllPrimeTransactionStats() {
         try {
-            const resp = await this.instance.get('/transactions/prime/stats')
+            const resp = await this.instance.get('/api/v1/transactions/prime/stats')
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getAllPrimeTransactionStats', error)
@@ -217,7 +217,7 @@ export class PrimeCoinProvider {
 
     public static async getPrimeAccountList(key: string) {
         try {
-            const resp = await this.instance.get(`/accounts/${key}/prime/list`)
+            const resp = await this.instance.get(`/api/v1/accounts/${key}/prime/list`)
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeAccountList', error)
@@ -226,7 +226,7 @@ export class PrimeCoinProvider {
 
     public static async getPrimeTransactionList(key: string) {
         try {
-            const resp = await this.instance.get(`/transactions/${key}/prime/list`)
+            const resp = await this.instance.get(`/api/v1/transactions/${key}/prime/list`)
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeTransactionList', error)
@@ -235,7 +235,7 @@ export class PrimeCoinProvider {
 
     public static async getPrimeTransactionStats(key: string) {
         try {
-            const resp = await this.instance.get(`/transactions/${key}/prime/stats`)
+            const resp = await this.instance.get(`/api/v1/transactions/${key}/prime/stats`)
             return resp.data
         } catch (error) {
             return this.requestErrorHandler('getPrimeTransactionStats', error)
