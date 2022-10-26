@@ -17,6 +17,7 @@ import moment from 'moment'
 import CategoryService from '@modules/category/category.service'
 import { IOperator } from '@interfaces/operator.interface'
 import { roundUp } from '@utils/utility'
+import { uploadIpfs } from '@utils/ipfsUpload'
 
 export default class CollectionService {
     static async createCollection(createCollectionDto: CreateCollectionDto, files: any, operator: IOperator) {
@@ -419,5 +420,29 @@ export default class CollectionService {
             ...ranking
         }).save()
         return collection
+    }
+
+    static async uploadCollectionIpfs(collection: ICollection) {
+        // @ts-ignore
+        const logo = collection.logo?.original
+        // @ts-ignore
+        const background = collection?.background.original
+        const files = [
+            { field_name: 'logo', aws_key: logo },
+            { field_name: 'background', aws_key: background }
+        ]
+        const assets = await uploadIpfs(files)
+        const updateLogo = { ...collection.logo, ipfs_cid: assets[0]?.ipfs_cid }
+        // @ts-ignore
+        const updateBackground = { ...collection.background, ipfs_cid: assets[1]?.ipfs_cid }
+        const updateData = { logo: updateLogo, background: updateBackground }
+        const data = await CollectionModel.findOneAndUpdate(
+            { key: collection.key },
+            {
+                $set: updateData
+            },
+            { new: true }
+        )
+        return data
     }
 }

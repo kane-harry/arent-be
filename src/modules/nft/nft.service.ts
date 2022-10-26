@@ -45,6 +45,7 @@ import AccountSnapshotService from '@modules/account/account.snapshot.service'
 import { IOperator } from '@interfaces/operator.interface'
 import moment from 'moment'
 import NftHelper from './nft.helper'
+import { uploadIpfs } from '@utils/ipfsUpload'
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IOperator) {
@@ -1122,5 +1123,22 @@ export default class NftService {
     static async getNftOwnershipLogs(nft_key: string) {
         const bids = await NftOwnershipLogModel.find({ nft_key }, { _id: 0 }).sort({ _id: -1 })
         return bids
+    }
+
+    static async uploadNftIpfs(nft: INft) {
+        // @ts-ignore
+        const image = nft.image?.original
+        const files = [{ field_name: 'image', aws_key: image }]
+        const assets = await uploadIpfs(files)
+        const updateImage = { ...nft.image, ipfs_cid: assets[0]?.ipfs_cid }
+        const updateData = { image: updateImage }
+        const data = await NftModel.findOneAndUpdate(
+            { key: nft.key },
+            {
+                $set: updateData
+            },
+            { new: true }
+        )
+        return data
     }
 }

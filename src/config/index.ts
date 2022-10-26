@@ -136,5 +136,10 @@ export const config = {
 
     google: {
         CLIENT_ID: String(process.env.GOOGLE_CLIENT_ID || '267320374218-4ftlfimkq6r1no50icveoetab44of443.apps.googleusercontent.com')
+    },
+
+    ipfs: {
+        INFURA_ID: String(process.env.INFURA_ID || '1ww1QL2aYzSR0dMTRFIMTenxgeN'),
+        INFURA_SECRET_KEY: String(process.env.INFURA_SECRET_KEY || 'dfdbaee5045251ee8ff58a23ed7ee990')
     }
 }

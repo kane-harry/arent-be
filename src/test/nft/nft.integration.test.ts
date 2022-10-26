@@ -14,6 +14,7 @@ import AccountService from '@modules/account/account.service'
 import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
 import { CategoryModel } from '@modules/category/category.model'
 import CollectionService from '@modules/collection/collection.service'
+import NftService from '@modules/nft/nft.service'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -197,6 +198,10 @@ describe('NFT', () => {
         validResponse(res.body)
         shareData.collections = res.body.items
     }).timeout(10000)
+
+    it(`Ipfs Collection`, async () => {
+        const res = await CollectionService.uploadCollectionIpfs(shareData.collections[0])
+    }).timeout(100000)
 
     it(`List Collections By Category `, async () => {
         const res = await request(server.app).get(`/api/v1/collections?category=${createCollectionData.category_key}`)
@@ -433,6 +438,10 @@ describe('NFT', () => {
         expect(items.length).equal(0)
         shareData.nfts = res.body.items
     }).timeout(10000)
+
+    it(`Ipfs NFT`, async () => {
+        const res = await NftService.uploadNftIpfs(shareData.nfts[0])
+    }).timeout(100000)
 
     it(`Get NFT Detail`, async () => {
         const res = await request(server.app).get(`/api/v1/nfts/${shareData.nfts[0].key}`).set('Authorization', `Bearer ${shareData.token}`)

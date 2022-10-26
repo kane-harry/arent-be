@@ -74,6 +74,8 @@
     "google-auth-library": "^8.5.1",
     "helmet": "^5.0.2",
     "hmac-auth-express": "^8.3.2",
+    "ipfs-http-client": "^55.0.1-rc.2",
+    "ipfs-utils": "^9.0.2",
     "json2csv": "^5.0.7",
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^2.1.4",

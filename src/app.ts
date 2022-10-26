@@ -17,6 +17,7 @@ import ICustomRouter from '@interfaces/custom.router.interface'
 import RateScheduler from '@modules/jobs/rate.schedule'
 import NftScheduler from '@modules/jobs/nft.scheduler'
 import RankingScheduler from '@modules/jobs/ranking.scheduler'
+import IpfsScheduler from '@modules/jobs/ipfs.scheduler'
 
 class App {
     public app: express.Application
@@ -89,7 +90,7 @@ class App {
     }
 
     private initSchedulers() {
-        return [new RateScheduler(), new NftScheduler(), new RankingScheduler()]
+        return [new RateScheduler(), new NftScheduler(), new RankingScheduler(), new IpfsScheduler()]
     }
 }
 
