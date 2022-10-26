@@ -41,7 +41,7 @@ export const getOriginalFiles = (files: any) => {
         if (!item.aws_key) {
             return item
         }
-        item.aws_url = `https://${config.amazonS3.bucket}.s3.ap-southeast-2.amazonaws.com/${item.aws_key}`
+        item.aws_url = `https://${config.amazonS3.bucket}.s3.${config.amazonS3.region}.amazonaws.com/${item.aws_key}`
         return item
     })
 
