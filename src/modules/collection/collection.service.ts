@@ -426,7 +426,7 @@ export default class CollectionService {
         // @ts-ignore
         const logo = collection.logo?.original
         // @ts-ignore
-        const background = collection?.background.original
+        const background = collection.background?.original
         const files = [
             { field_name: 'logo', aws_key: logo },
             { field_name: 'background', aws_key: background }
