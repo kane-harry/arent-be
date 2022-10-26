@@ -4,14 +4,12 @@ import TransactionService from './transaction.service'
 import { SendPrimeCoinsDto } from './transaction.dto'
 import { ITransactionFilter } from './transaction.interface'
 import { downloadResource } from '@utils/utility'
-import UserModel from '@modules/user/user.model'
-import IOptions from '@interfaces/options.interface'
-import { IOperator } from '@interfaces/operator.interface'
+import mongoose from 'mongoose'
 
 export default class TransactionController {
     static async sendPrimeCoins(req: AuthenticationRequest, res: Response) {
         const params: SendPrimeCoinsDto = req.body
-        const session = await UserModel.startSession()
+        const session = await mongoose.startSession()
         session.startTransaction()
         try {
             const data = await TransactionService.sendPrimeCoins(params, req.user, req.options)
