@@ -443,6 +443,14 @@ describe('NFT', () => {
         const res = await NftService.uploadNftIpfs(shareData.nfts[0])
     }).timeout(100000)
 
+    it(`Rarity NFT`, async () => {
+        const res = await NftService.computeNftsRarity()
+    }).timeout(100000)
+
+    it(`Rarity Collection`, async () => {
+        const res = await CollectionService.computeCollectionsAttributes()
+    }).timeout(100000)
+
     it(`Get NFT Detail`, async () => {
         const res = await request(server.app).get(`/api/v1/nfts/${shareData.nfts[0].key}`).set('Authorization', `Bearer ${shareData.token}`)
         expect(res.status).equal(200)

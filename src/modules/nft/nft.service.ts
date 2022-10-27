@@ -31,12 +31,11 @@ import {
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
-import { filter } from 'lodash'
 import UserModel from '@modules/user/user.model'
 import AccountService from '@modules/account/account.service'
 import { config } from '@config'
 import { addToAcceptOfferQueue, addToBuyProductQueue } from '@modules/queues/nft_queue'
-import { generateUnixTimestamp } from '@utils/utility'
+import { generateUnixTimestamp, roundUp } from '@utils/utility'
 import { parsePrimeAmount } from '@utils/number'
 import EmailService from '@modules/emaill/email.service'
 import IOptions from '@interfaces/options.interface'
@@ -46,6 +45,7 @@ import { IOperator } from '@interfaces/operator.interface'
 import moment from 'moment'
 import NftHelper from './nft.helper'
 import { uploadIpfs } from '@utils/ipfsUpload'
+const { isEmpty, reduce, isArray, filter, chain, map, countBy, forEach, findIndex, sumBy } = require('lodash')
 
 export default class NftService {
     static async importNft(payload: ImportNftDto, operator: IOperator) {
@@ -70,13 +70,13 @@ export default class NftService {
         files = await resizeImages(files, { image: NFT_IMAGE_SIZES })
         const assets = await uploadFiles(files, 'nfts')
 
-        const images = filter(assets, asset => {
+        const images = filter(assets, (asset: { fieldname: string }) => {
             return asset.fieldname === 'image'
         })
-        const originalImg = images.find(item => item.type === 'original')
-        const largeImg = images.find(item => item.type === 'large')
-        const normalImg = images.find(item => item.type === 'normal')
-        const smallImg = images.find(item => item.type === 'small')
+        const originalImg = images.find((item: { type: string }) => item.type === 'original')
+        const largeImg = images.find((item: { type: string }) => item.type === 'large')
+        const normalImg = images.find((item: { type: string }) => item.type === 'normal')
+        const smallImg = images.find((item: { type: string }) => item.type === 'small')
         const image = {
             original: originalImg?.key,
             large: largeImg?.key,
@@ -203,13 +203,13 @@ export default class NftService {
             files = await resizeImages(files, { image: NFT_IMAGE_SIZES })
             const assets = await uploadFiles(files, 'nfts')
 
-            const images = filter(assets, asset => {
+            const images = filter(assets, (asset: { fieldname: string }) => {
                 return asset.fieldname === 'image'
             })
-            const originalImg = images.find(item => item.type === 'original')
-            const largeImg = images.find(item => item.type === 'large')
-            const normalImg = images.find(item => item.type === 'normal')
-            const smallImg = images.find(item => item.type === 'small')
+            const originalImg = images.find((item: { type: string }) => item.type === 'original')
+            const largeImg = images.find((item: { type: string }) => item.type === 'large')
+            const normalImg = images.find((item: { type: string }) => item.type === 'normal')
+            const smallImg = images.find((item: { type: string }) => item.type === 'small')
             const image = {
                 original: originalImg?.key,
                 large: largeImg?.key,
@@ -1140,5 +1140,76 @@ export default class NftService {
             { new: true }
         )
         return data
+    }
+
+    static async computeNftsRarity() {
+        const nfts = await NftModel.find({}, {}, { sort: { created: 1 } }).exec()
+        forEach(nfts, async (nft: any) => {
+            console.log(`Generate rarity for nft ${nft.key}`)
+            await NftService.computeRarityForNft(nft.key)
+        })
+    }
+
+    static async getAllNftsAttributeByCollection(collectionKey: any) {
+        const conditions = {
+            collection_key: collectionKey,
+            attributes: { $exists: true, $not: { $in: [[]] } },
+            removed: false
+        }
+        return await NftModel.aggregate([{ $match: conditions }, { $project: { _id: 0, attributes: 1 } }]).exec()
+    }
+
+    static async computeRarityForNft(nftKey: string) {
+        const nft = await NftModel.findOne({ key: nftKey }).exec()
+        if (!nft || !nft.attributes || !nft.attributes.length) {
+            return nft
+        }
+        const conditions = {
+            attributes: { $exists: true, $not: { $in: [[]] } },
+            removed: false
+        }
+        const nftAttributes = await NftModel.aggregate([{ $match: conditions }, { $project: { _id: 0, attributes: 1 } }]).exec()
+
+        const reducing = reduce(
+            nftAttributes,
+            (target: any, element: any) => {
+                if (!isArray(element.attributes)) return target.concat([])
+                return target.concat(element.attributes)
+            },
+            []
+        )
+        const filters = filter(reducing, (element: any) => {
+            return element.trait_type && element.value
+        })
+        const statistic = chain(filters)
+            .groupBy('trait_type')
+            .map((traits: any, key: any) => {
+                return {
+                    trait_type: key,
+                    statistic: map(countBy(traits, 'value'), (count: any, trait_value: any) => {
+                        return {
+                            trait_value,
+                            count
+                        }
+                    })
+                }
+            })
+            .value()
+
+        const attributesRarity: any[] = []
+        forEach(nft.attributes, (attribute: any) => {
+            const attrIdx = findIndex(statistic, { trait_type: attribute.trait_type })
+            if (attrIdx >= 0) {
+                // @ts-ignore
+                const sumCount = Math.max(sumBy(statistic[attrIdx].statistic, 'count') - 1, 0) + 1
+                attributesRarity.push({ ...attribute, rarity: roundUp(1 / sumCount, 4) })
+            } else {
+                attributesRarity.push({ ...attribute, rarity: 1 })
+            }
+        })
+        // @ts-ignore
+        nft.attributes = attributesRarity
+        await nft.save()
+        return nft
     }
 }

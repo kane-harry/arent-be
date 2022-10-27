@@ -10,7 +10,6 @@ import { NftModel, NftSaleLogModel } from '@modules/nft/nft.model'
 import UserService from '@modules/user/user.service'
 import { COLLECTION_BACKGROUND_SIZES, COLLECTION_LOGO_SIZES, CollectionType, NftStatus } from '@config/constants'
 import { resizeImages, uploadFiles } from '@utils/s3Upload'
-import { filter, sumBy } from 'lodash'
 import { CreateNftDto } from '@modules/nft/nft.dto'
 import IOptions from '@interfaces/options.interface'
 import moment from 'moment'
@@ -18,6 +17,8 @@ import CategoryService from '@modules/category/category.service'
 import { IOperator } from '@interfaces/operator.interface'
 import { roundUp } from '@utils/utility'
 import { uploadIpfs } from '@utils/ipfsUpload'
+import NftService from '@modules/nft/nft.service'
+const { isEmpty, reduce, isArray, filter, chain, map, countBy, forEach, findIndex, sumBy } = require('lodash')
 
 export default class CollectionService {
     static async createCollection(createCollectionDto: CreateCollectionDto, files: any, operator: IOperator) {
@@ -36,22 +37,22 @@ export default class CollectionService {
         }
         files = await resizeImages(files, { logo: COLLECTION_LOGO_SIZES, background: COLLECTION_BACKGROUND_SIZES })
         const assets = await uploadFiles(files, 'collections')
-        const logos = filter(assets, asset => {
+        const logos = filter(assets, (asset: { fieldname: string }) => {
             return asset.fieldname === 'logo'
         })
-        const backgrounds = filter(assets, asset => {
+        const backgrounds = filter(assets, (asset: { fieldname: string }) => {
             return asset.fieldname === 'background'
         })
-        const originalLogo = logos.find(item => item.type === 'original')
-        const normalLogo = logos.find(item => item.type === 'normal')
-        const smallLogo = logos.find(item => item.type === 'small')
+        const originalLogo = logos.find((item: { type: string }) => item.type === 'original')
+        const normalLogo = logos.find((item: { type: string }) => item.type === 'normal')
+        const smallLogo = logos.find((item: { type: string }) => item.type === 'small')
         createCollectionDto.logo = {
             original: originalLogo?.key,
             normal: normalLogo?.key,
             small: smallLogo?.key
         }
 
-        const originalBackground = backgrounds.find(item => item.type === 'original')
+        const originalBackground = backgrounds.find((item: { type: string }) => item.type === 'original')
         createCollectionDto.background = {
             original: originalBackground?.key
         }
@@ -149,16 +150,16 @@ export default class CollectionService {
         if (files && files.length) {
             files = await resizeImages(files, { logo: COLLECTION_LOGO_SIZES, background: COLLECTION_BACKGROUND_SIZES })
             const assets = await uploadFiles(files, 'collections')
-            const logos = filter(assets, asset => {
+            const logos = filter(assets, (asset: { fieldname: string }) => {
                 return asset.fieldname === 'logo'
             })
-            const backgrounds = filter(assets, asset => {
+            const backgrounds = filter(assets, (asset: { fieldname: string }) => {
                 return asset.fieldname === 'background'
             })
             if (logos.length) {
-                const originalLogo = logos.find(item => item.type === 'original')
-                const normalLogo = logos.find(item => item.type === 'normal')
-                const smallLogo = logos.find(item => item.type === 'small')
+                const originalLogo = logos.find((item: { type: string }) => item.type === 'original')
+                const normalLogo = logos.find((item: { type: string }) => item.type === 'normal')
+                const smallLogo = logos.find((item: { type: string }) => item.type === 'small')
                 updateCollectionDto.logo = {
                     original: originalLogo?.key,
                     normal: normalLogo?.key,
@@ -166,7 +167,7 @@ export default class CollectionService {
                 }
             }
             if (backgrounds.length) {
-                const originalBackground = backgrounds.find(item => item.type === 'original')
+                const originalBackground = backgrounds.find((item: { type: string }) => item.type === 'original')
                 updateCollectionDto.background = {
                     original: originalBackground?.key
                 }
@@ -444,5 +445,48 @@ export default class CollectionService {
             { new: true }
         )
         return data
+    }
+
+    static async computeCollectionsAttributes() {
+        const collections = await CollectionModel.find({}, {}, { sort: { created: 1 } }).exec()
+        forEach(collections, async (collection: any) => {
+            console.log(`Generate rarity for collection ${collection.key}`)
+            await CollectionService.computeCollectionAttributes(collection.key)
+        })
+    }
+
+    static async computeCollectionAttributes(collectionKey: string) {
+        const collection = await CollectionModel.findOne({ key: collectionKey })
+        if (!collection) {
+            return collection
+        }
+        const nftAttributes = await NftService.getAllNftsAttributeByCollection(collectionKey)
+        const reducing = reduce(
+            nftAttributes,
+            (target: any, element: any) => {
+                if (!isArray(element.attributes)) return target.concat([])
+                return target.concat(element.attributes)
+            },
+            []
+        )
+        const filters = filter(reducing, (element: any) => {
+            return element.trait_type && element.value
+        })
+        const statistic = chain(filters)
+            .groupBy('trait_type')
+            .map((traits: any, key: any) => {
+                return {
+                    trait_type: key,
+                    statistic: map(countBy(traits, 'value'), (count: any, trait_value: any) => {
+                        return {
+                            trait_value,
+                            count
+                        }
+                    })
+                }
+            })
+            .value()
+        collection.attributes = statistic
+        return await collection.save()
     }
 }

@@ -18,6 +18,7 @@ import RateScheduler from '@modules/jobs/rate.schedule'
 import NftScheduler from '@modules/jobs/nft.scheduler'
 import RankingScheduler from '@modules/jobs/ranking.scheduler'
 import IpfsScheduler from '@modules/jobs/ipfs.scheduler'
+import RarityScheduler from '@modules/jobs/rarity.scheduler'
 
 class App {
     public app: express.Application
@@ -90,7 +91,7 @@ class App {
     }
 
     private initSchedulers() {
-        return [new RateScheduler(), new NftScheduler(), new RankingScheduler(), new IpfsScheduler()]
+        return [new RateScheduler(), new NftScheduler(), new RankingScheduler(), new IpfsScheduler(), new RarityScheduler()]
     }
 }
 
