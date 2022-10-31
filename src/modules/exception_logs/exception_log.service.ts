@@ -1,4 +1,4 @@
-import ExceptionLogModel from '@modules/admin_logs/admin_log.model'
+import ExceptionLogModel from '@modules/exception_logs/exception_log.model'
 import { QueryRO } from '@interfaces/query.model'
 import { IExceptionLog, IExceptionLogFilter } from '@modules/exception_logs/exception_log.interface'
 
