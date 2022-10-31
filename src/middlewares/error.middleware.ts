@@ -25,7 +25,7 @@ function errorMiddleware(error: ApplicationException, req: CustomRequest, res: R
         ip_address: req?.options?.ip,
         exception: {
             ...errorDetail,
-            stack: String(errorDetail.stack)?.slice(0, 200)
+            stack: String(error.stack)?.slice(0, 200)
         }
     }).save()
 
