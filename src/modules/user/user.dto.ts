@@ -44,18 +44,18 @@ export class CreateUserDto {
 export class UpdateProfileDto {
     @IsOptional()
     @IsString()
-    @Length(2, 18)
+    @Length(2, 20)
     public first_name: string
 
     @IsOptional()
     @IsString()
-    @Length(2, 18)
+    @Length(2, 20)
     public last_name: string
 
     // TODO: check uniq nickname
     @IsOptional()
     @IsString()
-    @Length(2, 8)
+    @Length(2, 20)
     public chat_name: string
 
     @IsString()
@@ -74,17 +74,17 @@ export class UpdateProfileDto {
 export class AdminUpdateProfileDto {
     @IsOptional()
     @IsString()
-    @Length(2, 18)
+    @Length(2, 20)
     public first_name: string
 
     @IsOptional()
     @IsString()
-    @Length(2, 18)
+    @Length(2, 20)
     public last_name: string
 
     @IsOptional()
     @IsString()
-    @Length(2, 8)
+    @Length(2, 20)
     public chat_name: string
 
     @IsOptional()
