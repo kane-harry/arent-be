@@ -14,6 +14,7 @@ import IScheduler from '@interfaces/scheduler.interface'
 import cron from 'node-cron'
 import NftTradingService from '@modules/nft/nft.trading.service'
 import AccountSnapshotService from '@modules/account/account.snapshot.service'
+import mongoose from 'mongoose'
 
 export default class NftScheduler implements IScheduler {
     constructor() {
@@ -37,7 +38,7 @@ export default class NftScheduler implements IScheduler {
     }
 
     static async checkWinnerBidNft(nft: INft) {
-        const session = await UserModel.startSession()
+        const session = await mongoose.startSession()
         session.startTransaction()
         try {
             if (!nft.on_market) {

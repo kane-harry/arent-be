@@ -44,6 +44,7 @@ export enum NftActions {
     OnMarket = 'OnMarket',
     OffMarket = 'OffMarket',
     Purchase = 'Purchase',
+    Transfer = 'Transfer',
     Bid = 'Bid'
 }
 export enum SecurityActions {

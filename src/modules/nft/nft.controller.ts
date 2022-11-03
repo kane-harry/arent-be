@@ -211,4 +211,11 @@ export default class NftController {
         const data = await NftService.getNftOwnershipLogs(key)
         return res.json(data)
     }
+
+    static async sendNft(req: AuthenticationRequest, res: Response) {
+        const { key } = req.params
+        const params: SendNftDto = req.body
+        const data = await NftService.sendNft(key, params, req.user, req.options)
+        return res.json(data)
+    }
 }

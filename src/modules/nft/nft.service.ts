@@ -4,6 +4,7 @@ import {
     ImportNftDto,
     MakeOfferDto,
     NftOnMarketDto,
+    SendNftDto,
     UpdateNftDto,
     UpdateNftFeaturedDto,
     UpdateNftStatusDto
@@ -45,6 +46,7 @@ import { IOperator } from '@interfaces/operator.interface'
 import moment from 'moment'
 import NftHelper from './nft.helper'
 import { uploadIpfs } from '@utils/ipfsUpload'
+import mongoose from 'mongoose'
 const { isEmpty, reduce, isArray, filter, chain, map, countBy, forEach, findIndex, sumBy } = require('lodash')
 
 export default class NftService {
@@ -401,7 +403,7 @@ export default class NftService {
     }
 
     static async buyNft(key: string, operator: IOperator, options: IOptions) {
-        const session = await UserModel.startSession()
+        const session = await mongoose.startSession()
         session.startTransaction()
         try {
             const nft = await NftModel.findOne({ key, removed: false }).exec()
@@ -506,7 +508,7 @@ export default class NftService {
     }
 
     static async bidNft(key: string, params: BidNftDto, operator: IOperator, options: IOptions) {
-        const session = await UserModel.startSession()
+        const session = await mongoose.startSession()
         session.startTransaction()
         try {
             const nft = await NftModel.findOne({ key, removed: false }).exec()
@@ -719,7 +721,7 @@ export default class NftService {
     }
 
     static async makeOffer(key: string, params: MakeOfferDto, operator: IOperator, options: IOptions) {
-        const session = await UserModel.startSession()
+        const session = await mongoose.startSession()
         session.startTransaction()
         try {
             const nft = await NftModel.findOne({ key, removed: false }).exec()
@@ -825,7 +827,7 @@ export default class NftService {
     }
 
     static async rejectOffer(key: string, operator: IOperator, options: IOptions) {
-        const session = await UserModel.startSession()
+        const session = await mongoose.startSession()
         session.startTransaction()
         try {
             const offer = await NftOfferModel.findOne({ key })
@@ -877,7 +879,7 @@ export default class NftService {
     }
 
     static async cancelOffer(key: string, operator: IOperator, options: IOptions) {
-        const session = await UserModel.startSession()
+        const session = await mongoose.startSession()
         session.startTransaction()
         try {
             const offer = await NftOfferModel.findOne({ key })
@@ -936,7 +938,7 @@ export default class NftService {
     }
 
     static async acceptOffer(key: string, operator: IOperator, options: IOptions) {
-        const session = await UserModel.startSession()
+        const session = await mongoose.startSession()
         session.startTransaction()
         try {
             const offer = await NftOfferModel.findOne({ key, removed: false }).exec()
@@ -1211,5 +1213,69 @@ export default class NftService {
         nft.attributes = attributesRarity
         await nft.save()
         return nft
+    }
+
+    static async sendNft(key: string, params: SendNftDto, operator: IOperator, options: IOptions) {
+        const session = await mongoose.startSession()
+        session.startTransaction()
+        try {
+            const nft = await NftModel.findOne({ key, removed: false }).exec()
+            if (!nft) {
+                throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'sendNft', { key }))
+            }
+            if (!isAdmin(operator?.role) && operator.key !== nft.owner_key) {
+                throw new BizException(AuthErrors.user_permission_error, new ErrorContext('nft.service', 'sendNft', { key }))
+            }
+            const owner = await UserService.getBriefByKey(nft.owner_key)
+
+            if (!owner) {
+                throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'sendNft', { key }))
+            }
+
+            const recipient = await UserService.getBriefByName(params.recipient)
+            if (!recipient) {
+                throw new BizException(
+                    NftErrors.recipient_not_found_error,
+                    new ErrorContext('nft.controller', 'sendNft', { recipient: params.recipient })
+                )
+            }
+
+            const data = await NftModel.findOneAndUpdate(
+                { key: key },
+                {
+                    $set: { owner_key: recipient.key, on_market: false }
+                },
+                { new: true }
+            )
+
+            await new NftHistoryModel({
+                key: undefined,
+                nft_key: key,
+                operator: operator,
+                action: NftActions.Transfer,
+                options: options,
+                pre_data: nft.toJSON(),
+                post_data: data?.toJSON()
+            }).save()
+
+            await NftService.addNftOwnershipLog({
+                key: undefined,
+                nft_key: nft.key,
+                collection_key: nft.collection_key,
+                price: nft.price,
+                currency: nft.currency,
+                token_id: nft.token_id,
+                previous_owner: { key: owner.key, avatar: owner.avatar, chat_name: owner.chat_name },
+                current_owner: { key: recipient.key, avatar: recipient.avatar, chat_name: recipient.chat_name },
+                type: NftOnwerShipType.Transfer
+            })
+
+            session.endSession()
+            return { success: true }
+        } catch (error) {
+            await session.abortTransaction()
+            session.endSession()
+            throw error
+        }
     }
 }

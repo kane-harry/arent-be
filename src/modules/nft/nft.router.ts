@@ -10,6 +10,7 @@ import {
     ImportNftDto,
     MakeOfferDto,
     NftOnMarketDto,
+    SendNftDto,
     UpdateNftDto,
     UpdateNftStatusDto
 } from './nft.dto'
@@ -59,5 +60,6 @@ export default class NftRouter implements ICustomRouter {
         this.router.put(`${this.path}/featured`, requireAuth, requireAdmin(), asyncHandler(NftController.bulkUpdateNftFeatured))
         this.router.get(`${this.path}/:key/purchase/logs`, asyncHandler(NftController.getNftPurchaseLogs))
         this.router.get(`${this.path}/:key/ownership/logs`, asyncHandler(NftController.getNftOwnershipLogs))
+        this.router.post(`${this.path}/:key/send`, requireAuth, validationMiddleware(SendNftDto), asyncHandler(NftController.sendNft))
     }
 }

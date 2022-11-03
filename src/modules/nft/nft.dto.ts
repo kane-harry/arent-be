@@ -214,3 +214,11 @@ export class MakeOfferDto {
     @IsOptional()
     public notes: string
 }
+
+export class SendNftDto {
+    @IsNotEmpty()
+    public recipient: string
+
+    @IsOptional()
+    public notes: string
+}
