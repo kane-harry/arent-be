@@ -118,7 +118,7 @@ export default class ArticleService {
         const filter: any = {}
         const sorting: any = { _id: 1 }
         if (params.terms) {
-            const reg = new RegExp(params.terms)
+            const reg = new RegExp(params.terms, 'i')
             filter.$or = [{ key: reg }, { title: reg }, { short_description: reg }, { content: reg }, { tags: reg }]
         }
         if (params.author) {

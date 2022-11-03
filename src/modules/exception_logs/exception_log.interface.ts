@@ -6,6 +6,7 @@ export interface IExceptionLog extends IBaseModel {
     ip_address: string
     agent: string
     exception: Object
+    body: Object
 }
 
 export interface IExceptionLogFilter extends IFilterModel {

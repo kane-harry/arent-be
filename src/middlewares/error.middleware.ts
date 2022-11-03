@@ -15,7 +15,8 @@ function errorMiddleware(error: ApplicationException, req: CustomRequest, res: R
             message: error.message,
             meta_data: error.meta_data,
             context: error.error_context,
-            stack: error.stack
+            stack: error.stack,
+            body: req.body
         }
         : { status: error.status, code: error.code, message: error.message, meta_data: error.meta_data }
 

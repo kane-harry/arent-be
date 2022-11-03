@@ -8,7 +8,7 @@ export default class AdminLogsService {
         const filter: any = {}
         const sorting: any = { _id: 1 }
         if (params.terms) {
-            const reg = new RegExp(params.terms)
+            const reg = new RegExp(params.terms, 'i')
             filter.$or = [{ key: reg }, { action: reg }, { section: reg }]
         }
         if (params.sort_by) {

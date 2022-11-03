@@ -8,8 +8,8 @@ export default class ExceptionLogsService {
         const filter: any = {}
         const sorting: any = { _id: 1 }
         if (params.terms) {
-            const reg = new RegExp(params.terms)
-            filter.$or = [{ key: reg }, { action: reg }, { section: reg }]
+            const reg = new RegExp(params.terms, 'i')
+            filter.$or = [{ key: reg }, { agent: reg }, { ip_address: reg }, { 'exception.code': reg }, { 'exception.message': reg }]
         }
         if (params.sort_by) {
             delete sorting._id

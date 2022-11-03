@@ -24,6 +24,9 @@ const exceptionLogsSchema = new Schema<IExceptionLog>(
         },
         exception: {
             type: Object
+        },
+        body: {
+            type: Object
         }
     },
     {
