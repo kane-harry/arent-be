@@ -47,6 +47,7 @@ import moment from 'moment'
 import NftHelper from './nft.helper'
 import { uploadIpfs } from '@utils/ipfsUpload'
 import mongoose from 'mongoose'
+import { ethers } from 'ethers'
 const { isEmpty, reduce, isArray, filter, chain, map, countBy, forEach, findIndex, sumBy } = require('lodash')
 
 export default class NftService {
@@ -1231,13 +1232,25 @@ export default class NftService {
             if (!owner) {
                 throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('nft.service', 'sendNft', { key }))
             }
+            let recipient
+            const isAddress = ethers.utils.isAddress(params.recipient)
+            if (isAddress) {
+                const account = await AccountService.getAccountByAddressAndSymbol(params.recipient, config.system.primeToken)
+                if (account && account.user_key) {
+                    recipient = await UserService.getBriefByKey(account.user_key)
+                }
+            } else {
+                recipient = await UserService.getBriefByName(params.recipient)
+            }
 
-            const recipient = await UserService.getBriefByName(params.recipient)
             if (!recipient) {
                 throw new BizException(
                     NftErrors.recipient_not_found_error,
                     new ErrorContext('nft.controller', 'sendNft', { recipient: params.recipient })
                 )
+            }
+            if (recipient.key === nft.owner_key) {
+                return { success: true }
             }
 
             const data = await NftModel.findOneAndUpdate(

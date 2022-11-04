@@ -394,4 +394,9 @@ export default class AccountService {
         )
         return data
     }
+
+    static async getAccountByAddressAndSymbol(address: string, symbol: string) {
+        const account = await AccountModel.findOne({ address, symbol }).select('-key_store -salt').exec()
+        return account
+    }
 }
