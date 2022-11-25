@@ -134,3 +134,9 @@ export const CategoryErrors = {
     category_name_exists_error: { code: 11001, status: 400, message: 'The category name already exists.' },
     item_not_found_error: { code: 11002, status: 400, message: 'Category does not exist.' }
 }
+
+export const MiscReportErrors = {
+    misc_report_not_exists_error: { code: 12001, status: 400, message: 'Misc report does not exist.' },
+    misc_report_update_status_error: { code: 12002, status: 400, message: 'Your misc report is approved, can not edit it.' },
+    misc_report_image_required_error: { code: 12003, status: 400, message: 'Please upload report picture.' }
+}

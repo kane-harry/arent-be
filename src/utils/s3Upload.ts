@@ -52,7 +52,7 @@ export const uploadFiles = async (files: any, folder: string): Promise<IUploadRe
         return s3
             .upload({
                 ...defaultParams,
-                Key: folder ? `${folder}/${file.fieldname}/${file.type}/${file.originalname}` : `upload/${filename}`,
+                Key: folder ? `${folder}/${file.fieldname}/${file.type ?? 'multimedia'}/${file.originalname}` : `upload/${filename}`,
                 Body: file.buffer
             })
             .promise()
