@@ -95,12 +95,12 @@ export default class MiscReportService {
             const video = filter(assets, (asset: { fieldname: string }) => {
                 return asset.fieldname === 'video'
             })
-            if (images) {
+            if (images.length) {
                 params.images = images.map(function (el: any) {
                     return el.Key
                 })
             }
-            if (video) {
+            if (video.length) {
                 params.video = video.map(function (el: any) {
                     return el.Key
                 })
@@ -146,12 +146,12 @@ export default class MiscReportService {
             const video = filter(assets, (asset: { fieldname: string }) => {
                 return asset.fieldname === 'video'
             })
-            if (images) {
+            if (images.length) {
                 params.images = images.map(function (el: any) {
                     return el.Key
                 })
             }
-            if (video) {
+            if (video.length) {
                 params.video = video.map(function (el: any) {
                     return el.Key
                 })
@@ -175,6 +175,9 @@ export default class MiscReportService {
         }
         if (params.replay) {
             miscReport.set('replay', params.replay, String)
+        }
+        if (params.status) {
+            miscReport.set('status', params.status, String)
         }
         const updatedMiscReport = await miscReport.save()
         return updatedMiscReport
