@@ -220,3 +220,13 @@ export const ARTICLE_COVER_IMAGE_SIZES = [
     { maxSize: 600, id: 'medium' },
     { maxSize: 300, id: 'small' }
 ]
+
+export enum MiscReportStatus {
+    Pending = 'pending',
+    Resolved = 'resolved'
+}
+
+export enum MiscReportType {
+    FeatureRequest = 'featureRequest',
+    Bug = 'bug'
+}

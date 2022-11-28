@@ -109,7 +109,8 @@ export const config = {
         UPDATE_PHONE_STATUS: 'update_phone_status',
         PUT_NFT_ON_MARKET: 'PUT_NFT_ON_MARKET',
         PUT_NFT_OFF_MARKET: 'PUT_NFT_OFF_MARKET',
-        UPDATE_NFT_DETAILS: 'UPDATE_NFT_DETAILS'
+        UPDATE_NFT_DETAILS: 'UPDATE_NFT_DETAILS',
+        UPDATE_MISC_REPORT_DETAILS: 'UPDATE_MISC_REPORT_DETAILS'
     },
 
     database: {
@@ -130,7 +131,8 @@ export const config = {
             user_security: 'user_security',
             verification_codes: 'verification_codes',
             user_auth_codes: 'user_auth_codes',
-            account_logs: 'account_logs'
+            account_logs: 'account_logs',
+            misc_reports: 'misc_reports'
         }
     },
 

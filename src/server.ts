@@ -17,6 +17,7 @@ import UserFollowerRouter from '@modules/user_follower/user.follower.router'
 import NftFavoriteRouter from '@modules/nft_favorite/nft.favorite.router'
 import CategoryRouter from '@modules/category/category.router'
 import ExceptionLogRouter from '@modules/exception_logs/exception_log.router'
+import MiscReportRouter from '@modules/misc_report/misc.report.router'
 
 const app = new App([
     new UserRouter(),
@@ -35,7 +36,8 @@ const app = new App([
     new UserFollowerRouter(),
     new NftFavoriteRouter(),
     new CategoryRouter(),
-    new ExceptionLogRouter()
+    new ExceptionLogRouter(),
+    new MiscReportRouter()
 ])
 
 app.listen()
