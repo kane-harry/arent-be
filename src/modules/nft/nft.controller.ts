@@ -98,7 +98,8 @@ export default class NftController {
         const deleteNftDto: BulkDeleteNftDto = req.body
         const { keys } = deleteNftDto
         const data = []
-        for (const key of keys) {
+        const nftKeys = keys.split(',')
+        for (const key of nftKeys) {
             try {
                 const item = await NftService.deleteNft(key, req.user, req.options)
                 data.push(item)
