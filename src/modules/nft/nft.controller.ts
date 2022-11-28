@@ -76,7 +76,8 @@ export default class NftController {
         const updateNftDto: BulkUpdateNftStatusDto = req.body
         const { keys, status } = updateNftDto
         const data = []
-        for (const key of keys) {
+        const nftKeys = keys.split(',')
+        for (const key of nftKeys) {
             try {
                 const item = await NftService.updateNftStatus(key, { status: status }, req.user, req.options)
                 data.push(item)
