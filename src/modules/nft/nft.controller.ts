@@ -76,7 +76,7 @@ export default class NftController {
         const updateNftDto: BulkUpdateNftStatusDto = req.body
         const { keys, status } = updateNftDto
         const data = []
-        const nftKeys = keys.split(',')
+        const nftKeys = keys.split ? keys.split(',') : keys
         for (const key of nftKeys) {
             try {
                 const item = await NftService.updateNftStatus(key, { status: status }, req.user, req.options)
@@ -98,7 +98,7 @@ export default class NftController {
         const deleteNftDto: BulkDeleteNftDto = req.body
         const { keys } = deleteNftDto
         const data = []
-        const nftKeys = keys.split(',')
+        const nftKeys = keys.split ? keys.split(',') : keys
         for (const key of nftKeys) {
             try {
                 const item = await NftService.deleteNft(key, req.user, req.options)
@@ -191,7 +191,8 @@ export default class NftController {
         const updateNftDto: BulkUpdateNftFeaturedDto = req.body
         const { keys, featured } = updateNftDto
         const data = []
-        for (const key of keys) {
+        const nftKeys = keys.split ? keys.split(',') : keys
+        for (const key of nftKeys) {
             try {
                 const item = await NftService.updateNftFeatured(key, { featured: featured }, req.user, req.options)
                 data.push(item)

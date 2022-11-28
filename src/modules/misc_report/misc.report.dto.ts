@@ -45,11 +45,13 @@ export class AdminUpdateMiscReportDto {
     @IsEnum(MiscReportType, {
         message: `MiscReport Type must be one of ${map(MiscReportType, el => el).join(' ')}`
     })
+    @IsOptional()
     public type?: string
 
     @IsEnum(MiscReportStatus, {
         message: `MiscReport Status must be one of ${map(MiscReportStatus, el => el).join(' ')}`
     })
+    @IsOptional()
     public status?: string
 
     @IsOptional()
