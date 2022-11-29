@@ -18,6 +18,6 @@ export class ExchangeRateProvider {
     }
 
     public static async getPrimePrice() {
-        return roundUp(0.1)
+        return roundUp(0.03)
     }
 }
