@@ -18,6 +18,7 @@ import { IOperator } from '@interfaces/operator.interface'
 import { roundUp } from '@utils/utility'
 import { uploadIpfs } from '@utils/ipfsUpload'
 import NftService from '@modules/nft/nft.service'
+import { config } from '@config'
 const { isEmpty, reduce, isArray, filter, chain, map, countBy, forEach, findIndex, sumBy } = require('lodash')
 
 export default class CollectionService {
@@ -302,6 +303,7 @@ export default class CollectionService {
         const volumeYesterdays = volumeByDays.filter(item => item._id === yesterday)
         const sales = await NftSaleLogModel.aggregate([{ $match: filter }, { $group: { _id: '$collection_key', count: { $sum: 1 } } }])
         const analytics = {
+            symbol: config.system.primeToken || 'LL',
             nft_count: nftCount,
             owner_count: owners.length,
             floor_price: floorPrices.length ? Number(floorPrices[0].min) : 0,
