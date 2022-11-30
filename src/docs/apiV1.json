@@ -1,0 +1,5428 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "X-LL-Dev",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://{{host}}"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "noauthAuth": {
+        "type": "http",
+        "scheme": "noauth"
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Verification"
+    },
+    {
+      "name": "Authentication- Normal"
+    },
+    {
+      "name": "Authentication-authorization code"
+    },
+    {
+      "name": "User"
+    },
+    {
+      "name": "Collection"
+    },
+    {
+      "name": "NFT"
+    },
+    {
+      "name": "Account"
+    },
+    {
+      "name": "Transaction"
+    },
+    {
+      "name": "Reports"
+    },
+    {
+      "name": "Rates"
+    },
+    {
+      "name": "Articles"
+    },
+    {
+      "name": "Settings"
+    },
+    {
+      "name": "Article"
+    },
+    {
+      "name": "Logs"
+    },
+    {
+      "name": "Site"
+    },
+    {
+      "name": "Category"
+    },
+    {
+      "name": "Misc Report"
+    }
+  ],
+  "paths": {
+    "/verification/code/generate": {
+      "post": {
+        "tags": [
+          "Verification"
+        ],
+        "summary": "Generate Verification Code",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code_type": {
+                    "type": "string",
+                    "description": "EmailRegistration | EmailUpdate | EmailUpdate | PhoneUpdate",
+                    "example": "EmailRegistration"
+                  },
+                  "owner": {
+                    "type": "string",
+                    "example": "test-004@test.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/verification/code/verify": {
+      "post": {
+        "tags": [
+          "Verification"
+        ],
+        "summary": "Verify Verrification Code",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code_type": {
+                    "type": "string",
+                    "description": "EmailRegistration | EmailUpdate | EmailUpdate | PhoneUpdate",
+                    "example": "EmailRegistration"
+                  },
+                  "owner": {
+                    "type": "string",
+                    "example": "test-004@test.com"
+                  },
+                  "code": {
+                    "type": "integer",
+                    "example": "037690"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/auth/registration/verify": {
+      "post": {
+        "tags": [
+          "Authentication- Normal"
+        ],
+        "summary": "Verify Registration",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "example": "abc"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "example": "abc"
+                  },
+                  "chat_name": {
+                    "type": "string",
+                    "example": "test-004"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "test-004@test.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "Test123!"
+                  },
+                  "pin": {
+                    "type": "integer",
+                    "example": "1111"
+                  },
+                  "phone": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/register": {
+      "post": {
+        "tags": [
+          "Authentication- Normal"
+        ],
+        "summary": "Register",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "example": "Test"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "example": "test-004"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "test-004@test.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "Test123!"
+                  },
+                  "pin": {
+                    "type": "integer",
+                    "example": "1111"
+                  },
+                  "player_id": {
+                    "type": "string",
+                    "example": "aaaaaa-bbbb-ccc"
+                  },
+                  "chat_name": {
+                    "type": "string",
+                    "example": "abc"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication- Normal"
+        ],
+        "summary": "Login",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "test-001@test.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "Test123!"
+                  },
+                  "token": {
+                    "type": "integer",
+                    "example": "022471"
+                  },
+                  "player_id": {
+                    "type": "string",
+                    "example": "bbbb-cccc-ddd"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/auth/token/refresh": {
+      "post": {
+        "tags": [
+          "Authentication- Normal"
+        ],
+        "summary": "Refresh token",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "Authentication- Normal"
+        ],
+        "summary": "Logout",
+        "requestBody": {
+          "content": {}
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/code": {
+      "post": {
+        "tags": [
+          "Authentication-authorization code"
+        ],
+        "summary": "Get Auth Code",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "email|phone",
+                    "example": "phone"
+                  },
+                  "owner": {
+                    "type": "integer",
+                    "description": "email address or phone number",
+                    "example": "13412340000"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/auth": {
+      "post": {
+        "tags": [
+          "Authentication-authorization code"
+        ],
+        "summary": "Authorize",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "example": "phone"
+                  },
+                  "owner": {
+                    "type": "integer",
+                    "example": "13412340000"
+                  },
+                  "code": {
+                    "type": "integer",
+                    "example": "833990"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/password/forgot": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Forgot password",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "owner": {
+                    "type": "string",
+                    "description": "email address | phone number",
+                    "example": "test-002@test.com"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "email | phone",
+                    "example": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/password/reset": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Reset Password",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "owner": {
+                    "type": "string",
+                    "example": "test-02@test.com"
+                  },
+                  "type": {
+                    "type": "string",
+                    "example": "email"
+                  },
+                  "code": {
+                    "type": "integer",
+                    "example": "613610"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "Test123!"
+                  },
+                  "pin": {
+                    "type": "integer",
+                    "example": "1111"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/pin/forgot": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Forgot Pin",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "owner": {
+                    "type": "string",
+                    "description": "email address | phone number",
+                    "example": "test-02@test.com"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "type = email | phone",
+                    "example": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/pin/reset": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Reset Pin",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "owner": {
+                    "type": "string",
+                    "example": "test-02@test.com"
+                  },
+                  "type": {
+                    "type": "string",
+                    "example": "email"
+                  },
+                  "code": {
+                    "type": "integer",
+                    "example": "014363"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "Test123!"
+                  },
+                  "pin": {
+                    "type": "integer",
+                    "example": "1111"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/avatar": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update Avatar",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "avatar": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/profile": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update Profile",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "example": "aaa"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "example": "bbb"
+                  },
+                  "chat_name": {
+                    "type": "string",
+                    "example": "test-02"
+                  },
+                  "bio": {
+                    "type": "string",
+                    "example": "hello"
+                  },
+                  "twitter": {
+                    "type": "string",
+                    "example": "www.twitter.com"
+                  },
+                  "instagram": {
+                    "type": "string",
+                    "example": "www.instagram.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/profile": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get Profile",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/background": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update Background",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "background": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{name}/brief": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get User Brief By Name",
+        "security": [],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "test-02"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/totp": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get totp temp secret",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Set up TOTP",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token1": {
+                    "type": "integer",
+                    "example": "111111"
+                  },
+                  "token2": {
+                    "type": "integer",
+                    "example": "111111"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/security": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update Security",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "example": "SMS"
+                  },
+                  "login_enabled": {
+                    "type": "boolean",
+                    "example": "false"
+                  },
+                  "withdraw_enabled": {
+                    "type": "boolean",
+                    "example": "false"
+                  },
+                  "code": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Query Users",
+        "security": [],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "terms",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "boolean"
+            },
+            "example": "false"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/username": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Search User By name",
+        "security": [],
+        "parameters": [
+          {
+            "name": "terms",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "example": "marline"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/profile/admin": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update User's profile - admin",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "example": "aa"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "example": "bb"
+                  },
+                  "chat_name": {
+                    "type": "string",
+                    "example": "test-02"
+                  },
+                  "phone": {
+                    "type": "integer",
+                    "example": "13212310000"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "test-02@test.com"
+                  },
+                  "bio": {
+                    "type": "string",
+                    "example": "biooooo"
+                  },
+                  "twitter": {
+                    "type": "string",
+                    "example": "www.ttt.com"
+                  },
+                  "instagram": {
+                    "type": "string",
+                    "example": "www.ins.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/credentials/reset": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Reset Credentials - admin",
+        "requestBody": {
+          "content": {}
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/credentials/setup": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Setup Credentials",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "test-002@test.com"
+                  },
+                  "code": {
+                    "type": "string",
+                    "example": "4S8ZR8EN"
+                  },
+                  "pin": {
+                    "type": "integer",
+                    "example": "1111"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "Test123!"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/status/update": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update User Status",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "description": "Normal | Locked | Suspend",
+                    "example": "Suspend"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/totp/reset": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Reset Totp - admin",
+        "requestBody": {
+          "content": {}
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/role/update": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update User Role - admin",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "integer",
+                    "example": "0"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/phone/update": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update Phone",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone": {
+                    "type": "string",
+                    "example": "+86 13412340000"
+                  },
+                  "code": {
+                    "type": "integer",
+                    "example": "760421"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/email/update": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update Email",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "test-admin@test.com"
+                  },
+                  "code": {
+                    "type": "integer",
+                    "example": "558661"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "3c2f08a47bafd061d9680d9df9122bd5"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/follow": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Follow user",
+        "requestBody": {
+          "content": {}
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "90576f62717d3fef4c5edc8feb8cebc6"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Un Follow user",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "90576f62717d3fef4c5edc8feb8cebc6"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Check followed",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "90576f62717d3fef4c5edc8feb8cebc6"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/followers": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get User's followers",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "90576f62717d3fef4c5edc8feb8cebc6"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/following": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get User's followings",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/assets": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get User's Assets",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "3c2f08a47bafd061d9680d9df9122bd5"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/analytics": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get user analytics",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "22c45744f2f24139b223ef96ce5f62e3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/featured": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Featured User",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "featured": {
+                    "type": "boolean",
+                    "example": "true"
+                  },
+                  "keys": {
+                    "type": "string",
+                    "example": "[]"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get Featured Users",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/collections": {
+      "post": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Create Collection",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "description"
+                  },
+                  "logo": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "background": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "website": {
+                    "type": "string",
+                    "description": "Optional"
+                  },
+                  "discord": {
+                    "type": "string",
+                    "description": "Optional"
+                  },
+                  "twitter": {
+                    "type": "string",
+                    "description": "Optional"
+                  },
+                  "instagram": {
+                    "type": "string",
+                    "description": "Optional"
+                  },
+                  "category_key": {
+                    "type": "string",
+                    "description": "Optional",
+                    "example": "domain-names"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Query Collections",
+        "parameters": [
+          {
+            "name": "terms",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "owner_key",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "include_all",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "example": "domain-names"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/collections/featured": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Get Featured Collections",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Bulk Update Feature Collection",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "featured": {
+                    "type": "boolean",
+                    "description": "true|false",
+                    "example": "true"
+                  },
+                  "keys": {
+                    "type": "string",
+                    "example": "[]"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/collections/{key}": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Get Collection",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "88926ff505ac26d8336bf254b1544839"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Delete Collection",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "88926ff505ac26d8336bf254b1544839"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Update Collection",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "name2"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "description2"
+                  },
+                  "website": {
+                    "type": "string",
+                    "example": "http://www.google.com"
+                  },
+                  "discord": {
+                    "type": "string",
+                    "example": "discord"
+                  },
+                  "instagram": {
+                    "type": "string",
+                    "example": "instagram"
+                  },
+                  "twitter": {
+                    "type": "string",
+                    "example": "twitter"
+                  },
+                  "category_key": {
+                    "type": "string",
+                    "example": "domain-names"
+                  },
+                  "logo": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "background": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "cf825af800928be0eca2f994e8d9642b"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/collections/{key}/featured": {
+      "put": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Feature Collection",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "featured": {
+                    "type": "boolean",
+                    "description": "true|false",
+                    "example": "true"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c575e02ee36a1c7ad0fe001110b8adc6"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/collections/user/{key}": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Get User's Collections",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "0f5ca2eaf0c75e6ced2efcd5f6dc3b90"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/collections/{key}/assign": {
+      "put": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Admin Assign collection to User",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_key": {
+                    "type": "string",
+                    "example": "22c45744f2f24139b223ef96ce5f62e3"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c575e02ee36a1c7ad0fe001110b8adc6"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/collections/{key}/analytics": {
+      "get": {
+        "tags": [
+          "Collection"
+        ],
+        "summary": "Get Collection Analytics",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "88926ff505ac26d8336bf254b1544839"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts": {
+      "post": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Create NFT",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Baby Alien #4"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Is he for love or abomination? Is he saint or is he evil? He may be alien to us but mankind to his world — T-WORLD. A step into his world will reveal a young, cheeky, intelligent (some say genius) alien child out for exploration. He speaks, albeit in a language we’ve yet to know. But he learns and mimics all the good (and the sad) in our world of thoughts. Very, very, keen ears, he’s always listening how to make your world just a little better, a little easier. He may look like abomination, but beneath it all, is a curious kind little soul that guides us with his light and encourage us to better ourselves."
+                  },
+                  "tags": {
+                    "type": "string",
+                    "example": "a,b,c"
+                  },
+                  "price": {
+                    "type": "integer",
+                    "description": "OPTIONAL",
+                    "example": "5"
+                  },
+                  "royalty": {
+                    "type": "number",
+                    "description": "OPTIONAL",
+                    "example": "0.05"
+                  },
+                  "currency": {
+                    "type": "string",
+                    "example": "LL"
+                  },
+                  "attributes": {
+                    "type": "string",
+                    "example": "[\n    {\n      \"trait_type\": \"Background\",\n      \"value\": \"SolidBlue\"\n    },\n    {\n      \"trait_type\": \"Back\",\n      \"value\": \"RollerSkate\"\n    },\n    {\n      \"trait_type\": \"Base\",\n      \"value\": \"GoldenBase\"\n    },\n    {\n      \"trait_type\": \"Special\",\n      \"value\": \"None\"\n    },\n    {\n      \"trait_type\": \"Clothes\",\n      \"value\": \"BaseballFans\"\n    },\n    {\n      \"trait_type\": \"Ears\",\n      \"value\": \"BasicHeadset\"\n    },\n    {\n      \"trait_type\": \"Head\",\n      \"value\": \"HeadbandSkyBlue\"\n    },\n    {\n      \"trait_type\": \"Mouth\",\n      \"value\": \"GoldenMustache\"\n    }\n  ]"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "ERC721 | ERC1155",
+                    "example": "ERC721"
+                  },
+                  "animation": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "collection_key": {
+                    "type": "string",
+                    "description": "Optional ",
+                    "example": "c575e02ee36a1c7ad0fe001110b8adc6"
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "description": "OPTIONAL",
+                    "example": "1"
+                  },
+                  "external_link": {
+                    "type": "string",
+                    "description": "OPTIONAL",
+                    "example": "www.abc.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Query NFTs",
+        "security": [],
+        "parameters": [
+          {
+            "name": "terms",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "owner_key",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "price_min",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "price_max",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "collection_key",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "on_market",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "featured",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Builk Delete NFTs",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/external/import": {
+      "post": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "External Import",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "contract_address": {
+                    "type": "string"
+                  },
+                  "token_id": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "platform": {
+                    "type": "string"
+                  },
+                  "user_key": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/users/{key}": {
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Get User's NFTs",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "0f5ca2eaf0c75e6ced2efcd5f6dc3b90"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/featured": {
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Get Featured NFTs",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Bulk Update Feature NFT",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "featured": {
+                    "type": "boolean",
+                    "example": "true"
+                  },
+                  "keys": {
+                    "type": "string",
+                    "example": "[]"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Bulk Update Feature NFT",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "featured": {
+                    "type": "boolean",
+                    "example": "true"
+                  },
+                  "keys": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}": {
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Get NFT",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "bedb72689ce3a3fe"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Update NFT",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "price": {
+                    "type": "string"
+                  },
+                  "attributes": {
+                    "type": "string"
+                  },
+                  "collection_key": {
+                    "type": "string"
+                  },
+                  "animation": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Delete NFT",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/related": {
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Get Releated NFTs",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/status": {
+      "put": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Update NFT status",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "description": "Pending|Approved|Rejected",
+                    "example": "Rejected-"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "bedb72689ce3a3fe"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/market/on": {
+      "put": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "List On Market",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "price": {
+                    "type": "string"
+                  },
+                  "price_type": {
+                    "type": "string",
+                    "description": "fixed| auction"
+                  },
+                  "auction_start": {
+                    "type": "string",
+                    "description": "timestamp"
+                  },
+                  "auction_end": {
+                    "type": "string",
+                    "description": "timestamp"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/market/off": {
+      "put": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "List Off Market",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "price": {
+                    "type": "string"
+                  },
+                  "price_type": {
+                    "type": "string",
+                    "description": "fixed| auction"
+                  },
+                  "auction_start": {
+                    "type": "string",
+                    "description": "timestamp"
+                  },
+                  "auction_end": {
+                    "type": "string",
+                    "description": "timestamp"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/buy": {
+      "post": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Buy NFT",
+        "requestBody": {
+          "content": {}
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/bids": {
+      "post": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Bid Nft",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "example": "LL"
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "example": "6"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Get Bids",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/offers": {
+      "post": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Make offer",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "integer",
+                    "example": "1"
+                  },
+                  "symbol": {
+                    "type": "string",
+                    "example": "LL"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "example": "test"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Get Offers",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/offers/{key}/accept": {
+      "post": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Accept Offer",
+        "requestBody": {
+          "content": {}
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "6caa029b4a6a0a55"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/offers/{key}/reject": {
+      "post": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Reject Offer",
+        "requestBody": {
+          "content": {}
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "6caa029b4a6a0a55"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/offers/{key}/cancel": {
+      "post": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Cancel Offer",
+        "requestBody": {
+          "content": {}
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "6caa029b4a6a0a55"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/featured": {
+      "put": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Feature NFT",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "featured": {
+                    "type": "boolean",
+                    "example": "true"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/like": {
+      "post": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Like a NFT",
+        "requestBody": {
+          "content": {}
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Unlike a NFT",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Check Liked NFT or not",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/{key}/nfts/fave/keys": {
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Get user's favorite NFT",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/users/liked": {
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Get NFT's follwers",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/purchase/logs": {
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Get Nft Purchase Logs",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "c933c06115588528791ef6f309fef367"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/nfts/{key}/ownership/logs": {
+      "get": {
+        "tags": [
+          "NFT"
+        ],
+        "summary": "Get Nft Ownership Logs",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/accounts/master": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Init Master Accounts",
+        "requestBody": {
+          "content": {}
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/accounts/{key}/mint": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Mint Coins to Master",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "integer",
+                    "example": "1000000"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "example": "Mint"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "4f28bc777dfa98f895996f910b536436"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/accounts": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Query Accounts",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "user_key",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "keys",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbols",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "addresses",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "example": "EXT"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/accounts/users/me": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Get My Accounts",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/accounts/{key}": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Get Account By Key",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "4e95d80becb9589b4bc07ad5273beed2"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/transactions/": {
+      "post": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Send Funds",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "example": "LL"
+                  },
+                  "sender": {
+                    "type": "string",
+                    "example": "0xfa510BDAD877C93BD510D84b9995341c7FE5D705"
+                  },
+                  "recipient": {
+                    "type": "string",
+                    "example": "0x03f16af45120F957d65daC93d74F760bE4AA5559"
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "example": "100"
+                  },
+                  "notes": {
+                    "type": "string",
+                    "example": "test send"
+                  },
+                  "mode": {
+                    "type": "string",
+                    "example": "transfer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "Sun, 01 May 2022 10:15:38 GMT"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "application/json; charset=utf-8"
+                }
+              },
+              "Transfer-Encoding": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "chunked"
+                }
+              },
+              "Connection": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "keep-alive"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "*"
+                }
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "default-src 'self';base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                }
+              },
+              "Cross-Origin-Embedder-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "require-corp"
+                }
+              },
+              "Cross-Origin-Opener-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "same-origin"
+                }
+              },
+              "Cross-Origin-Resource-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "same-origin"
+                }
+              },
+              "X-DNS-Prefetch-Control": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "off"
+                }
+              },
+              "Expect-CT": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "max-age=0"
+                }
+              },
+              "X-Frame-Options": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "SAMEORIGIN"
+                }
+              },
+              "Strict-Transport-Security": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "max-age=15552000; includeSubDomains"
+                }
+              },
+              "X-Download-Options": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "noopen"
+                }
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "nosniff"
+                }
+              },
+              "Origin-Agent-Cluster": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "?1"
+                }
+              },
+              "X-Permitted-Cross-Domain-Policies": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "none"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "no-referrer"
+                }
+              },
+              "X-XSS-Protection": {
+                "schema": {
+                  "type": "object",
+                  "type": "integer",
+                  "example": "0"
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "W/\"a2-yTjNIofPHJmpE/bRS6Yc81RuU9E\""
+                }
+              },
+              "CF-Cache-Status": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "DYNAMIC"
+                }
+              },
+              "Report-To": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "{\"endpoints\":[{\"url\":\"https:\\/\\/a.nel.cloudflare.com\\/report\\/v3?s=1JAUlFmbnU6V3WcEg4RpnmAPXzl4N8s0qYI8lmkBhgxi4PPeZ15oShz4Jg%2FsaC0aWUshRZ5imqLXekGsmK7dDkCQOv16g11%2BCjD01bzSLy7ZgQCRy3kG96IQ3pljVA2jyGOat86aaGOH\"}],\"group\":\"cf-nel\",\"max_age\":604800}"
+                }
+              },
+              "NEL": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}"
+                }
+              },
+              "Server": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "cloudflare"
+                }
+              },
+              "CF-RAY": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "7047c1c1a951df2c-MEL"
+                }
+              },
+              "Content-Encoding": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "br"
+                }
+              },
+              "alt-svc": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "h3=\":443\"; ma=86400, h3-29=\":443\"; ma=86400"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "type": "object"
+                },
+                "example": {
+                  "senderTxn": "ef8da532bb9587f983280f9a74b799999ebe89b072fc7398fc0e7c4a28549843",
+                  "recipientTxn": "02ec329a2a17ff0fb0cc450b81f0417c9990d7855ca4495c4b9d7adfccfb6512"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transactions": {
+      "get": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Query Txns",
+        "security": [],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "keys",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "owner",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "chain",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/transactions/accounts/{key}": {
+      "get": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Get Transactions by Account",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "718d35c4d8df6a3ad1db12ffdee91d53"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "Sun, 01 May 2022 10:16:21 GMT"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "application/json; charset=utf-8"
+                }
+              },
+              "Transfer-Encoding": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "chunked"
+                }
+              },
+              "Connection": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "keep-alive"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "*"
+                }
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "default-src 'self';base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                }
+              },
+              "Cross-Origin-Embedder-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "require-corp"
+                }
+              },
+              "Cross-Origin-Opener-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "same-origin"
+                }
+              },
+              "Cross-Origin-Resource-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "same-origin"
+                }
+              },
+              "X-DNS-Prefetch-Control": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "off"
+                }
+              },
+              "Expect-CT": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "max-age=0"
+                }
+              },
+              "X-Frame-Options": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "SAMEORIGIN"
+                }
+              },
+              "Strict-Transport-Security": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "max-age=15552000; includeSubDomains"
+                }
+              },
+              "X-Download-Options": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "noopen"
+                }
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "nosniff"
+                }
+              },
+              "Origin-Agent-Cluster": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "?1"
+                }
+              },
+              "X-Permitted-Cross-Domain-Policies": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "none"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "no-referrer"
+                }
+              },
+              "X-XSS-Protection": {
+                "schema": {
+                  "type": "object",
+                  "type": "integer",
+                  "example": "0"
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "W/\"764-oEvnlty3sWwjCYci9OQ5nFAGT/w\""
+                }
+              },
+              "CF-Cache-Status": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "DYNAMIC"
+                }
+              },
+              "Report-To": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "{\"endpoints\":[{\"url\":\"https:\\/\\/a.nel.cloudflare.com\\/report\\/v3?s=4PR409QBVvbjpzP%2FyqClswD4jmgx6KHMDLpi5%2FioDBvXbghievK6FrJSFX18NYu4gsgnuVR2WSJ7UjCvGuM0ZkD4eW2R%2BjsG%2FXSW%2BLxSNbpI3GlrB8RtcC%2FPNIVBlIEwjS6Z9zwFmjxY\"}],\"group\":\"cf-nel\",\"max_age\":604800}"
+                }
+              },
+              "NEL": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}"
+                }
+              },
+              "Server": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "cloudflare"
+                }
+              },
+              "CF-RAY": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "7047c2dfbe3fdf2c-MEL"
+                }
+              },
+              "Content-Encoding": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "br"
+                }
+              },
+              "alt-svc": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "h3=\":443\"; ma=86400, h3-29=\":443\"; ma=86400"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "type": "object"
+                },
+                "example": {
+                  "account": {
+                    "_id": "626e55e0190528e9f8c47af8",
+                    "key": "3d1f712d9a05b416cfe5978f8cb49445",
+                    "userId": "57497a1b072c53f51c578f35dc502fb0",
+                    "name": "LL Account",
+                    "symbol": "LL",
+                    "platform": "system",
+                    "type": "PRIME",
+                    "extType": "PRIME",
+                    "address": "0xA12e63346f2548927e65C66A1923eba3050D5913",
+                    "amount": 9,
+                    "amountLocked": 0,
+                    "extKey": "9deee93d481be981628f8f2ebdb82b04",
+                    "syncTimestamp": 0,
+                    "deposited": 0,
+                    "withdrawed": 0,
+                    "committed": 0,
+                    "removed": false,
+                    "modified": "2022-05-01T09:41:52.673Z",
+                    "created": "2022-05-01T09:41:52.673Z",
+                    "id": "626e55e0190528e9f8c47af8"
+                  },
+                  "txns": {
+                    "totalCount": 2,
+                    "pageIndex": 1,
+                    "pageSize": 50,
+                    "hasNextPage": false,
+                    "totalPages": 1,
+                    "items": [
+                      {
+                        "_id": "626e5dcacf96b09e6d55002c",
+                        "key": "ef8da532bb9587f983280f9a74b799999ebe89b072fc7398fc0e7c4a28549843",
+                        "owner": "9deee93d481be981628f8f2ebdb82b04",
+                        "symbol": "LL",
+                        "sender": "0xA12e63346f2548927e65C66A1923eba3050D5913",
+                        "recipient": "0x6e2849F9B82598f64A446A3fE66185c005a0B63d",
+                        "amount": -1,
+                        "type": "TRANSFER",
+                        "hash": "0xb31c2c0d96cb3f25897e3c6c3e05f08ccd0e3caf0a43135a4f4807affbff1933",
+                        "block": 0,
+                        "signature": "0x624c887cc51ad925f0bc0e7c0875a12119d10a88965bfefc9cd953c05182dbd420e5df5f036ad10e4455d6496d4c6bf05417d2b7a997ff565b36073c29c8390d1c",
+                        "notes": "test12",
+                        "created": "2022-05-01T10:15:38.494Z",
+                        "modified": "2022-05-01T10:15:38.494Z"
+                      },
+                      {
+                        "_id": "626e5ceacf96b09e6d550023",
+                        "key": "a1d4b923f9ef134f9a727e8365da19855ad78f76ebf9a2df532cf23e682c9d01",
+                        "owner": "9deee93d481be981628f8f2ebdb82b04",
+                        "symbol": "LL",
+                        "sender": "0x6e2849F9B82598f64A446A3fE66185c005a0B63d",
+                        "recipient": "0xA12e63346f2548927e65C66A1923eba3050D5913",
+                        "amount": 10,
+                        "type": "TRANSFER",
+                        "hash": "0xfd2e0d3a8d7c95abfadcbc79ccefa74bbe65be7e63ea06395439794e14d8893e",
+                        "block": 0,
+                        "signature": "0x2520bce9d56a2af2a6edcb7b8c7f9dad1aec4bc7d4d0481a83917b565063401b43e09a5009de077cc249dc97a70df7efd530a1f1b11aec7aa6272577190d6fab1b",
+                        "notes": "notes test",
+                        "created": "2022-05-01T10:11:54.021Z",
+                        "modified": "2022-05-01T10:11:54.021Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transactions/{key}/": {
+      "get": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Get Transaction Detail",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "e7a719298a24b347de462e52698840375e9897d687a191384815148f30a740f5"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "Date": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "Sun, 01 May 2022 10:17:03 GMT"
+                }
+              },
+              "Content-Type": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "application/json; charset=utf-8"
+                }
+              },
+              "Transfer-Encoding": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "chunked"
+                }
+              },
+              "Connection": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "keep-alive"
+                }
+              },
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "*"
+                }
+              },
+              "Content-Security-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "default-src 'self';base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+                }
+              },
+              "Cross-Origin-Embedder-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "require-corp"
+                }
+              },
+              "Cross-Origin-Opener-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "same-origin"
+                }
+              },
+              "Cross-Origin-Resource-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "same-origin"
+                }
+              },
+              "X-DNS-Prefetch-Control": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "off"
+                }
+              },
+              "Expect-CT": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "max-age=0"
+                }
+              },
+              "X-Frame-Options": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "SAMEORIGIN"
+                }
+              },
+              "Strict-Transport-Security": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "max-age=15552000; includeSubDomains"
+                }
+              },
+              "X-Download-Options": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "noopen"
+                }
+              },
+              "X-Content-Type-Options": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "nosniff"
+                }
+              },
+              "Origin-Agent-Cluster": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "?1"
+                }
+              },
+              "X-Permitted-Cross-Domain-Policies": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "none"
+                }
+              },
+              "Referrer-Policy": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "no-referrer"
+                }
+              },
+              "X-XSS-Protection": {
+                "schema": {
+                  "type": "object",
+                  "type": "integer",
+                  "example": "0"
+                }
+              },
+              "ETag": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "W/\"276-Sd0MCb5EHHmfltf8cPmiR8+9mYQ\""
+                }
+              },
+              "CF-Cache-Status": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "DYNAMIC"
+                }
+              },
+              "Report-To": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "{\"endpoints\":[{\"url\":\"https:\\/\\/a.nel.cloudflare.com\\/report\\/v3?s=kYoiCmevv15KDIMy1fmY1FWRjdDo2Ab4blr%2Fa94rmFS2WmWBF6%2BIiPs0Sfm8nSAIW%2FUzvYHDVkYMT33hOq%2BYirJ1Y4EEfbWSAO8IfGAhbM7CygtWRIqt3A4NuTTu2TbfBOyPw1%2FeYHB0\"}],\"group\":\"cf-nel\",\"max_age\":604800}"
+                }
+              },
+              "NEL": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "{\"success_fraction\":0,\"report_to\":\"cf-nel\",\"max_age\":604800}"
+                }
+              },
+              "Server": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "cloudflare"
+                }
+              },
+              "CF-RAY": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "7047c3e5db8cdf2c-MEL"
+                }
+              },
+              "Content-Encoding": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "br"
+                }
+              },
+              "alt-svc": {
+                "schema": {
+                  "type": "object",
+                  "type": "string",
+                  "example": "h3=\":443\"; ma=86400, h3-29=\":443\"; ma=86400"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "type": "object"
+                },
+                "example": {
+                  "_id": "626e5dcacf96b09e6d55002c",
+                  "key": "ef8da532bb9587f983280f9a74b799999ebe89b072fc7398fc0e7c4a28549843",
+                  "owner": "9deee93d481be981628f8f2ebdb82b04",
+                  "symbol": "LL",
+                  "sender": "0xA12e63346f2548927e65C66A1923eba3050D5913",
+                  "recipient": "0x6e2849F9B82598f64A446A3fE66185c005a0B63d",
+                  "amount": -1,
+                  "type": "TRANSFER",
+                  "hash": "0xb31c2c0d96cb3f25897e3c6c3e05f08ccd0e3caf0a43135a4f4807affbff1933",
+                  "block": 0,
+                  "signature": "0x624c887cc51ad925f0bc0e7c0875a12119d10a88965bfefc9cd953c05182dbd420e5df5f036ad10e4455d6496d4c6bf05417d2b7a997ff565b36073c29c8390d1c",
+                  "notes": "test12",
+                  "created": "2022-05-01T10:15:38.494Z",
+                  "modified": "2022-05-01T10:15:38.494Z"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/transactions/report/export": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Export Transactions",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "keys",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "owner",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "address",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "chain",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/list/export": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Export  Users",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/rates": {
+      "get": {
+        "tags": [
+          "Rates"
+        ],
+        "summary": "Get All Rates",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/rates/{symbol}": {
+      "get": {
+        "tags": [
+          "Rates"
+        ],
+        "summary": "Get Rate",
+        "security": [],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "ETH-USDT"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/rates/{symbol}/logs": {
+      "get": {
+        "tags": [
+          "Rates"
+        ],
+        "summary": "Get Rate Logs (50)",
+        "security": [],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "ETH-USDT"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/articles/": {
+      "post": {
+        "tags": [
+          "Articles"
+        ],
+        "summary": "Create Article",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Test2"
+                  },
+                  "tags": {
+                    "type": "string",
+                    "example": "nft,collection"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "News |  Guide",
+                    "example": "News"
+                  },
+                  "short_description": {
+                    "type": "string",
+                    "example": "short description"
+                  },
+                  "content": {
+                    "type": "string",
+                    "example": "content"
+                  },
+                  "cover_image": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/articles/{key}": {
+      "put": {
+        "tags": [
+          "Articles"
+        ],
+        "summary": "Update Article",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "Test-updated"
+                  },
+                  "tags": {
+                    "type": "string",
+                    "example": "a,b,c,d"
+                  },
+                  "type": {
+                    "type": "string",
+                    "example": "News"
+                  },
+                  "short_description": {
+                    "type": "string",
+                    "example": "short description"
+                  },
+                  "content": {
+                    "type": "string",
+                    "example": "updated - aaaabbbbcccdddeeeefff"
+                  },
+                  "coverImage": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "190eace514d0df65"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Article"
+        ],
+        "summary": "Get Article Detail",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Article"
+        ],
+        "summary": "Delete Article Detail",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/articles": {
+      "get": {
+        "tags": [
+          "Article"
+        ],
+        "summary": "Query Articles",
+        "security": [],
+        "parameters": [
+          {
+            "name": "terms",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_index",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "order_by",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "author",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Article"
+        ],
+        "summary": "Create Article",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "cover_image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "title": {
+                    "type": "string",
+                    "example": "Sample title"
+                  },
+                  "tags": {
+                    "type": "string",
+                    "example": "tag1,tag2,tag3"
+                  },
+                  "type": {
+                    "type": "string",
+                    "example": "Guide"
+                  },
+                  "short_description": {
+                    "type": "string",
+                    "example": "Sample short_description"
+                  },
+                  "content": {
+                    "type": "string",
+                    "example": "content"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/articles/files/upload": {
+      "post": {
+        "tags": [
+          "Article"
+        ],
+        "summary": "File Uploads",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "articles": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/settings/{nav_key}": {
+      "get": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Get Settings By Nav Key",
+        "security": [],
+        "parameters": [
+          {
+            "name": "nav_key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "GLOBAL_FEDERATION_SETTINGS"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Settings"
+        ],
+        "summary": "Update Settings",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "registration_require_email_verified": {
+                    "type": "boolean",
+                    "example": "true"
+                  },
+                  "registration_require_phone_verified": {
+                    "type": "boolean",
+                    "example": "false"
+                  },
+                  "login_require_mfa": {
+                    "type": "boolean",
+                    "example": "false"
+                  },
+                  "withdraw_require_mfa": {
+                    "type": "boolean",
+                    "example": "false"
+                  },
+                  "prime_transfer_fee": {
+                    "type": "number",
+                    "example": "0.1"
+                  },
+                  "nft_commission_fee_rate": {
+                    "type": "number",
+                    "example": "0.05"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "nav_key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "GLOBAL_FEDERATION_SETTINGS"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/articles:/key": {
+      "put": {
+        "tags": [
+          "Article"
+        ],
+        "summary": "Update Article",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "cover_image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "title": {
+                    "type": "string",
+                    "example": "Sample title"
+                  },
+                  "tags": {
+                    "type": "string",
+                    "example": "tag1,tag2,tag3"
+                  },
+                  "type": {
+                    "type": "string",
+                    "example": "Guide"
+                  },
+                  "short_description": {
+                    "type": "string",
+                    "example": "Sample short_description"
+                  },
+                  "content": {
+                    "type": "string",
+                    "example": "content"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/admin-logs": {
+      "get": {
+        "tags": [
+          "Logs"
+        ],
+        "summary": "Query Admin Logs",
+        "parameters": [
+          {
+            "name": "terms",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_index",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "order_by",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/exception-logs": {
+      "get": {
+        "tags": [
+          "Logs"
+        ],
+        "summary": "Query Exception Logs",
+        "parameters": [
+          {
+            "name": "terms",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_index",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort_by",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          },
+          {
+            "name": "order_by",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/sites/fed/hello": {
+      "get": {
+        "tags": [
+          "Site"
+        ],
+        "summary": "Hello Federation",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/sites/coin/hello": {
+      "get": {
+        "tags": [
+          "Site"
+        ],
+        "summary": "Hello Coin",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/sites/market/search": {
+      "get": {
+        "tags": [
+          "Site"
+        ],
+        "summary": "Hello Market Search",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/categories": {
+      "post": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Create Category",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "aaa"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "aaa"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Get Categories",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/categories/{key}": {
+      "get": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Get Category",
+        "security": [],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "domain-names"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Update Category",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "aaab"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "aaab"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "aaa"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Category"
+        ],
+        "summary": "Delete Category",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "aaa"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/misc/reports": {
+      "post": {
+        "tags": [
+          "Misc Report"
+        ],
+        "summary": "Create Misc Report",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "featureRequest | bug",
+                    "example": "bug"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "string",
+                    "example": "sample description"
+                  },
+                  "data": {
+                    "type": "string",
+                    "example": "sample data"
+                  },
+                  "images": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "video": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Misc Report"
+        ],
+        "summary": "Query Misc Reports",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Misc Report"
+        ],
+        "summary": "Bulk Delete Misc Report",
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/misc/reports/{key}": {
+      "get": {
+        "tags": [
+          "Misc Report"
+        ],
+        "summary": "Query Misc Reports Detail",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "ac3df13232"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Misc Report"
+        ],
+        "summary": "Update Misc Report",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "featureRequest | bug",
+                    "example": "bug"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "string",
+                    "example": "sample description"
+                  },
+                  "data": {
+                    "type": "string",
+                    "example": "sample data"
+                  },
+                  "images": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "video": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "ac3df13232"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/misc/reports/{key}/admin": {
+      "put": {
+        "tags": [
+          "Misc Report"
+        ],
+        "summary": "Update Misc Report By Admin",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "featureRequest | bug",
+                    "example": "bug"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "string",
+                    "example": "sample description"
+                  },
+                  "data": {
+                    "type": "string",
+                    "example": "sample data"
+                  },
+                  "images": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "video": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "pending | resolved",
+                    "example": "resolved"
+                  },
+                  "replay": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "schema": {
+              "type": "object",
+              "type": "string"
+            },
+            "required": true,
+            "example": "ac3df13232"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/misc/reports/status": {
+      "put": {
+        "tags": [
+          "Misc Report"
+        ],
+        "summary": "Bulk Update Misc Report Status",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "description": "pending | resolved",
+                    "example": "resolved"
+                  },
+                  "keys": {
+                    "type": "string",
+                    "description": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}
