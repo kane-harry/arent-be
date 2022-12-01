@@ -1,17 +1,13 @@
 import { config } from '@config'
+import data from './apiV1.json'
 
-/** DTO interfaces */
-import verificationCodeDtos from './openapi/dtos/verification.code'
-import userDtos from './openapi/dtos/user'
-
-/** ROUTES */
-import verificationCodeRoutes from './openapi/routes/verification.code'
-import userRoutes from './openapi/routes/user'
-
-/** RESPONSES */
-import responses from './openapi/responses'
-
+/**
+ * Step 1: Convert postman json to openapi swagger yaml file: https://metamug.com/util/postman-to-swagger/
+ * Step 2: Convert yaml to json: https://onlineyamltools.com/convert-yaml-to-json
+ * Step 3: Paste json content to apiV1.json
+ */
 export const openApiV1Documents = {
+    ...data,
     openapi: '3.0.3',
     info: {
         title: `${config.system.applicationName}`,
@@ -30,40 +26,5 @@ export const openApiV1Documents = {
             url: `${config.system.applicationApiRootURL}/api/v1`,
             description: ''
         }
-    ],
-    tags: [
-        {
-            name: 'Verification Code',
-            description: ''
-        },
-        {
-            name: 'User',
-            description: ''
-        },
-        {
-            name: 'Auth',
-            description: ''
-        }
-    ],
-    components: {
-        securitySchemes: {
-            BearerAuth: {
-                type: 'http',
-                scheme: 'bearer',
-                bearerFormat: 'JWT'
-            }
-        },
-        schemas: {},
-        requestBodies: {
-            ...verificationCodeDtos,
-            ...userDtos
-        },
-        responses: {
-            ...responses
-        }
-    },
-    paths: {
-        ...verificationCodeRoutes,
-        ...userRoutes
-    }
+    ]
 }
