@@ -16,7 +16,9 @@ export default class RateController {
 
     static async getRateLogs(req: CustomRequest, res: Response) {
         const symbol = req.params.symbol
-        const data = await RateService.getRateLogs(symbol)
+        const begin = parseInt(req.query.begin || 0)
+        const end = parseInt(req.query.end || 0)
+        const data = await RateService.getRateLogs(symbol, begin, end)
         return res.json(data)
     }
 }

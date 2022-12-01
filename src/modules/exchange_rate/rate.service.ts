@@ -1,3 +1,4 @@
+import { unixTimestampToDate } from '@utils/utility'
 import { RateLogModel, RateModel } from './rate.model'
 
 export default class RateService {
@@ -10,7 +11,18 @@ export default class RateService {
         return data
     }
 
-    static async getRateLogs(symbol: string) {
+    static async getRateLogs(symbol: string, begin: number, end: number) {
+        if (begin > 0 && end > 0) {
+            const filter: any = {
+                symbol
+            }
+            const beginDate = unixTimestampToDate(begin)
+            const endDate = unixTimestampToDate(end)
+            filter.created = { $gt: beginDate, $lt: endDate }
+
+            return await RateLogModel.find(filter).sort({ _id: -1 }).exec()
+        }
+
         return await RateLogModel.find({ symbol }).sort({ _id: -1 }).limit(50).exec()
     }
 }
