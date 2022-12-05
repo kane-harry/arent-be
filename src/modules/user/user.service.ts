@@ -27,7 +27,7 @@ import { generateRandomCode, generateUnixTimestamp, roundUp, unixTimestampToDate
 import { IUser, IUserQueryFilter, IUserRanking } from '@modules/user/user.interface'
 import { QueryRO } from '@interfaces/query.model'
 import { getNewSecret, verifyNewDevice } from '@utils/totp'
-import { stripPhoneNumber } from '@utils/phoneNumber'
+import { getPhoneInfo } from '@utils/phoneNumber'
 import VerificationCodeService from '@modules/verification_code/code.service'
 import sendSms from '@utils/sms'
 import AuthService from '@modules/auth/auth.service'
@@ -80,8 +80,8 @@ export default class UserService extends AuthService {
     }
 
     public static async register(userData: CreateUserDto, options?: IOptions) {
-        userData = await this.formatCreateUserDto(userData)
-        await this.verifyRegistration(userData)
+        userData = await AuthService.formatCreateUserDto(userData)
+        await AuthService.verifyRegistration(userData)
         const setting: ISetting = await SettingService.getGlobalSetting()
         const mfaSettings = { type: MFAType.EMAIL, login_enabled: setting.login_require_mfa, withdraw_enabled: setting.withdraw_require_mfa }
         let emailVerified = false
@@ -275,14 +275,21 @@ export default class UserService extends AuthService {
             user.set('email', email, String)
             user.set('email_verified', true, Boolean)
         }
-        const phone = await stripPhoneNumber(params.phone)
-        if (phone) {
-            const existingUser = await UserModel.findOne({ phone, removed: false }).exec()
-            if (existingUser && existingUser.key !== user.key) {
-                throw new BizException(AuthErrors.registration_phone_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
+        let phone
+        if (params.phone) {
+            const phoneInfo = getPhoneInfo(params.phone)
+            if (!phoneInfo.is_valid) {
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('user.service', 'updateProfileByAdmin', { phone: params.phone }))
             }
-            user.set('phone', phone, String)
-            user.set('phone_verified', true, Boolean)
+            phone = phoneInfo.phone
+            if (phone) {
+                const existingUser = await UserModel.findOne({ phone, removed: false }).exec()
+                if (existingUser && existingUser.key !== user.key) {
+                    throw new BizException(AuthErrors.registration_phone_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
+                }
+                user.set('phone', phone, String)
+                user.set('phone_verified', true, Boolean)
+            }
         }
         user.set('bio', params.bio, String)
         user.set('twitter', params.twitter, String)
@@ -332,12 +339,16 @@ export default class UserService extends AuthService {
             const email = toLower(trim(params.owner))
             user = await UserModel.findOne({ email, removed: false }).select('key email phone').exec()
         } else if (params.type === 'phone') {
-            const phone = await stripPhoneNumber(params.owner)
+            const phoneInfo = getPhoneInfo(params.owner)
+            if (!phoneInfo.is_valid) {
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('user.service', 'forgotPassword', { phone: params.owner }))
+            }
+            const phone = phoneInfo.phone
             user = await UserModel.findOne({ phone, removed: false }).select('key email phone').exec()
         }
 
         if (!user) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPassword', {}))
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'forgotPassword', {}))
         }
 
         const deliveryMethod = (owner: any, code: string) => {
@@ -369,7 +380,11 @@ export default class UserService extends AuthService {
             const email = toLower(trim(params.owner))
             user = await UserModel.findOne({ email, removed: false }).select('key email phone pin password').exec()
         } else if (params.type === 'phone') {
-            const phone = await stripPhoneNumber(params.owner)
+            const phoneInfo = getPhoneInfo(params.owner)
+            if (!phoneInfo.is_valid) {
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('user.service', 'resetPassword', { phone: params.owner }))
+            }
+            const phone = phoneInfo.phone
             user = await UserModel.findOne({ phone, removed: false }).select('key email phone pin password').exec()
         }
         if (!user) {
@@ -419,12 +434,16 @@ export default class UserService extends AuthService {
             const email = toLower(trim(params.owner))
             user = await UserModel.findOne({ email, removed: false }).select('key email phone').exec()
         } else if (params.type === 'phone') {
-            const phone = await stripPhoneNumber(params.owner)
+            const phoneInfo = getPhoneInfo(params.owner)
+            if (!phoneInfo.is_valid) {
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('user.service', 'forgotPin', { phone: params.owner }))
+            }
+            const phone = phoneInfo.phone
             user = await UserModel.findOne({ phone, removed: false }).select('key email phone').exec()
         }
 
         if (!user || !user.key) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'forgotPin', {}))
         }
 
         const deliveryMethod = (owner: any, code: string) => {
@@ -455,7 +474,11 @@ export default class UserService extends AuthService {
             const email = toLower(trim(params.owner))
             user = await UserModel.findOne({ email, removed: false }).select('key email phone password').exec()
         } else if (params.type === 'phone') {
-            const phone = await stripPhoneNumber(params.owner)
+            const phoneInfo = getPhoneInfo(params.owner)
+            if (!phoneInfo.is_valid) {
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('user.service', 'resetPin', { phone: params.owner }))
+            }
+            const phone = phoneInfo.phone
             user = await UserModel.findOne({ phone, removed: false }).select('key email phone password').exec()
         }
         if (!user || !user.key) {
@@ -660,7 +683,7 @@ export default class UserService extends AuthService {
         const user = await UserModel.findOne({ key, removed: false }).exec()
 
         if (!user) {
-            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('auth.service', 'forgotPin', {}))
+            throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'forgotPin', {}))
         }
 
         await new AdminLogModel({
@@ -892,8 +915,11 @@ export default class UserService extends AuthService {
         if (!user) {
             throw new BizException(AuthErrors.user_not_exists_error, new ErrorContext('user.service', 'updatePhone', {}))
         }
-
-        const phone = await stripPhoneNumber(params.phone)
+        const phoneInfo = getPhoneInfo(params.phone)
+        if (!phoneInfo.is_valid) {
+            throw new BizException(AuthErrors.invalid_phone, new ErrorContext('user.service', 'updatePhone', { phone: params.phone }))
+        }
+        const phone = phoneInfo.phone
         // check phone is available
         const existingUser = await UserModel.findOne({ phone, removed: false }).exec()
         if (existingUser && existingUser.key !== user.key) {

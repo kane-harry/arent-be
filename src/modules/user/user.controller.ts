@@ -6,7 +6,7 @@ import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middl
 import EmailService from '@modules/emaill/email.service'
 import { CreateUserAuthCodeDto } from '@modules/user_auth_code/user_auth_code.dto'
 import UserAuthCodeService from '@modules/user_auth_code/user_auth_code.service'
-import { getPhoneInfo, stripPhoneNumber } from '@utils/phoneNumber'
+import { getPhoneInfo } from '@utils/phoneNumber'
 import sendSms from '@utils/sms'
 import { downloadResource } from '@utils/utility'
 import { Request, Response } from 'express'
@@ -31,18 +31,16 @@ import {
 } from './user.dto'
 import { IUserQueryFilter } from './user.interface'
 import UserService from './user.service'
-import IOptions from '@interfaces/options.interface'
-import { IOperator } from '@interfaces/operator.interface'
 
 export default class UserController {
     static async getUserAuthCode(req: CustomRequest, res: Response) {
         const params: CreateUserAuthCodeDto = req.body
         if (params.type === UserAuthCodeType.Phone) {
-            params.owner = stripPhoneNumber(params.owner)
             const phoneInfo = getPhoneInfo(params.owner)
             if (!phoneInfo.is_valid) {
-                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('auth.controller', 'getUserAuthCode', { phone: params.owner }))
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('user.controller', 'getUserAuthCode', { phone: params.owner }))
             }
+            params.owner = phoneInfo.phone
         }
         const deliveryMethod = (owner: any, code: string) => {
             switch (params.type) {
@@ -64,11 +62,11 @@ export default class UserController {
     static async authorize(req: CustomRequest, res: Response) {
         const params: AuthorizeDto = req.body
         if (params.type === UserAuthCodeType.Phone) {
-            params.owner = stripPhoneNumber(params.owner)
             const phoneInfo = getPhoneInfo(params.owner)
             if (!phoneInfo.is_valid) {
-                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('auth.controller', 'getUserAuthCode', { phone: params.owner }))
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('user.controller', 'authorize', { phone: params.owner }))
             }
+            params.owner = phoneInfo.phone
         }
         const data = await UserService.authorize(params, { req })
 

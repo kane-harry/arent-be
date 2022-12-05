@@ -1,13 +1,15 @@
+// @ts-nocheck
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import request from 'supertest'
 import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
-import { getVerificationCode, initDataForUser, userData } from '@app/test/init/authenticate'
-import { config } from '@config'
-import SettingService from '@modules/setting/setting.service'
-import { formatPhoneNumberWithSymbol, stripPhoneNumber } from '@utils/phoneNumber'
+import { initDataForUser, userData } from '@app/test/init/authenticate'
+import { getPhoneInfo } from '@utils/phoneNumber'
 import { CodeType } from '@config/constants'
+import BizException from '@exceptions/biz.exception'
+import { AuthErrors } from '@exceptions/custom.error'
+import ErrorContext from '@exceptions/error.context'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -35,7 +37,15 @@ describe('Authentication', () => {
         expect(user?.first_name).equal(userData.first_name)
         expect(user?.last_name).equal(userData.last_name)
         expect(user?.email).equal(userData.email)
-        expect(await stripPhoneNumber(user?.phone)).equal(await stripPhoneNumber(userData.phone))
+        const phoneInfo1 = getPhoneInfo(user?.phone)
+        if (!phoneInfo1.is_valid) {
+            throw new BizException(AuthErrors.invalid_phone, new ErrorContext('test', 'register', { phone: userData.phone }))
+        }
+        const phoneInfo2 = getPhoneInfo(userData.phone)
+        if (!phoneInfo2.is_valid) {
+            throw new BizException(AuthErrors.invalid_phone, new ErrorContext('test', 'register', { phone: userData.phone }))
+        }
+        expect(phoneInfo1.phone).equal(phoneInfo2.phone)
         //Different
         expect(user?.password).not.equal(userData.password)
         expect(user?.pin).not.equal(userData.pin)

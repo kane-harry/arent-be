@@ -36,10 +36,11 @@ export const getPhoneInfo = (phone: string) => {
         country: ''
     }
     const phoneInfo = parsePhoneNumberFromString(formatted)
-    if (phoneInfo?.isValid()) {
-        result.country = String(phoneInfo?.country).toUpperCase()
+    if (phoneInfo) {
+        result.is_valid = phoneInfo.isValid()
+        result.country = String(phoneInfo.country).toUpperCase()
         result.phone = stripPhoneNumber(phone)
-        result.is_valid = true
     }
+
     return result
 }

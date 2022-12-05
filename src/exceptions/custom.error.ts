@@ -34,7 +34,7 @@ export const AuthErrors = {
     session_expired: { message: 'Session expired.', status: 401, code: 2011 },
     invalid_refresh_token: { message: 'Invalid auth token.', status: 400, code: 2012 },
     token_error: { message: 'Token is not correct', status: 400, code: 2013 },
-    invalid_phone: { message: 'Invalid phone.', status: 400, code: 2014 },
+    invalid_phone: { message: 'Invalid phone number.', status: 400, code: 2014 },
     token_require: { message: 'Token is required', status: 400, code: 2016 },
     invalid_pin_code_error: { message: 'Invalid pin code', status: 400, code: 2017 },
     user_locked_error: { message: 'Your account is locked, please contact customer service for help.', code: 2018, status: 400 },

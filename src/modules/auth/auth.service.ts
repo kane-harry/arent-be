@@ -35,7 +35,7 @@ export default class AuthService {
         if (userData.phone) {
             const phoneInfo = getPhoneInfo(userData.phone)
             if (!phoneInfo.is_valid) {
-                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('auth.service', 'register', { phone: userData.phone }))
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('auth.service', 'formatCreateUserDto', { phone: userData.phone }))
             }
             userData.phone = phoneInfo.phone
             userData.country = phoneInfo.country

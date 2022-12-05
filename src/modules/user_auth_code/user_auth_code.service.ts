@@ -1,8 +1,8 @@
 import BizException from '@exceptions/biz.exception'
 import ErrorContext from '@exceptions/error.context'
-import { UserAuthCodeErrors } from '@exceptions/custom.error'
+import { AuthErrors, UserAuthCodeErrors } from '@exceptions/custom.error'
 import moment from 'moment'
-import { stripPhoneNumber } from '@utils/phoneNumber'
+import { getPhoneInfo } from '@utils/phoneNumber'
 import { UserAuthCodeType } from '@config/constants'
 import { CreateUserAuthCodeDto, VerifyUserAuthCodeDto } from '@modules/user_auth_code/user_auth_code.dto'
 import UserAuthCode from '@modules/user_auth_code/user_auth_code.model'
@@ -56,7 +56,14 @@ export default class UserAuthCodeService {
         params.owner = String(params.owner).trim().toLowerCase()
         switch (params.type) {
             case UserAuthCodeType.Phone:
-                params.owner = stripPhoneNumber(params.owner)
+                const phoneInfo = getPhoneInfo(params.owner)
+                if (!phoneInfo.is_valid) {
+                    throw new BizException(
+                        AuthErrors.invalid_phone,
+                        new ErrorContext('user_auth_code.service', 'generateCode', { phone: params.owner })
+                    )
+                }
+                params.owner = phoneInfo.phone
         }
 
         const { code } = await this.storeCodeByActorAndType(params.owner, params.type)
@@ -70,7 +77,11 @@ export default class UserAuthCodeService {
 
     static async verifyCode(params: VerifyUserAuthCodeDto) {
         if ([UserAuthCodeType.Phone].includes(params.type)) {
-            params.owner = stripPhoneNumber(params.owner)
+            const phoneInfo = getPhoneInfo(params.owner)
+            if (!phoneInfo.is_valid) {
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('user_auth_code.service', 'verifyCode', { phone: params.owner }))
+            }
+            params.owner = phoneInfo.phone
         }
         params.owner = String(params.owner).trim().toLowerCase()
 

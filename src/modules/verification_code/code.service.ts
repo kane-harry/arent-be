@@ -5,7 +5,7 @@ import moment from 'moment'
 import { CreateCodeDto, VerifyCodeDto } from './code.dto'
 import { VerificationCode } from './code.model'
 import UserModel from '@modules/user/user.model'
-import { stripPhoneNumber } from '@utils/phoneNumber'
+import { getPhoneInfo } from '@utils/phoneNumber'
 import { CodeType } from '@config/constants'
 
 export default class VerificationCodeService {
@@ -59,7 +59,11 @@ export default class VerificationCodeService {
         switch (params.code_type) {
             case CodeType.PhoneRegistration:
             case CodeType.PhoneUpdate:
-                params.owner = stripPhoneNumber(params.owner)
+                const phoneInfo = getPhoneInfo(params.owner)
+                if (!phoneInfo.is_valid) {
+                    throw new BizException(AuthErrors.invalid_phone, new ErrorContext('code.service', 'generateCode', { phone: params.owner }))
+                }
+                params.owner = phoneInfo.phone
 
             // eslint-disable-next-line no-fallthrough
             case CodeType.EmailRegistration:
@@ -76,7 +80,7 @@ export default class VerificationCodeService {
                     [CodeType.EmailRegistration, CodeType.EmailUpdate].includes(params.code_type)
                         ? AuthErrors.registration_email_exists_error
                         : AuthErrors.registration_phone_exists_error,
-                    new ErrorContext('auth.service', 'generateCode', { owner: params.owner })
+                    new ErrorContext('code.service', 'generateCode', { owner: params.owner })
                 )
         }
 
@@ -91,7 +95,11 @@ export default class VerificationCodeService {
 
     static async verifyCode(params: VerifyCodeDto) {
         if ([CodeType.PhoneRegistration, CodeType.PhoneUpdate].includes(params.code_type)) {
-            params.owner = stripPhoneNumber(params.owner)
+            const phoneInfo = getPhoneInfo(params.owner)
+            if (!phoneInfo.is_valid) {
+                throw new BizException(AuthErrors.invalid_phone, new ErrorContext('code.service', 'verifyCode', { phone: params.owner }))
+            }
+            params.owner = phoneInfo.phone
         }
         params.owner = String(params.owner).trim().toLowerCase()
 

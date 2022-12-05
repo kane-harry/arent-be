@@ -4,9 +4,12 @@ import request from 'supertest'
 import { dbTest, MODELS, validResponse } from '../init/db'
 import server from '@app/server'
 import { adminData, initDataForUser, makeAdmin, userData } from '@app/test/init/authenticate'
-import { stripPhoneNumber } from '@utils/phoneNumber'
+import { getPhoneInfo } from '@utils/phoneNumber'
 import { CodeType } from '@config/constants'
 import UserModel from '@modules/user/user.model'
+import BizException from '@exceptions/biz.exception'
+import { AuthErrors } from '@exceptions/custom.error'
+import ErrorContext from '@exceptions/error.context'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -116,7 +119,11 @@ describe('Profile', () => {
     }).timeout(10000)
 
     it(`GetVerificationCode PhoneUpdate`, async () => {
-        const owner = await stripPhoneNumber(updateData.phone)
+        const phoneInfo = getPhoneInfo(updateData.phone)
+        if (!phoneInfo.is_valid) {
+            throw new BizException(AuthErrors.invalid_phone, new ErrorContext('test', 'register', { phone: userData.phone }))
+        }
+        const owner = await phoneInfo.phone
         const codeType = CodeType.PhoneUpdate
         const res = await request(server.app).post('/api/v1/verification/code/generate').send({
             code_type: codeType,

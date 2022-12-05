@@ -1,5 +1,8 @@
 import { config } from '@config'
-import { stripPhoneNumber } from '@utils/phoneNumber'
+import { getPhoneInfo } from '@utils/phoneNumber'
+import BizException from '@exceptions/biz.exception'
+import { AuthErrors } from '@exceptions/custom.error'
+import ErrorContext from '@exceptions/error.context'
 
 async function sendSms(subject: string, contents: string, phoneNumber: string) {
     const AWS = require('aws-sdk')
@@ -8,7 +11,11 @@ async function sendSms(subject: string, contents: string, phoneNumber: string) {
     AWS.config.update({ region: 'ap-southeast-1' })
 
     try {
-        const strippedPhoneNumber = await stripPhoneNumber(phoneNumber)
+        const phoneInfo = getPhoneInfo(phoneNumber)
+        if (!phoneInfo.is_valid) {
+            throw new BizException(AuthErrors.invalid_phone, new ErrorContext('sms', 'sendSms', { phone: phoneNumber }))
+        }
+        const strippedPhoneNumber = phoneInfo.phone
         const sns = new AWS.SNS()
         const params = {
             Message: contents,
