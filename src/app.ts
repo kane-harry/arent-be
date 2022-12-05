@@ -19,6 +19,7 @@ import NftScheduler from '@modules/jobs/nft.scheduler'
 import RankingScheduler from '@modules/jobs/ranking.scheduler'
 import IpfsScheduler from '@modules/jobs/ipfs.scheduler'
 import RarityScheduler from '@modules/jobs/rarity.scheduler'
+import TokenCandlesScheduler from '@modules/jobs/token.candles.schedule'
 
 class App {
     public app: express.Application
@@ -91,7 +92,14 @@ class App {
     }
 
     private initSchedulers() {
-        return [new RateScheduler(), new NftScheduler(), new RankingScheduler(), new IpfsScheduler(), new RarityScheduler()]
+        return [
+            new RateScheduler(),
+            new NftScheduler(),
+            new RankingScheduler(),
+            new IpfsScheduler(),
+            new RarityScheduler(),
+            new TokenCandlesScheduler()
+        ]
     }
 }
 

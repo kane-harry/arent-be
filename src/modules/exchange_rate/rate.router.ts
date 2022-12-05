@@ -13,6 +13,7 @@ export default class RateRouter implements ICustomRouter {
 
     private initRoutes() {
         this.router.get(`${this.path}`, asyncHandler(RateController.getAllRates))
+        this.router.get(`${this.path}/:symbol/candles`, asyncHandler(RateController.getCandles))
         this.router.get(`${this.path}/:symbol`, asyncHandler(RateController.getRate))
         this.router.get(`${this.path}/:symbol/logs`, asyncHandler(RateController.getRateLogs))
     }

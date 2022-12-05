@@ -8,3 +8,7 @@ export interface IRate extends IBaseModel {
 export interface IRateLog extends IRate {
     provider: string
 }
+
+export interface ITokenCandle extends IRateLog {
+    type: string
+}

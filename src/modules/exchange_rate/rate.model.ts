@@ -1,7 +1,6 @@
-import { config } from '@config'
 import { randomBytes } from 'crypto'
-import { Schema, Types, model } from 'mongoose'
-import { IRate, IRateLog } from './rate.interface'
+import { model, Schema } from 'mongoose'
+import { IRate, IRateLog, ITokenCandle } from './rate.interface'
 
 const rateSchema = new Schema<IRate>(
     {
@@ -62,7 +61,36 @@ const rateLogSchema = new Schema<IRateLog>(
     }
 )
 
+const tokenCandleSchema = new Schema<ITokenCandle>(
+    {
+        key: {
+            type: String,
+            required: true,
+            index: true,
+            unique: true,
+            default: () => {
+                return randomBytes(8).toString('hex')
+            }
+        },
+        symbol: String,
+        type: String,
+        rate: Number,
+        provider: {
+            type: String,
+            default: 'LightLink'
+        }
+    },
+    {
+        timestamps: {
+            createdAt: 'created',
+            updatedAt: 'modified'
+        },
+        versionKey: 'version'
+    }
+)
+
 const RateModel = model<IRate>('rates', rateSchema)
 const RateLogModel = model<IRateLog>('rate_logs', rateLogSchema)
+const TokenCandleModel = model<ITokenCandle>('token_candles', tokenCandleSchema)
 
-export { RateModel, RateLogModel }
+export { RateModel, RateLogModel, TokenCandleModel }

@@ -230,3 +230,11 @@ export enum MiscReportType {
     FeatureRequest = 'featureRequest',
     Bug = 'bug'
 }
+
+export enum RateChartType {
+    OneMinute = '1min',
+    FiveMinute = '5min',
+    ThirstyMinute = '30min',
+    OneHour = '1hour',
+    OneDay = '1day'
+}
