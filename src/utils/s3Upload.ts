@@ -120,7 +120,7 @@ export const resizeImages = async (
             const thumbs = await Promise.all(newFiles)
             newFilesOps = [...newFilesOps, ...thumbs]
         } else {
-            const fileName = uuid + '.gif'
+            const fileName = uuid + suffix
             const newFiles = map(sizes, async curSize => {
                 const data = await sharp(file.buffer, { animated: true })
                     .resize(curSize.maxSize, curSize.maxSize, { fit: sharp.fit.inside, withoutEnlargement: true })
