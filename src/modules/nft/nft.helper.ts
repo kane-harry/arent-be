@@ -1,3 +1,4 @@
+import { config } from '@config'
 import CollectionService from '@modules/collection/collection.service'
 import NftFavoriteModel from '@modules/nft_favorite/nft.favorite.model'
 import UserService from '@modules/user/user.service'
@@ -62,7 +63,8 @@ export default class NftHelper {
             last_purchase: nft.last_purchase ? last_purchase : null,
             reviewer,
             collection,
-            price_histories
+            price_histories,
+            platform: nft.platform || config.system.nftDefaultPlatform
         }
 
         if (requestUserKey) {
