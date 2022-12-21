@@ -92,9 +92,9 @@ export const resizeImages = async (
             newFilesOps.push(file)
             continue
         }
-        if (!/^image/i.test(file.mimetype)) {
-            throw new BizException(CommonErrors.uploader_image_types_error, new ErrorContext('s3Upload', 'resizeImages', {}))
-        }
+        // if (!/^image/i.test(file.mimetype)) {
+        //     throw new BizException(CommonErrors.uploader_image_types_error, new ErrorContext('s3Upload', 'resizeImages', {}))
+        // }
         const originalFile = {
             ...file,
             type: file.type ?? 'original',
