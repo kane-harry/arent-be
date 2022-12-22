@@ -89,6 +89,9 @@ export default class CollectionService {
         const offset = (params.page_index - 1) * params.page_size
         const filter: any = { $and: [{ removed: false }] }
         const sorting: any = { _id: 1 }
+        if (params.collection_key) {
+            filter.key = params.collection_key
+        }
         if (params.terms) {
             const reg = new RegExp(params.terms, 'i')
             filter.$or = [{ key: reg }, { name: reg }, { description: reg }, { type: reg }]
@@ -490,5 +493,21 @@ export default class CollectionService {
             .value()
         collection.attributes = statistic
         return await collection.save()
+    }
+
+    static async getCollectionActivity(params: ICollectionFilter) {
+        const offset = (params.page_index - 1) * params.page_size
+        const filter: any = { $and: [{ removed: false }] }
+        const sorting: any = { _id: 1 }
+        if (params.collection_key) {
+            filter.collection_key = params.collection_key
+        }
+        if (params.sort_by) {
+            delete sorting._id
+            sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1
+        }
+        const totalCount = await NftSaleLogModel.countDocuments(filter)
+        const items = await NftSaleLogModel.find<ICollection>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
+        return new QueryRO<ICollection>(totalCount, params.page_index, params.page_size, items)
     }
 }

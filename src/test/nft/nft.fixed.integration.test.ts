@@ -266,4 +266,25 @@ describe('NFT', () => {
         expect(res.status).equal(200)
         validResponse(res.body)
     }).timeout(10000)
+
+    it(`Get nft sale logs`, async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/nfts/${shareData.nfts[0].key}/sales/logs`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.symbol).equal(shareData.nfts[0].currency)
+        expect(res.body.chart.length).gt(0)
+    }).timeout(10000)
+
+    it(`Get collection sale logs`, async () => {
+        const res = await request(server.app)
+            .get(`/api/v1/collections/${shareData.collections[0].key}/sales/logs`)
+            .set('Authorization', `Bearer ${shareData.token}`)
+            .send()
+        expect(res.status).equal(200)
+        validResponse(res.body)
+        expect(res.body.items.length).gt(0)
+    }).timeout(10000)
 })

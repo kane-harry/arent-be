@@ -1,21 +1,19 @@
 // @ts-nocheck
-import { Request, Response } from 'express'
+import { Response } from 'express'
 import NftService from './nft.service'
-import { IUser } from '@modules/user/user.interface'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { INftFilter } from '@modules/nft/nft.interface'
 import {
+    BidNftDto,
     BulkDeleteNftDto,
+    BulkUpdateNftFeaturedDto,
     BulkUpdateNftStatusDto,
     CreateNftDto,
     ImportNftDto,
-    UpdateNftDto,
-    UpdateNftStatusDto,
-    NftOnMarketDto,
-    BidNftDto,
     MakeOfferDto,
-    UpdateNftFeaturedDto,
-    BulkUpdateNftFeaturedDto
+    NftOnMarketDto,
+    UpdateNftDto,
+    UpdateNftFeaturedDto
 } from './nft.dto'
 
 export default class NftController {
@@ -206,6 +204,14 @@ export default class NftController {
     static async getNftPurchaseLogs(req: CustomRequest, res: Response) {
         const { key } = req.params
         const data = await NftService.getNftPurchaseLogs(key)
+        return res.json(data)
+    }
+
+    static async getNftPriceCandles(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const begin = req.query.begin ? parseInt(req.query.begin) : undefined
+        const end = req.query.end ? parseInt(req.query.end) : undefined
+        const data = await NftService.getNftPriceCandles(key, begin, end)
         return res.json(data)
     }
 

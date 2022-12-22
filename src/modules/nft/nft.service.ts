@@ -12,22 +12,22 @@ import {
 import { NftBidLogModel, NftImportLogModel, NftModel, NftOfferModel, NftOwnershipLogModel, NftSaleLogModel } from './nft.model'
 import { CollectionModel } from '@modules/collection/collection.model'
 import { QueryRO } from '@interfaces/query.model'
-import { INft, INftBidLog, INftFilter, INftOffer, INftOwnershipLog, INftSaleLog } from '@modules/nft/nft.interface'
+import { INft, INftBidLog, INftFilter, INftOffer, INftOwnershipLog, INftSaleLog, INftSaleLogFilter } from '@modules/nft/nft.interface'
 import BizException from '@exceptions/biz.exception'
 import { AccountErrors, AuthErrors, CollectionErrors, CommonErrors, NftErrors } from '@exceptions/custom.error'
 import ErrorContext from '@exceptions/error.context'
 import { isAdmin, roleCan } from '@config/role'
 import UserService from '@modules/user/user.service'
 import {
+    AccountActionType,
     NFT_IMAGE_SIZES,
     NftActions,
     NftOnwerShipType,
     NftPriceType,
-    NftStatus,
-    OfferStatusType,
-    AccountActionType,
     NftPurchaseType,
-    NftType
+    NftStatus,
+    NftType,
+    OfferStatusType
 } from '@config/constants'
 import NftHistoryModel from '@modules/nft_history/nft_history.model'
 import CollectionService from '@modules/collection/collection.service'
@@ -36,7 +36,7 @@ import UserModel from '@modules/user/user.model'
 import AccountService from '@modules/account/account.service'
 import { config } from '@config'
 import { addToAcceptOfferQueue, addToBuyProductQueue } from '@modules/queues/nft_queue'
-import { generateUnixTimestamp, roundUp } from '@utils/utility'
+import { generateUnixTimestamp, roundUp, unixTimestampToDate } from '@utils/utility'
 import { parsePrimeAmount } from '@utils/number'
 import EmailService from '@modules/emaill/email.service'
 import IOptions from '@interfaces/options.interface'
@@ -48,6 +48,8 @@ import NftHelper from './nft.helper'
 import { uploadIpfs } from '@utils/ipfsUpload'
 import mongoose from 'mongoose'
 import { ethers } from 'ethers'
+import { ICollection } from '@modules/collection/collection.interface'
+
 const { isEmpty, reduce, isArray, filter, chain, map, countBy, forEach, findIndex, sumBy } = require('lodash')
 
 export default class NftService {
@@ -1119,8 +1121,8 @@ export default class NftService {
     }
 
     static async getNftPurchaseLogs(nft_key: string) {
-        const bids = await NftSaleLogModel.find({ nft_key }, { _id: 0 }).sort({ _id: -1 })
-        return bids
+        const logs = await NftSaleLogModel.find({ nft_key }, { _id: 0 }).sort({ _id: -1 })
+        return logs
     }
 
     static async getNftOwnershipLogs(nft_key: string) {
@@ -1289,6 +1291,52 @@ export default class NftService {
             await session.abortTransaction()
             session.endSession()
             throw error
+        }
+    }
+
+    static async getSaleLogs(params: INftSaleLogFilter) {
+        const offset = (params.page_index - 1) * params.page_size
+        const filter: any = { $and: [{ removed: false }] }
+        const sorting: any = { _id: 1 }
+        if (params.terms) {
+            const reg = new RegExp(params.terms, 'i')
+            filter.$or = [{ key: reg }, { nft_key: reg }, { currency: reg }, { 'seller.chat_name': reg }, { 'buyer.chat_name': reg }]
+        }
+        if (params.collection_key) {
+            filter.$and.push({ collection_key: { $eq: params.collection_key } })
+        }
+        if (params.sort_by) {
+            delete sorting._id
+            sorting[`${params.sort_by}`] = params.order_by === 'asc' ? 1 : -1
+        }
+        const totalCount = await NftSaleLogModel.countDocuments(filter)
+        const items = await NftSaleLogModel.find<ICollection>(filter).sort(sorting).skip(offset).limit(params.page_size).exec()
+        return new QueryRO<ICollection>(totalCount, params.page_index, params.page_size, items)
+    }
+
+    static async getNftPriceCandles(nft_key: string, begin?: number, end?: number) {
+        const nft = await NftModel.findOne({ key: nft_key })
+        if (!nft) {
+            throw new BizException(NftErrors.nft_not_exists_error, new ErrorContext('nft.service', 'getNftSaleLogs', { nft_key }))
+        }
+        const beginDate = begin ? unixTimestampToDate(begin) : moment().subtract(6, 'months').toDate()
+        const endDate = end ? unixTimestampToDate(end) : moment().toDate()
+
+        const filter: any = {
+            nft_key
+        }
+        filter.created = { $gte: beginDate, $lte: endDate }
+
+        const sales = await NftSaleLogModel.find(filter, { _id: 0 }).sort({ created: 1 })
+        const chart = sales.map(item => {
+            return {
+                time: item.created,
+                value: parseFloat(item.order_value.toString())
+            }
+        })
+        return {
+            symbol: nft.currency,
+            chart: chart
         }
     }
 }

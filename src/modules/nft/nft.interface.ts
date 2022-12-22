@@ -139,3 +139,8 @@ export interface INftOffer extends IBaseModel {
     user: Object | null
     secondary_market: boolean | undefined
 }
+
+export interface INftSaleLogFilter extends IFilterModel {
+    terms?: string
+    collection_key?: string
+}

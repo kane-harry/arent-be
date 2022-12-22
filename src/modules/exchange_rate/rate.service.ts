@@ -29,7 +29,7 @@ export default class RateService {
         return await RateLogModel.find({ symbol }).sort({ _id: -1 }).limit(50).exec()
     }
 
-    static async getCandles(symbol: string, type: string, begin: number, end: number) {
+    static async getCandles(symbol: string, type: string, begin?: number, end?: number) {
         type = type ?? RateChartType.OneMinute
         const filter: any = {
             symbol,

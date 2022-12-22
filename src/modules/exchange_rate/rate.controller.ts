@@ -11,8 +11,8 @@ export default class RateController {
     static async getCandles(req: CustomRequest, res: Response) {
         const symbol = req.params.symbol
         const type = req.query.type
-        const begin = parseInt(req.query.begin || 0)
-        const end = parseInt(req.query.end || 0)
+        const begin = req.query.begin ? parseInt(req.query.begin) : undefined
+        const end = req.query.end ? parseInt(req.query.end) : undefined
         const data = await RateService.getCandles(symbol, type, begin, end)
         return res.json(data)
     }

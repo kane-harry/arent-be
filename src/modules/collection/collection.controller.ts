@@ -1,6 +1,4 @@
-import { Router, Response } from 'express'
-import asyncHandler from '@utils/asyncHandler'
-import IController from '@interfaces/controller.interface'
+import { Response } from 'express'
 import CollectionService from './collection.service'
 import {
     AssignCollectionDto,
@@ -9,11 +7,10 @@ import {
     UpdateCollectionDto,
     UpdateCollectionFeaturedDto
 } from './collection.dto'
-import { requireAuth } from '@utils/authCheck'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import { ICollectionFilter } from '@modules/collection/collection.interface'
-import validationMiddleware from '@middlewares/validation.middleware'
-import IOptions from '@interfaces/options.interface'
+import NftService from '@modules/nft/nft.service'
+import { INftSaleLogFilter } from '@modules/nft/nft.interface'
 
 export default class CollectionController {
     static async createCollection(req: AuthenticationRequest, res: Response) {
@@ -105,6 +102,14 @@ export default class CollectionController {
 
     static async getTopCollections(req: CustomRequest, res: Response) {
         const data = await CollectionService.getTopCollections()
+        return res.json(data)
+    }
+
+    static async getCollectionActivity(req: CustomRequest, res: Response) {
+        const { key } = req.params
+        const filter = req.query as ICollectionFilter
+        filter.collection_key = key
+        const data = await CollectionService.getCollectionActivity(filter)
         return res.json(data)
     }
 }

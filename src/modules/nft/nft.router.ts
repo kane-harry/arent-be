@@ -3,17 +3,7 @@ import { Router } from 'express'
 import ICustomRouter from '@interfaces/custom.router.interface'
 import { requireAuth } from '@utils/authCheck'
 import Multer from 'multer'
-import {
-    BidNftDto,
-    BulkUpdateNftStatusDto,
-    CreateNftDto,
-    ImportNftDto,
-    MakeOfferDto,
-    NftOnMarketDto,
-    SendNftDto,
-    UpdateNftDto,
-    UpdateNftStatusDto
-} from './nft.dto'
+import { BidNftDto, BulkUpdateNftStatusDto, CreateNftDto, ImportNftDto, MakeOfferDto, NftOnMarketDto, SendNftDto, UpdateNftDto } from './nft.dto'
 import validationMiddleware from '@middlewares/validation.middleware'
 import { requireAdmin } from '@config/role'
 import NftController from './nft.controller'
@@ -59,6 +49,7 @@ export default class NftRouter implements ICustomRouter {
         this.router.put(`${this.path}/:key/featured`, requireAuth, requireAdmin(), asyncHandler(NftController.updateNftFeatured))
         this.router.put(`${this.path}/featured`, requireAuth, requireAdmin(), asyncHandler(NftController.bulkUpdateNftFeatured))
         this.router.get(`${this.path}/:key/purchase/logs`, asyncHandler(NftController.getNftPurchaseLogs))
+        this.router.get(`${this.path}/:key/price/candles`, asyncHandler(NftController.getNftPriceCandles))
         this.router.get(`${this.path}/:key/ownership/logs`, asyncHandler(NftController.getNftOwnershipLogs))
         this.router.post(`${this.path}/:key/send`, requireAuth, validationMiddleware(SendNftDto), asyncHandler(NftController.sendNft))
     }
