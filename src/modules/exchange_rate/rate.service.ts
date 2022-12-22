@@ -63,7 +63,7 @@ export default class RateService {
         }
         const endDate = end ? unixTimestampToDate(end) : moment().toDate()
         filter.created = { $gte: beginDate, $lte: endDate }
-        const items = await TokenCandleModel.find(filter).sort({ _id: -1 }).exec()
+        const items = await TokenCandleModel.find(filter).sort({ created: 1 }).exec()
         return new TokenCandlesRO(symbol, type, beginDate, endDate, items)
     }
 }
