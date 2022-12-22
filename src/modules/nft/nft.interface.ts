@@ -98,6 +98,8 @@ export interface INftSaleLog extends IBaseModel {
     buyer: object | undefined
     secondary_market: Boolean
     details: object | undefined
+    usd_unit_price?: number
+    usd_order_value?: number
 }
 
 export interface INftBidLog extends IBaseModel {

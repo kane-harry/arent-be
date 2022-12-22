@@ -178,6 +178,8 @@ const nftSaleLogSchema = new Schema<INftSaleLog>(
         order_value: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         commission_fee: { type: Types.Decimal128, default: new Types.Decimal128('0') },
         royalty_fee: { type: Types.Decimal128, default: new Types.Decimal128('0') },
+        usd_unit_price: Number,
+        usd_order_value: Number,
         quantity: Number,
         creator: Object,
         seller: Object,

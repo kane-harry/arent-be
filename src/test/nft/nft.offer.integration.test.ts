@@ -400,9 +400,9 @@ describe('NFT', () => {
         validResponse(res.body)
     }).timeout(10000)
 
-    it(`Get nft sale logs`, async () => {
+    it(`Get nft price candles`, async () => {
         const res = await request(server.app)
-            .get(`/api/v1/nfts/${shareData.nfts[0].key}/sales/logs`)
+            .get(`/api/v1/nfts/${shareData.nfts[0].key}/price/candles`)
             .set('Authorization', `Bearer ${shareData.token}`)
             .send()
         expect(res.status).equal(200)
@@ -411,9 +411,9 @@ describe('NFT', () => {
         expect(res.body.chart.length).gt(0)
     }).timeout(10000)
 
-    it(`Get collection sale logs`, async () => {
+    it(`Get collection activity`, async () => {
         const res = await request(server.app)
-            .get(`/api/v1/collections/${shareData.collections[0].key}/sales/logs`)
+            .get(`/api/v1/collections/${shareData.collections[0].key}/activity`)
             .set('Authorization', `Bearer ${shareData.token}`)
             .send()
         expect(res.status).equal(200)

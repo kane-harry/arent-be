@@ -49,6 +49,7 @@ import { uploadIpfs } from '@utils/ipfsUpload'
 import mongoose from 'mongoose'
 import { ethers } from 'ethers'
 import { ICollection } from '@modules/collection/collection.interface'
+import RateService from '@modules/exchange_rate/rate.service'
 
 const { isEmpty, reduce, isArray, filter, chain, map, countBy, forEach, findIndex, sumBy } = require('lodash')
 
@@ -673,6 +674,14 @@ export default class NftService {
     }
 
     static async addNftSaleLog(params: INftSaleLog) {
+        const rateResult = await RateService.getRate(`${params.currency}-USDT`)
+        const rate = rateResult ? rateResult.rate : 1
+        if (!params.usd_unit_price) {
+            params.usd_unit_price = roundUp(parseFloat(params.unit_price.toString()) * rate, 2)
+        }
+        if (!params.usd_order_value) {
+            params.usd_order_value = roundUp(parseFloat(params.order_value.toString()) * rate, 2)
+        }
         const model = new NftSaleLogModel({
             ...params
         })
@@ -1331,7 +1340,8 @@ export default class NftService {
         const chart = sales.map(item => {
             return {
                 time: item.created,
-                value: parseFloat(item.order_value.toString())
+                order_value: parseFloat(item.order_value.toString()),
+                usd_order_value: item.usd_order_value
             }
         })
         return {
