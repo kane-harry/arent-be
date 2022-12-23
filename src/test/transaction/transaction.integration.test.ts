@@ -11,6 +11,7 @@ import AccountService from '@modules/account/account.service'
 import { FeeMode, UserStatus } from '@config/constants'
 import { TransactionErrors } from '@exceptions/custom.error'
 import SettingService from '@modules/setting/setting.service'
+import { RateModel } from '@modules/exchange_rate/rate.model'
 
 chai.use(chaiAsPromised)
 const { expect, assert } = chai
@@ -35,6 +36,7 @@ describe('Transaction', () => {
     })
 
     it('InitDataForUser', async () => {
+        await RateModel.updateOne({ symbol: `${symbol}-USDT` }, { $set: { rate: 0.3 } }, { upsert: true }).exec()
         await initDataForUser(shareData1)
         await initDataForUser(shareData2, user1Data)
     }).timeout(10000)
@@ -354,6 +356,9 @@ describe('Transaction', () => {
         expect(res.body.symbol).equal(symbol)
         expect(res.body.sender).equal(account.address)
         expect(res.body.type).equal(transaction.type)
+        expect(res.body.amount_usd).exist
+        expect(res.body.fee_usd).exist
+        expect(res.body.usd_rate).exist
     }).timeout(10000)
 
     it('Export Transactions by Account', async () => {

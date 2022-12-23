@@ -38,6 +38,7 @@ export interface ISendCoinDto {
     fee: string
     mode?: string
     details?: object // addtional info
+    usd_rate?: string
 }
 
 export interface IEstimateFee {

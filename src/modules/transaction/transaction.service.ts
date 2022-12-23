@@ -15,6 +15,7 @@ import { ISetting } from '@modules/setting/setting.interface'
 import { AccountActionType, TransactionChain } from '@config/constants'
 import IOptions from '@interfaces/options.interface'
 import { IOperator } from '@interfaces/operator.interface'
+import { RateModel, RateLogModel } from '@modules/exchange_rate/rate.model'
 import { config } from '@config'
 import RateService from '@modules/exchange_rate/rate.service'
 import { roundUp } from '@utils/utility'
@@ -89,6 +90,8 @@ export default class TransactionService {
                 new ErrorContext('transaction.service', 'sendPrimeCoins', { sender: params.sender })
             )
         }
+        const rateResult = await RateModel.findOne({ symbol: `${symbol}-USDT` }).exec()
+        const rate = rateResult ? rateResult.rate : 1
         const sendData: ISendCoinDto = {
             symbol: symbol,
             sender: params.sender,
@@ -98,10 +101,11 @@ export default class TransactionService {
             type: 'TRANSFER',
             signature: signature,
             notes: params.notes,
-            details: {}, // addtional info
+            details: { usd_rate: rate }, // addtional info
             fee_address: masterAccount.address,
             fee: String(transferFee),
-            mode: params.mode
+            mode: params.mode,
+            usd_rate: String(rate)
         }
         const txn = await PrimeCoinProvider.sendPrimeCoins(sendData)
 
@@ -179,9 +183,21 @@ export default class TransactionService {
     }
 
     static async getTxnDetails(key: string) {
-        let txn = await TransactionService.getLocalTxnByKey(key)
+        let txn: any = await TransactionService.getLocalTxnByKey(key)
         if (!txn) {
             txn = await PrimeCoinProvider.getPrimeTxnByKey(key)
+        }
+        if (txn) {
+            if (!txn.usd_rate) {
+                const rateResult = await RateLogModel.find({ symbol: `${txn.symbol}-USDT`, created: { $lte: txn.created } })
+                    .sort({ created: -1 })
+                    .limit(1)
+                    .exec()
+                const rateData = rateResult[0]
+                txn.usd_rate = rateData ? rateData.rate : 1
+            }
+            txn.amount_usd = roundUp(parseFloat(txn.amount) * txn.usd_rate, 4)
+            txn.fee_usd = roundUp(parseFloat(txn.fee) * txn.usd_rate, 4)
         }
         return txn
     }

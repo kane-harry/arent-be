@@ -13,6 +13,7 @@ import { INft } from './nft.interface'
 import AccountSnapshotService from '@modules/account/account.snapshot.service'
 import { AccountActionType } from '@config/constants'
 import { IOperator } from '@interfaces/operator.interface'
+import { RateModel } from '@modules/exchange_rate/rate.model'
 
 export default class NftTradingService {
     static async allocatePrimeCoins(nft: INft, buyer: IUser, seller: IUser, operator: IOperator, options?: IOptions) {
@@ -49,6 +50,9 @@ export default class NftTradingService {
                 new ErrorContext('NftTrading.service', 'assignPrimeCoins', { price: nft.price })
             )
         }
+        const rateResult = await RateModel.findOne({ symbol: `${masterAccount.symbol}-USDT` }).exec()
+        const rate = rateResult ? rateResult.rate : 1
+
         // const transferFee = Number(setting.prime_transfer_fee || 0)
         const txnDetails = {
             type: 'PRODUCT',
@@ -62,7 +66,8 @@ export default class NftTradingService {
             buyer: buyer.key,
             buyer_address: buyerAccount.address,
             payment_order_value: Number(nft.price),
-            payment_symbol: nft.currency
+            payment_symbol: nft.currency,
+            usd_rate: rate
         }
 
         // 1. buyer send coins to master
@@ -86,7 +91,8 @@ export default class NftTradingService {
             notes: `NFT bought - name: ${nft.name}, key: ${nft.key} `,
             details: txnDetails,
             fee_address: masterAccount.address,
-            fee: String(0)
+            fee: String(0),
+            usd_rate: String(rate)
         }
         const buyerResponse = await PrimeCoinProvider.sendPrimeCoins(buyerTxnParams)
 
@@ -151,7 +157,8 @@ export default class NftTradingService {
                 notes: `NFT royalty - name: ${nft.name}, key: ${nft.key} `,
                 details: txnDetails,
                 fee_address: masterAccount.address,
-                fee: String(0)
+                fee: String(0),
+                usd_rate: String(rate)
             }
             const royaltyResponse = await PrimeCoinProvider.sendPrimeCoins(royaltyTxnParams)
 
@@ -213,7 +220,8 @@ export default class NftTradingService {
             notes: `NFT Sold - name: ${nft.name}, key: ${nft.key} `,
             details: txnDetails,
             fee_address: masterAccount.address,
-            fee: String(0)
+            fee: String(0),
+            usd_rate: String(rate)
         }
         const sellerResponse = await PrimeCoinProvider.sendPrimeCoins(royaltyTxnParams)
         const sellerTxn = sellerResponse.key
