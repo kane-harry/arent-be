@@ -7,7 +7,7 @@ import { toUpper, trim } from 'lodash'
 import { AccountErrors, TransactionErrors } from '@exceptions/custom.error'
 import { decryptKeyWithSalt, signMessage } from '@utils/wallet'
 import { PrimeCoinProvider } from '@providers/coin.provider'
-import { ISendCoinDto, ITransactionFilter } from './transaction.interface'
+import { IEstimateFee, ISendCoinDto, ITransactionFilter } from './transaction.interface'
 import { parsePrimeAmount } from '@utils/number'
 import { isAdmin } from '@config/role'
 import SettingService from '@modules/setting/setting.service'
@@ -15,6 +15,9 @@ import { ISetting } from '@modules/setting/setting.interface'
 import { AccountActionType, TransactionChain } from '@config/constants'
 import IOptions from '@interfaces/options.interface'
 import { IOperator } from '@interfaces/operator.interface'
+import { config } from '@config'
+import RateService from '@modules/exchange_rate/rate.service'
+import { roundUp } from '@utils/utility'
 
 export default class TransactionService {
     static async sendPrimeCoins(params: SendPrimeCoinsDto, operator: IOperator, options?: IOptions) {
@@ -187,5 +190,29 @@ export default class TransactionService {
         // find txn in fed db
         return null
         // throw new Error('Function not implemented.')
+    }
+
+    static async estimateFee(filter: IEstimateFee) {
+        let value = 0
+        let valueInUsd = 0
+        const symbol = filter.symbol?.toUpperCase()
+        if (symbol === config.system.primeToken) {
+            const setting: ISetting = await SettingService.getGlobalSetting()
+            value = Number(setting.prime_transfer_fee || 0)
+        }
+        const rate = await RateService.getRate(`${symbol}-USDT`)
+        if (rate) {
+            valueInUsd = roundUp(value * rate.rate, 4)
+        }
+        return {
+            fee: {
+                value: value,
+                symbol: filter.symbol
+            },
+            fee_currency: {
+                value: valueInUsd,
+                currency: 'USD'
+            }
+        }
     }
 }

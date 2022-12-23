@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { AuthenticationRequest, CustomRequest } from '@middlewares/request.middleware'
 import TransactionService from './transaction.service'
 import { SendPrimeCoinsDto } from './transaction.dto'
-import { ITransactionFilter } from './transaction.interface'
+import { IEstimateFee, ITransactionFilter } from './transaction.interface'
 import { downloadResource } from '@utils/utility'
 import mongoose from 'mongoose'
 
@@ -65,5 +65,11 @@ export default class TransactionController {
         ]
 
         return downloadResource(res, 'transactions.csv', fields, data.txns.items)
+    }
+
+    static async estimateFee(req: CustomRequest, res: Response) {
+        const filter = req.query as IEstimateFee
+        const data = await TransactionService.estimateFee(filter)
+        return res.json(data)
     }
 }

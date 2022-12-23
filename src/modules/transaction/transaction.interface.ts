@@ -39,3 +39,8 @@ export interface ISendCoinDto {
     mode?: string
     details?: object // addtional info
 }
+
+export interface IEstimateFee {
+    symbol?: string
+    network?: string
+}

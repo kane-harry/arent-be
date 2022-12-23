@@ -369,4 +369,26 @@ describe('Transaction', () => {
         expect(res.charset).equal('utf-8')
         expect(res.text.length).gt(0)
     }).timeout(10000)
+
+    it('Estimate Fee', async () => {
+        const res = await request(server.app).get(`/api/v1/send/estimatefee?symbol=ETH&network=ERC20`).send()
+        expect(res.status).equal(200)
+        expect(res.body.fee).exist
+        expect(res.body.fee.value).exist
+        expect(res.body.fee.symbol).exist
+        expect(res.body.fee_currency).exist
+        expect(res.body.fee_currency.value).exist
+        expect(res.body.fee_currency.currency).exist
+    }).timeout(10000)
+
+    it('Estimate Fee', async () => {
+        const res = await request(server.app).get(`/api/v1/send/estimatefee?symbol=${symbol}&network=ERC20`).send()
+        expect(res.status).equal(200)
+        expect(res.body.fee).exist
+        expect(res.body.fee.value).exist
+        expect(res.body.fee.symbol).exist
+        expect(res.body.fee_currency).exist
+        expect(res.body.fee_currency.value).exist
+        expect(res.body.fee_currency.currency).exist
+    }).timeout(10000)
 })
