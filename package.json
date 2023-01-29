@@ -1,7 +1,7 @@
 {
-  "name": "pellar-federation-ts",
+  "name": "arent-be",
   "version": "1.0.0",
-  "description": "pellar-federation-ts",
+  "description": "arent-be",
   "main": "server.js",
   "scripts": {
     "test": "mocha -r ts-node/register -r tsconfig-paths/register --transpile-only --exit",
@@ -14,15 +14,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pellartech/pellar-federation-ts.git"
+    "url": "git+https://github.com/pellartech/arent-be.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/pellartech/pellar-federation-ts/issues"
+    "url": "https://github.com/pellartech/arent-be/issues"
   },
-  "homepage": "https://github.com/pellartech/pellar-federation-ts#readme",
+  "homepage": "https://github.com/pellartech/arent-be#readme",
   "dependencies": {
     "@sendgrid/mail": "^6.5.5",
     "@types/axios": "^0.14.0",
